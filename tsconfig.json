@@ -1,0 +1,3 @@
+{
+  "extends": "@breezy/typescript-config/base.json"
+}

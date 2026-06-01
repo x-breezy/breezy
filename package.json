@@ -9,7 +9,10 @@
     "check-types": "turbo run check-types"
   },
   "devDependencies": {
-    "prettier": "^3.7.4",
+    "@breezy/eslint-config": "*",
+    "@breezy/typescript-config": "*",
+    "prettier": "^3.8.3",
+    "prettier-plugin-tailwindcss": "^0.8.0",
     "turbo": "^2.9.16",
     "typescript": "5.9.2"
   },
