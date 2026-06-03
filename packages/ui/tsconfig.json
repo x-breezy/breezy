@@ -1,0 +1,17 @@
+{
+  "extends": "@breezy/typescript-config/react-library.json",
+  "compilerOptions": {
+    "paths": {
+      "@breezy/ui/*": [
+        "./src/*"
+      ]
+    }
+  },
+  "include": [
+    "."
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
+}

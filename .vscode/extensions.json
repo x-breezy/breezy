@@ -1,0 +1,7 @@
+{
+  "recommendations": [
+    "vercel.turbo-vsc",
+    "esbenp.prettier-vscode",
+    "dbaeumer.vscode-eslint"
+  ]
+}

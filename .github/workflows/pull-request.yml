@@ -1,0 +1,10 @@
+# TODO: write the pull request github action for all pull requests
+#
+# I think we can use codecov : https://github.com/marketplace/actions/codecov
+# Check for :
+# - tests
+# - code coverage
+# - build
+# - linting
+# - typescript errors
+# - security vulnerabilities
