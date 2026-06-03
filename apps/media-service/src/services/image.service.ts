@@ -1,9 +1,10 @@
-import { ImageModel } from "@breezy/db"
-import type { CreateImageInput, ImageDocument } from "@breezy/db"
+import sharp from "sharp"
+import { ImageModel } from "../models/image.model"
+import type { CreateImageInput, ImageDocument } from "../models/image.model"
 
 class ImageService {
   optimizeImage(image: Buffer): Buffer {
-    // TODO: Implement image optimization logic (e.g., resizing, compression)
+    sharp(image).resize(2000, 2000, { fit: "inside" }).toFormat("jpeg", { quality: 80 })
     return image
   }
 
