@@ -1,21 +1,24 @@
-export interface ImageDto {
+export interface IImage {
   id: string
+  data: Buffer
   originalName: string
   mimeType: string
-  /** Size in bytes. */
   size: number
   width?: number
   height?: number
   alt?: string
   ownerId?: string
-  /** ISO-8601 timestamps. */
-  createdAt: string
-  updatedAt: string
+  createdAt: Date
+  updatedAt: Date
 }
 
-export interface CreateImageRequest {
+export interface ImageUploadDTO {
+  data: Buffer
   originalName: string
   mimeType: string
+  size: number
+  width?: number
+  height?: number
   alt?: string
   ownerId?: string
 }

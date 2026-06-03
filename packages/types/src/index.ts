@@ -1,2 +1,4 @@
-export * from "./media/image"
-export * from "./media/stored-file"
+export * from "./media/media.types"
+export * from "./media/image.types"
+
+export * from "./common/api.types"

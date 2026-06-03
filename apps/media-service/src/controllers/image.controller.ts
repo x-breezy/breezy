@@ -1,6 +1,7 @@
 import type { Request, Response } from "express"
-import { toImageDto } from "../mappers/image.mapper"
 import ImageService from "../services/image.service"
+import type { ApiResponse, IImage } from "@breezy/types"
+import { idParamSchema, uploadHeadersSchema } from "../validators/image.validator"
 
 class ImageController {
   private imageService: ImageService
@@ -9,42 +10,62 @@ class ImageController {
     this.imageService = imageService
   }
 
-  uploadImage = async (req: Request, res: Response): Promise<void> => {
+  uploadImage = async (req: Request, res: Response<ApiResponse<IImage>>): Promise<void> => {
     const data = req.body as Buffer
     if (!Buffer.isBuffer(data) || data.length === 0) {
-      res.status(400).json({ error: "Empty body" })
+      res.status(400).json({ success: false, error: "Empty body" })
       return
     }
 
-    const mimeType = req.get("content-type") ?? "application/octet-stream"
-    const originalName = req.get("x-filename") ?? "upload"
-    const ownerId = req.get("x-owner-id") ?? undefined
+    const headers = uploadHeadersSchema.safeParse(req.headers)
+    if (!headers.success) {
+      res
+        .status(400)
+        .json({ success: false, error: headers.error.issues[0]?.message || "Invalid headers" })
+      return
+    }
 
     const image = await this.imageService.uploadImage({
       data,
-      mimeType,
-      originalName,
+      mimeType: headers.data["content-type"],
+      originalName: headers.data["x-filename"],
       size: data.length,
-      ownerId,
+      ownerId: headers.data["x-owner-id"],
     })
 
-    res.status(201).json(toImageDto(image))
+    res.status(201).json({ success: true, data: image })
   }
 
-  getImage = async (req: Request, res: Response): Promise<void> => {
-    const image = await this.imageService.getImage(req.params.id ?? "")
-    if (!image) {
-      res.status(404).json({ error: "Not found" })
+  getImage = async (req: Request, res: Response<ApiResponse<IImage>>): Promise<void> => {
+    const params = idParamSchema.safeParse(req.params)
+    if (!params.success) {
+      res.status(400).json({ success: false, error: "Invalid id" })
       return
     }
 
-    res.set("content-type", image.mimeType)
-    res.send(image.data)
+    const image = await this.imageService.getImage(params.data.id)
+    if (!image) {
+      res.status(404).json({ success: false, error: "Not found" })
+      return
+    }
+
+    res.status(200).json({ success: true, data: image })
   }
 
-  deleteImage = async (req: Request, res: Response): Promise<void> => {
-    const deleted = await this.imageService.deleteImage(req.params.id ?? "")
-    res.status(deleted ? 204 : 404).end()
+  deleteImage = async (req: Request, res: Response<ApiResponse<null>>): Promise<void> => {
+    const params = idParamSchema.safeParse(req.params)
+    if (!params.success) {
+      res.status(400).json({ success: false, error: "Invalid id" })
+      return
+    }
+
+    const deleted = await this.imageService.deleteImage(params.data.id)
+    if (!deleted) {
+      res.status(404).json({ success: false, error: "Not found" })
+      return
+    }
+
+    res.status(200).json({ success: true, data: null })
   }
 }
 
