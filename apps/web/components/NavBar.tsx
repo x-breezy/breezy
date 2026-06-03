@@ -16,7 +16,7 @@ export function NavBar() {
   const active = (href: string) => pathname === href
 
   return (
-    <nav className='grid h-12 w-screen grid-cols-5 border-t'>
+    <nav className='grid h-15 w-screen grid-cols-5 border-t'>
       <a href='/home' className='flex w-full items-center justify-center'>
         {active("/home") ? <IconHomeFilled size={30} className='text-foreground' /> : <IconHome size={30} />}
       </a>
