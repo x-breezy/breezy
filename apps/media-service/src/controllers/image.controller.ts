@@ -1,7 +1,6 @@
 import type { Request, Response } from "express"
 import ImageService from "../services/image.service"
-import type { ApiResponse, IImage } from "@breezy/types"
-import { idParamSchema, uploadHeadersSchema } from "../validators/image.validator"
+import type { ApiResponse, IImageMeta } from "@breezy/types"
 
 class ImageController {
   private imageService: ImageService
@@ -10,56 +9,55 @@ class ImageController {
     this.imageService = imageService
   }
 
-  uploadImage = async (req: Request, res: Response<ApiResponse<IImage>>): Promise<void> => {
+  uploadImage = async (req: Request, res: Response<ApiResponse<IImageMeta>>): Promise<void> => {
     const data = req.body as Buffer
     if (!Buffer.isBuffer(data) || data.length === 0) {
       res.status(400).json({ success: false, error: "Empty body" })
       return
     }
 
-    const headers = uploadHeadersSchema.safeParse(req.headers)
-    if (!headers.success) {
-      res
-        .status(400)
-        .json({ success: false, error: headers.error.issues[0]?.message || "Invalid headers" })
-      return
-    }
-
+    // If the raw middleware parsed the body, content-type is always present.
     const image = await this.imageService.uploadImage({
       data,
-      mimeType: headers.data["content-type"],
-      originalName: headers.data["x-filename"],
+      mimeType: req.get("content-type")!,
+      originalName: req.get("x-filename") ?? "upload",
       size: data.length,
-      ownerId: headers.data["x-owner-id"],
+      ownerId: req.get("x-owner-id"),
     })
 
-    res.status(201).json({ success: true, data: image })
+    // Strip bytes from the response — clients fetch raw bytes via GET /:id.
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { data: _bytes, ...meta } = image
+    res.status(201).json({ success: true, data: meta })
   }
 
-  getImage = async (req: Request, res: Response<ApiResponse<IImage>>): Promise<void> => {
-    const params = idParamSchema.safeParse(req.params)
-    if (!params.success) {
-      res.status(400).json({ success: false, error: "Invalid id" })
-      return
-    }
-
-    const image = await this.imageService.getImage(params.data.id)
+  /** Stream raw bytes with content-type header (suitable for <img src="...">). */
+  getImage = async (req: Request, res: Response): Promise<void> => {
+    const image = await this.imageService.getImage(req.params.id)
     if (!image) {
       res.status(404).json({ success: false, error: "Not found" })
       return
     }
 
-    res.status(200).json({ success: true, data: image })
+    res.set("content-type", image.mimeType)
+    res.send(image.data)
   }
 
-  deleteImage = async (req: Request, res: Response<ApiResponse<null>>): Promise<void> => {
-    const params = idParamSchema.safeParse(req.params)
-    if (!params.success) {
-      res.status(400).json({ success: false, error: "Invalid id" })
+  /** Return metadata as JSON without the raw bytes. */
+  getImageMeta = async (req: Request, res: Response<ApiResponse<IImageMeta>>): Promise<void> => {
+    const image = await this.imageService.getImage(req.params.id)
+    if (!image) {
+      res.status(404).json({ success: false, error: "Not found" })
       return
     }
 
-    const deleted = await this.imageService.deleteImage(params.data.id)
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { data: _bytes, ...meta } = image
+    res.status(200).json({ success: true, data: meta })
+  }
+
+  deleteImage = async (req: Request, res: Response<ApiResponse<null>>): Promise<void> => {
+    const deleted = await this.imageService.deleteImage(req.params.id)
     if (!deleted) {
       res.status(404).json({ success: false, error: "Not found" })
       return

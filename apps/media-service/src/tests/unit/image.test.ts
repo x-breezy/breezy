@@ -1,7 +1,6 @@
 import ImageService from "../../services/image.service"
 import { ImageModel } from "../../models/image.model"
 
-// Replace the Mongoose model with mocks; these are pure-logic unit tests.
 jest.mock("../../models/image.model", () => ({
   ImageModel: {
     create: jest.fn(),
@@ -9,6 +8,16 @@ jest.mock("../../models/image.model", () => ({
     findByIdAndDelete: jest.fn(),
   },
 }))
+
+const OPTIMIZED = Buffer.from("optimized")
+
+jest.mock("sharp", () =>
+  jest.fn(() => ({
+    resize: jest.fn().mockReturnThis(),
+    toFormat: jest.fn().mockReturnThis(),
+    toBuffer: jest.fn().mockResolvedValue(OPTIMIZED),
+  }))
+)
 
 const mockedModel = ImageModel as jest.Mocked<typeof ImageModel>
 
@@ -21,27 +30,27 @@ describe("ImageService", () => {
   })
 
   describe("optimizeImage", () => {
-    it("returns a buffer (identity until optimization is implemented)", () => {
-      const input = Buffer.from("hello")
-      expect(service.optimizeImage(input)).toEqual(input)
+    it("returns the sharp-processed buffer", async () => {
+      const result = await service.optimizeImage(Buffer.from("hello"))
+      expect(result).toEqual(OPTIMIZED)
     })
   })
 
   describe("uploadImage", () => {
     it("persists optimized bytes and recomputes size", async () => {
       const data = Buffer.from("imagebytes")
-      const created = { id: "abc", size: data.length, mimeType: "image/png" }
+      const created = { id: "abc", size: OPTIMIZED.length, mimeType: "image/png" }
       ;(mockedModel.create as jest.Mock).mockResolvedValue(created)
 
       const result = await service.uploadImage({
         data,
         originalName: "test.png",
         mimeType: "image/png",
-        size: 0, // wrong on purpose: service must overwrite with real length
+        size: 0,
       })
 
       expect(mockedModel.create).toHaveBeenCalledWith(
-        expect.objectContaining({ data, size: data.length, mimeType: "image/png" })
+        expect.objectContaining({ data: OPTIMIZED, size: OPTIMIZED.length, mimeType: "image/png" })
       )
       expect(result).toBe(created)
     })

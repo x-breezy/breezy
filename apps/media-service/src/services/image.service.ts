@@ -3,7 +3,7 @@ import sharp from "sharp"
 import { ImageModel } from "../models/image.model"
 
 class ImageService {
-  private async optimizeImage(image: Buffer): Promise<Buffer> {
+  async optimizeImage(image: Buffer): Promise<Buffer> {
     return sharp(image)
       .resize(2000, 2000, { fit: "inside" })
       .toFormat("jpeg", { quality: 80 })
