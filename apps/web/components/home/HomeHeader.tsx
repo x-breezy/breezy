@@ -10,7 +10,7 @@ export function HomeHeader({ feed, onFeedChange }: { feed: string; onFeedChange:
   const router = useRouter()
 
   return (
-    <header className='sticky top-0 z-10 flex h-15 items-center justify-between border-b bg-background/80 px-4 backdrop-blur-sm'>
+    <header className='sticky top-0 flex h-15 items-center justify-between border-b bg-background/80 px-4 backdrop-blur-sm'>
       <button
         onClick={() => router.push("/post")}
         className='flex h-8 w-8 items-center justify-center rounded-md bg-muted text-foreground'
@@ -26,10 +26,7 @@ export function HomeHeader({ feed, onFeedChange }: { feed: string; onFeedChange:
 
         <Popover.Portal>
           <Popover.Positioner sideOffset={8}>
-            <Popover.Popup
-              style={{ zIndex: 9999 }}
-              className='min-w-[140px] overflow-hidden rounded-2xl border bg-background shadow-lg outline-none'
-            >
+            <Popover.Popup className='min-w-[140px] overflow-hidden rounded-2xl border bg-background shadow-lg outline-none'>
               {FEED_OPTIONS.map((option) => (
                 <Popover.Close
                   key={option}

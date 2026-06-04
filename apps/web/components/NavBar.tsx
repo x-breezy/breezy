@@ -18,27 +18,39 @@ export function NavBar() {
   return (
     <nav className='grid h-15 w-screen grid-cols-5 border-t'>
       <a href='/home' className='flex w-full items-center justify-center'>
-        {active("/home") ? <IconHomeFilled size={30} className='text-foreground' /> : <IconHome size={30} />}
+        {active("/home") ? (
+          <img src='/navbar/home_hover.svg' alt='Home' className='h-6 w-6' />
+        ) : (
+          <img src='/navbar/home.svg' alt='Home' className='h-6 w-6' />
+        )}
       </a>
       <a href='/search' className='flex w-full items-center justify-center'>
-        <IconSearch size={30} strokeWidth={active("/search") ? 3 : 2} />
+        {active("/search") ? (
+          <img src='/navbar/search_hover.svg' alt='Search' className='h-6 w-6' />
+        ) : (
+          <img src='/navbar/search.svg' alt='Search' className='h-6 w-6' />
+        )}
       </a>
       <a href='/grod' className='flex w-full items-center justify-center'>
         {active("/grod") ? (
-          <img src='/breezy_icon_green.svg' alt='Breezy' className='h-10 w-10 rounded-sm' />
+          <img src='/navbar/breezy_icon_green.svg' alt='Breezy' className='h-9 w-9 rounded-sm' />
         ) : (
-          <img src='/breezy_icon.svg' alt='Breezy' className='h-7 w-7' />
+          <img src='/navbar/breezy_icon.svg' alt='Breezy' className='h-6 w-6' />
         )}
       </a>
       <a href='/messages' className='flex w-full items-center justify-center'>
         {active("/messages") ? (
-          <IconMessageCircleFilled size={30} className='text-foreground' />
+          <img src='/navbar/send_hover.svg' alt='Send' className='h-6 w-6' />
         ) : (
-          <IconMessageCircle size={30} />
+          <img src='/navbar/send.svg' alt='Send' className='h-6 w-6' />
         )}
       </a>
       <a href='/profile' className='flex w-full items-center justify-center'>
-        {active("/profile") ? <IconUserFilled size={30} className='text-foreground' /> : <IconUser size={30} />}
+        {active("/profile") ? (
+          <img src='/navbar/pp_test.png' alt='Profile' className='h-6 w-6 rounded-full border-2 border-black' />
+        ) : (
+          <img src='/navbar/pp_test.png' alt='Profile' className='h-6 w-6 rounded-full' />
+        )}
       </a>
     </nav>
   )
