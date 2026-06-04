@@ -43,7 +43,7 @@ export function HomeHeader({ feed, onFeedChange }: { feed: string; onFeedChange:
         </Popover.Portal>
       </Popover.Root>
 
-      <button onClick={() => router.push("/notifications")} className='text-foreground'>
+      <button aria-label='Notifications' onClick={() => router.push("/notifications")} className='text-foreground'>
         <IconBell size={22} strokeWidth={1.75} />
       </button>
     </header>
