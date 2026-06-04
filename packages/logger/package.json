@@ -1,0 +1,23 @@
+{
+  "name": "@breezy/logger",
+  "version": "0.0.0",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "types": "./src/index.ts",
+  "scripts": {
+    "lint": "eslint src/",
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "pino": "^9.5.0",
+    "pino-pretty": "^13.0.0"
+  },
+  "devDependencies": {
+    "@breezy/eslint-config": "*",
+    "@breezy/typescript-config": "*",
+    "@types/node": "^22.0.0",
+    "typescript": "^5"
+  }
+}
