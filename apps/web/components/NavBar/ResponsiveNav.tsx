@@ -18,7 +18,7 @@ export function ResponsiveNav() {
   return (
     <>
       {/* Mobile: Bottom bar - visible en dessous de lg */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 grid h-15 grid-cols-5 border-t bg-background pb-[env(safe-area-inset-bottom)] lg:hidden">
+      <nav className='fixed right-0 bottom-0 left-0 z-50 grid h-15 grid-cols-5 border-t bg-background pb-[env(safe-area-inset-bottom)] lg:hidden'>
         {NAV_ITEMS.map(({ href, icon, label }) => (
           <NavItem
             key={href}
@@ -27,25 +27,25 @@ export function ResponsiveNav() {
             label={label}
             isActive={pathname === href}
             showLabel={false}
-            iconClassName="block size-6"
+            iconClassName='block size-6'
           />
         ))}
         <NavItem
-          href="/profile"
+          href='/profile'
           icon={ProfileIcon}
-          label="Profile"
+          label='Profile'
           isActive={pathname === "/profile"}
           showLabel={false}
-          iconClassName="block size-6"
+          iconClassName='block size-6'
         />
       </nav>
 
       {/* Desktop: Sidebar - visible à partir de lg */}
-      <aside className="fixed left-0 top-0 z-50 hidden h-screen w-64 flex-col border-r bg-background py-6 lg:flex">
-        <div className="px-6 pb-6">
-          <span className="text-xl font-bold">Breezy</span>
+      <aside className='fixed top-0 left-0 z-50 hidden h-screen w-64 flex-col border-r bg-background py-6 lg:flex'>
+        <div className='px-6 pb-6'>
+          <span className='font-georama text-xl font-bold'>Breezy</span>
         </div>
-        <nav className="flex flex-1 flex-col gap-1">
+        <nav className='flex flex-1 flex-col gap-1'>
           {NAV_ITEMS.map(({ href, icon, label }) => (
             <NavItem
               key={href}
@@ -54,16 +54,16 @@ export function ResponsiveNav() {
               label={label}
               isActive={pathname === href}
               showLabel={true}
-              iconClassName="block size-7"
+              iconClassName='block size-7'
             />
           ))}
           <NavItem
-            href="/profile"
+            href='/profile'
             icon={ProfileIcon}
-            label="Profile"
+            label='Profile'
             isActive={pathname === "/profile"}
             showLabel={true}
-            iconClassName="block size-7"
+            iconClassName='block size-7'
           />
         </nav>
       </aside>
