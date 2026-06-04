@@ -234,6 +234,30 @@ describe("GET /posts/feed", () => {
     expect(res.body.data).toHaveProperty("total")
   })
 
+  it("filters by followedUserIds when provided", async () => {
+    mockFindPaginated([MOCK_POST], 1)
+
+    await request(app)
+      .get("/posts/feed?followedUserIds=user1,user2")
+      .set("x-user-id", "user1")
+      .set("x-roles", "user")
+
+    expect(mockedModel.find).toHaveBeenCalledWith({
+      authorId: { $in: ["user1", "user2"] },
+    })
+  })
+
+  it("returns all posts when followedUserIds is absent", async () => {
+    mockFindPaginated([MOCK_POST], 1)
+
+    await request(app)
+      .get("/posts/feed")
+      .set("x-user-id", "user1")
+      .set("x-roles", "user")
+
+    expect(mockedModel.find).toHaveBeenCalledWith({})
+  })
+
   it("returns 401 without auth", async () => {
     const res = await request(app).get("/posts/feed")
     expect(res.status).toBe(401)
@@ -398,8 +422,109 @@ describe("DELETE /posts/:id", () => {
     expect(res.body.success).toBe(true)
   })
 
+  it("returns 404 when post is deleted between ownership check and deletion", async () => {
+    ;(mockedModel.findById as jest.Mock).mockReturnValue({
+      exec: jest.fn().mockResolvedValue({ authorId: "user1" }),
+    })
+    ;(mockedModel.findByIdAndDelete as jest.Mock).mockReturnValue({
+      exec: jest.fn().mockResolvedValue(null),
+    })
+
+    const res = await request(app)
+      .delete("/posts/abc")
+      .set("x-user-id", "user1")
+      .set("x-roles", "user")
+
+    expect(res.status).toBe(404)
+    expect(res.body.success).toBe(false)
+  })
+
   it("returns 401 without auth", async () => {
     const res = await request(app).delete("/posts/abc")
     expect(res.status).toBe(401)
+  })
+})
+
+// ─── Error handler (500) ─────────────────────────────────────────────────────
+
+describe("global error handler", () => {
+  beforeEach(() => {
+    jest.spyOn(console, "error").mockImplementation(() => {})
+  })
+
+  it("returns 500 when PostModel.create throws", async () => {
+    ;(mockedModel.create as jest.Mock).mockRejectedValue(new Error("db error"))
+
+    const res = await request(app)
+      .post("/posts")
+      .set("x-user-id", "user1")
+      .set("x-roles", "user")
+      .send({ content: "Hello" })
+
+    expect(res.status).toBe(500)
+    expect(res.body).toEqual({ success: false, error: "Internal server error" })
+  })
+
+  it("returns 500 when PostModel.findById throws on GET /:id", async () => {
+    ;(mockedModel.findById as jest.Mock).mockReturnValue({
+      exec: jest.fn().mockRejectedValue(new Error("db error")),
+    })
+
+    const res = await request(app)
+      .get("/posts/abc")
+      .set("x-user-id", "user1")
+      .set("x-roles", "user")
+
+    expect(res.status).toBe(500)
+  })
+
+  it("returns 500 when PostModel.find throws on GET /feed", async () => {
+    ;(mockedModel.find as jest.Mock).mockReturnValue({
+      sort: jest.fn().mockReturnThis(),
+      skip: jest.fn().mockReturnThis(),
+      limit: jest.fn().mockReturnThis(),
+      exec: jest.fn().mockRejectedValue(new Error("db error")),
+    })
+    ;(mockedModel.countDocuments as jest.Mock).mockResolvedValue(0)
+
+    const res = await request(app)
+      .get("/posts/feed")
+      .set("x-user-id", "user1")
+      .set("x-roles", "user")
+
+    expect(res.status).toBe(500)
+  })
+
+  it("returns 500 when PostModel.find throws on GET /users/:userId", async () => {
+    ;(mockedModel.find as jest.Mock).mockReturnValue({
+      sort: jest.fn().mockReturnThis(),
+      skip: jest.fn().mockReturnThis(),
+      limit: jest.fn().mockReturnThis(),
+      exec: jest.fn().mockRejectedValue(new Error("db error")),
+    })
+    ;(mockedModel.countDocuments as jest.Mock).mockResolvedValue(0)
+
+    const res = await request(app)
+      .get("/posts/users/user1")
+      .set("x-user-id", "user1")
+      .set("x-roles", "user")
+
+    expect(res.status).toBe(500)
+  })
+
+  it("returns 500 when PostModel.findByIdAndDelete throws on DELETE /:id", async () => {
+    ;(mockedModel.findById as jest.Mock).mockReturnValue({
+      exec: jest.fn().mockResolvedValue({ authorId: "user1" }),
+    })
+    ;(mockedModel.findByIdAndDelete as jest.Mock).mockReturnValue({
+      exec: jest.fn().mockRejectedValue(new Error("db error")),
+    })
+
+    const res = await request(app)
+      .delete("/posts/abc")
+      .set("x-user-id", "user1")
+      .set("x-roles", "user")
+
+    expect(res.status).toBe(500)
   })
 })

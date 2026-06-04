@@ -295,8 +295,89 @@ describe("DELETE /images/:id", () => {
     expect(res.body.success).toBe(false)
   })
 
+  it("returns 404 when image is deleted between ownership check and service call", async () => {
+    ;(mockedModel.findById as jest.Mock).mockReturnValue({
+      exec: jest.fn().mockResolvedValue(MOCK_DOC), // ownership passes
+    })
+    ;(mockedModel.findByIdAndDelete as jest.Mock).mockReturnValue({
+      exec: jest.fn().mockResolvedValue(null), // service returns false
+    })
+
+    const res = await request(app)
+      .delete("/images/abc")
+      .set("x-user-id", "user-1")
+      .set("x-roles", "user")
+
+    expect(res.status).toBe(404)
+    expect(res.body.success).toBe(false)
+  })
+
   it("returns 401 without auth", async () => {
     const res = await request(app).delete("/images/abc")
     expect(res.status).toBe(401)
+  })
+})
+
+// ─── Error handler (500) ─────────────────────────────────────────────────────
+
+describe("image controller error handling", () => {
+  beforeEach(() => {
+    jest.spyOn(console, "error").mockImplementation(() => {})
+  })
+
+  it("returns 500 when ImageService.uploadImage throws", async () => {
+    ;(mockedModel.create as jest.Mock).mockRejectedValue(new Error("db error"))
+
+    const res = await request(app)
+      .post("/images")
+      .set("Content-Type", "image/png")
+      .set("x-user-id", "user-1")
+      .set("x-roles", "user")
+      .send(PNG)
+
+    expect(res.status).toBe(500)
+    expect(res.body).toEqual({ success: false, error: "Internal server error" })
+  })
+
+  it("returns 500 when ImageService.getImage throws on GET /:id", async () => {
+    ;(mockedModel.findById as jest.Mock).mockReturnValue({
+      exec: jest.fn().mockRejectedValue(new Error("db error")),
+    })
+
+    const res = await request(app)
+      .get("/images/abc")
+      .set("x-user-id", "user-1")
+      .set("x-roles", "user")
+
+    expect(res.status).toBe(500)
+  })
+
+  it("returns 500 when ImageService.getImage throws on GET /:id/meta", async () => {
+    ;(mockedModel.findById as jest.Mock).mockReturnValue({
+      exec: jest.fn().mockRejectedValue(new Error("db error")),
+    })
+
+    const res = await request(app)
+      .get("/images/abc/meta")
+      .set("x-user-id", "user-1")
+      .set("x-roles", "user")
+
+    expect(res.status).toBe(500)
+  })
+
+  it("returns 500 when ImageService.deleteImage throws", async () => {
+    ;(mockedModel.findById as jest.Mock).mockReturnValue({
+      exec: jest.fn().mockResolvedValue(MOCK_DOC),
+    })
+    ;(mockedModel.findByIdAndDelete as jest.Mock).mockReturnValue({
+      exec: jest.fn().mockRejectedValue(new Error("db error")),
+    })
+
+    const res = await request(app)
+      .delete("/images/abc")
+      .set("x-user-id", "user-1")
+      .set("x-roles", "user")
+
+    expect(res.status).toBe(500)
   })
 })

@@ -349,8 +349,100 @@ describe("DELETE /videos/:id", () => {
     expect(res.body.success).toBe(false)
   })
 
+  it("returns 404 when video is deleted between ownership check and service call", async () => {
+    // Ownership middleware passes (first findById), then service.delete's own findById returns null
+    ;(mockedModel.findById as jest.Mock)
+      .mockReturnValueOnce({ exec: jest.fn().mockResolvedValue(MOCK_META) }) // ownership
+      .mockReturnValueOnce({ exec: jest.fn().mockResolvedValue(null) }) // service.delete
+
+    const res = await request(app)
+      .delete(`/videos/${META_ID}`)
+      .set("x-user-id", "user-1")
+      .set("x-roles", "user")
+
+    expect(res.status).toBe(404)
+    expect(res.body.success).toBe(false)
+  })
+
   it("returns 401 without auth", async () => {
     const res = await request(app).delete(`/videos/${META_ID}`)
     expect(res.status).toBe(401)
+  })
+})
+
+// ─── Error handler (500) ─────────────────────────────────────────────────────
+
+describe("video controller error handling", () => {
+  beforeEach(() => {
+    jest.spyOn(console, "error").mockImplementation(() => {})
+  })
+
+  it("returns 500 when VideoService.list throws", async () => {
+    ;(mockedModel.find as jest.Mock).mockReturnValue({
+      select: jest.fn().mockReturnValue({
+        exec: jest.fn().mockRejectedValue(new Error("db error")),
+      }),
+    })
+
+    const res = await request(app)
+      .get("/videos")
+      .set("x-user-id", "user-1")
+      .set("x-roles", "user")
+
+    expect(res.status).toBe(500)
+    expect(res.body).toEqual({ success: false, error: "Internal server error" })
+  })
+
+  it("returns 500 when VideoService.upload throws", async () => {
+    storageInstance.upload = jest.fn().mockRejectedValue(new Error("storage error"))
+
+    const res = await request(app)
+      .post("/videos")
+      .set("content-type", "video/mp4")
+      .set("x-filename", "clip.mp4")
+      .set("x-user-id", "user-1")
+      .set("x-roles", "user")
+      .send(VIDEO_BYTES)
+
+    expect(res.status).toBe(500)
+  })
+
+  it("returns 500 when VideoService.getMeta throws on GET /:id", async () => {
+    ;(mockedModel.findById as jest.Mock).mockReturnValue({
+      exec: jest.fn().mockRejectedValue(new Error("db error")),
+    })
+
+    const res = await request(app)
+      .get(`/videos/${META_ID}`)
+      .set("x-user-id", "user-1")
+      .set("x-roles", "user")
+
+    expect(res.status).toBe(500)
+  })
+
+  it("returns 500 when VideoService.getMeta throws on GET /:id/meta", async () => {
+    ;(mockedModel.findById as jest.Mock).mockReturnValue({
+      exec: jest.fn().mockRejectedValue(new Error("db error")),
+    })
+
+    const res = await request(app)
+      .get(`/videos/${META_ID}/meta`)
+      .set("x-user-id", "user-1")
+      .set("x-roles", "user")
+
+    expect(res.status).toBe(500)
+  })
+
+  it("returns 500 when VideoService.delete throws", async () => {
+    ;(mockedModel.findById as jest.Mock)
+      .mockReturnValueOnce({ exec: jest.fn().mockResolvedValue(MOCK_META) }) // ownership
+      .mockReturnValueOnce({ exec: jest.fn().mockRejectedValue(new Error("db error")) }) // service
+
+    const res = await request(app)
+      .delete(`/videos/${META_ID}`)
+      .set("x-user-id", "user-1")
+      .set("x-roles", "user")
+
+    expect(res.status).toBe(500)
   })
 })
