@@ -11,7 +11,7 @@ class ImageController {
   }
 
   uploadImage = async (req: Request<Record<string, never>, ApiResponse<IImageMeta>, Buffer>, res: Response<ApiResponse<IImageMeta>>): Promise<void> => {
-    if (!Buffer.isBuffer(req.body) || req.body.length === 0) {
+    if (!(req.body instanceof Buffer) || req.body.length === 0) {
       res.status(400).json({ success: false, error: "Empty body" })
       return
     }
