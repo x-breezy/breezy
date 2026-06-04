@@ -11,7 +11,10 @@ class VideoController {
   upload = async (req: Request, res: Response<ApiResponse<IVideo>>): Promise<void> => {
     const headers = uploadHeadersSchema.safeParse(req.headers)
     if (!headers.success) {
-      res.status(400).json({ success: false, error: headers.error.issues[0]?.message ?? "Invalid request headers" })
+      res.status(400).json({
+        success: false,
+        error: headers.error.issues[0]?.message ?? "Invalid request headers",
+      })
       return
     }
 
@@ -68,7 +71,10 @@ class VideoController {
     }
   }
 
-  getMeta = async (req: Request<{ id: string }>, res: Response<ApiResponse<IVideo>>): Promise<void> => {
+  getMeta = async (
+    req: Request<{ id: string }>,
+    res: Response<ApiResponse<IVideo>>
+  ): Promise<void> => {
     const video = await this.videoService.getMeta(req.params.id)
     if (!video) {
       res.status(404).json({ success: false, error: "Not found" })
@@ -84,7 +90,10 @@ class VideoController {
     res.status(200).json({ success: true, data: videos })
   }
 
-  delete = async (req: Request<{ id: string }>, res: Response<ApiResponse<null>>): Promise<void> => {
+  delete = async (
+    req: Request<{ id: string }>,
+    res: Response<ApiResponse<null>>
+  ): Promise<void> => {
     const deleted = await this.videoService.delete(req.params.id)
     if (!deleted) {
       res.status(404).json({ success: false, error: "Not found" })

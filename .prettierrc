@@ -12,7 +12,6 @@
   "bracketSpacing": true,
   "htmlWhitespaceSensitivity": "css",
   "insertPragma": false,
-  "jsxBracketSameLine": false,
   "jsxSingleQuote": true,
   "proseWrap": "always",
   "quoteProps": "as-needed",

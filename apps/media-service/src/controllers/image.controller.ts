@@ -10,7 +10,10 @@ class ImageController {
     this.imageService = imageService
   }
 
-  uploadImage = async (req: Request<Record<string, never>, ApiResponse<IImageMeta>, Buffer>, res: Response<ApiResponse<IImageMeta>>): Promise<void> => {
+  uploadImage = async (
+    req: Request<Record<string, never>, ApiResponse<IImageMeta>, Buffer>,
+    res: Response<ApiResponse<IImageMeta>>
+  ): Promise<void> => {
     if (!(req.body instanceof Buffer) || req.body.length === 0) {
       res.status(400).json({ success: false, error: "Empty body" })
       return
@@ -19,7 +22,10 @@ class ImageController {
 
     const headers = uploadHeadersSchema.safeParse(req.headers)
     if (!headers.success) {
-      res.status(400).json({ success: false, error: headers.error.issues[0]?.message ?? "Invalid request headers" })
+      res.status(400).json({
+        success: false,
+        error: headers.error.issues[0]?.message ?? "Invalid request headers",
+      })
       return
     }
 
@@ -50,7 +56,10 @@ class ImageController {
   }
 
   /** Return metadata as JSON without the raw bytes. */
-  getImageMeta = async (req: Request<{ id: string }>, res: Response<ApiResponse<IImageMeta>>): Promise<void> => {
+  getImageMeta = async (
+    req: Request<{ id: string }>,
+    res: Response<ApiResponse<IImageMeta>>
+  ): Promise<void> => {
     const image = await this.imageService.getImage(req.params.id)
     if (!image) {
       res.status(404).json({ success: false, error: "Not found" })
@@ -62,7 +71,10 @@ class ImageController {
     res.status(200).json({ success: true, data: meta })
   }
 
-  deleteImage = async (req: Request<{ id: string }>, res: Response<ApiResponse<null>>): Promise<void> => {
+  deleteImage = async (
+    req: Request<{ id: string }>,
+    res: Response<ApiResponse<null>>
+  ): Promise<void> => {
     const deleted = await this.imageService.deleteImage(req.params.id)
     if (!deleted) {
       res.status(404).json({ success: false, error: "Not found" })
