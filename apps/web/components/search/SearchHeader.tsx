@@ -10,6 +10,7 @@ export function SearchHeader() {
         <input
           type='text'
           placeholder='Rechercher'
+          aria-label='Rechercher'
           className='flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground'
         />
       </div>
