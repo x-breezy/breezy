@@ -49,7 +49,12 @@ describe("VideoService", () => {
         expect.objectContaining({ filename: "clip.mp4", contentType: "video/mp4" })
       )
       expect(mockedModel.create).toHaveBeenCalledWith(
-        expect.objectContaining({ gridFsId, originalName: "clip.mp4", mimeType: "video/mp4", size: 10 })
+        expect.objectContaining({
+          gridFsId,
+          originalName: "clip.mp4",
+          mimeType: "video/mp4",
+          size: 10,
+        })
       )
       expect(result).toBe(created)
     })
@@ -59,7 +64,10 @@ describe("VideoService", () => {
       storage.findById = jest.fn().mockResolvedValue(null)
       ;(mockedModel.create as jest.Mock).mockResolvedValue({})
 
-      await service.upload(Readable.from(Buffer.from("v")), { filename: "x.mp4", contentType: "video/mp4" })
+      await service.upload(Readable.from(Buffer.from("v")), {
+        filename: "x.mp4",
+        contentType: "video/mp4",
+      })
 
       expect(mockedModel.create).toHaveBeenCalledWith(expect.objectContaining({ size: 0 }))
     })

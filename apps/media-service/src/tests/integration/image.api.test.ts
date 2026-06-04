@@ -83,10 +83,7 @@ describe("POST /images", () => {
   it("uses 'upload' as default filename when x-filename header absent", async () => {
     ;(mockedModel.create as jest.Mock).mockResolvedValue(MOCK_DOC)
 
-    const res = await request(app)
-      .post("/images")
-      .set("Content-Type", "image/png")
-      .send(PNG)
+    const res = await request(app).post("/images").set("Content-Type", "image/png").send(PNG)
 
     expect(res.status).toBe(201)
     expect(mockedModel.create).toHaveBeenCalledWith(
@@ -102,10 +99,7 @@ describe("POST /images", () => {
   })
 
   it("rejects missing content-type with 400 (raw middleware skips parse → empty body)", async () => {
-    const res = await request(app)
-      .post("/images")
-      .set("Content-Type", "")
-      .send(PNG)
+    const res = await request(app).post("/images").set("Content-Type", "").send(PNG)
 
     expect(res.status).toBe(400)
     expect(res.body.success).toBe(false)

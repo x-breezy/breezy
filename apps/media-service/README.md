@@ -3,8 +3,8 @@
 HTTP microservice for storing and serving images and videos. Images are stored as raw binary
 documents in MongoDB. Videos are streamed directly into GridFS with HTTP range support.
 
-Interactive API docs are available at `http://localhost:4050/docs` when the service is running.
-The raw OpenAPI spec is served at `http://localhost:4050/docs.json`.
+Interactive API docs are available at `http://localhost:4050/docs` when the service is running. The
+raw OpenAPI spec is served at `http://localhost:4050/docs.json`.
 
 ## Configuration
 

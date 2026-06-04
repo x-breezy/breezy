@@ -98,9 +98,9 @@ describe("GET /videos/:id (stream)", () => {
     })
     // content-length for bytes=0-3 is 4; mock must return exactly 4 bytes
     // or the HTTP parser throws "Data after Connection: close".
-    storageInstance.openDownload = jest.fn().mockReturnValue(
-      Readable.from(VIDEO_BYTES.subarray(0, 4))
-    )
+    storageInstance.openDownload = jest
+      .fn()
+      .mockReturnValue(Readable.from(VIDEO_BYTES.subarray(0, 4)))
 
     const res = await request(app)
       .get(`/videos/${META_ID}`)
