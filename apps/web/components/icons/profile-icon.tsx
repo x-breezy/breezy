@@ -1,4 +1,5 @@
 import { Avatar, AvatarImage } from "@breezy/ui/components/avatar"
+import { cn } from "@breezy/ui/lib/utils"
 
 interface ProfileIconProps {
   active?: boolean
@@ -15,10 +16,13 @@ export function ProfileIcon({
 }: ProfileIconProps) {
   return (
     <Avatar
-      size='sm'
-      className={active ? "ring-2 ring-foreground ring-offset-1 ring-offset-background" : ""}
+      className={cn(
+        "h-full w-full",
+        className,
+        active && "ring-2 ring-foreground ring-offset-1 ring-offset-background"
+      )}
     >
-      <AvatarImage src={src} alt={alt} className={className} />
+      <AvatarImage src={src} alt={alt} />
     </Avatar>
   )
 }
