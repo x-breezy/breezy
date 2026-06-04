@@ -11,7 +11,7 @@ class VideoController {
   upload = async (req: Request, res: Response<ApiResponse<IVideo>>): Promise<void> => {
     const headers = uploadHeadersSchema.safeParse(req.headers)
     if (!headers.success) {
-      res.status(400).json({ success: false, error: headers.error.issues[0].message })
+      res.status(400).json({ success: false, error: headers.error.issues[0]?.message ?? "Invalid request headers" })
       return
     }
 
@@ -29,7 +29,7 @@ class VideoController {
    * Stream the raw video bytes with HTTP range support.
    * Sends raw bytes (not ApiResponse) — same pattern as image GET.
    */
-  getStream = async (req: Request, res: Response): Promise<void> => {
+  getStream = async (req: Request<{ id: string }>, res: Response): Promise<void> => {
     const meta = await this.videoService.getMeta(req.params.id)
     if (!meta) {
       res.status(404).json({ success: false, error: "Not found" })
@@ -48,7 +48,7 @@ class VideoController {
     const range = req.headers.range
     if (range) {
       const [rawStart, rawEnd] = range.replace("bytes=", "").split("-")
-      const start = Number.parseInt(rawStart, 10)
+      const start = Number.parseInt(rawStart ?? "", 10)
       const end = rawEnd ? Number.parseInt(rawEnd, 10) : file.length - 1
 
       if (Number.isNaN(start) || start >= file.length) {
@@ -68,7 +68,7 @@ class VideoController {
     }
   }
 
-  getMeta = async (req: Request, res: Response<ApiResponse<IVideo>>): Promise<void> => {
+  getMeta = async (req: Request<{ id: string }>, res: Response<ApiResponse<IVideo>>): Promise<void> => {
     const video = await this.videoService.getMeta(req.params.id)
     if (!video) {
       res.status(404).json({ success: false, error: "Not found" })
@@ -84,7 +84,7 @@ class VideoController {
     res.status(200).json({ success: true, data: videos })
   }
 
-  delete = async (req: Request, res: Response<ApiResponse<null>>): Promise<void> => {
+  delete = async (req: Request<{ id: string }>, res: Response<ApiResponse<null>>): Promise<void> => {
     const deleted = await this.videoService.delete(req.params.id)
     if (!deleted) {
       res.status(404).json({ success: false, error: "Not found" })

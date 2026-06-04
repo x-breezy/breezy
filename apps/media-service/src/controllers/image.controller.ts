@@ -32,7 +32,7 @@ class ImageController {
   }
 
   /** Stream raw bytes with content-type header (suitable for <img src="...">). */
-  getImage = async (req: Request, res: Response): Promise<void> => {
+  getImage = async (req: Request<{ id: string }>, res: Response): Promise<void> => {
     const image = await this.imageService.getImage(req.params.id)
     if (!image) {
       res.status(404).json({ success: false, error: "Not found" })
@@ -44,7 +44,7 @@ class ImageController {
   }
 
   /** Return metadata as JSON without the raw bytes. */
-  getImageMeta = async (req: Request, res: Response<ApiResponse<IImageMeta>>): Promise<void> => {
+  getImageMeta = async (req: Request<{ id: string }>, res: Response<ApiResponse<IImageMeta>>): Promise<void> => {
     const image = await this.imageService.getImage(req.params.id)
     if (!image) {
       res.status(404).json({ success: false, error: "Not found" })
@@ -56,7 +56,7 @@ class ImageController {
     res.status(200).json({ success: true, data: meta })
   }
 
-  deleteImage = async (req: Request, res: Response<ApiResponse<null>>): Promise<void> => {
+  deleteImage = async (req: Request<{ id: string }>, res: Response<ApiResponse<null>>): Promise<void> => {
     const deleted = await this.imageService.deleteImage(req.params.id)
     if (!deleted) {
       res.status(404).json({ success: false, error: "Not found" })
