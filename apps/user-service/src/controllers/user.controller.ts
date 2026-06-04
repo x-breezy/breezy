@@ -1,5 +1,4 @@
 import { Request, Response } from "express"
-import type { CreateUserInput } from "@breezy/db"
 import UserService from "../services/user.service"
 
 class userController {

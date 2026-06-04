@@ -28,7 +28,7 @@
     "dev": {
       "cache": false,
       "persistent": true,
-      "dependsOn": ["@breezy/db#build", "@breezy/logger#build"]
+      "dependsOn": ["@breezy/types", "@breezy/logger#build"]
     }
   }
 }

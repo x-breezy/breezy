@@ -1,6 +1,3 @@
-import { User } from "@breezy/db"
-import type { CreateUserInput, UpdateUserInput } from "@breezy/db"
-
 class UserService {
   async addUser(input: CreateUserInput): Promise<User> {
     return User.create(input)
