@@ -1,15 +1,6 @@
 "use client"
 
 import { usePathname } from "next/navigation"
-import {
-  IconHome,
-  IconHomeFilled,
-  IconMessageCircle,
-  IconMessageCircleFilled,
-  IconSearch,
-  IconUser,
-  IconUserFilled,
-} from "@tabler/icons-react"
 
 export function NavBar() {
   const pathname = usePathname()
