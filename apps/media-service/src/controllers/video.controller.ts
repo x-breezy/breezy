@@ -1,14 +1,15 @@
 import type { Request, Response } from "express"
-import type { ApiResponse, IVideo } from "@breezy/types"
 import VideoService from "../services/video.service"
 import { uploadHeadersSchema } from "../validators/video.validator"
+import { ApiResponse } from "../types/api"
+import { Video } from "../types/video"
 
 class VideoController {
   constructor(private readonly videoService: VideoService) {}
 
   // Arrow fields keep `this` bound when passed as route handlers.
 
-  upload = async (req: Request, res: Response<ApiResponse<IVideo>>): Promise<void> => {
+  upload = async (req: Request, res: Response<ApiResponse<Video>>): Promise<void> => {
     const headers = uploadHeadersSchema.safeParse(req.headers)
     if (!headers.success) {
       res.status(400).json({
@@ -73,7 +74,7 @@ class VideoController {
 
   getMeta = async (
     req: Request<{ id: string }>,
-    res: Response<ApiResponse<IVideo>>
+    res: Response<ApiResponse<Video>>
   ): Promise<void> => {
     const video = await this.videoService.getMeta(req.params.id)
     if (!video) {
@@ -84,7 +85,7 @@ class VideoController {
     res.status(200).json({ success: true, data: video })
   }
 
-  list = async (req: Request, res: Response<ApiResponse<IVideo[]>>): Promise<void> => {
+  list = async (req: Request, res: Response<ApiResponse<Video[]>>): Promise<void> => {
     const ownerId = typeof req.query.ownerId === "string" ? req.query.ownerId : undefined
     const videos = await this.videoService.list(ownerId)
     res.status(200).json({ success: true, data: videos })
@@ -100,7 +101,7 @@ class VideoController {
       return
     }
 
-    res.status(200).json({ success: true, data: null })
+    res.status(200).json({ success: true })
   }
 }
 

@@ -1,7 +1,7 @@
-import type { IVideo } from "@breezy/types"
 import { Schema, model } from "mongoose"
+import { Video } from "../types/video"
 
-export const videoSchema = new Schema<IVideo>(
+export const videoSchema = new Schema<Video>(
   {
     /** GridFS file _id (hex string) for the stored bytes. */
     gridFsId: { type: String, required: true, index: true },

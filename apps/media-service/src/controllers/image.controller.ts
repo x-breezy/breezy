@@ -1,7 +1,8 @@
 import type { Request, Response } from "express"
 import ImageService from "../services/image.service"
-import type { ApiResponse, IImageMeta } from "@breezy/types"
 import { uploadHeadersSchema } from "../validators/image.validator"
+import { ApiResponse } from "../types/api"
+import { ImageMeta } from "../types/image"
 
 class ImageController {
   private imageService: ImageService
@@ -11,8 +12,8 @@ class ImageController {
   }
 
   uploadImage = async (
-    req: Request<Record<string, never>, ApiResponse<IImageMeta>, Buffer>,
-    res: Response<ApiResponse<IImageMeta>>
+    req: Request<Record<string, never>, ApiResponse<ImageMeta>, Buffer>,
+    res: Response<ApiResponse<ImageMeta>>
   ): Promise<void> => {
     if (!(req.body instanceof Buffer) || req.body.length === 0) {
       res.status(400).json({ success: false, error: "Empty body" })
@@ -58,7 +59,7 @@ class ImageController {
   /** Return metadata as JSON without the raw bytes. */
   getImageMeta = async (
     req: Request<{ id: string }>,
-    res: Response<ApiResponse<IImageMeta>>
+    res: Response<ApiResponse<ImageMeta>>
   ): Promise<void> => {
     const image = await this.imageService.getImage(req.params.id)
     if (!image) {
@@ -81,7 +82,7 @@ class ImageController {
       return
     }
 
-    res.status(200).json({ success: true, data: null })
+    res.status(200).json({ success: true })
   }
 }
 

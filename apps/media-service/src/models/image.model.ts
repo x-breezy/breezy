@@ -1,8 +1,8 @@
-import { IImage } from "@breezy/types"
 import { Schema, model } from "mongoose"
+import { Image } from "../types/image"
 
 /** Mongoose schema for the Image model. */
-export const imageSchema = new Schema<IImage>(
+export const imageSchema = new Schema<Image>(
   {
     data: { type: Buffer, required: true },
     originalName: { type: String, required: true },

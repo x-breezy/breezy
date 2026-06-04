@@ -1,11 +1,12 @@
 import type { Request, Response } from "express"
-import type { ApiResponse, IPost, PaginatedResponse } from "@breezy/types"
 import PostService from "../services/post.service"
 import {
   createPostBodySchema,
   ownerHeaderSchema,
   listQuerySchema,
 } from "../validators/post.validator"
+import { Post, PostCreateDTO } from "../types/post"
+import { ApiResponse, PaginatedResponse } from "../types/api"
 
 class PostController {
   private postService: PostService
@@ -14,7 +15,10 @@ class PostController {
     this.postService = postService
   }
 
-  createPost = async (req: Request, res: Response<ApiResponse<IPost>>): Promise<void> => {
+  createPost = async (
+    req: Request<PostCreateDTO>,
+    res: Response<ApiResponse<Post>>
+  ): Promise<void> => {
     const headerResult = ownerHeaderSchema.safeParse(req.headers)
     if (!headerResult.success) {
       res.status(400).json({
@@ -45,7 +49,7 @@ class PostController {
 
   getPost = async (
     req: Request<{ id: string }>,
-    res: Response<ApiResponse<IPost>>
+    res: Response<ApiResponse<Post>>
   ): Promise<void> => {
     const post = await this.postService.getPost(req.params.id)
     if (!post) {
@@ -69,7 +73,7 @@ class PostController {
 
   feed = async (
     req: Request,
-    res: Response<ApiResponse<PaginatedResponse<IPost>>>
+    res: Response<ApiResponse<PaginatedResponse<Post>>>
   ): Promise<void> => {
     const queryResult = listQuerySchema.safeParse(req.query)
     if (!queryResult.success) {
@@ -86,7 +90,7 @@ class PostController {
 
   getUserPosts = async (
     req: Request<{ userId: string }>,
-    res: Response<ApiResponse<PaginatedResponse<IPost>>>
+    res: Response<ApiResponse<PaginatedResponse<Post>>>
   ): Promise<void> => {
     const queryResult = listQuerySchema.safeParse(req.query)
     if (!queryResult.success) {

@@ -214,7 +214,7 @@ describe("DELETE /videos/:id", () => {
     const res = await request(app).delete(`/videos/${META_ID}`)
 
     expect(res.status).toBe(200)
-    expect(res.body).toEqual({ success: true, data: null })
+    expect(res.body).toEqual({ success: true })
     expect(storageInstance.delete).toHaveBeenCalledWith(GRID_FS_ID)
   })
 

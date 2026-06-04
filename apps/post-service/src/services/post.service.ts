@@ -1,8 +1,9 @@
-import type { IPost, PostCreateDTO, PaginatedResponse } from "@breezy/types"
 import { PostModel } from "../models/post.model"
+import { PaginatedResponse } from "../types/api"
+import { Post, PostCreateDTO } from "../types/post"
 
 class PostService {
-  async createPost(dto: PostCreateDTO): Promise<IPost> {
+  async createPost(dto: PostCreateDTO): Promise<Post> {
     return PostModel.create({
       content: dto.content,
       authorId: dto.authorId,
@@ -11,7 +12,7 @@ class PostService {
     })
   }
 
-  async getPost(id: string): Promise<IPost | null> {
+  async getPost(id: string): Promise<Post | null> {
     return PostModel.findById(id).exec()
   }
 
@@ -20,7 +21,7 @@ class PostService {
     return result !== null
   }
 
-  async feed(page: number, limit: number): Promise<PaginatedResponse<IPost>> {
+  async feed(page: number, limit: number): Promise<PaginatedResponse<Post>> {
     const skip = (page - 1) * limit
     const [data, total] = await Promise.all([
       PostModel.find({}).sort({ createdAt: -1 }).skip(skip).limit(limit).exec(),
@@ -29,7 +30,7 @@ class PostService {
     return { data, total, page, limit }
   }
 
-  async byUser(userId: string, page: number, limit: number): Promise<PaginatedResponse<IPost>> {
+  async byUser(userId: string, page: number, limit: number): Promise<PaginatedResponse<Post>> {
     const filter = { authorId: userId }
     const skip = (page - 1) * limit
     const [data, total] = await Promise.all([

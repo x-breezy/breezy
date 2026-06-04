@@ -165,7 +165,7 @@ describe("DELETE /images/:id", () => {
 
     const res = await request(app).delete("/images/abc")
     expect(res.status).toBe(200)
-    expect(res.body).toEqual({ success: true, data: null })
+    expect(res.body).toEqual({ success: true })
   })
 
   it("returns 404 when nothing matched", async () => {
