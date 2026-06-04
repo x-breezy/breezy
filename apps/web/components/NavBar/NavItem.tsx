@@ -25,7 +25,9 @@ export function NavItem({
       aria-current={isActive ? "page" : undefined}
     >
       <Icon active={isActive} className={iconClassName} />
-      {showLabel && <span className='text-sm font-medium'>{label}</span>}
+      {showLabel && (
+        <span className={cn("text-sm", isActive ? "font-bold" : "font-medium")}>{label}</span>
+      )}
       {!showLabel && <span className='sr-only'>{label}</span>}
     </Link>
   )
