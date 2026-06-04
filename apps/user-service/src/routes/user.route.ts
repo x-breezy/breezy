@@ -9,10 +9,10 @@ function createUserRouter() {
   const userController = new UserController(userService)
 
   router.post("/", (req, res) => userController.addUser(req, res))
+  router.get("/email/:email", (req, res) => userController.getUserByEmail(req, res))
   router.get("/:id", (req, res) => userController.getUser(req, res))
   router.patch("/:id", (req, res) => userController.updateUser(req, res))
   router.delete("/:id", (req, res) => userController.deleteUser(req, res))
-  router.get("/email/:email", (req, res) => userController.getUserByEmail(req, res))
 
   return router
 }

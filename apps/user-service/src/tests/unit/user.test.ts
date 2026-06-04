@@ -1,58 +1,82 @@
-import mongoose from "mongoose"
-import { MongoMemoryServer } from "mongodb-memory-server"
-import { UserModel } from "../models/user.model"
-import UserService from "../services/user.service"
-import type { CreateUserInput, UpdateUserInput } from "../models/user.model"
+import { User } from "../../models/user.model"
+import UserService from "../../services/user.service"
+import type { CreateUserInput, UpdateUserInput } from "../../models/user.model"
 
-let mongoServer: MongoMemoryServer
+jest.mock("../../models/user.model", () => ({
+  User: {
+    create: jest.fn(),
+    findByPk: jest.fn(),
+    findOne: jest.fn(),
+    destroy: jest.fn(),
+  },
+}))
+
+const mockedUser = User as jest.Mocked<typeof User>
+
 let userService: UserService
 
-const mockUser: CreateUserInput = {
+const NOW = new Date("2026-01-01T00:00:00.000Z")
+
+const MOCK_USER = {
+  id: "550e8400-e29b-41d4-a716-446655440000",
+  username: "grod_aaron",
+  email: "grod.aaron@gmail.com",
+  isVerified: false,
+  createdAt: NOW,
+  updatedAt: NOW,
+  update: jest.fn(),
+  toJSON: () => ({
+    id: "550e8400-e29b-41d4-a716-446655440000",
+    username: "grod_aaron",
+    email: "grod.aaron@gmail.com",
+    isVerified: false,
+    createdAt: NOW,
+    updatedAt: NOW,
+  }),
+}
+
+const MOCK_INPUT: CreateUserInput = {
   username: "grod_aaron",
   email: "grod.aaron@gmail.com",
   passwordHash: "$2b$10$abcdefghijklmnopqrstuuVwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ12",
 }
 
-beforeAll(async () => {
-  mongoServer = await MongoMemoryServer.create()
-  await mongoose.connect(mongoServer.getUri())
+beforeEach(() => {
+  jest.clearAllMocks()
   userService = new UserService()
 })
 
-afterAll(async () => {
-  await mongoose.disconnect()
-  await mongoServer.stop()
-})
-
-afterEach(async () => {
-  await UserModel.deleteMany({})
-})
-
-// ─── addUser ────────────────────────────────────────────────────────────────
+// ─── addUser ─────────────────────────────────────────────────────────────────
 
 describe("UserService.addUser", () => {
   it("should create a user and return a document", async () => {
-    const user = await userService.addUser(mockUser)
+    ;(mockedUser.create as jest.Mock).mockResolvedValue(MOCK_USER)
 
-    expect(user._id).toBeDefined()
+    const user = await userService.addUser(MOCK_INPUT)
+
+    expect(user.id).toBeDefined()
     expect(user.username).toBe("grod_aaron")
     expect(user.email).toBe("grod.aaron@gmail.com")
     expect(user.isVerified).toBe(false)
-    expect(user.lastLoginAt).toBeUndefined()
+    expect(mockedUser.create).toHaveBeenCalledWith(MOCK_INPUT)
   })
 
   it("should throw when email is duplicate", async () => {
-    await userService.addUser(mockUser)
-    await expect(userService.addUser(mockUser)).rejects.toThrow()
+    ;(mockedUser.create as jest.Mock).mockRejectedValue(new Error("UniqueConstraintError"))
+
+    await expect(userService.addUser(MOCK_INPUT)).rejects.toThrow()
   })
 
   it("should throw when username is duplicate", async () => {
-    await userService.addUser(mockUser)
-    const duplicate = { ...mockUser, email: "other@gmail.com" }
+    ;(mockedUser.create as jest.Mock).mockRejectedValue(new Error("UniqueConstraintError"))
+
+    const duplicate = { ...MOCK_INPUT, email: "other@gmail.com" }
     await expect(userService.addUser(duplicate)).rejects.toThrow()
   })
 
   it("should throw when required fields are missing", async () => {
+    ;(mockedUser.create as jest.Mock).mockRejectedValue(new Error("ValidationError"))
+
     await expect(
       userService.addUser({ username: "", email: "", passwordHash: "" })
     ).rejects.toThrow()
@@ -63,23 +87,27 @@ describe("UserService.addUser", () => {
 
 describe("UserService.getUser", () => {
   it("should return the user by id", async () => {
-    const created = await userService.addUser(mockUser)
-    const found = await userService.getUser(created._id.toString())
+    ;(mockedUser.findByPk as jest.Mock).mockResolvedValue(MOCK_USER)
+
+    const found = await userService.getUser(MOCK_USER.id)
 
     expect(found).not.toBeNull()
     expect(found!.email).toBe("grod.aaron@gmail.com")
+    expect(mockedUser.findByPk).toHaveBeenCalledWith(MOCK_USER.id)
   })
 
   it("should not expose passwordHash", async () => {
-    const created = await userService.addUser(mockUser)
-    const found = await userService.getUser(created._id.toString())
+    ;(mockedUser.findByPk as jest.Mock).mockResolvedValue(MOCK_USER)
+
+    const found = await userService.getUser(MOCK_USER.id)
 
     expect((found as any).passwordHash).toBeUndefined()
   })
 
   it("should return null for unknown id", async () => {
-    const fakeId = new mongoose.Types.ObjectId().toString()
-    const found = await userService.getUser(fakeId)
+    ;(mockedUser.findByPk as jest.Mock).mockResolvedValue(null)
+
+    const found = await userService.getUser("550e8400-e29b-41d4-a716-000000000000")
 
     expect(found).toBeNull()
   })
@@ -89,15 +117,20 @@ describe("UserService.getUser", () => {
 
 describe("UserService.getUserByEmail", () => {
   it("should return the user by email", async () => {
-    await userService.addUser(mockUser)
+    ;(mockedUser.findOne as jest.Mock).mockResolvedValue(MOCK_USER)
+
     const found = await userService.getUserByEmail("grod.aaron@gmail.com")
 
     expect(found).not.toBeNull()
     expect(found!.username).toBe("grod_aaron")
+    expect(mockedUser.findOne).toHaveBeenCalledWith({ where: { email: "grod.aaron@gmail.com" } })
   })
 
   it("should return null for unknown email", async () => {
+    ;(mockedUser.findOne as jest.Mock).mockResolvedValue(null)
+
     const found = await userService.getUserByEmail("unknown@gmail.com")
+
     expect(found).toBeNull()
   })
 })
@@ -105,10 +138,21 @@ describe("UserService.getUserByEmail", () => {
 // ─── updateUser ──────────────────────────────────────────────────────────────
 
 describe("UserService.updateUser", () => {
-  it("should update allowed fields", async () => {
-    const created = await userService.addUser(mockUser)
+  it("should update allowed fields and return updated user", async () => {
+    const updatedUser = {
+      ...MOCK_USER,
+      username: "aaron_updated",
+      isVerified: true,
+      toJSON: () => ({ ...MOCK_USER.toJSON(), username: "aaron_updated", isVerified: true }),
+    }
+
+    ;(mockedUser.findByPk as jest.Mock).mockResolvedValue({
+      ...MOCK_USER,
+      update: jest.fn().mockResolvedValue(updatedUser),
+    })
+
     const input: UpdateUserInput = { username: "aaron_updated", isVerified: true }
-    const updated = await userService.updateUser(created._id.toString(), input)
+    const updated = await userService.updateUser(MOCK_USER.id, input)
 
     expect(updated).not.toBeNull()
     expect(updated!.username).toBe("aaron_updated")
@@ -116,8 +160,11 @@ describe("UserService.updateUser", () => {
   })
 
   it("should return null for unknown id", async () => {
-    const fakeId = new mongoose.Types.ObjectId().toString()
-    const updated = await userService.updateUser(fakeId, { username: "ghost" })
+    ;(mockedUser.findByPk as jest.Mock).mockResolvedValue(null)
+
+    const updated = await userService.updateUser("550e8400-e29b-41d4-a716-000000000000", {
+      username: "ghost",
+    })
 
     expect(updated).toBeNull()
   })
@@ -127,16 +174,18 @@ describe("UserService.updateUser", () => {
 
 describe("UserService.deleteUser", () => {
   it("should delete an existing user and return true", async () => {
-    const created = await userService.addUser(mockUser)
-    const deleted = await userService.deleteUser(created._id.toString())
+    ;(mockedUser.destroy as jest.Mock).mockResolvedValue(1)
+
+    const deleted = await userService.deleteUser(MOCK_USER.id)
 
     expect(deleted).toBe(true)
-    expect(await userService.getUser(created._id.toString())).toBeNull()
+    expect(mockedUser.destroy).toHaveBeenCalledWith({ where: { id: MOCK_USER.id } })
   })
 
   it("should return false for unknown id", async () => {
-    const fakeId = new mongoose.Types.ObjectId().toString()
-    const deleted = await userService.deleteUser(fakeId)
+    ;(mockedUser.destroy as jest.Mock).mockResolvedValue(0)
+
+    const deleted = await userService.deleteUser("550e8400-e29b-41d4-a716-000000000000")
 
     expect(deleted).toBe(false)
   })
