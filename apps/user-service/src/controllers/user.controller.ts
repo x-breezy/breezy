@@ -1,7 +1,8 @@
 import { Request, Response } from "express"
+import { CreateUserInput, UpdateUserInput } from "../models/user.model"
 import UserService from "../services/user.service"
 
-class userController {
+class UserController {
   private userService: UserService
 
   constructor(userService: UserService) {
@@ -10,7 +11,7 @@ class userController {
 
   async addUser(req: Request, res: Response): Promise<void> {
     try {
-      const input: CreateUserInput = req.body // Fix: was `const id = req.body`
+      const input: CreateUserInput = req.body
       const user = await this.userService.addUser(input)
       res.status(201).json({
         message: "User added successfully",
@@ -25,9 +26,14 @@ class userController {
   }
 
   async getUser(req: Request, res: Response): Promise<void> {
-    // Fix: was missing
     try {
       const { id } = req.params
+
+      if (!id) {
+        res.status(400).json({ message: "ID is required" })
+        return
+      }
+
       const user = await this.userService.getUser(id)
 
       if (!user) {
@@ -47,7 +53,14 @@ class userController {
   async updateUser(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params
-      const updated = await this.userService.updateUser(id, req.body)
+
+      if (!id) {
+        res.status(400).json({ message: "ID is required" })
+        return
+      }
+
+      const input: UpdateUserInput = req.body
+      const updated = await this.userService.updateUser(id, input)
 
       if (!updated) {
         res.status(404).json({ message: "User not found" })
@@ -65,7 +78,13 @@ class userController {
 
   async getUserByEmail(req: Request, res: Response): Promise<void> {
     try {
-      const { email } = req.params
+      const { email } = req.query
+
+      if (!email || typeof email !== "string") {
+        res.status(400).json({ message: "Email query parameter is required" })
+        return
+      }
+
       const user = await this.userService.getUserByEmail(email)
 
       if (!user) {
@@ -85,7 +104,13 @@ class userController {
   async deleteUser(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params
-      const deleted = await this.userService.deleteUser(id) // Fix: was missing `const deleted =`
+
+      if (!id) {
+        res.status(400).json({ message: "ID is required" })
+        return
+      }
+
+      const deleted = await this.userService.deleteUser(id)
 
       if (!deleted) {
         res.status(404).json({ message: "User not found" })
@@ -102,4 +127,4 @@ class userController {
   }
 }
 
-export default userController
+export default UserController
