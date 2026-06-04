@@ -1,4 +1,4 @@
-export interface IImage {
+export interface Image {
   id: string
   data: Buffer
   originalName: string
@@ -13,7 +13,7 @@ export interface IImage {
 }
 
 /** IImage without the raw bytes — safe to serialize as JSON. */
-export type IImageMeta = Omit<IImage, "data">
+export type ImageMeta = Omit<Image, "data">
 
 export interface ImageUploadDTO {
   data: Buffer

@@ -11,8 +11,7 @@ and then: `npm run dev`
 ## Micro-services
 
 - `auth`: who you are (credentials) - PostgreSQL
-- `users`: how you connect (social graph) - PostgreSQL
-- `profile`: who you are (personal info) - MongoDB
+- `users`: how you connect (social graph and profile) - PostgreSQL
 - `posts`: what you do (content) - MongoDB + Elasticsearch
 - `media`: what you share (files) - S3 + MongoDB
   <!--- `notifications`: what you get (alerts) - MongoDB -->
