@@ -19,11 +19,16 @@ export class PostService {
     return post
   }
 
-  async feed(page: number, limit: number): Promise<PaginatedResponse<Post>> {
+  async feed(
+    page: number,
+    limit: number,
+    followedUserIds?: string[]
+  ): Promise<PaginatedResponse<Post>> {
+    const filter = followedUserIds?.length ? { authorId: { $in: followedUserIds } } : {}
     const skip = (page - 1) * limit
     const [data, total] = await Promise.all([
-      PostModel.find({}).sort({ createdAt: -1 }).skip(skip).limit(limit).exec(),
-      PostModel.countDocuments({}),
+      PostModel.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).exec(),
+      PostModel.countDocuments(filter),
     ])
     return { data: data, total, page, limit }
   }

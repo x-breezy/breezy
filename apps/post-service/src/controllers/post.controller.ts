@@ -30,7 +30,10 @@ export class PostController {
     try {
       const page = Math.max(1, parseInt(req.query.page as string) || 1)
       const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 20))
-      const result = await this.service.feed(page, limit)
+      const followedUserIds = req.query.followedUserIds
+        ? (req.query.followedUserIds as string).split(",").filter(Boolean)
+        : undefined
+      const result = await this.service.feed(page, limit, followedUserIds)
       res.json({ success: true, data: result })
     } catch (err) {
       next(err)

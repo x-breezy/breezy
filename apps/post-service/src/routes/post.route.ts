@@ -7,6 +7,8 @@ import { requirePostOwnership } from "../middlewares/post-ownership.middleware"
 import { validate } from "../middlewares/validate.middleware"
 import { createPostSchema } from "../schemas/post.schema"
 import { ROLES } from "../constants/roles"
+import { createLikeRouter } from "./like.route"
+import { createCommentRouter } from "./comment.route"
 
 export function createPostRouter(
   controller: PostController = new PostController(new PostService())
@@ -29,6 +31,10 @@ export function createPostRouter(
     requirePostOwnership(ROLES.MODERATOR, ROLES.ADMIN),
     controller.delete
   )
+
+  // Sub-resources — mergeParams in child routers gives them access to :postId
+  router.use("/:postId/likes", createLikeRouter())
+  router.use("/:postId/comments", createCommentRouter())
 
   return router
 }
