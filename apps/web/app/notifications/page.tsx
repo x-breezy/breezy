@@ -81,7 +81,7 @@ export default function NotificationsPage() {
                     <span className='text-muted-foreground'> · {notif.time}</span>
                   )}
                 </p>
-                <button className='shrink-0 text-muted-foreground'>
+                <button aria-label='Notification actions' className='shrink-0 text-muted-foreground'>
                   <IconDots size={16} />
                 </button>
               </div>
