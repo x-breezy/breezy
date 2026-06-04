@@ -10,11 +10,11 @@ class ImageController {
   }
 
   uploadImage = async (req: Request, res: Response<ApiResponse<IImageMeta>>): Promise<void> => {
-    const data = req.body as Buffer
-    if (!Buffer.isBuffer(data) || data.length === 0) {
+    if (!Buffer.isBuffer(req.body) || req.body.length === 0) {
       res.status(400).json({ success: false, error: "Empty body" })
       return
     }
+    const data = req.body as Buffer
 
     // If the raw middleware parsed the body, content-type is always present.
     const image = await this.imageService.uploadImage({
