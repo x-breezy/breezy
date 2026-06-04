@@ -1,6 +1,7 @@
 import type { Request, Response } from "express"
 import ImageService from "../services/image.service"
 import type { ApiResponse, IImageMeta } from "@breezy/types"
+import { uploadHeadersSchema } from "../validators/image.validator"
 
 class ImageController {
   private imageService: ImageService
@@ -16,13 +17,18 @@ class ImageController {
     }
     const data = req.body
 
-    // If the raw middleware parsed the body, content-type is always present.
+    const headers = uploadHeadersSchema.safeParse(req.headers)
+    if (!headers.success) {
+      res.status(400).json({ success: false, error: headers.error.issues[0]?.message ?? "Invalid request headers" })
+      return
+    }
+
     const image = await this.imageService.uploadImage({
       data,
-      mimeType: req.get("content-type")!,
-      originalName: req.get("x-filename") ?? "upload",
+      mimeType: headers.data["content-type"],
+      originalName: headers.data["x-filename"],
       size: data.length,
-      ownerId: req.get("x-owner-id"),
+      ownerId: headers.data["x-owner-id"],
     })
 
     // Strip bytes from the response — clients fetch raw bytes via GET /:id.

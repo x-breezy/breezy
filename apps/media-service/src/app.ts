@@ -9,8 +9,6 @@ import { swaggerSpec } from "./config/swagger"
 export function createApp(): Express {
   const app = express()
 
-  app.use(express.json())
-
   app.get("/", (_req, res) => {
     res.json({ status: "ok" })
   })
