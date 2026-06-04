@@ -1,192 +1,88 @@
-import { User } from "../../models/user.model"
-import UserService from "../../services/user.service"
-import type { CreateUserInput, UpdateUserInput } from "../../models/user.model"
+import ImageService from "../../services/image.service"
+import { ImageModel } from "../../models/image.model"
 
-jest.mock("../../models/user.model", () => ({
-  User: {
+jest.mock("../../models/image.model", () => ({
+  ImageModel: {
     create: jest.fn(),
-    findByPk: jest.fn(),
-    findOne: jest.fn(),
-    destroy: jest.fn(),
+    findById: jest.fn(),
+    findByIdAndDelete: jest.fn(),
   },
 }))
 
-const mockedUser = User as jest.Mocked<typeof User>
+const OPTIMIZED = Buffer.from("optimized")
 
-let userService: UserService
+jest.mock("sharp", () =>
+  jest.fn(() => ({
+    resize: jest.fn().mockReturnThis(),
+    toFormat: jest.fn().mockReturnThis(),
+    toBuffer: jest.fn().mockResolvedValue(OPTIMIZED),
+  }))
+)
 
-const NOW = new Date("2026-01-01T00:00:00.000Z")
+const mockedModel = ImageModel as jest.Mocked<typeof ImageModel>
 
-const MOCK_USER = {
-  id: "550e8400-e29b-41d4-a716-446655440000",
-  username: "grod_aaron",
-  email: "grod.aaron@gmail.com",
-  isVerified: false,
-  createdAt: NOW,
-  updatedAt: NOW,
-  update: jest.fn(),
-  toJSON: () => ({
-    id: "550e8400-e29b-41d4-a716-446655440000",
-    username: "grod_aaron",
-    email: "grod.aaron@gmail.com",
-    isVerified: false,
-    createdAt: NOW,
-    updatedAt: NOW,
-  }),
-}
+describe("ImageService", () => {
+  let service: ImageService
 
-const MOCK_INPUT: CreateUserInput = {
-  username: "grod_aaron",
-  email: "grod.aaron@gmail.com",
-  passwordHash: "$2b$10$abcdefghijklmnopqrstuuVwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ12",
-}
-
-beforeEach(() => {
-  jest.clearAllMocks()
-  userService = new UserService()
-})
-
-// ─── addUser ─────────────────────────────────────────────────────────────────
-
-describe("UserService.addUser", () => {
-  it("should create a user and return a document", async () => {
-    ;(mockedUser.create as jest.Mock).mockResolvedValue(MOCK_USER)
-
-    const user = await userService.addUser(MOCK_INPUT)
-
-    expect(user.id).toBeDefined()
-    expect(user.username).toBe("grod_aaron")
-    expect(user.email).toBe("grod.aaron@gmail.com")
-    expect(user.isVerified).toBe(false)
-    expect(mockedUser.create).toHaveBeenCalledWith(MOCK_INPUT)
+  beforeEach(() => {
+    jest.clearAllMocks()
+    service = new ImageService()
   })
 
-  it("should throw when email is duplicate", async () => {
-    ;(mockedUser.create as jest.Mock).mockRejectedValue(new Error("UniqueConstraintError"))
-
-    await expect(userService.addUser(MOCK_INPUT)).rejects.toThrow()
+  describe("optimizeImage", () => {
+    it("returns the sharp-processed buffer", async () => {
+      const result = await service.optimizeImage(Buffer.from("hello"))
+      expect(result).toEqual(OPTIMIZED)
+    })
   })
 
-  it("should throw when username is duplicate", async () => {
-    ;(mockedUser.create as jest.Mock).mockRejectedValue(new Error("UniqueConstraintError"))
+  describe("uploadImage", () => {
+    it("persists optimized bytes and recomputes size", async () => {
+      const data = Buffer.from("imagebytes")
+      const created = { id: "abc", size: OPTIMIZED.length, mimeType: "image/png" }
+      ;(mockedModel.create as jest.Mock).mockResolvedValue(created)
 
-    const duplicate = { ...MOCK_INPUT, email: "other@gmail.com" }
-    await expect(userService.addUser(duplicate)).rejects.toThrow()
+      const result = await service.uploadImage({
+        data,
+        originalName: "test.png",
+        mimeType: "image/png",
+        size: 0,
+      })
+
+      expect(mockedModel.create).toHaveBeenCalledWith(
+        expect.objectContaining({ data: OPTIMIZED, size: OPTIMIZED.length, mimeType: "image/png" })
+      )
+      expect(result).toBe(created)
+    })
   })
 
-  it("should throw when required fields are missing", async () => {
-    ;(mockedUser.create as jest.Mock).mockRejectedValue(new Error("ValidationError"))
+  describe("getImage", () => {
+    it("returns the document by id", async () => {
+      const doc = { id: "abc" }
+      ;(mockedModel.findById as jest.Mock).mockReturnValue({
+        exec: jest.fn().mockResolvedValue(doc),
+      })
 
-    await expect(
-      userService.addUser({ username: "", email: "", passwordHash: "" })
-    ).rejects.toThrow()
-  })
-})
-
-// ─── getUser ─────────────────────────────────────────────────────────────────
-
-describe("UserService.getUser", () => {
-  it("should return the user by id", async () => {
-    ;(mockedUser.findByPk as jest.Mock).mockResolvedValue(MOCK_USER)
-
-    const found = await userService.getUser(MOCK_USER.id)
-
-    expect(found).not.toBeNull()
-    expect(found!.email).toBe("grod.aaron@gmail.com")
-    expect(mockedUser.findByPk).toHaveBeenCalledWith(MOCK_USER.id)
+      expect(await service.getImage("abc")).toBe(doc)
+      expect(mockedModel.findById).toHaveBeenCalledWith("abc")
+    })
   })
 
-  it("should not expose passwordHash", async () => {
-    ;(mockedUser.findByPk as jest.Mock).mockResolvedValue(MOCK_USER)
+  describe("deleteImage", () => {
+    it("returns true when a document was removed", async () => {
+      ;(mockedModel.findByIdAndDelete as jest.Mock).mockReturnValue({
+        exec: jest.fn().mockResolvedValue({ id: "abc" }),
+      })
 
-    const found = await userService.getUser(MOCK_USER.id)
-
-    expect((found as any).passwordHash).toBeUndefined()
-  })
-
-  it("should return null for unknown id", async () => {
-    ;(mockedUser.findByPk as jest.Mock).mockResolvedValue(null)
-
-    const found = await userService.getUser("550e8400-e29b-41d4-a716-000000000000")
-
-    expect(found).toBeNull()
-  })
-})
-
-// ─── getUserByEmail ───────────────────────────────────────────────────────────
-
-describe("UserService.getUserByEmail", () => {
-  it("should return the user by email", async () => {
-    ;(mockedUser.findOne as jest.Mock).mockResolvedValue(MOCK_USER)
-
-    const found = await userService.getUserByEmail("grod.aaron@gmail.com")
-
-    expect(found).not.toBeNull()
-    expect(found!.username).toBe("grod_aaron")
-    expect(mockedUser.findOne).toHaveBeenCalledWith({ where: { email: "grod.aaron@gmail.com" } })
-  })
-
-  it("should return null for unknown email", async () => {
-    ;(mockedUser.findOne as jest.Mock).mockResolvedValue(null)
-
-    const found = await userService.getUserByEmail("unknown@gmail.com")
-
-    expect(found).toBeNull()
-  })
-})
-
-// ─── updateUser ──────────────────────────────────────────────────────────────
-
-describe("UserService.updateUser", () => {
-  it("should update allowed fields and return updated user", async () => {
-    const updatedUser = {
-      ...MOCK_USER,
-      username: "aaron_updated",
-      isVerified: true,
-      toJSON: () => ({ ...MOCK_USER.toJSON(), username: "aaron_updated", isVerified: true }),
-    }
-
-    ;(mockedUser.findByPk as jest.Mock).mockResolvedValue({
-      ...MOCK_USER,
-      update: jest.fn().mockResolvedValue(updatedUser),
+      expect(await service.deleteImage("abc")).toBe(true)
     })
 
-    const input: UpdateUserInput = { username: "aaron_updated", isVerified: true }
-    const updated = await userService.updateUser(MOCK_USER.id, input)
+    it("returns false when nothing matched", async () => {
+      ;(mockedModel.findByIdAndDelete as jest.Mock).mockReturnValue({
+        exec: jest.fn().mockResolvedValue(null),
+      })
 
-    expect(updated).not.toBeNull()
-    expect(updated!.username).toBe("aaron_updated")
-    expect(updated!.isVerified).toBe(true)
-  })
-
-  it("should return null for unknown id", async () => {
-    ;(mockedUser.findByPk as jest.Mock).mockResolvedValue(null)
-
-    const updated = await userService.updateUser("550e8400-e29b-41d4-a716-000000000000", {
-      username: "ghost",
+      expect(await service.deleteImage("missing")).toBe(false)
     })
-
-    expect(updated).toBeNull()
-  })
-})
-
-// ─── deleteUser ──────────────────────────────────────────────────────────────
-
-describe("UserService.deleteUser", () => {
-  it("should delete an existing user and return true", async () => {
-    ;(mockedUser.destroy as jest.Mock).mockResolvedValue(1)
-
-    const deleted = await userService.deleteUser(MOCK_USER.id)
-
-    expect(deleted).toBe(true)
-    expect(mockedUser.destroy).toHaveBeenCalledWith({ where: { id: MOCK_USER.id } })
-  })
-
-  it("should return false for unknown id", async () => {
-    ;(mockedUser.destroy as jest.Mock).mockResolvedValue(0)
-
-    const deleted = await userService.deleteUser("550e8400-e29b-41d4-a716-000000000000")
-
-    expect(deleted).toBe(false)
   })
 })
