@@ -38,7 +38,11 @@ export function NavBar() {
       </a>
       <a href='/profile' className='flex w-full items-center justify-center'>
         {active("/profile") ? (
-          <img src='/navbar/pp_test.png' alt='Profile' className='h-6 w-6 rounded-full border-2 border-black' />
+          <img
+            src='/navbar/pp_test.png'
+            alt='Profile'
+            className='h-6 w-6 rounded-full border-2 border-black'
+          />
         ) : (
           <img src='/navbar/pp_test.png' alt='Profile' className='h-6 w-6 rounded-full' />
         )}

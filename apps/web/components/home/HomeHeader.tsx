@@ -6,7 +6,13 @@ import { IconBell, IconCheck, IconChevronDown, IconPlus } from "@tabler/icons-re
 
 const FEED_OPTIONS = ["For you", "Following", "Trending"]
 
-export function HomeHeader({ feed, onFeedChange }: { feed: string; onFeedChange: (f: string) => void }) {
+export function HomeHeader({
+  feed,
+  onFeedChange,
+}: {
+  feed: string
+  onFeedChange: (f: string) => void
+}) {
   const router = useRouter()
 
   return (
@@ -20,7 +26,7 @@ export function HomeHeader({ feed, onFeedChange }: { feed: string; onFeedChange:
       </button>
 
       <Popover.Root>
-        <Popover.Trigger className='text-base flex items-center gap-1 font-bold outline-none'>
+        <Popover.Trigger className='flex items-center gap-1 text-base font-bold outline-none'>
           {feed}
           <IconChevronDown size={14} strokeWidth={2.5} />
         </Popover.Trigger>
@@ -43,7 +49,11 @@ export function HomeHeader({ feed, onFeedChange }: { feed: string; onFeedChange:
         </Popover.Portal>
       </Popover.Root>
 
-      <button aria-label='Notifications' onClick={() => router.push("/notifications")} className='text-foreground'>
+      <button
+        aria-label='Notifications'
+        onClick={() => router.push("/notifications")}
+        className='text-foreground'
+      >
         <IconBell size={22} strokeWidth={1.75} />
       </button>
     </header>

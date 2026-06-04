@@ -15,7 +15,8 @@ const NOTIFICATIONS: Notification[] = [
     id: "1",
     handle: "alexandre_t",
     time: "2h",
-    message: 'A répondu à votre post : "C\'est exactement le problème que j\'ai eu sur Safari hier, merci pour l\'astuce !"',
+    message:
+      "A répondu à votre post : \"C'est exactement le problème que j'ai eu sur Safari hier, merci pour l'astuce !\"",
     initials: "A",
     color: "bg-sky-600",
   },
@@ -23,7 +24,8 @@ const NOTIFICATIONS: Notification[] = [
     id: "2",
     handle: "sophie_ux",
     time: "3h",
-    message: 'vous a mentionné dans une publication : "Tu devrais regarder ce thread @grod_le_goat, c\'est très pertinent."',
+    message:
+      'vous a mentionné dans une publication : "Tu devrais regarder ce thread @grod_le_goat, c\'est très pertinent."',
     initials: "S",
     color: "bg-rose-500",
   },
@@ -39,7 +41,8 @@ const NOTIFICATIONS: Notification[] = [
     id: "4",
     handle: "alexandre_t",
     time: "2h",
-    message: 'A répondu à votre post : "C\'est exactement le problème que j\'ai eu sur Safari hier, merci pour l\'astuce !"',
+    message:
+      "A répondu à votre post : \"C'est exactement le problème que j'ai eu sur Safari hier, merci pour l'astuce !\"",
     initials: "A",
     color: "bg-sky-600",
   },
@@ -47,7 +50,8 @@ const NOTIFICATIONS: Notification[] = [
     id: "5",
     handle: "alexandre_t",
     time: "2h",
-    message: 'A répondu à votre post : "C\'est exactement le problème que j\'ai eu sur Safari hier, merci pour l\'astuce !"',
+    message:
+      "A répondu à votre post : \"C'est exactement le problème que j'ai eu sur Safari hier, merci pour l'astuce !\"",
     initials: "A",
     color: "bg-sky-600",
   },
@@ -55,7 +59,8 @@ const NOTIFICATIONS: Notification[] = [
     id: "6",
     handle: "alexandre_t",
     time: "5h",
-    message: 'A répondu à votre post : "C\'est exactement le problème que j\'ai eu sur Safari hier, merci pour l\'astuce !"',
+    message:
+      "A répondu à votre post : \"C'est exactement le problème que j'ai eu sur Safari hier, merci pour l'astuce !\"",
     initials: "A",
     color: "bg-sky-600",
   },
@@ -77,11 +82,12 @@ export default function NotificationsPage() {
               <div className='flex items-start justify-between gap-2'>
                 <p className='text-sm'>
                   <span className='font-semibold'>@{notif.handle}</span>
-                  {notif.time && (
-                    <span className='text-muted-foreground'> · {notif.time}</span>
-                  )}
+                  {notif.time && <span className='text-muted-foreground'> · {notif.time}</span>}
                 </p>
-                <button aria-label='Notification actions' className='shrink-0 text-muted-foreground'>
+                <button
+                  aria-label='Notification actions'
+                  className='shrink-0 text-muted-foreground'
+                >
                   <IconDots size={16} />
                 </button>
               </div>
