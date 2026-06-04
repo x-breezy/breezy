@@ -12,6 +12,7 @@ export function HomeHeader({ feed, onFeedChange }: { feed: string; onFeedChange:
   return (
     <header className='sticky top-0 flex h-15 items-center justify-between border-b bg-background/80 px-4 backdrop-blur-sm'>
       <button
+        aria-label='Create post'
         onClick={() => router.push("/post")}
         className='flex h-8 w-8 items-center justify-center rounded-md bg-muted text-foreground'
       >
