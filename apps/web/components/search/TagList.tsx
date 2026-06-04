@@ -1,3 +1,5 @@
+import { ListItem, ListItemLabel, ListItemMeta } from "@breezy/ui/components/list"
+
 const TAGS = [
   { tag: "WebDev", posts: "12.4k" },
   { tag: "TypeScript", posts: "9.8k" },
@@ -16,13 +18,10 @@ export function TagList() {
     <ul className='py-3'>
       {TAGS.map((item) => (
         <li key={item.tag}>
-          <button
-            type='button'
-            className='flex w-full items-center justify-between px-4 py-4 text-left transition-colors hover:bg-muted'
-          >
-            <span className='text-base font-medium'>#{item.tag}</span>
-            <span className='text-sm text-muted-foreground'>{item.posts} posts</span>
-          </button>
+          <ListItem>
+            <ListItemLabel>#{item.tag}</ListItemLabel>
+            <ListItemMeta>{item.posts} posts</ListItemMeta>
+          </ListItem>
         </li>
       ))}
     </ul>

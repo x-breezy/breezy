@@ -11,12 +11,10 @@ class VideoController {
   upload = async (req: Request, res: Response<ApiResponse<IVideo>>): Promise<void> => {
     const headers = uploadHeadersSchema.safeParse(req.headers)
     if (!headers.success) {
-      res
-        .status(400)
-        .json({
-          success: false,
-          error: headers.error.issues[0]?.message ?? "Invalid request headers",
-        })
+      res.status(400).json({
+        success: false,
+        error: headers.error.issues[0]?.message ?? "Invalid request headers",
+      })
       return
     }
 

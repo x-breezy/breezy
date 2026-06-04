@@ -1,13 +1,15 @@
 import { IconDots } from "@tabler/icons-react"
 import { NotificationsHeader } from "@/components/notifications/NotificationsHeader"
+import { Button } from "@breezy/ui/components/button"
+import { Avatar, AvatarFallback, AvatarImage } from "@breezy/ui/components/avatar"
 
 interface Notification {
   id: string
   handle: string
   time: string
   message: string
-  initials: string
   color: string
+  image?: string
 }
 
 const NOTIFICATIONS: Notification[] = [
@@ -17,8 +19,8 @@ const NOTIFICATIONS: Notification[] = [
     time: "2h",
     message:
       "A répondu à votre post : \"C'est exactement le problème que j'ai eu sur Safari hier, merci pour l'astuce !\"",
-    initials: "A",
     color: "bg-sky-600",
+    image: "https://api.dicebear.com/10.x/glyphs/svg?seed=alexandre",
   },
   {
     id: "2",
@@ -26,16 +28,16 @@ const NOTIFICATIONS: Notification[] = [
     time: "3h",
     message:
       'vous a mentionné dans une publication : "Tu devrais regarder ce thread @grod_le_goat, c\'est très pertinent."',
-    initials: "S",
     color: "bg-rose-500",
+    image: "https://api.dicebear.com/10.x/glyphs/svg?seed=sophie",
   },
   {
     id: "3",
     handle: "clara_dev et 12 autres personnes",
     time: "2h",
     message: "ont aimé votre post.",
-    initials: "C",
     color: "bg-violet-600",
+    image: "https://api.dicebear.com/10.x/glyphs/svg?seed=clara",
   },
   {
     id: "4",
@@ -43,8 +45,8 @@ const NOTIFICATIONS: Notification[] = [
     time: "2h",
     message:
       "A répondu à votre post : \"C'est exactement le problème que j'ai eu sur Safari hier, merci pour l'astuce !\"",
-    initials: "A",
     color: "bg-sky-600",
+    image: "https://api.dicebear.com/10.x/glyphs/svg?seed=alexandre",
   },
   {
     id: "5",
@@ -52,8 +54,8 @@ const NOTIFICATIONS: Notification[] = [
     time: "2h",
     message:
       "A répondu à votre post : \"C'est exactement le problème que j'ai eu sur Safari hier, merci pour l'astuce !\"",
-    initials: "A",
     color: "bg-sky-600",
+    image: "https://api.dicebear.com/10.x/glyphs/svg?seed=alexandre",
   },
   {
     id: "6",
@@ -61,8 +63,8 @@ const NOTIFICATIONS: Notification[] = [
     time: "5h",
     message:
       "A répondu à votre post : \"C'est exactement le problème que j'ai eu sur Safari hier, merci pour l'astuce !\"",
-    initials: "A",
     color: "bg-sky-600",
+    image: "https://api.dicebear.com/10.x/glyphs/svg?seed=alexandre",
   },
 ]
 
@@ -73,23 +75,24 @@ export default function NotificationsPage() {
       <ul>
         {NOTIFICATIONS.map((notif) => (
           <li key={notif.id} className='flex gap-3 border-b px-4 py-4'>
-            <div
-              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-semibold text-white ${notif.color}`}
-            >
-              {notif.initials}
-            </div>
-            <div className='min-w-0 flex-1'>
-              <div className='flex items-start justify-between gap-2'>
+            <Avatar>
+              <AvatarImage src={notif.image} alt={notif.handle} />
+              <AvatarFallback>{notif.handle.charAt(0).toUpperCase()}</AvatarFallback>
+            </Avatar>
+            <div className='w-full flex-1'>
+              <div className='flex items-center justify-between gap-2'>
                 <p className='text-sm'>
                   <span className='font-semibold'>@{notif.handle}</span>
                   {notif.time && <span className='text-muted-foreground'> · {notif.time}</span>}
                 </p>
-                <button
+                <Button
+                  variant='ghost'
+                  size='icon-sm'
                   aria-label='Notification actions'
                   className='shrink-0 text-muted-foreground'
                 >
                   <IconDots size={16} />
-                </button>
+                </Button>
               </div>
               <p className='mt-0.5 text-sm text-muted-foreground'>{notif.message}</p>
             </div>
