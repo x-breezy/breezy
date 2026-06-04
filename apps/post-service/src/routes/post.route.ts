@@ -1,37 +1,58 @@
-import { Router, json } from "express"
-import PostController from "../controllers/post.controller"
-import PostService from "../services/post.service"
+import { Router } from "express"
+import { PostController } from "../controllers/post.controller"
+import { PostService } from "../services/post.service"
+import { identity } from "../middlewares/identity.middleware"
+import { requireSelfOrRoles } from "../middlewares/roles.middleware"
+import { requirePostOwnership } from "../middlewares/post-ownership.middleware"
+import { validate } from "../middlewares/validate.middleware"
+import { createPostSchema } from "../schemas/post.schema"
+import { ROLES } from "../constants/roles"
 
-function createPostRouter(controller: PostController = new PostController(new PostService())) {
+export function createPostRouter(
+  controller: PostController = new PostController(new PostService())
+) {
   const router = Router()
 
-  // Static routes before /:id to avoid param swallowing
-  router.get("/feed", controller.feed)
-  router.get("/users/:userId", controller.getUserPosts)
-
-  router.post("/", json(), controller.createPost)
-  router.get("/:id", controller.getPost)
-  router.delete("/:id", controller.deletePost)
+  // Static routes BEFORE /:id to avoid param-route swallowing
+  router.post("/", identity, validate(createPostSchema), controller.create)
+  router.get("/feed", identity, controller.getFeed)
+  router.get(
+    "/users/:userId",
+    identity,
+    requireSelfOrRoles("userId", ROLES.MODERATOR, ROLES.ADMIN),
+    controller.getUserPosts
+  )
+  router.get("/:id", identity, controller.getOne)
+  router.delete(
+    "/:id",
+    identity,
+    requirePostOwnership(ROLES.MODERATOR, ROLES.ADMIN),
+    controller.delete
+  )
 
   return router
 }
-
-export { createPostRouter }
 
 /**
  * @openapi
  * /posts:
  *   post:
  *     summary: Create a post
- *     description: Create a new post. Requires the author to be identified via the X-Owner-Id header.
+ *     description: Create a new post. Requires authentication via x-user-id and x-roles headers.
  *     tags: [Posts]
  *     parameters:
  *       - in: header
- *         name: X-Owner-Id
+ *         name: x-user-id
  *         required: true
  *         schema:
  *           type: string
- *         description: Author identifier.
+ *         description: Authenticated user identifier (injected by gateway).
+ *       - in: header
+ *         name: x-roles
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Comma-separated roles (e.g. "user" or "admin,moderator").
  *     requestBody:
  *       required: true
  *       content:
@@ -73,11 +94,17 @@ export { createPostRouter }
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ApiError'
+ *       401:
+ *         description: Missing authentication headers.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
  *
  * /posts/feed:
  *   get:
  *     summary: Chronological feed
- *     description: Returns all posts sorted by creation date descending (newest first), paginated.
+ *     description: Returns all posts sorted by creation date descending (newest first), paginated. Any authenticated user.
  *     tags: [Posts]
  *     parameters:
  *       - in: query
@@ -110,7 +137,9 @@ export { createPostRouter }
  * /posts/users/{userId}:
  *   get:
  *     summary: Posts by user
- *     description: Returns paginated posts authored by the given userId, newest first.
+ *     description: >
+ *       Returns paginated posts authored by the given userId, newest first.
+ *       Users may only access their own profile; moderators and admins may access any.
  *     tags: [Posts]
  *     parameters:
  *       - in: path
@@ -144,6 +173,12 @@ export { createPostRouter }
  *                   example: true
  *                 data:
  *                   $ref: '#/components/schemas/PaginatedPosts'
+ *       403:
+ *         description: User attempting to access another user's posts.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
  *
  * /posts/{id}:
  *   get:
@@ -176,6 +211,9 @@ export { createPostRouter }
  *               $ref: '#/components/schemas/ApiError'
  *   delete:
  *     summary: Delete a post
+ *     description: >
+ *       Post owner may delete their own post.
+ *       Moderators and admins may delete any post.
  *     tags: [Posts]
  *     parameters:
  *       - in: path
@@ -197,6 +235,12 @@ export { createPostRouter }
  *                 data:
  *                   nullable: true
  *                   example: null
+ *       403:
+ *         description: Not the post owner and lacks elevated role.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
  *       404:
  *         description: Not found.
  *         content:

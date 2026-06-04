@@ -11,10 +11,3 @@ export interface Post {
   createdAt: Date
   updatedAt: Date
 }
-
-export interface PostCreateDTO {
-  content: string
-  authorId: string
-  tags?: string[]
-  mediaIds?: string[]
-}

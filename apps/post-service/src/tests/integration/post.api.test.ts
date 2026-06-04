@@ -42,6 +42,8 @@ beforeEach(() => {
   jest.clearAllMocks()
 })
 
+// ─── Health ────────────────────────────────────────────────────────────────
+
 describe("GET /", () => {
   it("returns status ok", async () => {
     const res = await request(app).get("/")
@@ -58,6 +60,8 @@ describe("GET /docs.json", () => {
   })
 })
 
+// ─── POST /posts ────────────────────────────────────────────────────────────
+
 describe("POST /posts", () => {
   it("creates a post and returns it in ApiResponse", async () => {
     ;(mockedModel.create as jest.Mock).mockResolvedValue(MOCK_POST)
@@ -65,7 +69,8 @@ describe("POST /posts", () => {
     const res = await request(app)
       .post("/posts")
       .set("Content-Type", "application/json")
-      .set("x-owner-id", "user1")
+      .set("x-user-id", "user1")
+      .set("x-roles", "user")
       .send({ content: "Hello world", tags: ["tag1"], mediaIds: ["media1"] })
 
     expect(res.status).toBe(201)
@@ -85,13 +90,13 @@ describe("POST /posts", () => {
     )
   })
 
-  it("returns 400 when x-owner-id header is missing", async () => {
+  it("returns 401 when auth header is missing", async () => {
     const res = await request(app)
       .post("/posts")
       .set("Content-Type", "application/json")
       .send({ content: "Hello world" })
 
-    expect(res.status).toBe(400)
+    expect(res.status).toBe(401)
     expect(res.body.success).toBe(false)
     expect(mockedModel.create).not.toHaveBeenCalled()
   })
@@ -100,7 +105,8 @@ describe("POST /posts", () => {
     const res = await request(app)
       .post("/posts")
       .set("Content-Type", "application/json")
-      .set("x-owner-id", "user1")
+      .set("x-user-id", "user1")
+      .set("x-roles", "user")
       .send({ content: "" })
 
     expect(res.status).toBe(400)
@@ -112,7 +118,8 @@ describe("POST /posts", () => {
     const res = await request(app)
       .post("/posts")
       .set("Content-Type", "application/json")
-      .set("x-owner-id", "user1")
+      .set("x-user-id", "user1")
+      .set("x-roles", "user")
       .send({})
 
     expect(res.status).toBe(400)
@@ -129,7 +136,8 @@ describe("POST /posts", () => {
     await request(app)
       .post("/posts")
       .set("Content-Type", "application/json")
-      .set("x-owner-id", "user1")
+      .set("x-user-id", "user1")
+      .set("x-roles", "user")
       .send({ content: "Just text" })
 
     expect(mockedModel.create).toHaveBeenCalledWith(
@@ -138,13 +146,18 @@ describe("POST /posts", () => {
   })
 })
 
+// ─── GET /posts/:id ─────────────────────────────────────────────────────────
+
 describe("GET /posts/:id", () => {
   it("returns a post by id", async () => {
     ;(mockedModel.findById as jest.Mock).mockReturnValue({
       exec: jest.fn().mockResolvedValue(MOCK_POST),
     })
 
-    const res = await request(app).get("/posts/abc")
+    const res = await request(app)
+      .get("/posts/abc")
+      .set("x-user-id", "user1")
+      .set("x-roles", "user")
 
     expect(res.status).toBe(200)
     expect(res.body).toMatchObject({
@@ -158,39 +171,31 @@ describe("GET /posts/:id", () => {
       exec: jest.fn().mockResolvedValue(null),
     })
 
-    const res = await request(app).get("/posts/notfound")
+    const res = await request(app)
+      .get("/posts/notfound")
+      .set("x-user-id", "user1")
+      .set("x-roles", "user")
+
     expect(res.status).toBe(404)
     expect(res.body.success).toBe(false)
   })
-})
 
-describe("DELETE /posts/:id", () => {
-  it("deletes a post and returns success", async () => {
-    ;(mockedModel.findByIdAndDelete as jest.Mock).mockReturnValue({
-      exec: jest.fn().mockResolvedValue({ id: "abc" }),
-    })
-
-    const res = await request(app).delete("/posts/abc")
-    expect(res.status).toBe(200)
-    expect(res.body.success).toBe(true)
-  })
-
-  it("returns 404 when post not found", async () => {
-    ;(mockedModel.findByIdAndDelete as jest.Mock).mockReturnValue({
-      exec: jest.fn().mockResolvedValue(null),
-    })
-
-    const res = await request(app).delete("/posts/notfound")
-    expect(res.status).toBe(404)
-    expect(res.body.success).toBe(false)
+  it("returns 401 without auth", async () => {
+    const res = await request(app).get("/posts/abc")
+    expect(res.status).toBe(401)
   })
 })
+
+// ─── GET /posts/feed ────────────────────────────────────────────────────────
 
 describe("GET /posts/feed", () => {
   it("returns paginated posts newest-first", async () => {
     mockFindPaginated([MOCK_POST], 1)
 
-    const res = await request(app).get("/posts/feed")
+    const res = await request(app)
+      .get("/posts/feed")
+      .set("x-user-id", "user1")
+      .set("x-roles", "user")
 
     expect(res.status).toBe(200)
     expect(res.body).toMatchObject({
@@ -207,7 +212,10 @@ describe("GET /posts/feed", () => {
   it("respects ?page and ?limit query params", async () => {
     mockFindPaginated([], 100)
 
-    const res = await request(app).get("/posts/feed?page=3&limit=5")
+    const res = await request(app)
+      .get("/posts/feed?page=3&limit=5")
+      .set("x-user-id", "user1")
+      .set("x-roles", "user")
 
     expect(res.status).toBe(200)
     expect(res.body.data).toMatchObject({ page: 3, limit: 5, total: 100 })
@@ -216,19 +224,32 @@ describe("GET /posts/feed", () => {
   it("is not caught by the /:id route", async () => {
     mockFindPaginated([], 0)
 
-    const res = await request(app).get("/posts/feed")
-    // If the route was misrouted to /:id handler, it would try to find post with id "feed"
-    // and return 200 { success: true, data: {paginated} } — not a 404 from findById
+    const res = await request(app)
+      .get("/posts/feed")
+      .set("x-user-id", "user1")
+      .set("x-roles", "user")
+
+    // If routed to /:id, findById would be called (not find) and data would not have total
     expect(res.status).toBe(200)
     expect(res.body.data).toHaveProperty("total")
   })
+
+  it("returns 401 without auth", async () => {
+    const res = await request(app).get("/posts/feed")
+    expect(res.status).toBe(401)
+  })
 })
 
+// ─── GET /posts/users/:userId ────────────────────────────────────────────────
+
 describe("GET /posts/users/:userId", () => {
-  it("returns posts filtered by userId", async () => {
+  it("returns posts filtered by userId (self-access)", async () => {
     mockFindPaginated([MOCK_POST], 1)
 
-    const res = await request(app).get("/posts/users/user1")
+    const res = await request(app)
+      .get("/posts/users/user1")
+      .set("x-user-id", "user1")
+      .set("x-roles", "user")
 
     expect(res.status).toBe(200)
     expect(res.body).toMatchObject({
@@ -240,16 +261,145 @@ describe("GET /posts/users/:userId", () => {
         limit: 20,
       }),
     })
-    // Must query with authorId filter
     expect(mockedModel.find).toHaveBeenCalledWith({ authorId: "user1" })
   })
 
   it("returns empty list for user with no posts", async () => {
     mockFindPaginated([], 0)
 
-    const res = await request(app).get("/posts/users/nobody")
+    const res = await request(app)
+      .get("/posts/users/nobody")
+      .set("x-user-id", "nobody")
+      .set("x-roles", "user")
 
     expect(res.status).toBe(200)
     expect(res.body.data).toMatchObject({ data: [], total: 0 })
+  })
+
+  it("returns 403 when user accesses another user's posts", async () => {
+    const res = await request(app)
+      .get("/posts/users/user2")
+      .set("x-user-id", "user1")
+      .set("x-roles", "user")
+
+    expect(res.status).toBe(403)
+    expect(res.body.success).toBe(false)
+  })
+
+  it("allows moderator to access any user's posts", async () => {
+    mockFindPaginated([MOCK_POST], 1)
+
+    const res = await request(app)
+      .get("/posts/users/user2")
+      .set("x-user-id", "user1")
+      .set("x-roles", "moderator")
+
+    expect(res.status).toBe(200)
+    expect(res.body.success).toBe(true)
+  })
+
+  it("allows admin to access any user's posts", async () => {
+    mockFindPaginated([MOCK_POST], 1)
+
+    const res = await request(app)
+      .get("/posts/users/user2")
+      .set("x-user-id", "user1")
+      .set("x-roles", "admin")
+
+    expect(res.status).toBe(200)
+    expect(res.body.success).toBe(true)
+  })
+
+  it("returns 401 without auth", async () => {
+    const res = await request(app).get("/posts/users/user1")
+    expect(res.status).toBe(401)
+  })
+})
+
+// ─── DELETE /posts/:id ───────────────────────────────────────────────────────
+
+describe("DELETE /posts/:id", () => {
+  it("allows owner to delete own post", async () => {
+    ;(mockedModel.findById as jest.Mock).mockReturnValue({
+      exec: jest.fn().mockResolvedValue({ authorId: "user1" }),
+    })
+    ;(mockedModel.findByIdAndDelete as jest.Mock).mockReturnValue({
+      exec: jest.fn().mockResolvedValue({ id: "abc" }),
+    })
+
+    const res = await request(app)
+      .delete("/posts/abc")
+      .set("x-user-id", "user1")
+      .set("x-roles", "user")
+
+    expect(res.status).toBe(200)
+    expect(res.body).toEqual({ success: true, data: null })
+  })
+
+  it("returns 404 when post not found", async () => {
+    ;(mockedModel.findById as jest.Mock).mockReturnValue({
+      exec: jest.fn().mockResolvedValue(null),
+    })
+
+    const res = await request(app)
+      .delete("/posts/notfound")
+      .set("x-user-id", "user1")
+      .set("x-roles", "user")
+
+    expect(res.status).toBe(404)
+    expect(res.body.success).toBe(false)
+  })
+
+  it("returns 403 when non-owner user tries to delete", async () => {
+    ;(mockedModel.findById as jest.Mock).mockReturnValue({
+      exec: jest.fn().mockResolvedValue({ authorId: "user2" }),
+    })
+
+    const res = await request(app)
+      .delete("/posts/abc")
+      .set("x-user-id", "user1")
+      .set("x-roles", "user")
+
+    expect(res.status).toBe(403)
+    expect(res.body.success).toBe(false)
+  })
+
+  it("allows moderator to delete any post", async () => {
+    ;(mockedModel.findById as jest.Mock).mockReturnValue({
+      exec: jest.fn().mockResolvedValue({ authorId: "user2" }),
+    })
+    ;(mockedModel.findByIdAndDelete as jest.Mock).mockReturnValue({
+      exec: jest.fn().mockResolvedValue({ id: "abc" }),
+    })
+
+    const res = await request(app)
+      .delete("/posts/abc")
+      .set("x-user-id", "user1")
+      .set("x-roles", "moderator")
+
+    expect(res.status).toBe(200)
+    expect(res.body.success).toBe(true)
+  })
+
+  it("allows admin to delete any post", async () => {
+    ;(mockedModel.findById as jest.Mock).mockReturnValue({
+      exec: jest.fn().mockResolvedValue({ authorId: "user2" }),
+    })
+    ;(mockedModel.findByIdAndDelete as jest.Mock).mockReturnValue({
+      exec: jest.fn().mockResolvedValue({ id: "abc" }),
+    })
+
+    const res = await request(app)
+      .delete("/posts/abc")
+      .set("x-user-id", "user1")
+      .set("x-roles", "admin")
+
+    expect(res.status).toBe(200)
+    expect(res.body.success).toBe(true)
+  })
+
+  it("returns 401 without auth", async () => {
+    const res = await request(app).delete("/posts/abc")
+    expect(res.status).toBe(401)
   })
 })
