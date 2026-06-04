@@ -52,6 +52,9 @@
 
 :root {
   --background: oklch(1 0 0);
+  --brand: oklch(0.46 0.1 178);
+  --brand-light: oklch(0.72 0.13 192);
+  --brand-glow: oklch(0.46 0.1 178 / 35%);
   --foreground: oklch(0.148 0.004 228.8);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.148 0.004 228.8);
