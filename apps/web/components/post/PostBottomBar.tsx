@@ -1,6 +1,6 @@
 "use client"
 
-import { IconChartBar, IconGif, IconMoodSmile, IconPhoto } from "@tabler/icons-react"
+import { IconPhoto } from "@tabler/icons-react"
 
 export function PostBottomBar() {
   return (
