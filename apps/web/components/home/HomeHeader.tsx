@@ -19,7 +19,7 @@ export function HomeHeader({ feed, onFeedChange }: { feed: string; onFeedChange:
       </button>
 
       <Popover.Root>
-        <Popover.Trigger className='text-md flex items-center gap-1 font-bold outline-none'>
+        <Popover.Trigger className='text-base flex items-center gap-1 font-bold outline-none'>
           {feed}
           <IconChevronDown size={14} strokeWidth={2.5} />
         </Popover.Trigger>
