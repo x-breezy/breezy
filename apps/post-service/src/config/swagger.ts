@@ -25,10 +25,16 @@ const options: swaggerJsdoc.Options = {
             content: { type: "string", example: "Hello world!" },
             authorId: { type: "string", example: "user_42" },
             tags: { type: "array", items: { type: "string" }, example: ["news", "tech"] },
-            mediaIds: {
+            media: {
               type: "array",
-              items: { type: "string" },
-              example: ["media_abc123"],
+              items: {
+                type: "object",
+                properties: {
+                  id: { type: "string" },
+                  type: { type: "string", enum: ["image", "video"] },
+                },
+              },
+              example: [{ id: "media_abc123", type: "image" }],
             },
             createdAt: { type: "string", format: "date-time" },
             updatedAt: { type: "string", format: "date-time" },

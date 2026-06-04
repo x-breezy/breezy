@@ -22,7 +22,7 @@ const MOCK_POST = {
   content: "Hello world",
   authorId: "user1",
   tags: ["tag1"],
-  mediaIds: ["media1"],
+  media: [{ id: "media1", type: "image" }],
   createdAt: NOW,
   updatedAt: NOW,
 }
@@ -71,7 +71,7 @@ describe("POST /posts", () => {
       .set("Content-Type", "application/json")
       .set("x-user-id", "user1")
       .set("x-roles", "user")
-      .send({ content: "Hello world", tags: ["tag1"], mediaIds: ["media1"] })
+      .send({ content: "Hello world", tags: ["tag1"], media: [{ id: "media1", type: "image" }] })
 
     expect(res.status).toBe(201)
     expect(res.body).toMatchObject({
@@ -81,7 +81,7 @@ describe("POST /posts", () => {
         content: "Hello world",
         authorId: "user1",
         tags: ["tag1"],
-        mediaIds: ["media1"],
+        media: [{ id: "media1", type: "image" }],
         createdAt: NOW.toISOString(),
       }),
     })
@@ -126,11 +126,11 @@ describe("POST /posts", () => {
     expect(res.body.success).toBe(false)
   })
 
-  it("defaults tags and mediaIds to empty arrays", async () => {
+  it("defaults tags and media to empty arrays", async () => {
     ;(mockedModel.create as jest.Mock).mockResolvedValue({
       ...MOCK_POST,
       tags: [],
-      mediaIds: [],
+      media: [],
     })
 
     await request(app)
@@ -141,7 +141,7 @@ describe("POST /posts", () => {
       .send({ content: "Just text" })
 
     expect(mockedModel.create).toHaveBeenCalledWith(
-      expect.objectContaining({ tags: [], mediaIds: [] })
+      expect.objectContaining({ tags: [], media: [] })
     )
   })
 })

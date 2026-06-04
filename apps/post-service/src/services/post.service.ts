@@ -9,13 +9,14 @@ export class PostService {
       content: data.content,
       authorId: data.authorId,
       tags: data.tags ?? [],
-      mediaIds: data.mediaIds ?? [],
+      media: data.media ?? [],
     })
-    return post as unknown as Post
+    return post
   }
 
   async getPost(id: string): Promise<Post | null> {
-    return PostModel.findById(id).exec() as Promise<Post | null>
+    const post = PostModel.findById(id).exec()
+    return post
   }
 
   async feed(page: number, limit: number): Promise<PaginatedResponse<Post>> {
@@ -24,7 +25,7 @@ export class PostService {
       PostModel.find({}).sort({ createdAt: -1 }).skip(skip).limit(limit).exec(),
       PostModel.countDocuments({}),
     ])
-    return { data: data as unknown as Post[], total, page, limit }
+    return { data: data, total, page, limit }
   }
 
   async byUser(userId: string, page: number, limit: number): Promise<PaginatedResponse<Post>> {
@@ -34,7 +35,7 @@ export class PostService {
       PostModel.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).exec(),
       PostModel.countDocuments(filter),
     ])
-    return { data: data as unknown as Post[], total, page, limit }
+    return { data: data, total, page, limit }
   }
 
   async deletePost(id: string): Promise<boolean> {

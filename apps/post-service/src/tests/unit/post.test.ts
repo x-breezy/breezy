@@ -20,7 +20,7 @@ const MOCK_POST = {
   content: "Hello world",
   authorId: "user1",
   tags: ["tag1"],
-  mediaIds: ["media1"],
+  media: [{ id: "media1", type: "image" }],
   createdAt: NOW,
   updatedAt: NOW,
 }
@@ -41,25 +41,25 @@ describe("PostService", () => {
         content: "Hello world",
         authorId: "user1",
         tags: ["tag1"],
-        mediaIds: ["media1"],
+        media: [{ id: "media1", type: "image" }],
       })
 
       expect(mockedModel.create).toHaveBeenCalledWith({
         content: "Hello world",
         authorId: "user1",
         tags: ["tag1"],
-        mediaIds: ["media1"],
+        media: [{ id: "media1", type: "image" }],
       })
       expect(result).toBe(MOCK_POST)
     })
 
-    it("defaults tags and mediaIds to empty arrays", async () => {
+    it("defaults tags and media to empty arrays", async () => {
       ;(mockedModel.create as jest.Mock).mockResolvedValue(MOCK_POST)
 
       await service.createPost({ content: "Hi", authorId: "user1" })
 
       expect(mockedModel.create).toHaveBeenCalledWith(
-        expect.objectContaining({ tags: [], mediaIds: [] })
+        expect.objectContaining({ tags: [], media: [] })
       )
     })
   })

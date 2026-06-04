@@ -6,7 +6,15 @@ const postSchema = new Schema<Post>(
     content: { type: String, required: true },
     authorId: { type: String, required: true, index: true },
     tags: { type: [String], default: [] },
-    mediaIds: { type: [String], default: [] },
+    media: {
+      type: [
+        {
+          id: { type: String, required: true },
+          type: { type: String, enum: ["image", "video"], required: true },
+        },
+      ],
+      default: [],
+    },
     likesCount: { type: Number, default: 0 },
     commentsCount: { type: Number, default: 0 },
   },

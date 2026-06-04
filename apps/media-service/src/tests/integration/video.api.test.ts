@@ -52,6 +52,8 @@ beforeEach(() => {
   storageInstance.delete = jest.fn().mockResolvedValue(true)
 })
 
+// ─── POST /videos ───────────────────────────────────────────────────────────
+
 describe("POST /videos", () => {
   it("uploads a video and returns metadata", async () => {
     ;(mockedModel.create as jest.Mock).mockResolvedValue(MOCK_META)
@@ -60,7 +62,8 @@ describe("POST /videos", () => {
       .post("/videos")
       .set("content-type", "video/mp4")
       .set("x-filename", "clip.mp4")
-      .set("x-owner-id", "user-1")
+      .set("x-user-id", "user-1")
+      .set("x-roles", "user")
       .send(VIDEO_BYTES)
 
     expect(res.status).toBe(201)
@@ -71,12 +74,28 @@ describe("POST /videos", () => {
   })
 
   it("rejects missing content-type with 400", async () => {
-    const res = await request(app).post("/videos").set("content-type", "").send(VIDEO_BYTES)
+    const res = await request(app)
+      .post("/videos")
+      .set("content-type", "")
+      .set("x-user-id", "user-1")
+      .set("x-roles", "user")
+      .send(VIDEO_BYTES)
 
     expect(res.status).toBe(400)
     expect(res.body.success).toBe(false)
   })
+
+  it("returns 401 without auth", async () => {
+    const res = await request(app)
+      .post("/videos")
+      .set("content-type", "video/mp4")
+      .send(VIDEO_BYTES)
+
+    expect(res.status).toBe(401)
+  })
 })
+
+// ─── GET /videos/:id (stream) ───────────────────────────────────────────────
 
 describe("GET /videos/:id (stream)", () => {
   it("streams full video bytes", async () => {
@@ -84,7 +103,11 @@ describe("GET /videos/:id (stream)", () => {
       exec: jest.fn().mockResolvedValue(MOCK_META),
     })
 
-    const res = await request(app).get(`/videos/${META_ID}`).responseType("blob")
+    const res = await request(app)
+      .get(`/videos/${META_ID}`)
+      .set("x-user-id", "user-1")
+      .set("x-roles", "user")
+      .responseType("blob")
 
     expect(res.status).toBe(200)
     expect(res.headers["content-type"]).toContain("video/mp4")
@@ -105,6 +128,8 @@ describe("GET /videos/:id (stream)", () => {
     const res = await request(app)
       .get(`/videos/${META_ID}`)
       .set("Range", "bytes=0-3")
+      .set("x-user-id", "user-1")
+      .set("x-roles", "user")
       .responseType("blob")
 
     expect(res.status).toBe(206)
@@ -119,6 +144,8 @@ describe("GET /videos/:id (stream)", () => {
     const res = await request(app)
       .get(`/videos/${META_ID}`)
       .set("Range", `bytes=${VIDEO_BYTES.length + 100}-`)
+      .set("x-user-id", "user-1")
+      .set("x-roles", "user")
 
     expect(res.status).toBe(416)
     expect(res.headers["content-range"]).toMatch(/\*\//)
@@ -129,7 +156,11 @@ describe("GET /videos/:id (stream)", () => {
       exec: jest.fn().mockResolvedValue(null),
     })
 
-    const res = await request(app).get(`/videos/${META_ID}`)
+    const res = await request(app)
+      .get(`/videos/${META_ID}`)
+      .set("x-user-id", "user-1")
+      .set("x-roles", "user")
+
     expect(res.status).toBe(404)
     expect(res.body.success).toBe(false)
   })
@@ -140,11 +171,22 @@ describe("GET /videos/:id (stream)", () => {
     })
     storageInstance.findById = jest.fn().mockResolvedValue(null)
 
-    const res = await request(app).get(`/videos/${META_ID}`)
+    const res = await request(app)
+      .get(`/videos/${META_ID}`)
+      .set("x-user-id", "user-1")
+      .set("x-roles", "user")
+
     expect(res.status).toBe(404)
     expect(res.body.success).toBe(false)
   })
+
+  it("returns 401 without auth", async () => {
+    const res = await request(app).get(`/videos/${META_ID}`)
+    expect(res.status).toBe(401)
+  })
 })
+
+// ─── GET /videos/:id/meta ───────────────────────────────────────────────────
 
 describe("GET /videos/:id/meta", () => {
   it("returns metadata JSON", async () => {
@@ -152,7 +194,10 @@ describe("GET /videos/:id/meta", () => {
       exec: jest.fn().mockResolvedValue(MOCK_META),
     })
 
-    const res = await request(app).get(`/videos/${META_ID}/meta`)
+    const res = await request(app)
+      .get(`/videos/${META_ID}/meta`)
+      .set("x-user-id", "user-1")
+      .set("x-roles", "user")
 
     expect(res.status).toBe(200)
     expect(res.body).toMatchObject({
@@ -166,13 +211,24 @@ describe("GET /videos/:id/meta", () => {
       exec: jest.fn().mockResolvedValue(null),
     })
 
-    const res = await request(app).get(`/videos/${META_ID}/meta`)
+    const res = await request(app)
+      .get(`/videos/${META_ID}/meta`)
+      .set("x-user-id", "user-1")
+      .set("x-roles", "user")
+
     expect(res.status).toBe(404)
     expect(res.body.success).toBe(false)
   })
+
+  it("returns 401 without auth", async () => {
+    const res = await request(app).get(`/videos/${META_ID}/meta`)
+    expect(res.status).toBe(401)
+  })
 })
 
-describe("GET /videos (list)", () => {
+// ─── GET /videos (list) ─────────────────────────────────────────────────────
+
+describe("GET /videos", () => {
   it("returns all videos", async () => {
     ;(mockedModel.find as jest.Mock).mockReturnValue({
       select: jest.fn().mockReturnValue({
@@ -180,7 +236,7 @@ describe("GET /videos (list)", () => {
       }),
     })
 
-    const res = await request(app).get("/videos")
+    const res = await request(app).get("/videos").set("x-user-id", "user-1").set("x-roles", "user")
 
     expect(res.status).toBe(200)
     expect(res.body).toMatchObject({
@@ -196,14 +252,56 @@ describe("GET /videos (list)", () => {
       }),
     })
 
-    await request(app).get("/videos?ownerId=user-1")
+    await request(app)
+      .get("/videos?ownerId=user-1")
+      .set("x-user-id", "user-1")
+      .set("x-roles", "user")
 
     expect(mockedModel.find).toHaveBeenCalledWith({ ownerId: "user-1" })
   })
+
+  it("returns 401 without auth", async () => {
+    const res = await request(app).get("/videos")
+    expect(res.status).toBe(401)
+  })
 })
 
+// ─── DELETE /videos/:id ─────────────────────────────────────────────────────
+
 describe("DELETE /videos/:id", () => {
-  it("removes video and returns success", async () => {
+  it("allows owner to delete own video", async () => {
+    ;(mockedModel.findById as jest.Mock).mockReturnValue({
+      exec: jest.fn().mockResolvedValue(MOCK_META), // ownerId: "user-1"
+    })
+    ;(mockedModel.findByIdAndDelete as jest.Mock).mockReturnValue({
+      exec: jest.fn().mockResolvedValue(MOCK_META),
+    })
+
+    const res = await request(app)
+      .delete(`/videos/${META_ID}`)
+      .set("x-user-id", "user-1")
+      .set("x-roles", "user")
+
+    expect(res.status).toBe(200)
+    expect(res.body).toEqual({ success: true })
+    expect(storageInstance.delete).toHaveBeenCalledWith(GRID_FS_ID)
+  })
+
+  it("returns 403 when non-owner user tries to delete", async () => {
+    ;(mockedModel.findById as jest.Mock).mockReturnValue({
+      exec: jest.fn().mockResolvedValue(MOCK_META), // ownerId: "user-1"
+    })
+
+    const res = await request(app)
+      .delete(`/videos/${META_ID}`)
+      .set("x-user-id", "user-2")
+      .set("x-roles", "user")
+
+    expect(res.status).toBe(403)
+    expect(res.body.success).toBe(false)
+  })
+
+  it("allows moderator to delete any video", async () => {
     ;(mockedModel.findById as jest.Mock).mockReturnValue({
       exec: jest.fn().mockResolvedValue(MOCK_META),
     })
@@ -211,11 +309,30 @@ describe("DELETE /videos/:id", () => {
       exec: jest.fn().mockResolvedValue(MOCK_META),
     })
 
-    const res = await request(app).delete(`/videos/${META_ID}`)
+    const res = await request(app)
+      .delete(`/videos/${META_ID}`)
+      .set("x-user-id", "user-2")
+      .set("x-roles", "moderator")
 
     expect(res.status).toBe(200)
-    expect(res.body).toEqual({ success: true })
-    expect(storageInstance.delete).toHaveBeenCalledWith(GRID_FS_ID)
+    expect(res.body.success).toBe(true)
+  })
+
+  it("allows admin to delete any video", async () => {
+    ;(mockedModel.findById as jest.Mock).mockReturnValue({
+      exec: jest.fn().mockResolvedValue(MOCK_META),
+    })
+    ;(mockedModel.findByIdAndDelete as jest.Mock).mockReturnValue({
+      exec: jest.fn().mockResolvedValue(MOCK_META),
+    })
+
+    const res = await request(app)
+      .delete(`/videos/${META_ID}`)
+      .set("x-user-id", "user-2")
+      .set("x-roles", "admin")
+
+    expect(res.status).toBe(200)
+    expect(res.body.success).toBe(true)
   })
 
   it("returns 404 when meta doc not found", async () => {
@@ -223,8 +340,17 @@ describe("DELETE /videos/:id", () => {
       exec: jest.fn().mockResolvedValue(null),
     })
 
-    const res = await request(app).delete(`/videos/${META_ID}`)
+    const res = await request(app)
+      .delete(`/videos/${META_ID}`)
+      .set("x-user-id", "user-1")
+      .set("x-roles", "user")
+
     expect(res.status).toBe(404)
     expect(res.body.success).toBe(false)
+  })
+
+  it("returns 401 without auth", async () => {
+    const res = await request(app).delete(`/videos/${META_ID}`)
+    expect(res.status).toBe(401)
   })
 })

@@ -2,7 +2,7 @@ import { createLogger } from "@breezy/logger"
 import { createApp } from "./app"
 import { connect } from "./config/database"
 
-const logger = createLogger({ service: "media-service" })
+export const logger = createLogger({ service: "media-service" })
 
 const app = createApp()
 const port = process.env.PORT ?? 4000

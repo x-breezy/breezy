@@ -70,11 +70,17 @@ export function createPostRouter(
  *                 items:
  *                   type: string
  *                 example: ["news", "tech"]
- *               mediaIds:
+ *               media:
  *                 type: array
  *                 items:
- *                   type: string
- *                 example: ["media_abc123"]
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                     type:
+ *                       type: string
+ *                       enum: [image, video]
+ *                 example: [{ id: "media_abc123", type: "image" }]
  *     responses:
  *       201:
  *         description: Post created.
