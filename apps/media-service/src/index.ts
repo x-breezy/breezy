@@ -1,17 +1,23 @@
 import { createLogger } from "@breezy/logger"
-import express from "express"
+import { createApp } from "./app"
+import { connect } from "./config/database"
 
 const logger = createLogger({ service: "media-service" })
 
-const app = express()
-const port = process.env.PORT ?? 3000
+const app = createApp()
+const port = process.env.PORT ?? 4000
+const mongoUri = process.env.MONGODB_URI ?? "mongodb://localhost:27017/breezy"
 
-app.use(express.json())
+async function start(): Promise<void> {
+  await connect(mongoUri)
+  logger.info("Connected to MongoDB")
 
-app.get("/", (_req, res) => {
-  res.json({ status: "ok" })
-})
+  app.listen(port, () => {
+    logger.info({ port }, "Media service listening")
+  })
+}
 
-app.listen(port, () => {
-  logger.info({ port }, "Media service listening")
+start().catch((err) => {
+  logger.error({ err }, "Failed to start media service")
+  process.exit(1)
 })
