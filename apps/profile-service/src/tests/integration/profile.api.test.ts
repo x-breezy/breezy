@@ -92,10 +92,17 @@ describe("GET /profiles/:profileId/relations", () => {
       .mockResolvedValueOnce(followers)
       .mockResolvedValueOnce(following)
 
+    const followerProfiles = [{ profileId: "follower-1", displayName: "Follower 1" }]
+    const followingProfiles = [{ profileId: "following-1", displayName: "Following 1" }]
+
+    mockedProfile.findAll = jest.fn()
+      .mockResolvedValueOnce(followerProfiles)
+      .mockResolvedValueOnce(followingProfiles)
+
     const res = await request(app).get(`/profiles/${MOCK_PROFILE.profileId}/relations`)
 
     expect(res.status).toBe(200)
-    expect(res.body).toEqual({ followers, following })
+    expect(res.body.data).toEqual({ followers: followerProfiles, following: followingProfiles })
   })
 })
 

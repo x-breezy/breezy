@@ -43,12 +43,20 @@ class ProfileService {
   }
 
   async getRelations(profileId: string): Promise<{
-    followers: Follow[]
-    following: Follow[]
+    followers: Profile[]
+    following: Profile[]
   }> {
-    const [followers, following] = await Promise.all([
+    const [followerRelations, followingRelations] = await Promise.all([
       Follow.findAll({ where: { followingId: profileId } }),
       Follow.findAll({ where: { followerId: profileId } }),
+    ])
+
+    const followerIds = followerRelations.map(f => f.followerId)
+    const followingIds = followingRelations.map(f => f.followingId)
+
+    const [followers, following] = await Promise.all([
+      Profile.findAll({ where: { profileId: followerIds } }),
+      Profile.findAll({ where: { profileId: followingIds } }),
     ])
 
     return { followers, following }

@@ -1,5 +1,6 @@
 import { Sequelize } from "sequelize"
 import { initProfileModel } from "../models/profile.model"
+import { initFollowModel } from "../models/follow.model"
 
 const sequelize = new Sequelize({
   dialect: "postgres",
@@ -22,6 +23,7 @@ export async function connectDatabase(): Promise<void> {
   console.log("Database connected")
 
   initProfileModel(sequelize)
+  initFollowModel(sequelize)
 
   await sequelize.sync({ alter: process.env.NODE_ENV === "development" })
   console.log("Models synchronized")

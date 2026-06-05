@@ -168,4 +168,4 @@ class ProfileController {
   }
 }
 
-export default ProfileController
+export default ProfileController
