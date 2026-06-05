@@ -4,7 +4,10 @@ export interface Comment {
   authorId: string
   postId: string
   parentCommentId: string | null
-
   createdAt: Date
   updatedAt: Date
+}
+
+export interface NestedComment extends Comment {
+  replies: NestedComment[]
 }
