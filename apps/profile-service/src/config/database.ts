@@ -1,5 +1,5 @@
 import { Sequelize } from "sequelize"
-import { initUserModel } from "../models/user.model"
+import { initProfileModel } from "../models/profile.model"
 
 const sequelize = new Sequelize({
   dialect: "postgres",
@@ -21,7 +21,7 @@ export async function connectDatabase(): Promise<void> {
   await sequelize.authenticate()
   console.log("Database connected")
 
-  initUserModel(sequelize)
+  initProfileModel(sequelize)
 
   await sequelize.sync({ alter: process.env.NODE_ENV === "development" })
   console.log("Models synchronized")

@@ -5,9 +5,9 @@ const options: swaggerJsdoc.Options = {
   definition: {
     openapi: "3.0.3",
     info: {
-      title: "user-service",
+      title: "profile-service",
       version: "1.0.0",
-      description: "HTTP microservice for managing user credentials and authentication.",
+      description: "HTTP microservice for managing profile credentials and authentication.",
     },
     components: {
       schemas: {
@@ -18,30 +18,30 @@ const options: swaggerJsdoc.Options = {
             error: { type: "string", example: "Not found" },
           },
         },
-        User: {
+        Profile: {
           type: "object",
           properties: {
             id: { type: "string", format: "uuid", example: "550e8400-e29b-41d4-a716-446655440000" },
-            username: { type: "string", example: "johndoe" },
+            profilename: { type: "string", example: "johndoe" },
             email: { type: "string", format: "email", example: "john@example.com" },
             isVerified: { type: "boolean", example: false },
             createdAt: { type: "string", format: "date-time" },
             updatedAt: { type: "string", format: "date-time" },
           },
         },
-        CreateUserInput: {
+        CreateProfileInput: {
           type: "object",
-          required: ["username", "email", "passwordHash"],
+          required: ["profilename", "email", "passwordHash"],
           properties: {
-            username: { type: "string", minLength: 3, maxLength: 50, example: "johndoe" },
+            profilename: { type: "string", minLength: 3, maxLength: 50, example: "johndoe" },
             email: { type: "string", format: "email", example: "john@example.com" },
             passwordHash: { type: "string", example: "$2b$10$..." },
           },
         },
-        UpdateUserInput: {
+        UpdateProfileInput: {
           type: "object",
           properties: {
-            username: { type: "string", minLength: 3, maxLength: 50, example: "johndoe_updated" },
+            profilename: { type: "string", minLength: 3, maxLength: 50, example: "johndoe_updated" },
             passwordHash: { type: "string", example: "$2b$10$..." },
             isVerified: { type: "boolean", example: true },
           },
