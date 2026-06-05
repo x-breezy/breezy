@@ -1,5 +1,6 @@
 import PostService from "../../services/post.service"
 import { PostModel } from "../../models/post.model"
+import type { FollowGraphPort } from "../../clients/follow-graph"
 
 jest.mock("../../models/post.model", () => ({
   PostModel: {
@@ -102,18 +103,25 @@ describe("PostService", () => {
   })
 
   describe("feed", () => {
-    it("returns paginated posts sorted by createdAt desc", async () => {
+    const makeQuery = (docs: typeof MOCK_POST[] = []) => ({
+      sort: jest.fn().mockReturnThis(),
+      skip: jest.fn().mockReturnThis(),
+      limit: jest.fn().mockReturnThis(),
+      exec: jest.fn().mockResolvedValue(docs),
+    })
+
+    const makeFollow = (result: string[] | null): FollowGraphPort => ({
+      getFollowing: jest.fn().mockResolvedValue(result),
+    })
+
+    it("uses global filter when follow graph returns null (user-service unavailable)", async () => {
       const docs = [MOCK_POST]
-      const mockQuery = {
-        sort: jest.fn().mockReturnThis(),
-        skip: jest.fn().mockReturnThis(),
-        limit: jest.fn().mockReturnThis(),
-        exec: jest.fn().mockResolvedValue(docs),
-      }
+      const mockQuery = makeQuery(docs)
       ;(mockedModel.find as jest.Mock).mockReturnValue(mockQuery)
       ;(mockedModel.countDocuments as jest.Mock).mockResolvedValue(1)
 
-      const result = await service.feed(1, 20)
+      const svc = new PostService(makeFollow(null))
+      const result = await svc.feed("user1", 1, 20)
 
       expect(mockedModel.find).toHaveBeenCalledWith({})
       expect(mockQuery.sort).toHaveBeenCalledWith({ createdAt: -1 })
@@ -122,17 +130,52 @@ describe("PostService", () => {
       expect(result).toEqual({ data: docs, total: 1, page: 1, limit: 20 })
     })
 
-    it("computes skip correctly for page > 1", async () => {
-      const mockQuery = {
-        sort: jest.fn().mockReturnThis(),
-        skip: jest.fn().mockReturnThis(),
-        limit: jest.fn().mockReturnThis(),
-        exec: jest.fn().mockResolvedValue([]),
-      }
+    it("filters by following + viewer when follow graph returns ids", async () => {
+      const mockQuery = makeQuery([MOCK_POST])
+      ;(mockedModel.find as jest.Mock).mockReturnValue(mockQuery)
+      ;(mockedModel.countDocuments as jest.Mock).mockResolvedValue(1)
+
+      const svc = new PostService(makeFollow(["user2", "user3"]))
+      await svc.feed("user1", 1, 20)
+
+      expect(mockedModel.find).toHaveBeenCalledWith({
+        authorId: { $in: expect.arrayContaining(["user1", "user2", "user3"]) },
+      })
+    })
+
+    it("includes only viewer when following is empty", async () => {
+      const mockQuery = makeQuery([])
       ;(mockedModel.find as jest.Mock).mockReturnValue(mockQuery)
       ;(mockedModel.countDocuments as jest.Mock).mockResolvedValue(0)
 
-      await service.feed(3, 10)
+      const svc = new PostService(makeFollow([]))
+      await svc.feed("user1", 1, 20)
+
+      expect(mockedModel.find).toHaveBeenCalledWith({
+        authorId: { $in: ["user1"] },
+      })
+    })
+
+    it("deduplicates viewer id from following list", async () => {
+      const mockQuery = makeQuery([])
+      ;(mockedModel.find as jest.Mock).mockReturnValue(mockQuery)
+      ;(mockedModel.countDocuments as jest.Mock).mockResolvedValue(0)
+
+      const svc = new PostService(makeFollow(["user1", "user2"])) // user1 already viewer
+      await svc.feed("user1", 1, 20)
+
+      const call = (mockedModel.find as jest.Mock).mock.calls[0][0]
+      const ids: string[] = call.authorId.$in
+      expect(ids.filter((id) => id === "user1")).toHaveLength(1)
+    })
+
+    it("computes skip correctly for page > 1 (null graph)", async () => {
+      const mockQuery = makeQuery([])
+      ;(mockedModel.find as jest.Mock).mockReturnValue(mockQuery)
+      ;(mockedModel.countDocuments as jest.Mock).mockResolvedValue(0)
+
+      const svc = new PostService(makeFollow(null))
+      await svc.feed("user1", 3, 10)
 
       expect(mockQuery.skip).toHaveBeenCalledWith(20) // (3-1) * 10
     })

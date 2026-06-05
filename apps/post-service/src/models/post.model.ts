@@ -4,7 +4,7 @@ import { Post } from "../types/post"
 const postSchema = new Schema<Post>(
   {
     content: { type: String, required: true },
-    authorId: { type: String, required: true, index: true },
+    authorId: { type: String, required: true },
     tags: { type: [String], default: [] },
     media: {
       type: [
@@ -22,5 +22,6 @@ const postSchema = new Schema<Post>(
 )
 
 postSchema.index({ createdAt: -1 })
+postSchema.index({ authorId: 1, createdAt: -1 })
 
 export const PostModel = model("Post", postSchema)

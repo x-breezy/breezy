@@ -115,8 +115,12 @@ export function createPostRouter(
  *
  * /posts/feed:
  *   get:
- *     summary: Chronological feed
- *     description: Returns all posts sorted by creation date descending (newest first), paginated. Any authenticated user.
+ *     summary: Personalized chronological feed
+ *     description: >
+ *       Returns posts from users the authenticated viewer follows, sorted newest first, paginated.
+ *       The viewer's own posts are always included. Follow graph is resolved server-side from
+ *       user-service (GET /users/:id/following). Falls back to a global chronological feed when
+ *       user-service is unavailable — the endpoint never errors due to follow-graph failures.
  *     tags: [Posts]
  *     parameters:
  *       - in: query
