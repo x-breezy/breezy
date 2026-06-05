@@ -8,8 +8,8 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
-    "dev": "tsx watch src/index.ts",
-    "start": "node dist/index.js",
+    "dev": "tsx watch --env-file=.env src/index.ts",
+    "start": "node --env-file=.env dist/index.js",
     "lint": "eslint src/",
     "check-types": "tsc --noEmit",
     "test": "jest",
@@ -17,9 +17,9 @@
   },
   "dependencies": {
     "@breezy/logger": "*",
-    "@breezy/types": "*",
     "@types/swagger-jsdoc": "^6.0.4",
     "@types/swagger-ui-express": "^4.1.8",
+    "dotenv": "^16.0.3",
     "express": "^4.21.2",
     "jest": "^30.4.2",
     "mongoose": "^8.9.5",

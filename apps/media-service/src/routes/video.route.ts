@@ -1,16 +1,25 @@
 import { Router } from "express"
 import VideoController from "../controllers/video.controller"
 import VideoService from "../services/video.service"
+import { identity } from "../middlewares/identity.middleware"
+import { requireOwnership } from "../middlewares/owner.middleware"
+import { VideoModel } from "../models/video.model"
+import { ROLES } from "../constants/roles"
 
 function createVideoRouter(controller: VideoController = new VideoController(new VideoService())) {
   const router = Router()
 
-  router.get("/", controller.list)
   // No body parser: the raw request stream is piped straight into GridFS.
-  router.post("/", controller.upload)
-  router.get("/:id/meta", controller.getMeta)
-  router.get("/:id", controller.getStream)
-  router.delete("/:id", controller.delete)
+  router.get("/", identity, controller.list)
+  router.post("/", identity, controller.upload)
+  router.get("/:id/meta", identity, controller.getMeta)
+  router.get("/:id", identity, controller.getStream)
+  router.delete(
+    "/:id",
+    identity,
+    requireOwnership(VideoModel, ROLES.MODERATOR, ROLES.ADMIN),
+    controller.delete
+  )
 
   return router
 }
@@ -22,6 +31,7 @@ export { createVideoRouter }
  * /videos:
  *   get:
  *     summary: List videos
+ *     description: Returns all videos, optionally filtered by ownerId. Any authenticated user.
  *     tags: [Videos]
  *     parameters:
  *       - in: query
@@ -46,9 +56,24 @@ export { createVideoRouter }
  *                     $ref: '#/components/schemas/Video'
  *   post:
  *     summary: Upload a video
- *     description: Stream raw binary directly into GridFS. No multipart encoding. No body size limit enforced at the HTTP layer.
+ *     description: >
+ *       Stream raw binary directly into GridFS. No multipart encoding.
+ *       No body size limit enforced at the HTTP layer.
+ *       Requires authentication via x-user-id and x-roles headers.
  *     tags: [Videos]
  *     parameters:
+ *       - in: header
+ *         name: x-user-id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Authenticated user identifier (injected by gateway). Used as ownerId.
+ *       - in: header
+ *         name: x-roles
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Comma-separated roles.
  *       - in: header
  *         name: Content-Type
  *         required: true
@@ -62,11 +87,6 @@ export { createVideoRouter }
  *           type: string
  *           default: upload
  *         description: Original filename.
- *       - in: header
- *         name: X-Owner-Id
- *         schema:
- *           type: string
- *         description: Owner identifier.
  *       - in: header
  *         name: X-Title
  *         schema:
@@ -98,6 +118,12 @@ export { createVideoRouter }
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ApiError'
+ *       401:
+ *         description: Missing authentication headers.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
  *
  * /videos/{id}:
  *   get:
@@ -119,11 +145,6 @@ export { createVideoRouter }
  *     responses:
  *       200:
  *         description: Full video stream.
- *         headers:
- *           Accept-Ranges:
- *             schema:
- *               type: string
- *               example: bytes
  *         content:
  *           video/*:
  *             schema:
@@ -131,11 +152,6 @@ export { createVideoRouter }
  *               format: binary
  *       206:
  *         description: Partial video stream.
- *         headers:
- *           Content-Range:
- *             schema:
- *               type: string
- *               example: bytes 0-1048575/10485760
  *         content:
  *           video/*:
  *             schema:
@@ -151,6 +167,7 @@ export { createVideoRouter }
  *         description: Range not satisfiable.
  *   delete:
  *     summary: Delete a video
+ *     description: Video owner may delete. Moderators and admins may delete any video.
  *     tags: [Videos]
  *     parameters:
  *       - in: path
@@ -169,9 +186,12 @@ export { createVideoRouter }
  *                 success:
  *                   type: boolean
  *                   example: true
- *                 data:
- *                   nullable: true
- *                   example: null
+ *       403:
+ *         description: Not the video owner and lacks elevated role.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
  *       404:
  *         description: Not found.
  *         content:

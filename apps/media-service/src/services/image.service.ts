@@ -1,6 +1,6 @@
-import type { IImage, ImageUploadDTO } from "@breezy/types"
 import sharp from "sharp"
 import { ImageModel } from "../models/image.model"
+import { ImageUploadDTO, Image } from "../types/image"
 
 class ImageService {
   async optimizeImage(image: Buffer): Promise<Buffer> {
@@ -10,12 +10,12 @@ class ImageService {
       .toBuffer()
   }
 
-  async uploadImage(input: ImageUploadDTO): Promise<IImage> {
+  async uploadImage(input: ImageUploadDTO): Promise<Image> {
     const data = await this.optimizeImage(input.data)
     return ImageModel.create({ ...input, data, size: data.length })
   }
 
-  async getImage(id: string): Promise<IImage | null> {
+  async getImage(id: string): Promise<Image | null> {
     return ImageModel.findById(id).exec()
   }
 

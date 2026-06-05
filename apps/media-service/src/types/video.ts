@@ -1,4 +1,4 @@
-export interface IVideo {
+export interface Video {
   id: string
   /** GridFS file _id holding the raw bytes. */
   gridFsId: string

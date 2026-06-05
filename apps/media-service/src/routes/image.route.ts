@@ -1,15 +1,24 @@
 import { Router, raw } from "express"
 import ImageController from "../controllers/image.controller"
 import ImageService from "../services/image.service"
+import { identity } from "../middlewares/identity.middleware"
+import { requireOwnership } from "../middlewares/owner.middleware"
+import { ImageModel } from "../models/image.model"
+import { ROLES } from "../constants/roles"
 
 function createImageRouter(controller: ImageController = new ImageController(new ImageService())) {
   const router = Router()
 
   // Accept any binary body up to 16MB (MongoDB document cap).
-  router.post("/", raw({ type: "*/*", limit: "16mb" }), controller.uploadImage)
-  router.get("/:id/meta", controller.getImageMeta)
-  router.get("/:id", controller.getImage)
-  router.delete("/:id", controller.deleteImage)
+  router.post("/", identity, raw({ type: "*/*", limit: "16mb" }), controller.uploadImage)
+  router.get("/:id/meta", identity, controller.getImageMeta)
+  router.get("/:id", identity, controller.getImage)
+  router.delete(
+    "/:id",
+    identity,
+    requireOwnership(ImageModel, ROLES.MODERATOR, ROLES.ADMIN),
+    controller.deleteImage
+  )
 
   return router
 }
@@ -21,9 +30,21 @@ export { createImageRouter }
  * /images:
  *   post:
  *     summary: Upload an image
- *     description: Send raw binary in the body (no multipart). Maximum 16 MB.
+ *     description: Send raw binary in the body (no multipart). Maximum 16 MB. Requires authentication via x-user-id and x-roles headers.
  *     tags: [Images]
  *     parameters:
+ *       - in: header
+ *         name: x-user-id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Authenticated user identifier (injected by gateway). Used as ownerId.
+ *       - in: header
+ *         name: x-roles
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Comma-separated roles (e.g. "user" or "admin,moderator").
  *       - in: header
  *         name: Content-Type
  *         required: true
@@ -37,11 +58,6 @@ export { createImageRouter }
  *           type: string
  *           default: upload
  *         description: Original filename.
- *       - in: header
- *         name: X-Owner-Id
- *         schema:
- *           type: string
- *         description: Owner identifier.
  *     requestBody:
  *       required: true
  *       content:
@@ -64,6 +80,12 @@ export { createImageRouter }
  *                   $ref: '#/components/schemas/ImageMeta'
  *       400:
  *         description: Missing body or invalid headers.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
+ *       401:
+ *         description: Missing authentication headers.
  *         content:
  *           application/json:
  *             schema:
@@ -96,6 +118,7 @@ export { createImageRouter }
  *               $ref: '#/components/schemas/ApiError'
  *   delete:
  *     summary: Delete an image
+ *     description: Image owner may delete. Moderators and admins may delete any image.
  *     tags: [Images]
  *     parameters:
  *       - in: path
@@ -114,9 +137,12 @@ export { createImageRouter }
  *                 success:
  *                   type: boolean
  *                   example: true
- *                 data:
- *                   nullable: true
- *                   example: null
+ *       403:
+ *         description: Not the image owner and lacks elevated role.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
  *       404:
  *         description: Not found.
  *         content:

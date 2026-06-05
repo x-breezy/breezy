@@ -1,7 +1,7 @@
-import type { IVideo } from "@breezy/types"
 import type { Readable } from "node:stream"
 import StorageService from "./storage.service"
 import { VideoModel } from "../models/video.model"
+import { Video } from "../types/video"
 
 export interface VideoUploadHeaders {
   filename: string
@@ -13,7 +13,7 @@ export interface VideoUploadHeaders {
 class VideoService {
   constructor(private readonly storage: StorageService = new StorageService("videos")) {}
 
-  async upload(source: Readable, headers: VideoUploadHeaders): Promise<IVideo> {
+  async upload(source: Readable, headers: VideoUploadHeaders): Promise<Video> {
     const gridFsId = await this.storage.upload(source, {
       filename: headers.filename,
       contentType: headers.contentType,
@@ -33,11 +33,11 @@ class VideoService {
     })
   }
 
-  async getMeta(id: string): Promise<IVideo | null> {
+  async getMeta(id: string): Promise<Video | null> {
     return VideoModel.findById(id).exec()
   }
 
-  async list(ownerId?: string): Promise<IVideo[]> {
+  async list(ownerId?: string): Promise<Video[]> {
     const filter = ownerId ? { ownerId } : {}
     return VideoModel.find(filter).select("-__v").exec()
   }
