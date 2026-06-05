@@ -27,3 +27,8 @@ export function getPermissions(roles: Role[]): Permission[] {
 
   return [...granted]
 }
+
+export function hasPermission(roles: Role[], permission: Permission): boolean {
+  const perms = getPermissions(roles)
+  return perms.includes(permission)
+}

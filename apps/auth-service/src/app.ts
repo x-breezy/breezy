@@ -1,6 +1,7 @@
 import express from "express"
 import type { Express, Request, Response, NextFunction } from "express"
 import swaggerUi from "swagger-ui-express"
+import { createUserRouter } from "./routes/user.route"
 import { swaggerSpec } from "./config/swagger"
 
 /** Build the Express app. No network/DB side effects, so tests can import it. */
@@ -17,6 +18,8 @@ export function createApp(): Express {
   app.get("/docs.json", (_req, res) => {
     res.json(swaggerSpec)
   })
+
+  app.use("/users", createUserRouter())
 
   // Global error handler — must be registered last and have exactly 4 params
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

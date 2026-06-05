@@ -1,0 +1,50 @@
+import { User, type SafeUser } from "../models/user.model"
+import { hashPassword, verifyPassword } from "../utils/password.util"
+import type { CreateUserDTO } from "../schemas/user.schema"
+
+class UserService {
+  /** Create a user, hashing the plain password into passwordHash. Returns the safe (no-hash) user. */
+  async addUser(input: CreateUserDTO): Promise<SafeUser> {
+    const passwordHash = await hashPassword(input.password)
+    const user = await User.create({
+      username: input.username,
+      email: input.email,
+      passwordHash,
+    })
+    return user.toJSON()
+  }
+
+  async getUser(id: string): Promise<SafeUser | null> {
+    const user = await User.findByPk(id)
+    return user ? user.toJSON() : null
+  }
+
+  async isEmailAndUsernameTaken(
+    email: string,
+    username: string
+  ): Promise<{ emailTaken: boolean; usernameTaken: boolean }> {
+    const [emailCount, usernameCount] = await Promise.all([
+      User.count({ where: { email } }),
+      User.count({ where: { username } }),
+    ])
+    return { emailTaken: emailCount > 0, usernameTaken: usernameCount > 0 }
+  }
+
+  /** Verify current password then store a new hash. Throws on wrong credentials. */
+  async updatePassword(id: string, currentPassword: string, newPassword: string): Promise<void> {
+    const user = await User.findByPk(id, { attributes: ["id", "passwordHash"] })
+    if (!user) {
+      throw Object.assign(new Error("User not found"), { code: "USER_NOT_FOUND" })
+    }
+
+    const valid = await verifyPassword(currentPassword, user.passwordHash)
+    if (!valid) {
+      throw Object.assign(new Error("Invalid password"), { code: "INVALID_PASSWORD" })
+    }
+
+    const passwordHash = await hashPassword(newPassword)
+    await user.update({ passwordHash })
+  }
+}
+
+export default UserService

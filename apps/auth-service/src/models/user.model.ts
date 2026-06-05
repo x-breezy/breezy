@@ -1,46 +1,42 @@
-import { DataTypes, Model, Optional, Sequelize } from "sequelize"
-
-// ─── Types ────────────────────────────────────────────────────────────────────
+import { DataTypes, Model, type Sequelize } from "sequelize"
+import { ROLES, type Role } from "../constants/roles"
 
 export interface UserAttributes {
   id: string
   username: string
   email: string
   passwordHash: string
-  isVerified: boolean
+  roles: Role[]
+  isBanned: boolean
   createdAt: Date
   updatedAt: Date
 }
 
-export type CreateUserInput = Optional<
+/** Fields a caller provides on create; id/roles/isBanned/timestamps are defaulted by the model. */
+export type CreateUserInput = Omit<
   UserAttributes,
-  "id" | "isVerified" | "createdAt" | "updatedAt"
+  "id" | "roles" | "isBanned" | "createdAt" | "updatedAt"
 >
 
-export type UpdateUserInput = Partial<
-  Pick<UserAttributes, "username" | "passwordHash" | "isVerified">
->
-
+/** User without the password hash — safe to serialize to clients/tokens. */
 export type SafeUser = Omit<UserAttributes, "passwordHash">
-
-// ─── Model ────────────────────────────────────────────────────────────────────
 
 export class User extends Model<UserAttributes, CreateUserInput> implements UserAttributes {
   declare id: string
   declare username: string
   declare email: string
   declare passwordHash: string
-  declare isVerified: boolean
+  declare roles: Role[]
+  declare isBanned: boolean
   declare readonly createdAt: Date
   declare readonly updatedAt: Date
 
   toJSON(): SafeUser {
-    const { passwordHash, ...safe } = super.toJSON() as UserAttributes
-    return safe
+    const values = { ...(super.toJSON() as UserAttributes) } as Partial<UserAttributes>
+    delete values.passwordHash
+    return values as SafeUser
   }
 }
-
-// ─── Init ─────────────────────────────────────────────────────────────────────
 
 export function initUserModel(sequelize: Sequelize): void {
   User.init(
@@ -68,28 +64,26 @@ export function initUserModel(sequelize: Sequelize): void {
       passwordHash: {
         type: DataTypes.STRING(255),
         allowNull: false,
-        field: "password_hash",
       },
-      isVerified: {
+      roles: {
+        type: DataTypes.ARRAY(DataTypes.STRING),
+        allowNull: false,
+        defaultValue: [ROLES.USER],
+      },
+      isBanned: {
         type: DataTypes.BOOLEAN,
         allowNull: false,
         defaultValue: false,
-        field: "is_verified",
       },
-      createdAt: {
-        type: DataTypes.DATE,
-        field: "created_at",
-      },
-      updatedAt: {
-        type: DataTypes.DATE,
-        field: "updated_at",
-      },
+      // Values auto-managed by `timestamps: true`; listed only to satisfy the typed attributes.
+      createdAt: DataTypes.DATE,
+      updatedAt: DataTypes.DATE,
     },
     {
       sequelize,
       tableName: "users",
       timestamps: true,
-      underscored: false,
+      underscored: true,
       indexes: [
         { unique: true, fields: ["username"] },
         { unique: true, fields: ["email"] },

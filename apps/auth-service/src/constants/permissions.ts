@@ -27,6 +27,7 @@ export const PERMISSIONS = {
   REPORT_CREATE: "report:create",
   REPORT_RESOLVE: "report:resolve",
 
+  USER_READ: "user:read",
   USER_SUSPEND: "user:suspend",
   USER_BAN: "user:ban",
 
