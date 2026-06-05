@@ -9,11 +9,11 @@ class UserController {
     this.userService = userService
   }
 
-  async createUser(
+  createUser = async (
     req: Request<Record<string, never>, unknown, CreateUserDTO>,
     res: Response,
     next: NextFunction
-  ): Promise<void> {
+  ): Promise<void> => {
     try {
       const taken = await this.userService.isEmailAndUsernameTaken(req.body.email, req.body.username)
       if (taken.emailTaken || taken.usernameTaken) {
@@ -29,11 +29,11 @@ class UserController {
     }
   }
 
-  async getUserById(
+  getUserById = async (
     req: Request<{ id: string }>,
     res: Response,
     next: NextFunction
-  ): Promise<void> {
+  ): Promise<void> => {
     try {
       const user = await this.userService.getUser(req.params.id)
       if (!user) {
@@ -46,11 +46,11 @@ class UserController {
     }
   }
 
-  async updatePassword(
+  updatePassword = async (
     req: Request<{ id: string }, unknown, UpdatePasswordDTO>,
     res: Response,
     next: NextFunction
-  ): Promise<void> {
+  ): Promise<void> => {
     if (req.user!.id !== req.params.id) {
       res.status(403).json({ success: false, error: "Forbidden" })
       return
