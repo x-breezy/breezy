@@ -103,7 +103,7 @@ describe("PostService", () => {
   })
 
   describe("feed", () => {
-    const makeQuery = (docs: typeof MOCK_POST[] = []) => ({
+    const makeQuery = (docs: (typeof MOCK_POST)[] = []) => ({
       sort: jest.fn().mockReturnThis(),
       skip: jest.fn().mockReturnThis(),
       limit: jest.fn().mockReturnThis(),

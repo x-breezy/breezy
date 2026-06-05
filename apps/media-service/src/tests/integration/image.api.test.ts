@@ -230,7 +230,7 @@ describe("DELETE /images/:id", () => {
       .set("x-roles", "user")
 
     expect(res.status).toBe(200)
-    expect(res.body).toEqual({ success: true })
+    expect(res.body).toEqual({ success: true, message: "Image deleted successfully" })
   })
 
   it("returns 403 when non-owner user tries to delete", async () => {

@@ -240,10 +240,7 @@ describe("GET /posts/feed", () => {
   it("uses global filter when user-service unavailable (no USER_SERVICE_URL)", async () => {
     mockFindPaginated([MOCK_POST], 1)
 
-    await request(app)
-      .get("/posts/feed")
-      .set("x-user-id", "user1")
-      .set("x-roles", "user")
+    await request(app).get("/posts/feed").set("x-user-id", "user1").set("x-roles", "user")
 
     expect(mockedModel.find).toHaveBeenCalledWith({})
   })
@@ -347,7 +344,7 @@ describe("DELETE /posts/:id", () => {
       .set("x-roles", "user")
 
     expect(res.status).toBe(200)
-    expect(res.body).toEqual({ success: true, data: null })
+    expect(res.body).toMatchObject({ success: true, message: "Post deleted successfully" })
   })
 
   it("returns 404 when post not found", async () => {

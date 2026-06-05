@@ -23,7 +23,7 @@ describe("getPermissions", () => {
 
   it("grants admin the full catalog (superset)", () => {
     const perms = getPermissions([ROLES.ADMIN])
-    const all = Object.values(PERMISSIONS)
+    const all = Object.values(PERMISSIONS).filter((p) => p !== PERMISSIONS.ACCOUNT_CREATE) // Exclude visitor-only perm
     for (const p of all) {
       expect(perms).toContain(p)
     }

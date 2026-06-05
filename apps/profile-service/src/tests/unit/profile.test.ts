@@ -107,9 +107,16 @@ describe("ProfileService", () => {
 
       await service.follow("follower-1", "following-1")
 
-      expect(mockedFollow.create).toHaveBeenCalledWith({ followerId: "follower-1", followingId: "following-1" })
-      expect(mockedProfile.increment).toHaveBeenCalledWith("followingCount", { where: { profileId: "follower-1" } })
-      expect(mockedProfile.increment).toHaveBeenCalledWith("followersCount", { where: { profileId: "following-1" } })
+      expect(mockedFollow.create).toHaveBeenCalledWith({
+        followerId: "follower-1",
+        followingId: "following-1",
+      })
+      expect(mockedProfile.increment).toHaveBeenCalledWith("followingCount", {
+        where: { profileId: "follower-1" },
+      })
+      expect(mockedProfile.increment).toHaveBeenCalledWith("followersCount", {
+        where: { profileId: "following-1" },
+      })
     })
   })
 
@@ -122,10 +129,16 @@ describe("ProfileService", () => {
 
       const result = await service.unfollow("follower-1", "following-1")
 
-      expect(mockedFollow.findOne).toHaveBeenCalledWith({ where: { followerId: "follower-1", followingId: "following-1" } })
+      expect(mockedFollow.findOne).toHaveBeenCalledWith({
+        where: { followerId: "follower-1", followingId: "following-1" },
+      })
       expect(destroyMock).toHaveBeenCalled()
-      expect(mockedProfile.decrement).toHaveBeenCalledWith("followingCount", { where: { profileId: "follower-1" } })
-      expect(mockedProfile.decrement).toHaveBeenCalledWith("followersCount", { where: { profileId: "following-1" } })
+      expect(mockedProfile.decrement).toHaveBeenCalledWith("followingCount", {
+        where: { profileId: "follower-1" },
+      })
+      expect(mockedProfile.decrement).toHaveBeenCalledWith("followersCount", {
+        where: { profileId: "following-1" },
+      })
       expect(result).toBe(true)
     })
 
@@ -140,7 +153,7 @@ describe("ProfileService", () => {
     it("should return followers and following", async () => {
       const followers = [{ followerId: "follower-1" }]
       const following = [{ followingId: "following-1" }]
-      
+
       ;(mockedFollow.findAll as jest.Mock)
         .mockResolvedValueOnce(followers)
         .mockResolvedValueOnce(following)

@@ -30,10 +30,18 @@ export class CommentController {
         return
       }
 
-      const comment = await this.service.createComment(postId, req.user!.id, req.body)
+      const { comment, commentsCount } = await this.service.createComment(
+        postId,
+        req.user!.id,
+        req.body
+      )
       res
         .status(201)
-        .json({ success: true, data: comment, message: "Comment created successfully" })
+        .json({
+          success: true,
+          data: { comment, commentsCount },
+          message: "Comment created successfully",
+        })
     } catch (err) {
       next(err)
     }
@@ -41,8 +49,16 @@ export class CommentController {
 
   delete = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      await this.service.deleteComment(req.params.commentId!)
-      res.json({ success: true, message: "Comment deleted successfully" })
+      const result = await this.service.deleteComment(req.params.commentId!)
+      if (!result) {
+        res.status(404).json({ success: false, message: "Comment not found" })
+        return
+      }
+      res.json({
+        success: true,
+        data: { commentsCount: result.commentsCount },
+        message: "Comment deleted successfully",
+      })
     } catch (err) {
       next(err)
     }

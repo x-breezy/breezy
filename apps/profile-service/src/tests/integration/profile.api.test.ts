@@ -87,7 +87,7 @@ describe("GET /profiles/:profileId/relations", () => {
   it("returns followers and following", async () => {
     const followers = [{ followerId: "follower-1", followingId: MOCK_PROFILE.profileId }]
     const following = [{ followerId: MOCK_PROFILE.profileId, followingId: "following-1" }]
-    
+
     ;(mockedFollow.findAll as jest.Mock)
       .mockResolvedValueOnce(followers)
       .mockResolvedValueOnce(following)
@@ -95,7 +95,8 @@ describe("GET /profiles/:profileId/relations", () => {
     const followerProfiles = [{ profileId: "follower-1", displayName: "Follower 1" }]
     const followingProfiles = [{ profileId: "following-1", displayName: "Following 1" }]
 
-    mockedProfile.findAll = jest.fn()
+    mockedProfile.findAll = jest
+      .fn()
       .mockResolvedValueOnce(followerProfiles)
       .mockResolvedValueOnce(followingProfiles)
 
@@ -150,7 +151,9 @@ describe("PATCH /profiles", () => {
   it("returns 404 for an unknown profileId", async () => {
     ;(mockedProfile.findOne as jest.Mock).mockResolvedValue(null)
 
-    const res = await request(app).patch("/profiles").send({ profileId: "unknown-profile", displayName: "Ghost" })
+    const res = await request(app)
+      .patch("/profiles")
+      .send({ profileId: "unknown-profile", displayName: "Ghost" })
 
     expect(res.status).toBe(404)
     expect(res.body.message).toBe("Profile not found")
@@ -184,7 +187,9 @@ describe("POST /profiles/follow", () => {
     ;(mockedFollow.create as jest.Mock).mockResolvedValue({})
     ;(mockedProfile.increment as jest.Mock).mockResolvedValue({})
 
-    const res = await request(app).post("/profiles/follow").send({ followerId: "u1", followingId: "u2" })
+    const res = await request(app)
+      .post("/profiles/follow")
+      .send({ followerId: "u1", followingId: "u2" })
 
     expect(res.status).toBe(200)
     expect(res.body).toEqual({ success: true })
@@ -197,7 +202,9 @@ describe("POST /profiles/unfollow", () => {
     ;(mockedFollow.findOne as jest.Mock).mockResolvedValue({ destroy: jest.fn() })
     ;(mockedProfile.decrement as jest.Mock).mockResolvedValue({})
 
-    const res = await request(app).post("/profiles/unfollow").send({ followerId: "u1", followingId: "u2" })
+    const res = await request(app)
+      .post("/profiles/unfollow")
+      .send({ followerId: "u1", followingId: "u2" })
 
     expect(res.status).toBe(200)
     expect(res.body).toEqual({ success: true })
@@ -206,7 +213,9 @@ describe("POST /profiles/unfollow", () => {
   it("returns 404 if follow relationship does not exist", async () => {
     ;(mockedFollow.findOne as jest.Mock).mockResolvedValue(null)
 
-    const res = await request(app).post("/profiles/unfollow").send({ followerId: "u1", followingId: "u2" })
+    const res = await request(app)
+      .post("/profiles/unfollow")
+      .send({ followerId: "u1", followingId: "u2" })
 
     expect(res.status).toBe(404)
     expect(res.body.message).toBe("Follow relationship not found")

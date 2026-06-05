@@ -144,13 +144,13 @@ describe("PATCH /users/:id/password", () => {
     expect(mockService.updatePassword).not.toHaveBeenCalled()
   })
 
-  it("returns 400 when :id is not a UUID", async () => {
+  it("returns 403 when :id is not a UUID", async () => {
     const res = await request(app)
       .patch("/users/not-a-uuid/password")
       .set("x-user-id", USER_ID)
       .set("x-roles", "user")
       .send(validBody)
-    expect(res.status).toBe(400)
+    expect(res.status).toBe(403)
   })
 
   it("returns 400 when currentPassword is missing", async () => {

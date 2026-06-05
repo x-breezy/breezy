@@ -47,7 +47,7 @@ describe("CommentService", () => {
     jest.clearAllMocks()
     service = new CommentService()
     ;(mockedPost.findByIdAndUpdate as jest.Mock).mockReturnValue({
-      exec: jest.fn().mockResolvedValue(null),
+      exec: jest.fn().mockResolvedValue({ commentsCount: 0 }),
     })
   })
 
@@ -70,28 +70,41 @@ describe("CommentService", () => {
 
       const result = await service.deleteComment(COMMENT_ID)
 
-      expect(result).toBe(MOCK_COMMENT)
-      expect(mockedPost.findByIdAndUpdate).toHaveBeenCalledWith(POST_ID, {
-        $inc: { commentsCount: -1 },
-      })
+      expect(result).toEqual({ comment: MOCK_COMMENT, commentsCount: 0 })
+      expect(mockedPost.findByIdAndUpdate).toHaveBeenCalledWith(
+        POST_ID,
+        { $inc: { commentsCount: -1 } },
+        { new: true }
+      )
     })
   })
 
   describe("listComments", () => {
     it("returns paginated comments filtered by postId and parentCommentId", async () => {
+      const childQuery = {
+        sort: jest.fn().mockReturnThis(),
+        lean: jest.fn().mockReturnThis(),
+        exec: jest.fn().mockResolvedValue([]),
+      }
       const mockQuery = {
         sort: jest.fn().mockReturnThis(),
         skip: jest.fn().mockReturnThis(),
         limit: jest.fn().mockReturnThis(),
+        lean: jest.fn().mockReturnThis(),
         exec: jest.fn().mockResolvedValue([MOCK_COMMENT]),
       }
-      ;(mockedComment.find as jest.Mock).mockReturnValue(mockQuery)
+      ;(mockedComment.find as jest.Mock).mockReturnValueOnce(mockQuery).mockReturnValue(childQuery)
       ;(mockedComment.countDocuments as jest.Mock).mockResolvedValue(1)
 
       const result = await service.listComments(POST_ID, null, 1, 20)
 
       expect(mockedComment.find).toHaveBeenCalledWith({ postId: POST_ID, parentCommentId: null })
-      expect(result).toEqual({ data: [MOCK_COMMENT], total: 1, page: 1, limit: 20 })
+      expect(result).toEqual({
+        data: [{ ...MOCK_COMMENT, replies: [] }],
+        total: 1,
+        page: 1,
+        limit: 20,
+      })
     })
   })
 })

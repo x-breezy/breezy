@@ -7,15 +7,24 @@ import type { PaginatedResponse } from "../types/api"
 const NEST_DEPTH = 3
 
 export class CommentService {
-  async createComment(postId: string, authorId: string, dto: CreateCommentDTO): Promise<Comment> {
+  async createComment(
+    postId: string,
+    authorId: string,
+    dto: CreateCommentDTO
+  ): Promise<{ comment: Comment; commentsCount: number }> {
     const comment = await CommentModel.create({
       content: dto.content,
       authorId,
       postId,
       parentCommentId: dto.parentCommentId ?? null,
     })
-    await PostModel.findByIdAndUpdate(postId, { $inc: { commentsCount: 1 } }).exec()
-    return comment as unknown as Comment
+    const post = await PostModel.findByIdAndUpdate(
+      postId,
+      { $inc: { commentsCount: 1 } },
+      { new: true }
+    ).exec()
+    if (!post) throw Object.assign(new Error("Post not found"), { code: "POST_NOT_FOUND" })
+    return { comment: comment as unknown as Comment, commentsCount: post.commentsCount }
   }
 
   async listComments(
@@ -71,11 +80,16 @@ export class CommentService {
     return CommentModel.findById(commentId).exec() as unknown as Promise<Comment | null>
   }
 
-  async deleteComment(commentId: string): Promise<Comment | null> {
+  async deleteComment(commentId: string): Promise<{ comment: Comment; commentsCount: number } | null> {
     const comment = await CommentModel.findByIdAndDelete(commentId).exec()
     if (!comment) return null
-    await PostModel.findByIdAndUpdate(comment.postId, { $inc: { commentsCount: -1 } }).exec()
-    return comment as unknown as Comment
+    const post = await PostModel.findByIdAndUpdate(
+      comment.postId,
+      { $inc: { commentsCount: -1 } },
+      { new: true }
+    ).exec()
+    if (!post) throw Object.assign(new Error("Post not found"), { code: "POST_NOT_FOUND" })
+    return { comment: comment as unknown as Comment, commentsCount: post.commentsCount }
   }
 }
 

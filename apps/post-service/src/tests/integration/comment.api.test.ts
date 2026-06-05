@@ -45,7 +45,7 @@ const MOCK_COMMENT = {
 beforeEach(() => {
   jest.clearAllMocks()
   ;(mockedPost.findByIdAndUpdate as jest.Mock).mockReturnValue({
-    exec: jest.fn().mockResolvedValue(null),
+    exec: jest.fn().mockResolvedValue({ commentsCount: 5 }),
   })
 })
 
@@ -53,13 +53,19 @@ beforeEach(() => {
 
 describe("GET /posts/:id/comments", () => {
   it("returns paginated top-level comments", async () => {
+    const childQuery = {
+      sort: jest.fn().mockReturnThis(),
+      lean: jest.fn().mockReturnThis(),
+      exec: jest.fn().mockResolvedValue([]),
+    }
     const mockQuery = {
       sort: jest.fn().mockReturnThis(),
       skip: jest.fn().mockReturnThis(),
       limit: jest.fn().mockReturnThis(),
+      lean: jest.fn().mockReturnThis(),
       exec: jest.fn().mockResolvedValue([MOCK_COMMENT]),
     }
-    ;(mockedComment.find as jest.Mock).mockReturnValue(mockQuery)
+    ;(mockedComment.find as jest.Mock).mockReturnValueOnce(mockQuery).mockReturnValue(childQuery)
     ;(mockedComment.countDocuments as jest.Mock).mockResolvedValue(1)
 
     const res = await request(app)
@@ -85,6 +91,7 @@ describe("GET /posts/:id/comments", () => {
       sort: jest.fn().mockReturnThis(),
       skip: jest.fn().mockReturnThis(),
       limit: jest.fn().mockReturnThis(),
+      lean: jest.fn().mockReturnThis(),
       exec: jest.fn().mockResolvedValue([]),
     }
     ;(mockedComment.find as jest.Mock).mockReturnValue(mockQuery)
@@ -125,11 +132,16 @@ describe("POST /posts/:id/comments", () => {
     expect(res.status).toBe(201)
     expect(res.body).toMatchObject({
       success: true,
-      data: expect.objectContaining({ id: COMMENT_ID, content: "Nice post!" }),
+      data: {
+        comment: expect.objectContaining({ id: COMMENT_ID, content: "Nice post!" }),
+        commentsCount: 5,
+      },
     })
-    expect(mockedPost.findByIdAndUpdate).toHaveBeenCalledWith(POST_ID, {
-      $inc: { commentsCount: 1 },
-    })
+    expect(mockedPost.findByIdAndUpdate).toHaveBeenCalledWith(
+      POST_ID,
+      { $inc: { commentsCount: 1 } },
+      { new: true }
+    )
   })
 
   it("creates a reply when parentCommentId is provided", async () => {
@@ -217,10 +229,12 @@ describe("DELETE /posts/:id/comments/:commentId", () => {
       .set("x-roles", "user")
 
     expect(res.status).toBe(200)
-    expect(res.body).toEqual({ success: true })
-    expect(mockedPost.findByIdAndUpdate).toHaveBeenCalledWith(POST_ID, {
-      $inc: { commentsCount: -1 },
-    })
+    expect(res.body).toMatchObject({ success: true, data: { commentsCount: 5 } })
+    expect(mockedPost.findByIdAndUpdate).toHaveBeenCalledWith(
+      POST_ID,
+      { $inc: { commentsCount: -1 } },
+      { new: true }
+    )
   })
 
   it("returns 403 when non-owner user tries to delete", async () => {
