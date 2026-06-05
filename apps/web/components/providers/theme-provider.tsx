@@ -1,17 +1,37 @@
 "use client"
 
 import * as React from "react"
-import { ThemeProvider as NextThemesProvider } from "next-themes"
+import { useEffect } from "react"
+import { useTheme, ThemeProvider as NextThemesProvider } from "next-themes"
+import type { Theme } from "@/lib/theme"
+import { setThemeCookie } from "@/lib/theme"
 
-function ThemeProvider({ children, ...props }: React.ComponentProps<typeof NextThemesProvider>) {
+function ThemeSync() {
+  const { theme, resolvedTheme } = useTheme()
+
+  useEffect(() => {
+    if (theme) {
+      setThemeCookie(theme as Theme)
+    }
+  }, [theme, resolvedTheme])
+
+  return null
+}
+
+interface ThemeProviderProps extends React.ComponentProps<typeof NextThemesProvider> {
+  defaultTheme?: Theme
+}
+
+function ThemeProvider({ children, defaultTheme = "system", ...props }: ThemeProviderProps) {
   return (
     <NextThemesProvider
       attribute='class'
-      defaultTheme='system'
+      defaultTheme={defaultTheme}
       enableSystem
       disableTransitionOnChange
       {...props}
     >
+      <ThemeSync />
       {children}
     </NextThemesProvider>
   )

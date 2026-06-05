@@ -1,8 +1,10 @@
 import { Geist, Geist_Mono, Georama } from "next/font/google"
 import "@breezy/ui/globals.css"
 import type { Metadata } from "next"
+import { cookies } from "next/headers"
 import { ThemeProvider } from "@/components/providers/theme-provider"
 import { cn } from "@breezy/ui/lib/utils"
+import type { Theme } from "@/lib/theme"
 
 // base font
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" })
@@ -43,15 +45,19 @@ export const metadata: Metadata = {
   },
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const cookieStore = await cookies()
+  const theme = (cookieStore.get("breezy-theme")?.value as Theme) ?? "system"
+
   return (
     <html
       lang='en'
       suppressHydrationWarning
+      data-theme={theme}
       className={cn(
         "antialiased",
         geistMono.variable,
@@ -61,7 +67,7 @@ export default function RootLayout({
       )}
     >
       <body>
-        <ThemeProvider>{children}</ThemeProvider>
+        <ThemeProvider defaultTheme={theme}>{children}</ThemeProvider>
       </body>
     </html>
   )
