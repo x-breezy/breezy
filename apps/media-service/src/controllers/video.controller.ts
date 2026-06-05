@@ -29,10 +29,7 @@ class VideoController {
     try {
       const headers = uploadHeadersSchema.safeParse(req.headers)
       if (!headers.success) {
-        res.status(400).json({
-          success: false,
-          error: headers.error.issues[0]?.message ?? "Invalid request headers",
-        })
+        res.status(400).json({ success: false })
         return
       }
 
@@ -61,13 +58,13 @@ class VideoController {
     try {
       const meta = await this.videoService.getMeta(req.params.id)
       if (!meta) {
-        res.status(404).json({ success: false, error: "Not found" })
+        res.status(404).json({ success: false })
         return
       }
 
       const file = await this.videoService.getGridFsFile(meta.gridFsId)
       if (!file) {
-        res.status(404).json({ success: false, error: "File not found in storage" })
+        res.status(404).json({ success: false })
         return
       }
 
@@ -108,7 +105,7 @@ class VideoController {
     try {
       const video = await this.videoService.getMeta(req.params.id)
       if (!video) {
-        res.status(404).json({ success: false, error: "Not found" })
+        res.status(404).json({ success: false })
         return
       }
 
@@ -126,7 +123,7 @@ class VideoController {
     try {
       const deleted = await this.videoService.delete(req.params.id)
       if (!deleted) {
-        res.status(404).json({ success: false, error: "Not found" })
+        res.status(404).json({ success: false })
         return
       }
 

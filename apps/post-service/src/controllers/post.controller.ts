@@ -52,10 +52,10 @@ export class PostController {
     try {
       const deleted = await this.service.deletePost(req.params.id!)
       if (!deleted) {
-        res.status(404).json({ success: false, error: "Not found" })
+        res.status(404).json({ success: false })
         return
       }
-      res.json({ success: true, data: null })
+      res.json({ success: true })
     } catch (err) {
       next(err)
     }

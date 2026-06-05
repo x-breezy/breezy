@@ -15,9 +15,12 @@ class UserController {
     next: NextFunction
   ): Promise<void> => {
     try {
-      const taken = await this.userService.isEmailAndUsernameTaken(req.body.email, req.body.username)
+      const taken = await this.userService.isEmailAndUsernameTaken(
+        req.body.email,
+        req.body.username
+      )
       if (taken.emailTaken || taken.usernameTaken) {
-        res.status(409).json({ message: "Email or username already taken" })
+        res.status(409).json({ success: false })
         return
       }
 
@@ -37,7 +40,7 @@ class UserController {
     try {
       const user = await this.userService.getUser(req.params.id)
       if (!user) {
-        res.status(404).json({ message: "User not found" })
+        res.status(404).json({ sucess: false })
         return
       }
       res.status(200).json({ success: true, data: user })
@@ -52,21 +55,25 @@ class UserController {
     next: NextFunction
   ): Promise<void> => {
     if (req.user!.id !== req.params.id) {
-      res.status(403).json({ success: false, error: "Forbidden" })
+      res.status(403).json({ success: false })
       return
     }
 
     try {
-      await this.userService.updatePassword(req.params.id, req.body.currentPassword, req.body.newPassword)
+      await this.userService.updatePassword(
+        req.params.id,
+        req.body.currentPassword,
+        req.body.newPassword
+      )
       res.status(200).json({ success: true })
     } catch (error) {
       const code = (error as { code?: string }).code
       if (code === "USER_NOT_FOUND") {
-        res.status(404).json({ success: false, error: "User not found" })
+        res.status(404).json({ success: false })
         return
       }
       if (code === "INVALID_PASSWORD") {
-        res.status(401).json({ success: false, error: "Current password is incorrect" })
+        res.status(401).json({ success: false })
         return
       }
       next(error)

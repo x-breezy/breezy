@@ -14,17 +14,14 @@ class ImageController {
   ): Promise<void> => {
     try {
       if (!(req.body instanceof Buffer) || req.body.length === 0) {
-        res.status(400).json({ success: false, error: "Empty body" })
+        res.status(400).json({ success: false })
         return
       }
       const data = req.body
 
       const headers = uploadHeadersSchema.safeParse(req.headers)
       if (!headers.success) {
-        res.status(400).json({
-          success: false,
-          error: headers.error.issues[0]?.message ?? "Invalid request headers",
-        })
+        res.status(400).json({ success: false })
         return
       }
 
@@ -54,7 +51,7 @@ class ImageController {
     try {
       const image = await this.imageService.getImage(req.params.id)
       if (!image) {
-        res.status(404).json({ success: false, error: "Not found" })
+        res.status(404).json({ success: false })
         return
       }
 
@@ -74,13 +71,13 @@ class ImageController {
     try {
       const image = await this.imageService.getImage(req.params.id)
       if (!image) {
-        res.status(404).json({ success: false, error: "Not found" })
+        res.status(404).json({ success: false })
         return
       }
 
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { data: _bytes, ...meta } = image
-      res.status(200).json({ success: true, data: meta })
+      res.status(200).json({ success: true })
     } catch (err) {
       next(err)
     }
@@ -94,7 +91,7 @@ class ImageController {
     try {
       const deleted = await this.imageService.deleteImage(req.params.id)
       if (!deleted) {
-        res.status(404).json({ success: false, error: "Not found" })
+        res.status(404).json({ success: false })
         return
       }
 

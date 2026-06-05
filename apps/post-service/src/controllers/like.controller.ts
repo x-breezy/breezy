@@ -10,12 +10,12 @@ export class LikeController {
       const postId = req.params.postId!
       const post = await PostModel.findById(postId).exec()
       if (!post) {
-        res.status(404).json({ success: false, error: "Post not found" })
+        res.status(404).json({ success: false })
         return
       }
       const { alreadyLiked } = await this.service.like(postId, req.user.id)
       if (alreadyLiked) {
-        res.status(409).json({ success: false, error: "Already liked" })
+        res.status(409).json({ success: false })
         return
       }
       res.status(201).json({ success: true })
@@ -28,7 +28,7 @@ export class LikeController {
     try {
       const { wasLiked } = await this.service.unlike(req.params.postId!, req.user.id)
       if (!wasLiked) {
-        res.status(404).json({ success: false, error: "Like not found" })
+        res.status(404).json({ success: false })
         return
       }
       res.json({ success: true })

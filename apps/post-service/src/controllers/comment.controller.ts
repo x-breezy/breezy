@@ -26,7 +26,7 @@ export class CommentController {
       const postId = req.params.postId!
       const post = await PostModel.findById(postId).exec()
       if (!post) {
-        res.status(404).json({ success: false, error: "Post not found" })
+        res.status(404).json({ success: false })
         return
       }
       const comment = await this.service.createComment(postId, req.user.id, req.body)
@@ -40,7 +40,7 @@ export class CommentController {
     try {
       const comment = await this.service.getComment(req.params.commentId!)
       if (!comment) {
-        res.status(404).json({ success: false, error: "Not found" })
+        res.status(404).json({ success: false })
         return
       }
       const isOwner = comment.authorId === req.user.id
@@ -48,7 +48,7 @@ export class CommentController {
         ([ROLES.MODERATOR, ROLES.ADMIN] as string[]).includes(r)
       )
       if (!isOwner && !isElevated) {
-        res.status(403).json({ success: false, error: "Forbidden" })
+        res.status(403).json({ success: false })
         return
       }
       await this.service.deleteComment(req.params.commentId!)
