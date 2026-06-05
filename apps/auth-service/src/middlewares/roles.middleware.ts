@@ -23,9 +23,7 @@ export function requireSelfOrPermission(param: string, elevatedPermission?: Perm
       return
     }
     const isSelf = req.params[param] === req.user.id
-    const hasPermission = elevatedPermission
-      ? req.user.permissions.includes(elevatedPermission)
-      : false
+    const hasPermission = elevatedPermission ? req.user.permissions.includes(elevatedPermission) : false
     if (!isSelf && !hasPermission) {
       res.status(403).json({ success: false, error: "Forbidden" })
       return

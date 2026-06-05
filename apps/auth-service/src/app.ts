@@ -1,7 +1,8 @@
 import express from "express"
 import type { Express, Request, Response, NextFunction } from "express"
 import swaggerUi from "swagger-ui-express"
-import { createProfileRouter } from "./routes/profile.route"
+import { createUserRouter } from "./routes/user.route"
+import { createReportRouter } from "./routes/report.route"
 import { swaggerSpec } from "./config/swagger"
 
 /** Build the Express app. No network/DB side effects, so tests can import it. */
@@ -19,7 +20,8 @@ export function createApp(): Express {
     res.json(swaggerSpec)
   })
 
-  app.use("/profiles", createProfileRouter())
+  app.use("/users", createUserRouter())
+  app.use("/reports", createReportRouter())
 
   // Global error handler — must be registered last and have exactly 4 params
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

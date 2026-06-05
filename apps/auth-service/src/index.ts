@@ -2,6 +2,7 @@ import { createLogger } from "@breezy/logger"
 import { createApp } from "./app"
 import { connect } from "./config/database"
 import { initUserModel } from "./models/user.model"
+import { initReportModel } from "./models/report.model"
 
 const logger = createLogger({ service: "auth-service" })
 
@@ -15,6 +16,7 @@ async function start(): Promise<void> {
   logger.info("Connected to PostgreSQL")
 
   initUserModel(sequelize)
+  initReportModel(sequelize)
   await sequelize.sync()
   logger.info("Models synchronized")
 

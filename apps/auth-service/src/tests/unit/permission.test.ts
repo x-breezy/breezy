@@ -4,20 +4,21 @@ import { ROLES } from "../../constants/roles"
 import { ROLE_PERMISSIONS, VISITOR_PERMISSIONS } from "../../constants/rbac"
 
 describe("getPermissions", () => {
-  it("grants user own-scoped post permissions but not any-scoped", () => {
+  it("grants user basic permissions only", () => {
     const perms = getPermissions([ROLES.USER])
-    expect(perms).toContain(PERMISSIONS.POST_CREATE)
-    expect(perms).toContain(PERMISSIONS.POST_DELETE_OWN)
-    expect(perms).not.toContain(PERMISSIONS.POST_DELETE_ANY)
+    expect(perms).toContain(PERMISSIONS.USER_READ)
+    expect(perms).toContain(PERMISSIONS.REPORT_CREATE)
+    expect(perms).not.toContain(PERMISSIONS.USER_SUSPEND)
     expect(perms).not.toContain(PERMISSIONS.USER_BAN)
+    expect(perms).not.toContain(PERMISSIONS.REPORT_RESOLVE)
   })
 
-  it("grants moderator cross-owner and moderation permissions", () => {
+  it("grants moderator suspension and report resolution but not ban", () => {
     const perms = getPermissions([ROLES.MODERATOR])
-    expect(perms).toContain(PERMISSIONS.POST_DELETE_ANY)
-    expect(perms).toContain(PERMISSIONS.COMMENT_DELETE_ANY)
-    expect(perms).toContain(PERMISSIONS.USER_BAN)
+    expect(perms).toContain(PERMISSIONS.USER_SUSPEND)
     expect(perms).toContain(PERMISSIONS.REPORT_RESOLVE)
+    expect(perms).not.toContain(PERMISSIONS.USER_BAN)
+    expect(perms).not.toContain(PERMISSIONS.USER_CREATE)
   })
 
   it("grants admin the full catalog (superset)", () => {
@@ -33,8 +34,7 @@ describe("getPermissions", () => {
     const perms = getPermissions([])
     expect(perms).toEqual(VISITOR_PERMISSIONS)
     expect(perms).toContain(PERMISSIONS.ACCOUNT_CREATE)
-    expect(perms).toContain(PERMISSIONS.SETTINGS_THEME)
-    expect(perms).not.toContain(PERMISSIONS.POST_CREATE)
+    expect(perms).not.toContain(PERMISSIONS.USER_READ)
   })
 
   it("returns the visitor set for unknown-only roles", () => {
@@ -45,7 +45,6 @@ describe("getPermissions", () => {
   it("deduplicates the union of multiple roles", () => {
     const perms = getPermissions([ROLES.USER, ROLES.MODERATOR])
     expect(new Set(perms).size).toBe(perms.length)
-    // moderator is a superset of user, so union == moderator set
     expect(perms.sort()).toEqual([...ROLE_PERMISSIONS[ROLES.MODERATOR]].sort())
   })
 })

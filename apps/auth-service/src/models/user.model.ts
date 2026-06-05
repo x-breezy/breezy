@@ -8,14 +8,15 @@ export interface UserAttributes {
   passwordHash: string
   roles: Role[]
   isBanned: boolean
+  isSuspended: boolean
   createdAt: Date
   updatedAt: Date
 }
 
-/** Fields a caller provides on create; id/roles/isBanned/timestamps are defaulted by the model. */
+/** Fields a caller provides on create; id/roles/isBanned/isSuspended/timestamps are defaulted by the model. */
 export type CreateUserInput = Omit<
   UserAttributes,
-  "id" | "roles" | "isBanned" | "createdAt" | "updatedAt"
+  "id" | "roles" | "isBanned" | "isSuspended" | "createdAt" | "updatedAt"
 >
 
 /** User without the password hash — safe to serialize to clients/tokens. */
@@ -28,6 +29,7 @@ export class User extends Model<UserAttributes, CreateUserInput> implements User
   declare passwordHash: string
   declare roles: Role[]
   declare isBanned: boolean
+  declare isSuspended: boolean
   declare readonly createdAt: Date
   declare readonly updatedAt: Date
 
@@ -71,6 +73,11 @@ export function initUserModel(sequelize: Sequelize): void {
         defaultValue: [ROLES.USER],
       },
       isBanned: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+      },
+      isSuspended: {
         type: DataTypes.BOOLEAN,
         allowNull: false,
         defaultValue: false,

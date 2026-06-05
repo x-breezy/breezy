@@ -1,7 +1,5 @@
 import { DataTypes, Model, Optional, Sequelize } from "sequelize"
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
 export interface FollowAttributes {
   id: string
   followerId: string
@@ -11,16 +9,12 @@ export interface FollowAttributes {
 
 export type CreateFollowInput = Optional<FollowAttributes, "id" | "createdAt">
 
-// ─── Model ────────────────────────────────────────────────────────────────────
-
 export class Follow extends Model<FollowAttributes, CreateFollowInput> implements FollowAttributes {
   declare id: string
   declare followerId: string
   declare followingId: string
   declare readonly createdAt: Date
 }
-
-// ─── Init ─────────────────────────────────────────────────────────────────────
 
 export function initFollowModel(sequelize: Sequelize): void {
   Follow.init(

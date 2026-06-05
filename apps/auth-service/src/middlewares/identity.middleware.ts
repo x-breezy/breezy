@@ -1,4 +1,6 @@
 import type { Request, Response, NextFunction } from "express"
+import { getPermissions } from "../services/permission.service"
+import type { Role } from "../constants/roles"
 
 export function identity(req: Request, res: Response, next: NextFunction): void {
   const userId = req.headers["x-user-id"]
@@ -9,10 +11,12 @@ export function identity(req: Request, res: Response, next: NextFunction): void 
     return
   }
 
+  const parsedRoles = (typeof roles === "string" ? roles.split(",") : []) as Role[]
+
   req.user = {
     id: String(userId),
-    roles: typeof roles === "string" ? roles.split(",") : [],
-    permissions: [],
+    roles: parsedRoles,
+    permissions: getPermissions(parsedRoles),
   }
 
   next()

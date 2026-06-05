@@ -51,7 +51,10 @@ describe("POST /users", () => {
   })
 
   it("returns 409 when email or username is taken", async () => {
-    mockService.isEmailAndUsernameTaken.mockResolvedValue({ emailTaken: true, usernameTaken: false })
+    mockService.isEmailAndUsernameTaken.mockResolvedValue({
+      emailTaken: true,
+      usernameTaken: false,
+    })
     const res = await request(app)
       .post("/users")
       .send({ username: "alice", email: "alice@example.com", password: "securepass" })
@@ -60,8 +63,15 @@ describe("POST /users", () => {
   })
 
   it("is accessible without authentication (public registration)", async () => {
-    mockService.isEmailAndUsernameTaken.mockResolvedValue({ emailTaken: false, usernameTaken: false })
-    mockService.addUser.mockResolvedValue({ id: USER_ID, username: "alice", email: "alice@example.com" })
+    mockService.isEmailAndUsernameTaken.mockResolvedValue({
+      emailTaken: false,
+      usernameTaken: false,
+    })
+    mockService.addUser.mockResolvedValue({
+      id: USER_ID,
+      username: "alice",
+      email: "alice@example.com",
+    })
     const res = await request(app)
       .post("/users")
       .send({ username: "alice", email: "alice@example.com", password: "securepass" })
@@ -79,9 +89,7 @@ describe("GET /users/:id", () => {
   })
 
   it("returns 403 when caller has no roles (visitor — lacks user:read)", async () => {
-    const res = await request(app)
-      .get(`/users/${USER_ID}`)
-      .set("x-user-id", USER_ID)
+    const res = await request(app).get(`/users/${USER_ID}`).set("x-user-id", USER_ID)
     // no x-roles → identity sets roles:[] → visitor → no user:read
     expect(res.status).toBe(403)
     expect(mockService.getUser).not.toHaveBeenCalled()
@@ -189,7 +197,9 @@ describe("PATCH /users/:id/password", () => {
   })
 
   it("does not expose internal error details on unexpected failure", async () => {
-    mockService.updatePassword.mockRejectedValue(new Error("DB connection string: postgres://user:secret@host/db"))
+    mockService.updatePassword.mockRejectedValue(
+      new Error("DB connection string: postgres://user:secret@host/db")
+    )
     const res = await request(app)
       .patch(`/users/${USER_ID}/password`)
       .set("x-user-id", USER_ID)

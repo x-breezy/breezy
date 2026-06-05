@@ -30,6 +30,18 @@ class UserService {
     return { emailTaken: emailCount > 0, usernameTaken: usernameCount > 0 }
   }
 
+  async banUser(id: string): Promise<void> {
+    const user = await User.findByPk(id)
+    if (!user) throw Object.assign(new Error("User not found"), { code: "USER_NOT_FOUND" })
+    await user.update({ isBanned: true })
+  }
+
+  async suspendUser(id: string): Promise<void> {
+    const user = await User.findByPk(id)
+    if (!user) throw Object.assign(new Error("User not found"), { code: "USER_NOT_FOUND" })
+    await user.update({ isSuspended: true })
+  }
+
   /** Verify current password then store a new hash. Throws on wrong credentials. */
   async updatePassword(id: string, currentPassword: string, newPassword: string): Promise<void> {
     const user = await User.findByPk(id, { attributes: ["id", "passwordHash"] })

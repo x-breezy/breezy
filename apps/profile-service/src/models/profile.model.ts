@@ -1,7 +1,5 @@
 import { DataTypes, Model, Optional, Sequelize } from "sequelize"
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
 export interface ProfileAttributes {
   profileId: string
   firstName: string | null
@@ -32,8 +30,6 @@ export type UpdateProfileInput = Partial<
   Pick<ProfileAttributes, "firstName" | "lastName" | "bio" | "avatarUrl">
 >
 
-// ─── Model ────────────────────────────────────────────────────────────────────
-
 export class Profile
   extends Model<ProfileAttributes, CreateProfileInput>
   implements ProfileAttributes
@@ -49,8 +45,6 @@ export class Profile
   declare readonly createdAt: Date
   declare readonly updatedAt: Date
 }
-
-// ─── Init ─────────────────────────────────────────────────────────────────────
 
 export function initProfileModel(sequelize: Sequelize): void {
   Profile.init(
