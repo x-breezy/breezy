@@ -70,7 +70,7 @@ const NOTIFICATIONS: Notification[] = [
 
 export default function NotificationsPage() {
   return (
-    <div>
+    <div className='pt-15'>
       <NotificationsHeader />
       <ul>
         {NOTIFICATIONS.map((notif) => (
