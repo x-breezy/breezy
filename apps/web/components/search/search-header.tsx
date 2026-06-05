@@ -10,6 +10,7 @@ import {
   InputGroupText,
 } from "@breezy/ui/components/input-group"
 import { Button } from "@breezy/ui/components/button"
+import { PageHeader } from "@/components/layout/page-header"
 
 export function SearchHeader() {
   const [value, setValue] = useState("")
@@ -17,7 +18,7 @@ export function SearchHeader() {
   const inputRef = useRef<HTMLInputElement>(null)
 
   return (
-    <header className='sticky top-0 z-10 bg-background/80 px-4 py-2.5 backdrop-blur-sm'>
+    <PageHeader className='py-2.5'>
       <div className='flex items-center'>
         <InputGroup className='h-11 rounded-full px-2 text-base'>
           <InputGroupAddon align='inline-start'>
@@ -63,6 +64,6 @@ export function SearchHeader() {
           </Button>
         )}
       </div>
-    </header>
+    </PageHeader>
   )
 }
