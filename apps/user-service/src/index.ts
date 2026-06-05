@@ -1,21 +1,19 @@
-import { createLogger } from "@breezy/logger"
-import express from "express"
-import { createUserRouter } from "./routes/user.route"
 import "dotenv/config"
+import { createLogger } from "@breezy/logger"
+import { createApp } from "./app"
+import { connectDatabase } from "./config/database"
 
 const logger = createLogger({ service: "user-service" })
+const port = process.env.PORT ?? 4010
 
-const app = express()
-const port = process.env.PORT ?? 3001
-
-app.use(express.json())
-
-app.get("/", (_req, res) => {
-  res.json({ status: "ok" })
-})
-
-app.use("/users", createUserRouter())
-
-app.listen(port, () => {
-  logger.info({ port }, "User service listening")
-})
+connectDatabase()
+  .then(() => {
+    const app = createApp()
+    app.listen(port, () => {
+      logger.info({ port }, "User service listening")
+    })
+  })
+  .catch((error) => {
+    logger.error({ error }, "Failed to connect to database")
+    process.exit(1)
+  })
