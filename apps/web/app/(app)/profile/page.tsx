@@ -1,3 +1,9 @@
+import { ProfileHeader } from "@/components/profile/profile-header"
+
 export default function ProfilePage() {
-  return <div></div>
+  return (
+    <div>
+      <ProfileHeader />
+    </div>
+  )
 }
