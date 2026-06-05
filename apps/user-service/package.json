@@ -16,6 +16,9 @@
   "dependencies": {
     "@breezy/logger": "*",
     "express": "^4.21.2",
+    "pg": "^8.21.0",
+    "pg-hstore": "^2.3.4",
+    "sequelize": "^6.37.8",
     "supertest": "^7.2.2"
   },
   "devDependencies": {

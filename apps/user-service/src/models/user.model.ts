@@ -7,6 +7,7 @@ export interface UserAttributes {
   username: string
   email: string
   passwordHash: string
+  roleId: string
   isVerified: boolean
   createdAt: Date
   updatedAt: Date
@@ -30,6 +31,7 @@ export class User extends Model<UserAttributes, CreateUserInput> implements User
   declare username: string
   declare email: string
   declare passwordHash: string
+  declare roleId: string
   declare isVerified: boolean
   declare readonly createdAt: Date
   declare readonly updatedAt: Date
@@ -69,6 +71,11 @@ export function initUserModel(sequelize: Sequelize): void {
         type: DataTypes.STRING(255),
         allowNull: false,
         field: "password_hash",
+      },
+      roleId: {
+        type: DataTypes.UUID,
+        allowNull: false,
+        field: "role_id",
       },
       isVerified: {
         type: DataTypes.BOOLEAN,

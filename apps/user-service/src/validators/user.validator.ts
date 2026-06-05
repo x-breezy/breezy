@@ -7,6 +7,7 @@ export const createUserSchema = z.object({
     .max(50, "Username must be at most 50 characters"),
   email: z.string().email("Invalid email address"),
   passwordHash: z.string().min(1, "Password hash is required"),
+  roleId: z.string().uuid("Invalid role UUID"),
 })
 
 export const updateUserSchema = z

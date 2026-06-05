@@ -1,11 +1,12 @@
 import { createLogger } from "@breezy/logger"
 import express from "express"
 import { createUserRouter } from "./routes/user.route"
+import "dotenv/config"
 
 const logger = createLogger({ service: "user-service" })
 
 const app = express()
-const port = process.env.PORT ?? 3000
+const port = process.env.PORT ?? 3001
 
 app.use(express.json())
 
