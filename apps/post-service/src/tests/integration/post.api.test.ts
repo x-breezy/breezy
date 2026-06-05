@@ -12,6 +12,9 @@ jest.mock("../../models/post.model", () => ({
   },
 }))
 
+// No USER_SERVICE_URL in test env -> HttpFollowGraph.getFollowing returns null -> global feed.
+// Personalized filtering is covered by unit tests (injected fake FollowGraphPort).
+
 const mockedModel = PostModel as jest.Mocked<typeof PostModel>
 const app = createApp()
 
@@ -234,20 +237,7 @@ describe("GET /posts/feed", () => {
     expect(res.body.data).toHaveProperty("total")
   })
 
-  it("filters by followedUserIds when provided", async () => {
-    mockFindPaginated([MOCK_POST], 1)
-
-    await request(app)
-      .get("/posts/feed?followedUserIds=user1,user2")
-      .set("x-user-id", "user1")
-      .set("x-roles", "user")
-
-    expect(mockedModel.find).toHaveBeenCalledWith({
-      authorId: { $in: ["user1", "user2"] },
-    })
-  })
-
-  it("returns all posts when followedUserIds is absent", async () => {
+  it("uses global filter when user-service unavailable (no USER_SERVICE_URL)", async () => {
     mockFindPaginated([MOCK_POST], 1)
 
     await request(app)

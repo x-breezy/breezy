@@ -28,7 +28,8 @@
     "dev": {
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "cache": false,
-      "persistent": true
+      "persistent": true,
+      "dependsOn": ["@breezy/types", "@breezy/logger#build"]
     }
   }
 }
