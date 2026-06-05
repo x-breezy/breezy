@@ -25,7 +25,7 @@ export function PostForm({
           value={content}
           onChange={(e) => setContent(e.target.value)}
           placeholder="What's happening?"
-          className='min-h-50 flex-1 rounded-none border-none bg-transparent px-0 pt-0 text-xl placeholder:text-muted-foreground/60 focus-visible:ring-0'
+          className='min-h-50 flex-1 rounded-none border-none bg-transparent px-0 pt-0 text-xl placeholder:text-muted-foreground/80 focus-visible:ring-0'
           autoFocus
         />
       </div>

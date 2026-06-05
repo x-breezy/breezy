@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation"
 import { IconBell, IconPlus } from "@tabler/icons-react"
 import { Button } from "@breezy/ui/components/button"
+import { ThemeToggle } from "@/components/theme-toggle"
 import {
   Select,
   SelectContent,
@@ -50,14 +51,17 @@ export function HomeHeader({
         </SelectContent>
       </Select>
 
-      <Button
-        variant='ghost'
-        size='icon-lg'
-        aria-label='Notifications'
-        onClick={() => router.push("/notifications")}
-      >
-        <IconBell className='size-6' strokeWidth={1.75} />
-      </Button>
+      <div className='flex items-center gap-1'>
+        <ThemeToggle />
+        <Button
+          variant='ghost'
+          size='icon-lg'
+          aria-label='Notifications'
+          onClick={() => router.push("/notifications")}
+        >
+          <IconBell className='size-6' strokeWidth={1.75} />
+        </Button>
+      </div>
     </header>
   )
 }
