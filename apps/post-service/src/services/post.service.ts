@@ -18,19 +18,15 @@ export class PostService {
   }
 
   async getPost(id: string): Promise<Post | null> {
-    const post = PostModel.findById(id).exec()
-    return post
+    return PostModel.findById(id).exec() as unknown as Promise<Post | null>
   }
 
   async feed(viewerId: string, page: number, limit: number): Promise<PaginatedResponse<Post>> {
     const following = await this.follow.getFollowing(viewerId)
-    let filter: object
-    if (following === null) {
-      filter = {}
-    } else {
-      const ids = [...new Set([...following, viewerId])]
-      filter = { authorId: { $in: ids } }
-    }
+    const filter =
+      following === null
+        ? {}
+        : { authorId: { $in: [...new Set([viewerId, ...following])] } }
     const skip = (page - 1) * limit
     const [data, total] = await Promise.all([
       PostModel.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).exec(),

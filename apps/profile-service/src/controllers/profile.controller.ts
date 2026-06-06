@@ -110,16 +110,27 @@ class ProfileController {
     }
   }
 
-  getRelations = async (
+  getFollowers = async (
     req: Request<{ profileId: string }>,
     res: Response,
     next: NextFunction
   ): Promise<void> => {
     try {
-      const relations = await this.profileService.getRelations(req.params.profileId)
-      res
-        .status(200)
-        .json({ success: true, data: relations, message: "Relations retrieved successfully" })
+      const result = await this.profileService.getFollowers(req.params.profileId)
+      res.status(200).json({ success: true, data: result, message: "Followers retrieved successfully" })
+    } catch (err) {
+      next(err)
+    }
+  }
+
+  getFollowing = async (
+    req: Request<{ profileId: string }>,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const result = await this.profileService.getFollowing(req.params.profileId)
+      res.status(200).json({ success: true, data: result, message: "Following retrieved successfully" })
     } catch (err) {
       next(err)
     }

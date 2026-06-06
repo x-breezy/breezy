@@ -27,11 +27,18 @@ function createProfileRouter() {
     profileController.getProfile
   )
   router.get(
-    "/:profileId/relations",
+    "/:profileId/followers",
     identity,
     requirePermission(PERMISSIONS.PROFILE_READ),
     validate(profileIdParamSchema, "params"),
-    profileController.getRelations
+    profileController.getFollowers
+  )
+  router.get(
+    "/:profileId/following",
+    identity,
+    requirePermission(PERMISSIONS.PROFILE_READ),
+    validate(profileIdParamSchema, "params"),
+    profileController.getFollowing
   )
   router.post("/", identity, validate(createProfileSchema), profileController.createProfile)
   router.patch(

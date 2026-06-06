@@ -35,7 +35,7 @@ describe("ProfileService", () => {
       const input = { profileId: "profile-1", displayName: "Profile 1", bio: "Hello" }
       ;(mockedProfile.create as jest.Mock).mockResolvedValue(input)
 
-      const result = await service.createProfile(input)
+      const result = await service.createProfile(input as never)
 
       expect(mockedProfile.create).toHaveBeenCalledWith(input)
       expect(result).toEqual(input)
@@ -149,20 +149,50 @@ describe("ProfileService", () => {
     })
   })
 
-  describe("getRelations", () => {
-    it("should return followers and following", async () => {
-      const followers = [{ followerId: "follower-1" }]
-      const following = [{ followingId: "following-1" }]
+  describe("getFollowers", () => {
+    it("should return followers list", async () => {
+      const makeFollow = (followerId: string) => ({
+        get: (key: string) => (key === "followerId" ? followerId : undefined),
+      })
+      ;(mockedFollow.findAll as jest.Mock).mockResolvedValue([
+        makeFollow("follower-1"),
+        makeFollow("follower-2"),
+      ])
 
-      ;(mockedFollow.findAll as jest.Mock)
-        .mockResolvedValueOnce(followers)
-        .mockResolvedValueOnce(following)
-
-      const result = await service.getRelations("profile-1")
+      const result = await service.getFollowers("profile-1")
 
       expect(mockedFollow.findAll).toHaveBeenCalledWith({ where: { followingId: "profile-1" } })
+      expect(result).toEqual({ count: 2, followers: ["follower-1", "follower-2"] })
+    })
+
+    it("should return empty list when no followers", async () => {
+      ;(mockedFollow.findAll as jest.Mock).mockResolvedValue([])
+
+      const result = await service.getFollowers("profile-1")
+
+      expect(result).toEqual({ count: 0, followers: [] })
+    })
+  })
+
+  describe("getFollowing", () => {
+    it("should return following list", async () => {
+      const makeFollow = (followingId: string) => ({
+        get: (key: string) => (key === "followingId" ? followingId : undefined),
+      })
+      ;(mockedFollow.findAll as jest.Mock).mockResolvedValue([makeFollow("following-1")])
+
+      const result = await service.getFollowing("profile-1")
+
       expect(mockedFollow.findAll).toHaveBeenCalledWith({ where: { followerId: "profile-1" } })
-      expect(result).toEqual({ followers, following })
+      expect(result).toEqual({ count: 1, following: ["following-1"] })
+    })
+
+    it("should return empty list when following no one", async () => {
+      ;(mockedFollow.findAll as jest.Mock).mockResolvedValue([])
+
+      const result = await service.getFollowing("profile-1")
+
+      expect(result).toEqual({ count: 0, following: [] })
     })
   })
 })

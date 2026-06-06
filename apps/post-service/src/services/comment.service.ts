@@ -17,6 +17,7 @@ export class CommentService {
       authorId,
       postId,
       parentCommentId: dto.parentCommentId ?? null,
+      media: dto.media ?? [],
     })
     const post = await PostModel.findByIdAndUpdate(
       postId,
@@ -38,7 +39,7 @@ export class CommentService {
 
     const [roots, total] = await Promise.all([
       CommentModel.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).lean().exec(),
-      CommentModel.countDocuments(filter),
+      CommentModel.countDocuments({ postId }),
     ])
 
     const nested = await this.attachReplies(roots as unknown as Comment[], postId, 1)

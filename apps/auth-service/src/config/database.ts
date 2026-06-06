@@ -14,6 +14,12 @@ export async function connect(uri: string): Promise<Sequelize> {
   sequelize = new Sequelize(uri, {
     dialect: "postgres",
     logging: false,
+    pool: {
+      max: 10,
+      min: 0,
+      acquire: 30000,
+      idle: 10000,
+    },
   })
   await sequelize.authenticate()
   return sequelize

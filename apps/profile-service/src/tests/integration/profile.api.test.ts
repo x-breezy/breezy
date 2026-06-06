@@ -24,30 +24,26 @@ const mockedProfile = Profile as jest.Mocked<typeof Profile>
 const mockedFollow = Follow as jest.Mocked<typeof Follow>
 const app = createApp()
 
-const NOW = new Date("2026-01-01T00:00:00.000Z")
+const PROFILE_UUID = "11111111-1111-1111-1111-111111111111"
+const FOLLOWER_UUID = "22222222-2222-2222-2222-222222222222"
+const FOLLOWING_UUID = "33333333-3333-3333-3333-333333333333"
 
 const MOCK_PROFILE = {
-  id: "prof-1",
-  profileId: "profile-123",
+  profileId: PROFILE_UUID,
   displayName: "Aaron Grod",
   bio: "Software Engineer",
   avatarUrl: "https://example.com/avatar.jpg",
   followersCount: 10,
   followingCount: 5,
-  createdAt: NOW,
-  updatedAt: NOW,
   update: jest.fn(),
   destroy: jest.fn(),
   toJSON: () => ({
-    id: "prof-1",
-    profileId: "profile-123",
+    profileId: PROFILE_UUID,
     displayName: "Aaron Grod",
     bio: "Software Engineer",
     avatarUrl: "https://example.com/avatar.jpg",
     followersCount: 10,
     followingCount: 5,
-    createdAt: NOW,
-    updatedAt: NOW,
   }),
 }
 
@@ -60,50 +56,78 @@ describe("GET /profiles/:profileId", () => {
   it("returns a profile by profileId", async () => {
     ;(mockedProfile.findOne as jest.Mock).mockResolvedValue(MOCK_PROFILE)
 
-    const res = await request(app).get(`/profiles/${MOCK_PROFILE.profileId}`)
+    const res = await request(app)
+      .get(`/profiles/${PROFILE_UUID}`)
+      .set("x-user-id", PROFILE_UUID)
+      .set("x-roles", "user")
 
     expect(res.status).toBe(200)
-    expect(res.body).toEqual({
-      profileId: MOCK_PROFILE.profileId,
-      displayName: MOCK_PROFILE.displayName,
-      bio: MOCK_PROFILE.bio,
-      avatarUrl: MOCK_PROFILE.avatarUrl,
-      followersCount: MOCK_PROFILE.followersCount,
-      followingCount: MOCK_PROFILE.followingCount,
+    expect(res.body).toMatchObject({
+      success: true,
+      data: expect.objectContaining({
+        profileId: PROFILE_UUID,
+        displayName: "Aaron Grod",
+      }),
     })
   })
 
   it("returns 404 for an unknown profileId", async () => {
     ;(mockedProfile.findOne as jest.Mock).mockResolvedValue(null)
 
-    const res = await request(app).get("/profiles/unknown-profile")
+    const res = await request(app)
+      .get(`/profiles/${PROFILE_UUID}`)
+      .set("x-user-id", PROFILE_UUID)
+      .set("x-roles", "user")
+
     expect(res.status).toBe(404)
     expect(res.body.message).toBe("Profile not found")
   })
+
+  it("returns 401 without auth", async () => {
+    const res = await request(app).get(`/profiles/${PROFILE_UUID}`)
+    expect(res.status).toBe(401)
+  })
 })
 
-// ─── GET /profiles/:profileId/relations ──────────────────────────────────────────────
-describe("GET /profiles/:profileId/relations", () => {
-  it("returns followers and following", async () => {
-    const followers = [{ followerId: "follower-1", followingId: MOCK_PROFILE.profileId }]
-    const following = [{ followerId: MOCK_PROFILE.profileId, followingId: "following-1" }]
+// ─── GET /profiles/:profileId/followers ──────────────────────────────────────────────
+describe("GET /profiles/:profileId/followers", () => {
+  it("returns followers list", async () => {
+    const makeFollow = (followerId: string) => ({
+      get: (k: string) => (k === "followerId" ? followerId : undefined),
+    })
+    ;(mockedFollow.findAll as jest.Mock).mockResolvedValue([makeFollow(FOLLOWER_UUID)])
 
-    ;(mockedFollow.findAll as jest.Mock)
-      .mockResolvedValueOnce(followers)
-      .mockResolvedValueOnce(following)
-
-    const followerProfiles = [{ profileId: "follower-1", displayName: "Follower 1" }]
-    const followingProfiles = [{ profileId: "following-1", displayName: "Following 1" }]
-
-    mockedProfile.findAll = jest
-      .fn()
-      .mockResolvedValueOnce(followerProfiles)
-      .mockResolvedValueOnce(followingProfiles)
-
-    const res = await request(app).get(`/profiles/${MOCK_PROFILE.profileId}/relations`)
+    const res = await request(app)
+      .get(`/profiles/${PROFILE_UUID}/followers`)
+      .set("x-user-id", PROFILE_UUID)
+      .set("x-roles", "user")
 
     expect(res.status).toBe(200)
-    expect(res.body.data).toEqual({ followers: followerProfiles, following: followingProfiles })
+    expect(res.body).toMatchObject({
+      success: true,
+      data: { count: 1, followers: [FOLLOWER_UUID] },
+    })
+  })
+})
+
+// ─── GET /profiles/:profileId/following ──────────────────────────────────────────────
+describe("GET /profiles/:profileId/following", () => {
+  it("returns following list", async () => {
+    const makeFollow = (followingId: string) => ({
+      get: (k: string) => (k === "followingId" ? followingId : undefined),
+    })
+    ;(mockedFollow.findAll as jest.Mock).mockResolvedValue([makeFollow(FOLLOWING_UUID)])
+
+    const res = await request(app)
+      .get(`/profiles/${PROFILE_UUID}/following`)
+      .set("x-user-id", PROFILE_UUID)
+      .set("x-roles", "user")
+
+    expect(res.status).toBe(200)
+    expect(res.body).toMatchObject({
+      success: true,
+      data: { count: 1, following: [FOLLOWING_UUID] },
+    })
   })
 })
 
@@ -112,16 +136,29 @@ describe("POST /profiles", () => {
   it("creates a profile and returns 201", async () => {
     ;(mockedProfile.create as jest.Mock).mockResolvedValue(MOCK_PROFILE)
 
-    const res = await request(app).post("/profiles").set("Content-Type", "application/json").send({
-      profileId: "profile-123",
-      displayName: "Aaron Grod",
-    })
+    const res = await request(app)
+      .post("/profiles")
+      .set("Content-Type", "application/json")
+      .set("x-user-id", PROFILE_UUID)
+      .set("x-roles", "user")
+      .send({ profileId: PROFILE_UUID, firstName: "Aaron", lastName: "Grod" })
 
     expect(res.status).toBe(201)
-    expect(res.body).toEqual(MOCK_PROFILE.toJSON())
+    expect(res.body).toMatchObject({
+      success: true,
+      data: expect.objectContaining({ profileId: PROFILE_UUID }),
+    })
     expect(mockedProfile.create).toHaveBeenCalledWith(
-      expect.objectContaining({ profileId: "profile-123", displayName: "Aaron Grod" })
+      expect.objectContaining({ profileId: PROFILE_UUID })
     )
+  })
+
+  it("returns 401 without auth", async () => {
+    const res = await request(app)
+      .post("/profiles")
+      .send({ profileId: PROFILE_UUID, displayName: "Aaron Grod" })
+
+    expect(res.status).toBe(401)
   })
 })
 
@@ -130,8 +167,8 @@ describe("PATCH /profiles", () => {
   it("updates a profile and returns the updated data", async () => {
     const updatedDoc = {
       ...MOCK_PROFILE,
-      displayName: "Aaron Grod Updated",
-      toJSON: () => ({ ...MOCK_PROFILE.toJSON(), displayName: "Aaron Grod Updated" }),
+      bio: "Updated bio",
+      toJSON: () => ({ ...MOCK_PROFILE.toJSON(), bio: "Updated bio" }),
     }
 
     ;(mockedProfile.findOne as jest.Mock).mockResolvedValue({
@@ -142,10 +179,12 @@ describe("PATCH /profiles", () => {
     const res = await request(app)
       .patch("/profiles")
       .set("Content-Type", "application/json")
-      .send({ profileId: "profile-123", displayName: "Aaron Grod Updated" })
+      .set("x-user-id", PROFILE_UUID)
+      .set("x-roles", "user")
+      .send({ bio: "Updated bio" })
 
     expect(res.status).toBe(200)
-    expect(res.body.displayName).toBe("Aaron Grod Updated")
+    expect(res.body.success).toBe(true)
   })
 
   it("returns 404 for an unknown profileId", async () => {
@@ -153,10 +192,18 @@ describe("PATCH /profiles", () => {
 
     const res = await request(app)
       .patch("/profiles")
-      .send({ profileId: "unknown-profile", displayName: "Ghost" })
+      .set("Content-Type", "application/json")
+      .set("x-user-id", PROFILE_UUID)
+      .set("x-roles", "user")
+      .send({ bio: "Ghost" })
 
     expect(res.status).toBe(404)
     expect(res.body.message).toBe("Profile not found")
+  })
+
+  it("returns 401 without auth", async () => {
+    const res = await request(app).patch("/profiles").send({ bio: "Ghost" })
+    expect(res.status).toBe(401)
   })
 })
 
@@ -168,16 +215,29 @@ describe("DELETE /profiles", () => {
       destroy: jest.fn().mockResolvedValue(undefined),
     })
 
-    const res = await request(app).delete("/profiles").send({ profileId: "profile-123" })
+    const res = await request(app)
+      .delete("/profiles")
+      .set("x-user-id", PROFILE_UUID)
+      .set("x-roles", "user")
+
     expect(res.status).toBe(204)
   })
 
   it("returns 404 when profile not found", async () => {
     ;(mockedProfile.findOne as jest.Mock).mockResolvedValue(null)
 
-    const res = await request(app).delete("/profiles").send({ profileId: "unknown-profile" })
+    const res = await request(app)
+      .delete("/profiles")
+      .set("x-user-id", PROFILE_UUID)
+      .set("x-roles", "user")
+
     expect(res.status).toBe(404)
     expect(res.body.message).toBe("Profile not found")
+  })
+
+  it("returns 401 without auth", async () => {
+    const res = await request(app).delete("/profiles")
+    expect(res.status).toBe(401)
   })
 })
 
@@ -189,10 +249,19 @@ describe("POST /profiles/follow", () => {
 
     const res = await request(app)
       .post("/profiles/follow")
-      .send({ followerId: "u1", followingId: "u2" })
+      .set("x-user-id", FOLLOWER_UUID)
+      .set("x-roles", "user")
+      .send({ followingId: FOLLOWING_UUID })
 
-    expect(res.status).toBe(200)
-    expect(res.body).toEqual({ success: true })
+    expect(res.status).toBe(201)
+    expect(res.body.success).toBe(true)
+  })
+
+  it("returns 401 without auth", async () => {
+    const res = await request(app)
+      .post("/profiles/follow")
+      .send({ followingId: FOLLOWING_UUID })
+    expect(res.status).toBe(401)
   })
 })
 
@@ -204,10 +273,12 @@ describe("POST /profiles/unfollow", () => {
 
     const res = await request(app)
       .post("/profiles/unfollow")
-      .send({ followerId: "u1", followingId: "u2" })
+      .set("x-user-id", FOLLOWER_UUID)
+      .set("x-roles", "user")
+      .send({ followingId: FOLLOWING_UUID })
 
     expect(res.status).toBe(200)
-    expect(res.body).toEqual({ success: true })
+    expect(res.body.success).toBe(true)
   })
 
   it("returns 404 if follow relationship does not exist", async () => {
@@ -215,9 +286,18 @@ describe("POST /profiles/unfollow", () => {
 
     const res = await request(app)
       .post("/profiles/unfollow")
-      .send({ followerId: "u1", followingId: "u2" })
+      .set("x-user-id", FOLLOWER_UUID)
+      .set("x-roles", "user")
+      .send({ followingId: FOLLOWING_UUID })
 
     expect(res.status).toBe(404)
-    expect(res.body.message).toBe("Follow relationship not found")
+    expect(res.body.message).toBe("Follow relation not found")
+  })
+
+  it("returns 401 without auth", async () => {
+    const res = await request(app)
+      .post("/profiles/unfollow")
+      .send({ followingId: FOLLOWING_UUID })
+    expect(res.status).toBe(401)
   })
 })

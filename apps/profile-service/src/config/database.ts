@@ -1,32 +1,34 @@
+
 import { Sequelize } from "sequelize"
-import { initProfileModel } from "../models/profile.model"
-import { initFollowModel } from "../models/follow.model"
 
-const sequelize = new Sequelize({
-  dialect: "postgres",
-  host: process.env.DB_HOST ?? "localhost",
-  port: Number(process.env.DB_PORT) || 5432,
-  database: process.env.DB_NAME,
-  username: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  logging: process.env.NODE_ENV === "development" ? console.log : false,
-  pool: {
-    max: 10,
-    min: 0,
-    acquire: 30000,
-    idle: 10000,
-  },
-})
+let sequelize: Sequelize | null = null
 
-export async function connectDatabase(): Promise<void> {
-  await sequelize.authenticate()
-  console.log("Database connected")
-
-  initProfileModel(sequelize)
-  initFollowModel(sequelize)
-
-  await sequelize.sync({ alter: process.env.NODE_ENV === "development" })
-  console.log("Models synchronized")
+/** Return the active Sequelize instance. Throws if connect() has not run yet. */
+export function getSequelize(): Sequelize {
+  if (!sequelize) throw new Error("Database not initialized — call connect() first")
+  return sequelize
 }
 
-export default sequelize
+/** Open the shared Sequelize (PostgreSQL) connection. Idempotent. */
+export async function connect(uri: string): Promise<Sequelize> {
+  if (sequelize) return sequelize
+  sequelize = new Sequelize(uri, {
+    dialect: "postgres",
+    logging: false,
+    pool: {
+      max: 10,
+      min: 0,
+      acquire: 30000,
+      idle: 10000,
+    },
+  })
+  await sequelize.authenticate()
+  return sequelize
+}
+
+/** Close the shared connection. */
+export async function disconnect(): Promise<void> {
+  if (!sequelize) return
+  await sequelize.close()
+  sequelize = null
+}

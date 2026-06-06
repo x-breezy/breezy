@@ -7,6 +7,15 @@ const commentSchema = new Schema<Comment>(
     authorId: { type: String, required: true, index: true },
     postId: { type: String, required: true, index: true },
     parentCommentId: { type: String, default: null, index: true },
+    media: {
+      type: [
+        {
+          id: { type: String, required: true },
+          type: { type: String, enum: ["image", "video"], required: true },
+        },
+      ],
+      default: [],
+    },
   },
   { timestamps: true, collection: "comments" }
 )

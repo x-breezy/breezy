@@ -1,23 +1,43 @@
 services:
-  mongo:
+  mongo-post-service:
     image: mongo:8
-    container_name: breezy-mongo
+    container_name: breezy-mongo-post-service
     restart: unless-stopped
     ports:
       - "27017:27017"
     environment:
-      MONGO_INITDB_DATABASE: breezy
+      MONGO_INITDB_DATABASE: post_service
     volumes:
-      - mongo-data:/data/db
+      - mongo-post-service-data:/data/db
+    networks:
+      - breezy
     healthcheck:
       test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
       interval: 10s
       timeout: 5s
       retries: 5
 
-  postgres:
+  mongo-media-service:
+    image: mongo:8
+    container_name: breezy-mongo-media-service
+    restart: unless-stopped
+    ports:
+      - "27018:27017"
+    environment:
+      MONGO_INITDB_DATABASE: media_service
+    volumes:
+      - mongo-media-service-data:/data/db
+    networks:
+      - breezy
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-user-service:
     image: postgres:16
-    container_name: breezy-postgres
+    container_name: breezy-postgres-user-service
     restart: unless-stopped
     ports:
       - "5433:5432"
@@ -28,13 +48,43 @@ services:
       POSTGRES_HOST_AUTH_METHOD: md5
       POSTGRES_INITDB_ARGS: "--auth-host=md5 --auth-local=md5"
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - postgres-user-service-data:/var/lib/postgresql/data
+    networks:
+      - breezy
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "postgres"]
       interval: 10s
       timeout: 5s
       retries: 5
 
+  postgres-profile-service:
+    image: postgres:16
+    container_name: breezy-postgres-profile-service
+    restart: unless-stopped
+    ports:
+      - "5434:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: profile_service
+      POSTGRES_HOST_AUTH_METHOD: md5
+      POSTGRES_INITDB_ARGS: "--auth-host=md5 --auth-local=md5"
+    volumes:
+      - postgres-profile-service-data:/var/lib/postgresql/data
+    networks:
+      - breezy
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  breezy:
+    driver: bridge
+
 volumes:
-  mongo-data:
-  postgres-data:
+  mongo-post-service-data:
+  mongo-media-service-data:
+  postgres-user-service-data:
+  postgres-profile-service-data:

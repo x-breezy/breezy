@@ -17,7 +17,8 @@ async function start(): Promise<void> {
 
   initUserModel(sequelize)
   initReportModel(sequelize)
-  await sequelize.sync()
+
+  await sequelize.sync(process.env.NODE_ENV === "production" ? undefined : { alter: true })
   logger.info("Models synchronized")
 
   app.listen(port, () => {
