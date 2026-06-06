@@ -1,6 +1,7 @@
 import type { Request, Response, NextFunction } from "express"
 import { CommentService } from "../services/comment.service"
 import { PostModel } from "../models/post.model"
+import { objectIdSchema } from "../schemas/comment.schema"
 
 export class CommentController {
   constructor(private service = new CommentService()) {}
@@ -8,9 +9,15 @@ export class CommentController {
   list = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const postId = req.params.postId!
-      const parentCommentId = req.query.parentCommentId
-        ? (req.query.parentCommentId as string)
-        : null
+      const rawParent = req.query.parentCommentId
+      if (rawParent !== undefined) {
+        const parsed = objectIdSchema.safeParse(rawParent)
+        if (!parsed.success) {
+          res.status(400).json({ success: false, message: "Invalid parentCommentId" })
+          return
+        }
+      }
+      const parentCommentId = typeof rawParent === "string" ? rawParent : null
       const page = Math.max(1, parseInt(req.query.page as string) || 1)
       const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 20))
 

@@ -1,3 +1,5 @@
+import mongoose from "mongoose"
+
 const TIMEOUT_MS = 1500
 
 export interface FollowGraphPort {
@@ -25,12 +27,13 @@ export class HttpFollowGraph implements FollowGraphPort {
 
   async getFollowing(viewerId: string): Promise<string[] | null> {
     if (!this.baseUrl) return null
+    if (!mongoose.isValidObjectId(viewerId)) return null
 
     const controller = new AbortController()
     const timer = setTimeout(() => controller.abort(), TIMEOUT_MS)
 
     try {
-      const res = await fetch(`${this.baseUrl}/users/${viewerId}/following`, {
+      const res = await fetch(`${this.baseUrl}/users/${encodeURIComponent(viewerId)}/following`, {
         signal: controller.signal,
       })
       if (!res.ok) return null
