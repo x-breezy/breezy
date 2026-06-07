@@ -6,7 +6,7 @@ export const logger = createLogger({ service: "media-service" })
 
 const app = createApp()
 const port = process.env.PORT ?? 4000
-const mongoUri = process.env.MONGODB_URI ?? "mongodb://localhost:27017/breezy"
+const mongoUri = process.env.DATABASE_URL ?? "mongodb://localhost:27017/breezy"
 
 async function start(): Promise<void> {
   await connect(mongoUri)

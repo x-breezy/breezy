@@ -1,5 +1,4 @@
 import type { Request, Response, NextFunction } from "express"
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 import type { Model } from "mongoose"
 import type { Role } from "../constants/roles"
 

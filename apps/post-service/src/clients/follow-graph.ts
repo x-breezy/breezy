@@ -53,13 +53,3 @@ export class HttpFollowGraph implements FollowGraphPort {
     }
   }
 }
-
-/**
- * Null implementation — always returns null, resulting in an empty feed.
- * Used as default when profile-service is not wired (dev/test without PROFILE_SERVICE_URL).
- */
-export class NullFollowGraph implements FollowGraphPort {
-  async getFollowing(_viewerId: string): Promise<string[] | null> {
-    return null
-  }
-}
