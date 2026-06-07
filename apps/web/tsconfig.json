@@ -2,12 +2,8 @@
   "extends": "@breezy/typescript-config/nextjs.json",
   "compilerOptions": {
     "paths": {
-      "@/*": [
-        "./*"
-      ],
-      "@breezy/ui/*": [
-        "../../packages/ui/src/*"
-      ]
+      "@/*": ["./*"],
+      "@breezy/ui/*": ["../../packages/ui/src/*"]
     },
     "plugins": [
       {
@@ -24,7 +20,5 @@
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts"
   ],
-  "exclude": [
-    "node_modules"
-  ]
+  "exclude": ["node_modules", "components/ui/next-app"]
 }

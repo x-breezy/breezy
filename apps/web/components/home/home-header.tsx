@@ -3,7 +3,6 @@
 import { useRouter } from "next/navigation"
 import { IconBell, IconPlus } from "@tabler/icons-react"
 import { Button } from "@breezy/ui/components/button"
-import { ThemeToggle } from "@/components/theme-toggle"
 import { PageHeader, PageHeaderContent } from "@/components/layout/page-header"
 import {
   Select,
@@ -55,21 +54,15 @@ export function HomeHeader({ feed, onFeedChange }: HomeHeaderProps) {
           </Select>
         }
         right={
-          <>
-            <ThemeToggle />
-            <Button
-              variant='ghost'
-              size='icon-lg'
-              aria-label='Notifications'
-              className='group'
-              onClick={() => router.push("/notifications")}
-            >
-              <IconBell
-                className='size-6 group-hover:animate-(--animate-ring)'
-                strokeWidth={1.75}
-              />
-            </Button>
-          </>
+          <Button
+            variant='ghost'
+            size='icon-lg'
+            aria-label='Notifications'
+            className='group'
+            onClick={() => router.push("/notifications")}
+          >
+            <IconBell className='size-6 group-hover:animate-(--animate-ring)' strokeWidth={1.75} />
+          </Button>
         }
       />
     </PageHeader>
