@@ -1,0 +1,5 @@
+export { HomeIcon } from "./home-icon"
+export { SearchIcon } from "./search-icon"
+export { GrodIcon } from "./grod-icon"
+export { SendIcon } from "./send-icon"
+export { ProfileIcon } from "./profile-icon"

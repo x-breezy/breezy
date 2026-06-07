@@ -1,4 +1,4 @@
-import { NavBar } from "@/components/NavBar"
+import { AppLayout as AppLayoutShell } from "@/components/AppLayout"
 
 export default function AppLayout({
   children,
@@ -7,11 +7,5 @@ export default function AppLayout({
   children: React.ReactNode
   modal: React.ReactNode
 }) {
-  return (
-    <div className='flex h-dvh flex-col'>
-      <div className='flex-1 overflow-y-auto'>{children}</div>
-      <NavBar />
-      {modal}
-    </div>
-  )
+  return <AppLayoutShell modal={modal}>{children}</AppLayoutShell>
 }

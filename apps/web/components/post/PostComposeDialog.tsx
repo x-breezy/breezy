@@ -29,7 +29,7 @@ export function PostComposeDialog({ onDismiss }: { onDismiss: () => void }) {
     return (
       <Dialog open={open} onOpenChange={(isOpen) => !isOpen && handleClose()}>
         <DialogPortal>
-          <div className='fixed inset-0 z-50 flex flex-col bg-background'>
+          <div className='fixed inset-0 z-120 flex flex-col bg-background'>
             <PostHeader onPost={handlePost} onClose={handleClose} />
             <PostForm content={content} setContent={setContent} />
           </div>
@@ -42,7 +42,7 @@ export function PostComposeDialog({ onDismiss }: { onDismiss: () => void }) {
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && handleClose()}>
       <DialogContent
         showCloseButton={false}
-        className='flex flex-col gap-0 p-0 sm:top-[20%] sm:max-w-lg sm:rounded-[min(var(--radius-4xl),24px)]'
+        className='z-120 flex max-h-[80vh] flex-col gap-0 overflow-hidden p-0 sm:top-4 sm:max-w-lg sm:rounded-[min(var(--radius-4xl),24px)]'
       >
         <PostHeader onPost={handlePost} onClose={handleClose} />
         <PostForm content={content} setContent={setContent} />

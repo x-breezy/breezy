@@ -48,6 +48,7 @@
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
   --font-sans: var(--font-sans);
+  --font-georama: var(--font-georama);
 }
 
 :root {
@@ -86,6 +87,8 @@
   --sidebar-accent-foreground: oklch(0.218 0.008 223.9);
   --sidebar-border: oklch(0.925 0.005 214.3);
   --sidebar-ring: oklch(0.723 0.014 214.4);
+
+  --animate-ring: ring 2s ease-in-out;
 }
 
 .dark {
@@ -138,5 +141,36 @@
 
   html {
     @apply font-sans;
+  }
+}
+
+@keyframes ring {
+  0% {
+    transform: rotate(0deg);
+  }
+  5% {
+    transform: rotate(30deg);
+  }
+  10% {
+    transform: rotate(-25deg);
+  }
+  15% {
+    transform: rotate(20deg);
+  }
+  20% {
+    transform: rotate(-15deg);
+  }
+  25% {
+    transform: rotate(10deg);
+  }
+  30% {
+    transform: rotate(-5deg);
+  }
+  35% {
+    transform: rotate(2deg);
+  }
+  40%,
+  100% {
+    transform: rotate(0deg);
   }
 }

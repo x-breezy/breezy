@@ -1,4 +1,4 @@
-import { SearchHeader } from "@/components/search/SearchHeader"
+import { SearchHeader } from "@/components/search/search-header"
 import { TagList } from "@/components/search/TagList"
 
 export default function SearchPage() {
