@@ -2,11 +2,11 @@ import { Router } from "express"
 import { PostController } from "../controllers/post.controller"
 import { PostService } from "../services/post.service"
 import { identity } from "../middlewares/identity.middleware"
-import { requireSelfOrRoles } from "../middlewares/roles.middleware"
-import { requirePostOwnership } from "../middlewares/post-ownership.middleware"
+import { requireSelfOrPermission, requireOwnership } from "../middlewares/roles.middleware"
 import { validate } from "../middlewares/validate.middleware"
 import { createPostSchema } from "../schemas/post.schema"
-import { ROLES } from "../constants/roles"
+import { PERMISSIONS } from "../constants/permissions"
+import { PostModel } from "../models/post.model"
 import { createLikeRouter } from "./like.route"
 import { createCommentRouter } from "./comment.route"
 
@@ -21,14 +21,17 @@ export function createPostRouter(
   router.get(
     "/users/:userId",
     identity,
-    requireSelfOrRoles("userId", ROLES.MODERATOR, ROLES.ADMIN),
+    requireSelfOrPermission("userId", PERMISSIONS.POST_READ_ANY),
     controller.getUserPosts
   )
   router.get("/:id", identity, controller.getOne)
   router.delete(
     "/:id",
     identity,
-    requirePostOwnership(ROLES.MODERATOR, ROLES.ADMIN),
+    requireOwnership(
+      (req) => PostModel.findById(req.params.id).exec(),
+      PERMISSIONS.POST_DELETE_ANY
+    ),
     controller.delete
   )
 
@@ -115,8 +118,12 @@ export function createPostRouter(
  *
  * /posts/feed:
  *   get:
- *     summary: Chronological feed
- *     description: Returns all posts sorted by creation date descending (newest first), paginated. Any authenticated user.
+ *     summary: Personalized chronological feed
+ *     description: >
+ *       Returns posts from users the authenticated viewer follows, sorted newest first, paginated.
+ *       The viewer's own posts are always included. Follow graph is resolved server-side from
+ *       user-service (GET /users/:id/following). Falls back to a global chronological feed when
+ *       user-service is unavailable — the endpoint never errors due to follow-graph failures.
  *     tags: [Posts]
  *     parameters:
  *       - in: query

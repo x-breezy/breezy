@@ -1,7 +1,7 @@
 import type { Request, Response, NextFunction } from "express"
 import { CommentService } from "../services/comment.service"
 import { PostModel } from "../models/post.model"
-import { ROLES } from "../constants/roles"
+import { objectIdSchema } from "../schemas/comment.schema"
 
 export class CommentController {
   constructor(private service = new CommentService()) {}
@@ -9,13 +9,20 @@ export class CommentController {
   list = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const postId = req.params.postId!
-      const parentCommentId = req.query.parentCommentId
-        ? (req.query.parentCommentId as string)
-        : null
+      const rawParent = req.query.parentCommentId
+      if (rawParent !== undefined) {
+        const parsed = objectIdSchema.safeParse(rawParent)
+        if (!parsed.success) {
+          res.status(400).json({ success: false, message: "Invalid parentCommentId" })
+          return
+        }
+      }
+      const parentCommentId = typeof rawParent === "string" ? rawParent : null
       const page = Math.max(1, parseInt(req.query.page as string) || 1)
       const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 20))
+
       const result = await this.service.listComments(postId, parentCommentId, page, limit)
-      res.json({ success: true, data: result })
+      res.json({ success: true, data: result, message: "Comments retrieved successfully" })
     } catch (err) {
       next(err)
     }
@@ -26,11 +33,22 @@ export class CommentController {
       const postId = req.params.postId!
       const post = await PostModel.findById(postId).exec()
       if (!post) {
-        res.status(404).json({ success: false, error: "Post not found" })
+        res.status(404).json({ success: false, message: "Post not found" })
         return
       }
-      const comment = await this.service.createComment(postId, req.user.id, req.body)
-      res.status(201).json({ success: true, data: comment })
+
+      const { comment, commentsCount } = await this.service.createComment(
+        postId,
+        req.user!.id,
+        req.body
+      )
+      res
+        .status(201)
+        .json({
+          success: true,
+          data: { comment, commentsCount },
+          message: "Comment created successfully",
+        })
     } catch (err) {
       next(err)
     }
@@ -38,21 +56,16 @@ export class CommentController {
 
   delete = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const comment = await this.service.getComment(req.params.commentId!)
-      if (!comment) {
-        res.status(404).json({ success: false, error: "Not found" })
+      const result = await this.service.deleteComment(req.params.commentId!)
+      if (!result) {
+        res.status(404).json({ success: false, message: "Comment not found" })
         return
       }
-      const isOwner = comment.authorId === req.user.id
-      const isElevated = (req.user.roles as string[]).some((r) =>
-        ([ROLES.MODERATOR, ROLES.ADMIN] as string[]).includes(r)
-      )
-      if (!isOwner && !isElevated) {
-        res.status(403).json({ success: false, error: "Forbidden" })
-        return
-      }
-      await this.service.deleteComment(req.params.commentId!)
-      res.json({ success: true })
+      res.json({
+        success: true,
+        data: { commentsCount: result.commentsCount },
+        message: "Comment deleted successfully",
+      })
     } catch (err) {
       next(err)
     }

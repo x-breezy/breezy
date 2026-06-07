@@ -31,7 +31,7 @@ const POST_ID = "64f1a2b3c4d5e6f7a8b9c0d1"
 beforeEach(() => {
   jest.clearAllMocks()
   ;(mockedPost.findByIdAndUpdate as jest.Mock).mockReturnValue({
-    exec: jest.fn().mockResolvedValue(null),
+    exec: jest.fn().mockResolvedValue({ likesCount: 0 }),
   })
 })
 
@@ -46,6 +46,9 @@ describe("POST /posts/:id/likes", () => {
       exec: jest.fn().mockResolvedValue(null),
     })
     ;(mockedLike.create as jest.Mock).mockResolvedValue({})
+    ;(mockedPost.findByIdAndUpdate as jest.Mock).mockReturnValue({
+      exec: jest.fn().mockResolvedValue({ likesCount: 5 }),
+    })
 
     const res = await request(app)
       .post(`/posts/${POST_ID}/likes`)
@@ -53,8 +56,16 @@ describe("POST /posts/:id/likes", () => {
       .set("x-roles", "user")
 
     expect(res.status).toBe(201)
-    expect(res.body).toEqual({ success: true })
-    expect(mockedPost.findByIdAndUpdate).toHaveBeenCalledWith(POST_ID, { $inc: { likesCount: 1 } })
+    expect(res.body).toEqual({
+      success: true,
+      message: "Like added successfully",
+      data: { likesCount: 5 },
+    })
+    expect(mockedPost.findByIdAndUpdate).toHaveBeenCalledWith(
+      POST_ID,
+      { $inc: { likesCount: 1 } },
+      { new: true }
+    )
   })
 
   it("returns 409 when already liked", async () => {
@@ -100,8 +111,14 @@ describe("POST /posts/:id/likes", () => {
 
 describe("DELETE /posts/:id/likes", () => {
   it("unlikes a post and returns 200", async () => {
+    ;(mockedPost.findById as jest.Mock).mockReturnValue({
+      exec: jest.fn().mockResolvedValue({ id: POST_ID }),
+    })
     ;(mockedLike.findOneAndDelete as jest.Mock).mockReturnValue({
       exec: jest.fn().mockResolvedValue({ postId: POST_ID, userId: "user-1" }),
+    })
+    ;(mockedPost.findByIdAndUpdate as jest.Mock).mockReturnValue({
+      exec: jest.fn().mockResolvedValue({ likesCount: 3 }),
     })
 
     const res = await request(app)
@@ -110,8 +127,16 @@ describe("DELETE /posts/:id/likes", () => {
       .set("x-roles", "user")
 
     expect(res.status).toBe(200)
-    expect(res.body).toEqual({ success: true })
-    expect(mockedPost.findByIdAndUpdate).toHaveBeenCalledWith(POST_ID, { $inc: { likesCount: -1 } })
+    expect(res.body).toEqual({
+      success: true,
+      message: "Like removed successfully",
+      data: { likesCount: 3 },
+    })
+    expect(mockedPost.findByIdAndUpdate).toHaveBeenCalledWith(
+      POST_ID,
+      { $inc: { likesCount: -1 } },
+      { new: true }
+    )
   })
 
   it("returns 404 when like not found", async () => {

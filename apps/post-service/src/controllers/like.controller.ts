@@ -10,15 +10,17 @@ export class LikeController {
       const postId = req.params.postId!
       const post = await PostModel.findById(postId).exec()
       if (!post) {
-        res.status(404).json({ success: false, error: "Post not found" })
+        res.status(404).json({ success: false, message: "Post not found" })
         return
       }
-      const { alreadyLiked } = await this.service.like(postId, req.user.id)
+      const { alreadyLiked, nb } = await this.service.like(postId, req.user!.id)
       if (alreadyLiked) {
-        res.status(409).json({ success: false, error: "Already liked" })
+        res.status(409).json({ success: false, message: "Post already liked" })
         return
       }
-      res.status(201).json({ success: true })
+      res
+        .status(201)
+        .json({ success: true, message: "Like added successfully", data: { likesCount: nb } })
     } catch (err) {
       next(err)
     }
@@ -26,12 +28,14 @@ export class LikeController {
 
   unlike = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const { wasLiked } = await this.service.unlike(req.params.postId!, req.user.id)
+      const { wasLiked, nb } = await this.service.unlike(req.params.postId!, req.user!.id)
       if (!wasLiked) {
-        res.status(404).json({ success: false, error: "Like not found" })
+        res.status(404).json({ success: false, message: "Like not found" })
         return
       }
-      res.json({ success: true })
+      res
+        .status(200)
+        .json({ success: true, message: "Like removed successfully", data: { likesCount: nb } })
     } catch (err) {
       next(err)
     }

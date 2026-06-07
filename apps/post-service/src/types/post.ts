@@ -3,6 +3,14 @@ export interface MediaRef {
   type: "image" | "video"
 }
 
+export interface MediaResolved extends MediaRef {
+  url: string
+  mimeType?: string
+  width?: number
+  height?: number
+  size?: number
+}
+
 export interface Post {
   id: string
   content: string

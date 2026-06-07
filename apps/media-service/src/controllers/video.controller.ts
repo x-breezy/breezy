@@ -1,37 +1,17 @@
 import type { Request, Response, NextFunction } from "express"
 import VideoService from "../services/video.service"
-import { uploadHeadersSchema } from "../validators/video.validator"
-import { ApiResponse } from "../types/api"
-import { Video } from "../types/video"
+import { uploadHeadersSchema } from "../schema/video.schema"
 
 class VideoController {
   constructor(private readonly videoService: VideoService) {}
 
-  list = async (
-    req: Request,
-    res: Response<ApiResponse<Video[]>>,
-    next: NextFunction
-  ): Promise<void> => {
-    try {
-      const ownerId = req.query.ownerId as string | undefined
-      const videos = await this.videoService.list(ownerId)
-      res.json({ success: true, data: videos })
-    } catch (err) {
-      next(err)
-    }
-  }
-
-  upload = async (
-    req: Request,
-    res: Response<ApiResponse<Video>>,
-    next: NextFunction
-  ): Promise<void> => {
+  upload = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const headers = uploadHeadersSchema.safeParse(req.headers)
       if (!headers.success) {
         res.status(400).json({
           success: false,
-          error: headers.error.issues[0]?.message ?? "Invalid request headers",
+          message: "Missing or invalid headers: content-type, x-filename, and x-title are required",
         })
         return
       }
@@ -43,7 +23,7 @@ class VideoController {
         title: headers.data["x-title"],
       })
 
-      res.status(201).json({ success: true, data: video })
+      res.status(201).json({ success: true, data: video, message: "Video uploaded successfully" })
     } catch (err) {
       next(err)
     }
@@ -55,19 +35,19 @@ class VideoController {
    */
   getStream = async (
     req: Request<{ id: string }>,
-    res: Response<ApiResponse<null> | void>,
+    res: Response,
     next: NextFunction
   ): Promise<void> => {
     try {
       const meta = await this.videoService.getMeta(req.params.id)
       if (!meta) {
-        res.status(404).json({ success: false, error: "Not found" })
+        res.status(404).json({ success: false, message: "Video not found" })
         return
       }
 
       const file = await this.videoService.getGridFsFile(meta.gridFsId)
       if (!file) {
-        res.status(404).json({ success: false, error: "File not found in storage" })
+        res.status(404).json({ success: false, message: "Video file not found" })
         return
       }
 
@@ -102,17 +82,19 @@ class VideoController {
 
   getMeta = async (
     req: Request<{ id: string }>,
-    res: Response<ApiResponse<Video>>,
+    res: Response,
     next: NextFunction
   ): Promise<void> => {
     try {
       const video = await this.videoService.getMeta(req.params.id)
       if (!video) {
-        res.status(404).json({ success: false, error: "Not found" })
+        res.status(404).json({ success: false, message: "Video not found" })
         return
       }
 
-      res.status(200).json({ success: true, data: video })
+      res
+        .status(200)
+        .json({ success: true, data: video, message: "Video metadata retrieved successfully" })
     } catch (err) {
       next(err)
     }
@@ -120,17 +102,17 @@ class VideoController {
 
   delete = async (
     req: Request<{ id: string }>,
-    res: Response<ApiResponse<null>>,
+    res: Response,
     next: NextFunction
   ): Promise<void> => {
     try {
       const deleted = await this.videoService.delete(req.params.id)
       if (!deleted) {
-        res.status(404).json({ success: false, error: "Not found" })
+        res.status(404).json({ success: false, message: "Video not found" })
         return
       }
 
-      res.status(200).json({ success: true })
+      res.status(200).json({ success: true, message: "Video deleted successfully" })
     } catch (err) {
       next(err)
     }
