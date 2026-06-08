@@ -13,3 +13,44 @@ export function createLikeRouter(
 
   return router
 }
+
+/**
+ * @openapi
+ * /api/posts/{postId}/likes:
+ *   post:
+ *     summary: Like a post
+ *     tags: [Likes]
+ *     parameters:
+ *       - in: path
+ *         name: postId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Post liked.
+ *       409:
+ *         description: Already liked.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
+ *   delete:
+ *     summary: Unlike a post
+ *     tags: [Likes]
+ *     parameters:
+ *       - in: path
+ *         name: postId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Post unliked.
+ *       404:
+ *         description: Like not found.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
+ */

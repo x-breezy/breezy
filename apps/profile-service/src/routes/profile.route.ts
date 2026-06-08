@@ -73,3 +73,169 @@ function createProfileRouter() {
 }
 
 export { createProfileRouter }
+
+/**
+ * @openapi
+ * /api/profiles/{profileId}:
+ *   get:
+ *     summary: Get a profile
+ *     tags: [Profiles]
+ *     parameters:
+ *       - in: path
+ *         name: profileId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: Profile found.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: boolean, example: true }
+ *                 data:
+ *                   $ref: '#/components/schemas/Profile'
+ *       404:
+ *         description: Not found.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
+ *
+ * /api/profiles/{profileId}/followers:
+ *   get:
+ *     summary: Get followers of a profile
+ *     tags: [Profiles]
+ *     parameters:
+ *       - in: path
+ *         name: profileId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: List of followers.
+ *
+ * /api/profiles/{profileId}/following:
+ *   get:
+ *     summary: Get profiles followed by a profile
+ *     tags: [Profiles]
+ *     parameters:
+ *       - in: path
+ *         name: profileId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: List of followed profiles.
+ *
+ * /api/profiles:
+ *   post:
+ *     summary: Create a profile
+ *     tags: [Profiles]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/CreateProfileInput'
+ *     responses:
+ *       201:
+ *         description: Profile created.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: boolean, example: true }
+ *                 data:
+ *                   $ref: '#/components/schemas/Profile'
+ *   patch:
+ *     summary: Update own profile
+ *     tags: [Profiles]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/UpdateProfileInput'
+ *     responses:
+ *       200:
+ *         description: Profile updated.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: boolean, example: true }
+ *                 data:
+ *                   $ref: '#/components/schemas/Profile'
+ *   delete:
+ *     summary: Delete own profile
+ *     tags: [Profiles]
+ *     responses:
+ *       200:
+ *         description: Profile deleted.
+ *       403:
+ *         description: Insufficient permissions.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
+ *
+ * /api/profiles/follow:
+ *   post:
+ *     summary: Follow a profile
+ *     tags: [Profiles]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [targetId]
+ *             properties:
+ *               targetId:
+ *                 type: string
+ *                 format: uuid
+ *     responses:
+ *       200:
+ *         description: Followed.
+ *       409:
+ *         description: Already following.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
+ *
+ * /api/profiles/unfollow:
+ *   post:
+ *     summary: Unfollow a profile
+ *     tags: [Profiles]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [targetId]
+ *             properties:
+ *               targetId:
+ *                 type: string
+ *                 format: uuid
+ *     responses:
+ *       200:
+ *         description: Unfollowed.
+ *       404:
+ *         description: Follow relationship not found.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
+ */

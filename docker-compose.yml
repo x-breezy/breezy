@@ -1,6 +1,8 @@
 services:
   gateway:
-    build: ./apps/gateway
+    build:
+      context: .
+      dockerfile: apps/gateway/Dockerfile
     container_name: breezy-gateway
     restart: unless-stopped
     ports:
@@ -220,6 +222,16 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+    networks:
+      - breezy
+
+  swagger-ui:
+    image: swaggerapi/swagger-ui:latest
+    container_name: breezy-swagger-ui
+    restart: unless-stopped
+    environment:
+      URL: /openapi.json
+      BASE_URL: /api-docs
     networks:
       - breezy
 
