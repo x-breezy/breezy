@@ -3,6 +3,7 @@ import "@/styles/globals.css"
 import type { Metadata } from "next"
 import { cookies } from "next/headers"
 import { ThemeProvider } from "@/components/providers/theme-provider"
+import { QueryProvider } from "@/components/providers/query-provider"
 import { cn } from "@/lib/utils"
 import type { Theme } from "@/lib/theme"
 
@@ -61,7 +62,9 @@ export default async function RootLayout({
       className={cn("antialiased", geistMono.variable, "font-sans", geist.variable, geom.variable)}
     >
       <body>
-        <ThemeProvider defaultTheme={theme}>{children}</ThemeProvider>
+        <QueryProvider>
+          <ThemeProvider defaultTheme={theme}>{children}</ThemeProvider>
+        </QueryProvider>
       </body>
     </html>
   )

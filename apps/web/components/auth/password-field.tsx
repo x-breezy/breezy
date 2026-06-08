@@ -23,12 +23,13 @@ const strengthTextColor = ["", "text-destructive", "text-yellow-500", "text-gree
 
 interface PasswordFieldProps {
   id: string
+  name?: string
   value: string
   onChange: (value: string) => void
   showStrength?: boolean
 }
 
-export function PasswordField({ id, value, onChange, showStrength = false }: PasswordFieldProps) {
+export function PasswordField({ id, name, value, onChange, showStrength = false }: PasswordFieldProps) {
   const [visible, setVisible] = useState(false)
   const strength = getStrength(value)
 
@@ -38,6 +39,7 @@ export function PasswordField({ id, value, onChange, showStrength = false }: Pas
       <InputGroup>
         <InputGroupInput
           id={id}
+          name={name}
           type={visible ? "text" : "password"}
           value={value}
           onChange={(e) => onChange(e.target.value)}

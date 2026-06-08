@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useActionState, useState } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { AuthHeader } from "./auth-header"
@@ -11,33 +11,35 @@ import { Label } from "../ui/label"
 import OAuthButtons from "./oauth-buttons"
 import { InputGroup, InputGroupAddon, InputGroupInput } from "../ui/input-group"
 import { IconAt, IconMail } from "@tabler/icons-react"
+import { signUpAction } from "@/app/(auth)/sign-up/actions"
 
 export default function SignUpScreen() {
-  const [username, setUsername] = useState("")
-  const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
-  const [error, setError] = useState<string | null>(null)
+  const [localError, setLocalError] = useState<string | null>(null)
+  const [state, action, isPending] = useActionState(signUpAction, null)
 
-  function handleSubmit(event: React.FormEvent) {
-    event.preventDefault()
-    setError(null)
-
+  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     if (getStrength(password) < 3) {
-      setError("Please choose a stronger password.")
+      event.preventDefault()
+      setLocalError("Please choose a stronger password.")
       return
     }
     if (password !== confirmPassword) {
-      setError("Passwords do not match.")
+      event.preventDefault()
+      setLocalError("Passwords do not match.")
       return
     }
+    setLocalError(null)
   }
+
+  const error = localError ?? state?.error ?? null
 
   return (
     <div className='mx-auto flex w-full max-w-sm flex-col justify-center px-4 py-12 font-sans select-none'>
       <AuthHeader title='Create an account' subtitle='Sign up to get started' />
 
-      <form onSubmit={handleSubmit} className='flex w-full flex-col gap-4'>
+      <form action={action} onSubmit={handleSubmit} className='flex w-full flex-col gap-4'>
         <FieldSet>
           <FieldGroup>
             <OAuthButtons status='register' />
@@ -46,9 +48,8 @@ export default function SignUpScreen() {
               <InputGroup>
                 <InputGroupInput
                   id='username'
+                  name='username'
                   type='text'
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
                   placeholder='samaltman'
                   autoComplete='username'
                   required
@@ -64,9 +65,8 @@ export default function SignUpScreen() {
               <InputGroup>
                 <InputGroupInput
                   id='email'
+                  name='email'
                   type='email'
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
                   placeholder='you@example.com'
                   autoComplete='email'
                   required
@@ -79,6 +79,7 @@ export default function SignUpScreen() {
 
             <PasswordField
               id='signup-password'
+              name='password'
               value={password}
               onChange={setPassword}
               showStrength
@@ -92,8 +93,8 @@ export default function SignUpScreen() {
 
             {error && <p className='text-sm text-destructive'>{error}</p>}
 
-            <Button type='submit' size='lg'>
-              Sign up
+            <Button type='submit' size='lg' disabled={isPending}>
+              {isPending ? "Creating account…" : "Sign up"}
             </Button>
           </FieldGroup>
         </FieldSet>

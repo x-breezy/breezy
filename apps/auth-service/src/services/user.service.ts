@@ -52,8 +52,9 @@ class UserService {
 
   /** Verify credentials. Returns the safe user or throws INVALID_CREDENTIALS. */
   async signIn(input: SignInDTO): Promise<SafeUser> {
+    const isEmail = input.identifier.includes("@")
     const user = await User.findOne({
-      where: { email: input.email },
+      where: isEmail ? { email: input.identifier } : { username: input.identifier },
       attributes: [
         "id",
         "username",

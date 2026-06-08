@@ -1,4 +1,4 @@
-export { default as SettingsScreen } from "./SettingsScreen"
+export { default as SettingsScreen } from "./settings-screen"
 export { SettingsHeader } from "./settings-header"
 export { SettingsDialog } from "./settings-dialog"
 export { SettingsUserCard } from "./settings-user-card"

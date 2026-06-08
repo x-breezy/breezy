@@ -7,6 +7,7 @@ import {
   SettingsThemeSelect,
   SettingsLogoutButton,
 } from "."
+import { logoutAction } from "@/app/(app)/settings/actions"
 
 interface SettingsScreenProps {
   name: string
@@ -17,8 +18,8 @@ interface SettingsScreenProps {
 export default function SettingsScreen({ name, username, avatarUrl }: SettingsScreenProps) {
   const [language, setLanguage] = useState<string | null>("fr")
 
-  function handleLogout() {
-    alert("Déconnexion de l'utilisateur")
+  async function handleLogout() {
+    await logoutAction()
   }
 
   return (

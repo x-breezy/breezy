@@ -1,7 +1,7 @@
 import { z } from "zod"
 
 export const signInSchema = z.object({
-  email: z.string().email(),
+  identifier: z.string().min(1),
   password: z.string().min(1),
 })
 export type SignInDTO = z.infer<typeof signInSchema>

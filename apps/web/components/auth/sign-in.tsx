@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useActionState, useState } from "react"
 import Link from "next/link"
 import { AuthHeader } from "./auth-header"
 import { Button } from "@/components/ui/button"
@@ -9,23 +9,19 @@ import { Field, FieldGroup, FieldSet } from "../ui/field"
 import OAuthButtons from "./oauth-buttons"
 import { InputGroup, InputGroupAddon, InputGroupInput } from "../ui/input-group"
 import { IconAt, IconEye, IconEyeClosed, IconLock } from "@tabler/icons-react"
+import { signInAction } from "@/app/(auth)/sign-in/actions"
 
 export default function SignInScreen() {
   const [identifier, setIdentifier] = useState("")
   const [password, setPassword] = useState("")
   const [passwordVisible, setPasswordVisible] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-
-  function handleSubmit(event: React.FormEvent) {
-    event.preventDefault()
-    setError(null)
-  }
+  const [state, action, isPending] = useActionState(signInAction, null)
 
   return (
     <div className='mx-auto flex w-full max-w-sm flex-col justify-center px-4 py-12 font-sans select-none'>
       <AuthHeader title='Welcome to Breezy' subtitle='Log in to continue' />
 
-      <form onSubmit={handleSubmit} className='flex w-full flex-col gap-4'>
+      <form action={action} className='flex w-full flex-col gap-4'>
         <FieldSet>
           <FieldGroup>
             <OAuthButtons status='connect' />
@@ -34,10 +30,11 @@ export default function SignInScreen() {
               <InputGroup>
                 <InputGroupInput
                   id='identifier'
+                  name='identifier'
                   type='text'
                   value={identifier}
                   onChange={(e) => setIdentifier(e.target.value)}
-                  placeholder='you@example.com'
+                  placeholder='you@example.com or samaltman'
                   autoComplete='username'
                   required
                 />
@@ -52,6 +49,7 @@ export default function SignInScreen() {
               <InputGroup>
                 <InputGroupInput
                   id='password'
+                  name='password'
                   type={passwordVisible ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -72,11 +70,11 @@ export default function SignInScreen() {
               </InputGroup>
             </Field>
 
-            {error && <p className='text-xs text-destructive'>{error}</p>}
+            {state?.error && <p className='text-xs text-destructive'>{state.error}</p>}
 
             <Field>
-              <Button type='submit' size='lg'>
-                Connect
+              <Button type='submit' size='lg' disabled={isPending}>
+                {isPending ? "Connecting…" : "Connect"}
               </Button>
             </Field>
           </FieldGroup>
