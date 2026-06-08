@@ -319,6 +319,7 @@ describe("comment controller error handling", () => {
       sort: jest.fn().mockReturnThis(),
       skip: jest.fn().mockReturnThis(),
       limit: jest.fn().mockReturnThis(),
+      lean: jest.fn().mockReturnThis(),
       exec: jest.fn().mockRejectedValue(new Error("db error")),
     })
     ;(mockedComment.countDocuments as jest.Mock).mockResolvedValue(0)

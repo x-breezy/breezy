@@ -16,7 +16,6 @@ jest.mock("../../models/post.model", () => ({
 
 jest.mock("../../models/like.model", () => ({
   LikeModel: {
-    findOne: jest.fn(),
     create: jest.fn(),
     findOneAndDelete: jest.fn(),
   },
@@ -73,9 +72,9 @@ describe("POST /posts/:id/likes", () => {
     ;(mockedPost.findById as jest.Mock).mockReturnValue({
       exec: jest.fn().mockResolvedValue({ id: POST_ID }),
     })
-    ;(mockedLike.findOne as jest.Mock).mockReturnValue({
-      exec: jest.fn().mockResolvedValue({ postId: POST_ID, userId: USER1_UUID }),
-    })
+    ;(mockedLike.create as jest.Mock).mockRejectedValue(
+      Object.assign(new Error("duplicate"), { code: 11000 })
+    )
 
     const res = await request(app)
       .post(`/posts/${POST_ID}/likes`)
@@ -84,7 +83,6 @@ describe("POST /posts/:id/likes", () => {
 
     expect(res.status).toBe(409)
     expect(res.body.success).toBe(false)
-    expect(mockedLike.create).not.toHaveBeenCalled()
   })
 
   it("returns 404 when post not found", async () => {
@@ -167,13 +165,11 @@ describe("like controller error handling", () => {
     jest.spyOn(console, "error").mockImplementation(() => {})
   })
 
-  it("returns 500 when LikeModel.findOne throws on POST", async () => {
+  it("returns 500 when LikeModel.create throws on POST", async () => {
     ;(mockedPost.findById as jest.Mock).mockReturnValue({
       exec: jest.fn().mockResolvedValue({ id: POST_ID }),
     })
-    ;(mockedLike.findOne as jest.Mock).mockReturnValue({
-      exec: jest.fn().mockRejectedValue(new Error("db error")),
-    })
+    ;(mockedLike.create as jest.Mock).mockRejectedValue(new Error("db error"))
 
     const res = await request(app)
       .post(`/posts/${POST_ID}/likes`)
