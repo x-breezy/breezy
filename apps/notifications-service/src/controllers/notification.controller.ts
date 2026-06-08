@@ -18,11 +18,12 @@ class NotificationController {
 
   list = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const query = req.query as unknown as ListNotificationsQueryDTO
+      // req.query is replaced by the validate middleware with Zod-parsed output
+      const { page, limit, read } = req.query as unknown as ListNotificationsQueryDTO
       const result = await this.notificationService.list(req.user!.id, {
-        page: query.page,
-        limit: query.limit,
-        read: query.read,
+        page: Math.max(1, Math.trunc(page)),
+        limit: Math.min(100, Math.max(1, Math.trunc(limit))),
+        read,
       })
       res.status(200).json({ success: true, ...result })
     } catch (error) {

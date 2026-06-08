@@ -36,7 +36,7 @@ export async function startConsuming(
     } catch (err) {
       logger.error(
         { err, routingKey: msg.fields.routingKey },
-        "Failed to process event — sending to DLQ"
+        "Failed to process event - sending to DLQ"
       )
       channel.nack(msg, false, false)
     }

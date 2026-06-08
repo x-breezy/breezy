@@ -24,7 +24,7 @@ class NotificationService {
     options: ListOptions
   ): Promise<{ data: object[]; total: number; page: number; limit: number }> {
     const filter: Record<string, unknown> = { userId }
-    if (options.read !== undefined) filter.read = options.read
+    if (options.read !== undefined) filter.read = options.read === true
 
     const skip = (options.page - 1) * options.limit
     const [data, total] = await Promise.all([
