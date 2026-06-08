@@ -1,6 +1,6 @@
 "use client"
 
-import { NavBar } from "./NavBar"
+import { NavBar } from "../navigation/nav-bar"
 
 interface AppLayoutProps {
   children: React.ReactNode

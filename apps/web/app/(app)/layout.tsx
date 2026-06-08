@@ -1,11 +1,11 @@
-import { AppLayout as AppLayoutShell } from "@/components/AppLayout"
+import { AppLayout } from "@/components/layout/app-layout"
 
-export default function AppLayout({
+export default function ApplicationLayout({
   children,
   modal,
 }: {
   children: React.ReactNode
   modal: React.ReactNode
 }) {
-  return <AppLayoutShell modal={modal}>{children}</AppLayoutShell>
+  return <AppLayout modal={modal}>{children}</AppLayout>
 }

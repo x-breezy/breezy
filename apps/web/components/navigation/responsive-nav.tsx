@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation"
 import { HomeIcon, SearchIcon, GrodIcon, SendIcon, ProfileIcon } from "@/components/icons"
-import { NavItem } from "./NavItem"
+import { NavItem } from "./nav-item"
 import type { NavItemData } from "./types"
 
 const NAV_ITEMS: NavItemData[] = [

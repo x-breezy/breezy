@@ -1,6 +1,6 @@
 "use client"
 
-import { ResponsiveNav } from "./ResponsiveNav"
+import { ResponsiveNav } from "./responsive-nav"
 
 export function NavBar() {
   return <ResponsiveNav />
