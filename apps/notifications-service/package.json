@@ -16,12 +16,12 @@
     "test:coverage": "jest --coverage"
   },
   "dependencies": {
-    "@breezy/logger": "*",
     "@breezy/emails": "*",
+    "@breezy/logger": "*",
     "amqplib": "^0.10.4",
     "express": "^4.21.2",
     "mongoose": "^8.9.5",
-    "nodemailer": "^6.9.16",
+    "nodemailer": "^8.0.10",
     "swagger-jsdoc": "^6.3.0",
     "swagger-ui-express": "^5.0.1",
     "zod": "^3.25.76"
