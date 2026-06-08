@@ -1,0 +1,5 @@
+{
+  "extends": "@breezy/typescript-config/react-library.json",
+  "include": ["**/*.ts", "**/*.tsx"],
+  "exclude": ["node_modules", "dist", ".react-email"],
+}
