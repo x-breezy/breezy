@@ -4,6 +4,7 @@ import type { Post } from "../types/post"
 import type { PaginatedResponse } from "../types/api"
 import { HttpFollowGraph, type FollowGraphPort } from "../clients/follow-graph"
 import { publish } from "../clients/rabbitmq"
+import { GrpcFollowGraph, type FollowGraphPort } from "../clients/follow-graph"
 
 const MENTION_RE = /@([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/gi
 
@@ -13,7 +14,7 @@ function extractMentions(content: string, authorId: string): string[] {
 }
 
 export class PostService {
-  constructor(private follow: FollowGraphPort = new HttpFollowGraph()) {}
+  constructor(private follow: FollowGraphPort = new GrpcFollowGraph()) {}
 
   async createPost(data: CreatePostDTO & { authorId: string }): Promise<Post> {
     const post = await PostModel.create({

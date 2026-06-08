@@ -4,6 +4,7 @@ import { connect } from "./config/database"
 import { initFollowModel } from "./models/follow.model"
 import { initProfileModel } from "./models/profile.model"
 import { connectRabbitMQ } from "./clients/rabbitmq"
+import { startGrpcServer } from "./config/grpc.server"
 
 const logger = createLogger({ service: "profile-service" })
 
@@ -23,6 +24,7 @@ async function start(): Promise<void> {
   logger.info("Models synchronized")
 
   await connectRabbitMQ()
+  startGrpcServer(50051)
 
   app.listen(port, () => {
     logger.info({ port }, "Profile service listening")
