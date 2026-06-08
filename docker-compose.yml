@@ -126,6 +126,24 @@ services:
       timeout: 5s
       retries: 5
 
+  mongo-message-service:
+    image: mongo:8
+    container_name: breezy-mongo-message-service
+    restart: unless-stopped
+    ports:
+      - "27020:27017"
+    environment:
+      MONGO_INITDB_DATABASE: message_service
+    volumes:
+      - mongo-message-service-data:/data/db
+    networks:
+      - breezy
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 networks:
   breezy:
     driver: bridge
@@ -134,5 +152,6 @@ volumes:
   mongo-post-service-data:
   mongo-media-service-data:
   mongo-notifications-service-data:
+  mongo-message-service-data:
   postgres-user-service-data:
   postgres-profile-service-data:
