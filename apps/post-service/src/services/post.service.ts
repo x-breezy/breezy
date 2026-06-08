@@ -3,6 +3,14 @@ import type { CreatePostDTO } from "../schemas/post.schema"
 import type { Post } from "../types/post"
 import type { PaginatedResponse } from "../types/api"
 import { GrpcFollowGraph, type FollowGraphPort } from "../clients/follow-graph"
+import { publish } from "../clients/rabbitmq"
+
+const MENTION_RE = /@([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/gi
+
+function extractMentions(content: string, authorId: string): string[] {
+  const matches = [...content.matchAll(MENTION_RE)].map((m) => m[1]!.toLowerCase())
+  return [...new Set(matches)].filter((id) => id !== authorId)
+}
 
 export class PostService {
   constructor(private follow: FollowGraphPort = new GrpcFollowGraph()) {}
@@ -14,11 +22,15 @@ export class PostService {
       tags: data.tags ?? [],
       media: data.media ?? [],
     })
+    const postId = String(post._id)
+    for (const targetUserId of extractMentions(data.content, data.authorId)) {
+      void publish("content.mention", { actorId: data.authorId, targetUserId, postId })
+    }
     return post
   }
 
   async getPost(id: string): Promise<Post | null> {
-    return PostModel.findById(id).exec() as unknown as Promise<Post | null>
+    return PostModel.findById(id).exec() as Promise<Post | null>
   }
 
   async feed(viewerId: string, page: number, limit: number): Promise<PaginatedResponse<Post>> {

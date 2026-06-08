@@ -1,5 +1,6 @@
 import { LikeModel } from "../models/like.model"
 import { PostModel } from "../models/post.model"
+import { publish } from "../clients/rabbitmq"
 
 export class LikeService {
   async like(postId: string, userId: string): Promise<{ alreadyLiked: boolean; nb: number }> {
@@ -15,6 +16,9 @@ export class LikeService {
       { new: true }
     ).exec()
     if (!post) throw Object.assign(new Error("Post not found"), { code: "POST_NOT_FOUND" })
+    if (post.authorId !== userId) {
+      void publish("content.like", { actorId: userId, targetUserId: post.authorId, postId })
+    }
     return { alreadyLiked: false, nb: post.likesCount }
   }
 

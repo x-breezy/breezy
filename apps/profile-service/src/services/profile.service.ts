@@ -1,5 +1,6 @@
 import { Profile, CreateProfileInput, UpdateProfileInput } from "../models/profile.model"
 import { Follow } from "../models/follow.model"
+import { publish } from "../clients/rabbitmq"
 
 class ProfileService {
   async createProfile(input: CreateProfileInput): Promise<Profile> {
@@ -39,6 +40,7 @@ class ProfileService {
         transaction: t,
       })
     })
+    publish("profile.followed", { followerId, followingId })
   }
 
   async unfollow(followerId: string, followingId: string): Promise<boolean> {

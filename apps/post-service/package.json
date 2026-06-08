@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@breezy/logger": "*",
+    "amqplib": "^0.10.4",
     "@grpc/grpc-js": "^1.14.4",
     "@grpc/proto-loader": "^0.8.1",
     "@types/swagger-jsdoc": "^6.0.4",
@@ -33,6 +34,7 @@
   "devDependencies": {
     "@breezy/eslint-config": "*",
     "@breezy/typescript-config": "*",
+    "@types/amqplib": "^0.10.7",
     "@types/express": "^4.17.21",
     "@types/jest": "^29.5.14",
     "@types/node": "^22.0.0",

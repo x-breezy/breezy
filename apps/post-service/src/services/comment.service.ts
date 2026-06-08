@@ -25,7 +25,7 @@ export class CommentService {
       { new: true }
     ).exec()
     if (!post) throw Object.assign(new Error("Post not found"), { code: "POST_NOT_FOUND" })
-    return { comment: comment as unknown as Comment, commentsCount: post.commentsCount }
+    return { comment: comment as Comment, commentsCount: post.commentsCount }
   }
 
   async listComments(
@@ -38,11 +38,16 @@ export class CommentService {
     const skip = (page - 1) * limit
 
     const [roots, total] = await Promise.all([
-      CommentModel.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).lean().exec(),
+      CommentModel.find(filter)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean({ virtuals: true })
+        .exec(),
       CommentModel.countDocuments({ postId }),
     ])
 
-    const nested = await this.attachReplies(roots as unknown as Comment[], postId, 1)
+    const nested = await this.attachReplies(roots as Comment[], postId, 1)
     return { data: nested, total, page, limit }
   }
 
@@ -55,11 +60,11 @@ export class CommentService {
       return comments.map((c) => ({ ...c, replies: [] }))
     }
 
-    const ids = comments.map((c) => c.id ?? (c as unknown as { _id: unknown })._id?.toString())
+    const ids = comments.map((c) => c.id)
     const children = (await CommentModel.find({ postId, parentCommentId: { $in: ids } })
       .sort({ createdAt: -1 })
-      .lean()
-      .exec()) as unknown as Comment[]
+      .lean({ virtuals: true })
+      .exec()) as Comment[]
 
     const nestedChildren = await this.attachReplies(children, postId, depth + 1)
 
@@ -72,13 +77,13 @@ export class CommentService {
     }
 
     return comments.map((c) => {
-      const id = String(c.id ?? (c as unknown as { _id: unknown })._id)
+      const id = String(c.id)
       return { ...c, replies: repliesByParent.get(id) ?? [] }
     })
   }
 
   async getComment(commentId: string): Promise<Comment | null> {
-    return CommentModel.findById(commentId).exec() as unknown as Promise<Comment | null>
+    return CommentModel.findById(commentId).exec() as Promise<Comment | null>
   }
 
   async deleteComment(
@@ -92,7 +97,7 @@ export class CommentService {
       { new: true }
     ).exec()
     if (!post) throw Object.assign(new Error("Post not found"), { code: "POST_NOT_FOUND" })
-    return { comment: comment as unknown as Comment, commentsCount: post.commentsCount }
+    return { comment: comment as Comment, commentsCount: post.commentsCount }
   }
 }
 

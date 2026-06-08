@@ -1,0 +1,29 @@
+import amqplib from "amqplib"
+import { createLogger } from "@breezy/logger"
+
+const logger = createLogger({ service: "profile-service" })
+const EXCHANGE = "breezy.events"
+
+let channel: amqplib.Channel | null = null
+
+export async function connectRabbitMQ(): Promise<void> {
+  try {
+    const url = process.env.RABBITMQ_URL ?? "amqp://breezy:breezy@localhost:5672"
+    const conn = await amqplib.connect(url)
+    channel = await conn.createChannel()
+    await channel.assertExchange(EXCHANGE, "topic", { durable: true })
+    logger.info("Connected to RabbitMQ")
+  } catch (err) {
+    logger.warn({ err }, "Failed to connect to RabbitMQ — notifications disabled")
+  }
+}
+
+export async function publish(routingKey: string, payload: object): Promise<void> {
+  if (!channel) return
+  try {
+    const content = Buffer.from(JSON.stringify(payload))
+    channel.publish(EXCHANGE, routingKey, content, { persistent: true })
+  } catch (err) {
+    logger.warn({ err, routingKey }, "Failed to publish event")
+  }
+}

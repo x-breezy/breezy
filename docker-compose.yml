@@ -1,4 +1,15 @@
 services:
+  gateway:
+    build: ./apps/gateway
+    container_name: breezy-gateway
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - breezy
+
   mongo-post-service:
     image: mongo:8
     container_name: breezy-mongo-post-service
@@ -79,6 +90,42 @@ services:
       timeout: 5s
       retries: 5
 
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: breezy-rabbitmq
+    restart: unless-stopped
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: breezy
+      RABBITMQ_DEFAULT_PASS: breezy
+    networks:
+      - breezy
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mongo-notifications-service:
+    image: mongo:8
+    container_name: breezy-mongo-notifications-service
+    restart: unless-stopped
+    ports:
+      - "27019:27017"
+    environment:
+      MONGO_INITDB_DATABASE: notifications_service
+    volumes:
+      - mongo-notifications-service-data:/data/db
+    networks:
+      - breezy
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 networks:
   breezy:
     driver: bridge
@@ -86,5 +133,6 @@ networks:
 volumes:
   mongo-post-service-data:
   mongo-media-service-data:
+  mongo-notifications-service-data:
   postgres-user-service-data:
   postgres-profile-service-data:

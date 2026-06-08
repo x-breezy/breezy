@@ -3,6 +3,7 @@ import { createApp } from "./app"
 import { connect } from "./config/database"
 import { initUserModel } from "./models/user.model"
 import { initReportModel } from "./models/report.model"
+import { connectRabbitMQ } from "./clients/rabbitmq"
 
 const logger = createLogger({ service: "auth-service" })
 
@@ -20,6 +21,8 @@ async function start(): Promise<void> {
 
   await sequelize.sync(process.env.NODE_ENV === "production" ? undefined : { alter: true })
   logger.info("Models synchronized")
+
+  await connectRabbitMQ()
 
   app.listen(port, () => {
     logger.info({ port }, "Auth service listening")

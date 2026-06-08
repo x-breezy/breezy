@@ -123,13 +123,11 @@ class ProfileController {
       const page = Math.max(1, parseInt(req.query.page as string) || 1)
       const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 50))
       const result = await this.profileService.getFollowers(req.params.profileId, page, limit)
-      res
-        .status(200)
-        .json({
-          success: true,
-          data: { ...result, page, limit },
-          message: "Followers retrieved successfully",
-        })
+      res.status(200).json({
+        success: true,
+        data: { ...result, page, limit },
+        message: "Followers retrieved successfully",
+      })
     } catch (err) {
       next(err)
     }
@@ -144,13 +142,11 @@ class ProfileController {
       const page = Math.max(1, parseInt(req.query.page as string) || 1)
       const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 50))
       const result = await this.profileService.getFollowing(req.params.profileId, page, limit)
-      res
-        .status(200)
-        .json({
-          success: true,
-          data: { ...result, page, limit },
-          message: "Following retrieved successfully",
-        })
+      res.status(200).json({
+        success: true,
+        data: { ...result, page, limit },
+        message: "Following retrieved successfully",
+      })
     } catch (err) {
       next(err)
     }

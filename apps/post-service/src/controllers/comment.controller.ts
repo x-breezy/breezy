@@ -42,13 +42,11 @@ export class CommentController {
         req.user!.id,
         req.body
       )
-      res
-        .status(201)
-        .json({
-          success: true,
-          data: { comment, commentsCount },
-          message: "Comment created successfully",
-        })
+      res.status(201).json({
+        success: true,
+        data: { comment, commentsCount },
+        message: "Comment created successfully",
+      })
     } catch (err) {
       next(err)
     }
