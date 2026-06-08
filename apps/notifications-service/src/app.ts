@@ -1,7 +1,7 @@
 import express from "express"
 import type { Express, Request, Response, NextFunction } from "express"
 import swaggerUi from "swagger-ui-express"
-import { createLogger } from "@breezy/logger"
+import { createLogger, httpLogger } from "@breezy/logger"
 import { createNotificationRouter } from "./routes/notification.route"
 import { swaggerSpec } from "./config/swagger"
 
@@ -10,6 +10,7 @@ const logger = createLogger({ service: "notifications-service" })
 export function createApp(): Express {
   const app = express()
 
+  app.use(httpLogger(logger))
   app.use(express.json())
 
   app.get("/", (_req, res) => {
