@@ -1,9 +1,5 @@
-"use client"
-
-import { useRouter } from "next/navigation"
-import { PostComposeDialog } from "@/components/post/PostComposeDialog"
+import { redirect } from "next/navigation"
 
 export default function PostPage() {
-  const router = useRouter()
-  return <PostComposeDialog onDismiss={() => router.push("/")} />
+  redirect("/")
 }

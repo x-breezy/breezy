@@ -3,7 +3,11 @@ import { Follow } from "../models/follow.model"
 
 class ProfileService {
   async createProfile(input: CreateProfileInput): Promise<Profile> {
-    return Profile.create(input)
+    const [profile] = await Profile.findOrCreate({
+      where: { profileId: input.profileId },
+      defaults: input,
+    })
+    return profile
   }
 
   async getProfile(profileId: string): Promise<Profile | null> {
@@ -24,34 +28,74 @@ class ProfileService {
   }
 
   async follow(followerId: string, followingId: string): Promise<void> {
-    await Follow.create({ followerId, followingId })
-
-    await Profile.increment("followingCount", { where: { profileId: followerId } })
-    await Profile.increment("followersCount", { where: { profileId: followingId } })
+    await Profile.sequelize!.transaction(async (t) => {
+      await Follow.create({ followerId, followingId }, { transaction: t })
+      await Profile.increment("followingCount", {
+        where: { profileId: followerId },
+        transaction: t,
+      })
+      await Profile.increment("followersCount", {
+        where: { profileId: followingId },
+        transaction: t,
+      })
+    })
   }
 
   async unfollow(followerId: string, followingId: string): Promise<boolean> {
-    const follow = await Follow.findOne({ where: { followerId, followingId } })
-    if (!follow) return false
+    return Profile.sequelize!.transaction(async (t) => {
+      const follow = await Follow.findOne({ where: { followerId, followingId }, transaction: t })
+      if (!follow) return false
 
-    await follow.destroy()
+      await follow.destroy({ transaction: t })
+      await Profile.decrement("followingCount", {
+        where: { profileId: followerId },
+        transaction: t,
+      })
+      await Profile.decrement("followersCount", {
+        where: { profileId: followingId },
+        transaction: t,
+      })
 
-    await Profile.decrement("followingCount", { where: { profileId: followerId } })
-    await Profile.decrement("followersCount", { where: { profileId: followingId } })
-
-    return true
+      return true
+    })
   }
 
-  async getFollowers(profileId: string): Promise<{ count: number; followers: string[] }> {
-    const relations = await Follow.findAll({ where: { followingId: profileId } })
-    const followers = relations.map(f => f.get("followerId") as string)
-    return { count: followers.length, followers }
+  async getFollowers(
+    profileId: string,
+    page: number = 1,
+    limit: number = 50
+  ): Promise<{ count: number; followers: string[] }> {
+    const offset = (page - 1) * limit
+    const [relations, count] = await Promise.all([
+      Follow.findAll({
+        where: { followingId: profileId },
+        attributes: ["followerId"],
+        limit,
+        offset,
+      }),
+      Follow.count({ where: { followingId: profileId } }),
+    ])
+    const followers = relations.map((f) => f.get("followerId") as string)
+    return { count, followers }
   }
 
-  async getFollowing(profileId: string): Promise<{ count: number; following: string[] }> {
-    const relations = await Follow.findAll({ where: { followerId: profileId } })
-    const following = relations.map(f => f.get("followingId") as string)
-    return { count: following.length, following }
+  async getFollowing(
+    profileId: string,
+    page: number = 1,
+    limit: number = 50
+  ): Promise<{ count: number; following: string[] }> {
+    const offset = (page - 1) * limit
+    const [relations, count] = await Promise.all([
+      Follow.findAll({
+        where: { followerId: profileId },
+        attributes: ["followingId"],
+        limit,
+        offset,
+      }),
+      Follow.count({ where: { followerId: profileId } }),
+    ])
+    const following = relations.map((f) => f.get("followingId") as string)
+    return { count, following }
   }
 }
 

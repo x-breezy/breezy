@@ -31,7 +31,7 @@ export function SettingsThemeSelect() {
           <SelectValue />
         </div>
       </SelectTrigger>
-      <SelectContent className='rounded-2xl border-border shadow-lg'>
+      <SelectContent className='rounded-2xl border-border shadow-lg' alignItemWithTrigger={false}>
         <SelectGroup>
           {themes.map((option) => (
             <SelectItem key={option.value} value={option.value} className='rounded-xl text-sm'>

@@ -23,14 +23,19 @@ class VideoService {
     // Read the final size back from GridFS (more accurate than content-length header).
     const file = await this.storage.findById(gridFsId)
 
-    return VideoModel.create({
-      gridFsId,
-      originalName: headers.filename,
-      mimeType: headers.contentType,
-      size: file?.length ?? 0,
-      title: headers.title,
-      ownerId: headers.ownerId,
-    })
+    try {
+      return await VideoModel.create({
+        gridFsId,
+        originalName: headers.filename,
+        mimeType: headers.contentType,
+        size: file?.length ?? 0,
+        title: headers.title,
+        ownerId: headers.ownerId,
+      })
+    } catch (err) {
+      await this.storage.delete(gridFsId)
+      throw err
+    }
   }
 
   async getMeta(id: string): Promise<Video | null> {

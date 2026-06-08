@@ -56,10 +56,10 @@ export class CommentService {
     }
 
     const ids = comments.map((c) => c.id ?? (c as unknown as { _id: unknown })._id?.toString())
-    const children = await CommentModel.find({ postId, parentCommentId: { $in: ids } })
+    const children = (await CommentModel.find({ postId, parentCommentId: { $in: ids } })
       .sort({ createdAt: -1 })
       .lean()
-      .exec() as unknown as Comment[]
+      .exec()) as unknown as Comment[]
 
     const nestedChildren = await this.attachReplies(children, postId, depth + 1)
 
@@ -81,12 +81,14 @@ export class CommentService {
     return CommentModel.findById(commentId).exec() as unknown as Promise<Comment | null>
   }
 
-  async deleteComment(commentId: string): Promise<{ comment: Comment; commentsCount: number } | null> {
+  async deleteComment(
+    commentId: string
+  ): Promise<{ comment: Comment; commentsCount: number } | null> {
     const comment = await CommentModel.findByIdAndDelete(commentId).exec()
     if (!comment) return null
     const post = await PostModel.findByIdAndUpdate(
       comment.postId,
-      { $inc: { commentsCount: -1 } },
+      [{ $set: { commentsCount: { $max: [0, { $subtract: ["$commentsCount", 1] }] } } }],
       { new: true }
     ).exec()
     if (!post) throw Object.assign(new Error("Post not found"), { code: "POST_NOT_FOUND" })

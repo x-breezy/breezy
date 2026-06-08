@@ -33,7 +33,7 @@ export function SettingsLanguageSelect({ value, onChange }: SettingsLanguageSele
           <SelectValue />
         </div>
       </SelectTrigger>
-      <SelectContent className='rounded-2xl border-border shadow-lg'>
+      <SelectContent className='rounded-2xl border-border shadow-lg' alignItemWithTrigger={false}>
         <SelectGroup>
           {languages.map((lang) => (
             <SelectItem key={lang.value} value={lang.value} className='rounded-xl text-sm'>

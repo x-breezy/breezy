@@ -89,6 +89,10 @@ class ProfileController {
       await this.profileService.follow(followerId, req.body.followingId)
       res.status(201).json({ success: true, message: "Followed successfully" })
     } catch (err) {
+      if ((err as { name?: string }).name === "SequelizeUniqueConstraintError") {
+        res.status(409).json({ success: false, message: "Already following" })
+        return
+      }
       next(err)
     }
   }
@@ -116,8 +120,16 @@ class ProfileController {
     next: NextFunction
   ): Promise<void> => {
     try {
-      const result = await this.profileService.getFollowers(req.params.profileId)
-      res.status(200).json({ success: true, data: result, message: "Followers retrieved successfully" })
+      const page = Math.max(1, parseInt(req.query.page as string) || 1)
+      const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 50))
+      const result = await this.profileService.getFollowers(req.params.profileId, page, limit)
+      res
+        .status(200)
+        .json({
+          success: true,
+          data: { ...result, page, limit },
+          message: "Followers retrieved successfully",
+        })
     } catch (err) {
       next(err)
     }
@@ -129,8 +141,16 @@ class ProfileController {
     next: NextFunction
   ): Promise<void> => {
     try {
-      const result = await this.profileService.getFollowing(req.params.profileId)
-      res.status(200).json({ success: true, data: result, message: "Following retrieved successfully" })
+      const page = Math.max(1, parseInt(req.query.page as string) || 1)
+      const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 50))
+      const result = await this.profileService.getFollowing(req.params.profileId, page, limit)
+      res
+        .status(200)
+        .json({
+          success: true,
+          data: { ...result, page, limit },
+          message: "Following retrieved successfully",
+        })
     } catch (err) {
       next(err)
     }

@@ -16,7 +16,6 @@ jest.mock("../../models/post.model", () => ({
 
 jest.mock("../../models/like.model", () => ({
   LikeModel: {
-    findOne: jest.fn(),
     create: jest.fn(),
     findOneAndDelete: jest.fn(),
   },
@@ -26,6 +25,7 @@ const mockedPost = PostModel as jest.Mocked<typeof PostModel>
 const mockedLike = LikeModel as jest.Mocked<typeof LikeModel>
 const app = createApp()
 
+const USER1_UUID = "11111111-1111-1111-1111-111111111111"
 const POST_ID = "64f1a2b3c4d5e6f7a8b9c0d1"
 
 beforeEach(() => {
@@ -42,9 +42,6 @@ describe("POST /posts/:id/likes", () => {
     ;(mockedPost.findById as jest.Mock).mockReturnValue({
       exec: jest.fn().mockResolvedValue({ id: POST_ID }),
     })
-    ;(mockedLike.findOne as jest.Mock).mockReturnValue({
-      exec: jest.fn().mockResolvedValue(null),
-    })
     ;(mockedLike.create as jest.Mock).mockResolvedValue({})
     ;(mockedPost.findByIdAndUpdate as jest.Mock).mockReturnValue({
       exec: jest.fn().mockResolvedValue({ likesCount: 5 }),
@@ -52,7 +49,7 @@ describe("POST /posts/:id/likes", () => {
 
     const res = await request(app)
       .post(`/posts/${POST_ID}/likes`)
-      .set("x-user-id", "user-1")
+      .set("x-user-id", USER1_UUID)
       .set("x-roles", "user")
 
     expect(res.status).toBe(201)
@@ -72,18 +69,17 @@ describe("POST /posts/:id/likes", () => {
     ;(mockedPost.findById as jest.Mock).mockReturnValue({
       exec: jest.fn().mockResolvedValue({ id: POST_ID }),
     })
-    ;(mockedLike.findOne as jest.Mock).mockReturnValue({
-      exec: jest.fn().mockResolvedValue({ postId: POST_ID, userId: "user-1" }),
-    })
+    ;(mockedLike.create as jest.Mock).mockRejectedValue(
+      Object.assign(new Error("duplicate"), { code: 11000 })
+    )
 
     const res = await request(app)
       .post(`/posts/${POST_ID}/likes`)
-      .set("x-user-id", "user-1")
+      .set("x-user-id", USER1_UUID)
       .set("x-roles", "user")
 
     expect(res.status).toBe(409)
     expect(res.body.success).toBe(false)
-    expect(mockedLike.create).not.toHaveBeenCalled()
   })
 
   it("returns 404 when post not found", async () => {
@@ -93,7 +89,7 @@ describe("POST /posts/:id/likes", () => {
 
     const res = await request(app)
       .post(`/posts/${POST_ID}/likes`)
-      .set("x-user-id", "user-1")
+      .set("x-user-id", USER1_UUID)
       .set("x-roles", "user")
 
     expect(res.status).toBe(404)
@@ -115,7 +111,7 @@ describe("DELETE /posts/:id/likes", () => {
       exec: jest.fn().mockResolvedValue({ id: POST_ID }),
     })
     ;(mockedLike.findOneAndDelete as jest.Mock).mockReturnValue({
-      exec: jest.fn().mockResolvedValue({ postId: POST_ID, userId: "user-1" }),
+      exec: jest.fn().mockResolvedValue({ postId: POST_ID, userId: USER1_UUID }),
     })
     ;(mockedPost.findByIdAndUpdate as jest.Mock).mockReturnValue({
       exec: jest.fn().mockResolvedValue({ likesCount: 3 }),
@@ -123,7 +119,7 @@ describe("DELETE /posts/:id/likes", () => {
 
     const res = await request(app)
       .delete(`/posts/${POST_ID}/likes`)
-      .set("x-user-id", "user-1")
+      .set("x-user-id", USER1_UUID)
       .set("x-roles", "user")
 
     expect(res.status).toBe(200)
@@ -146,7 +142,7 @@ describe("DELETE /posts/:id/likes", () => {
 
     const res = await request(app)
       .delete(`/posts/${POST_ID}/likes`)
-      .set("x-user-id", "user-1")
+      .set("x-user-id", USER1_UUID)
       .set("x-roles", "user")
 
     expect(res.status).toBe(404)
@@ -166,17 +162,15 @@ describe("like controller error handling", () => {
     jest.spyOn(console, "error").mockImplementation(() => {})
   })
 
-  it("returns 500 when LikeModel.findOne throws on POST", async () => {
+  it("returns 500 when LikeModel.create throws on POST", async () => {
     ;(mockedPost.findById as jest.Mock).mockReturnValue({
       exec: jest.fn().mockResolvedValue({ id: POST_ID }),
     })
-    ;(mockedLike.findOne as jest.Mock).mockReturnValue({
-      exec: jest.fn().mockRejectedValue(new Error("db error")),
-    })
+    ;(mockedLike.create as jest.Mock).mockRejectedValue(new Error("db error"))
 
     const res = await request(app)
       .post(`/posts/${POST_ID}/likes`)
-      .set("x-user-id", "user-1")
+      .set("x-user-id", USER1_UUID)
       .set("x-roles", "user")
 
     expect(res.status).toBe(500)
@@ -190,7 +184,7 @@ describe("like controller error handling", () => {
 
     const res = await request(app)
       .delete(`/posts/${POST_ID}/likes`)
-      .set("x-user-id", "user-1")
+      .set("x-user-id", USER1_UUID)
       .set("x-roles", "user")
 
     expect(res.status).toBe(500)
