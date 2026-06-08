@@ -30,6 +30,13 @@ const profileDataHandler = {
       cb(null, { count: result.count, following: result.following })
     } catch (err) { cb(err as Error, null) }
   },
+
+  async createProfile(call: any, cb: any) {
+    try {
+      const result = await svc.createProfile({ profileId: call.request.profileId })
+      cb(null, { profileId: result.profileId })
+    } catch (err) { cb(err as Error, null) }
+  },
 }
 
 export function startGrpcServer(port = 50051): void {

@@ -1,12 +1,15 @@
 import { Request, Response, NextFunction } from "express"
 import UserService from "../services/user.service"
 import type { CreateUserDTO, UpdatePasswordDTO } from "../schemas/user.schema"
+import { GrpcProfileClient } from "../clients/profile.client"
 
 class UserController {
   private userService: UserService
+  private profileClient: GrpcProfileClient
 
   constructor(userService: UserService) {
     this.userService = userService
+    this.profileClient = new GrpcProfileClient()
   }
 
   createUser = async (
@@ -25,7 +28,10 @@ class UserController {
       }
 
       const user = await this.userService.addUser(req.body)
-      // TODO: Create profile inside the profile-service
+      
+      // Create profile via gRPC
+      await this.profileClient.createProfile(user.id)
+      
       res.status(201).json({ success: true, message: "User created successfully", data: user })
     } catch (error) {
       next(error)
