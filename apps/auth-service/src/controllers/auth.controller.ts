@@ -44,7 +44,10 @@ class AuthController {
     next: NextFunction
   ): Promise<void> => {
     try {
-      const taken = await this.userService.isEmailAndUsernameTaken(req.body.email, req.body.username)
+      const taken = await this.userService.isEmailAndUsernameTaken(
+        req.body.email,
+        req.body.username
+      )
       if (taken.emailTaken || taken.usernameTaken) {
         res.status(409).json({ success: false, message: "Email or username already taken" })
         return

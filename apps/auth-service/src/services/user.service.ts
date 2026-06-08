@@ -54,7 +54,17 @@ class UserService {
   async signIn(input: SignInDTO): Promise<SafeUser> {
     const user = await User.findOne({
       where: { email: input.email },
-      attributes: ["id", "username", "email", "passwordHash", "roles", "isBanned", "isSuspended", "createdAt", "updatedAt"],
+      attributes: [
+        "id",
+        "username",
+        "email",
+        "passwordHash",
+        "roles",
+        "isBanned",
+        "isSuspended",
+        "createdAt",
+        "updatedAt",
+      ],
     })
     if (!user) {
       throw Object.assign(new Error("Invalid credentials"), { code: "INVALID_CREDENTIALS" })

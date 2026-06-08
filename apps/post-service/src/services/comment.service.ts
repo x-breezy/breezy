@@ -38,7 +38,12 @@ export class CommentService {
     const skip = (page - 1) * limit
 
     const [roots, total] = await Promise.all([
-      CommentModel.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).lean({ virtuals: true }).exec(),
+      CommentModel.find(filter)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean({ virtuals: true })
+        .exec(),
       CommentModel.countDocuments({ postId }),
     ])
 
@@ -56,10 +61,10 @@ export class CommentService {
     }
 
     const ids = comments.map((c) => c.id)
-    const children = await CommentModel.find({ postId, parentCommentId: { $in: ids } })
+    const children = (await CommentModel.find({ postId, parentCommentId: { $in: ids } })
       .sort({ createdAt: -1 })
       .lean({ virtuals: true })
-      .exec() as Comment[]
+      .exec()) as Comment[]
 
     const nestedChildren = await this.attachReplies(children, postId, depth + 1)
 

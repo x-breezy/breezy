@@ -13,7 +13,10 @@ const mockService = {
 function buildApp() {
   const app = express()
   app.use(express.json())
-  app.use("/notifications", createNotificationRouter(new NotificationController(mockService as never)))
+  app.use(
+    "/notifications",
+    createNotificationRouter(new NotificationController(mockService as never))
+  )
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
     res.status(500).json({ success: false, error: "Internal server error" })
@@ -45,9 +48,7 @@ describe("GET /notifications", () => {
 
   it("passes page and limit query params", async () => {
     mockService.list.mockResolvedValue({ data: [], total: 0, page: 2, limit: 5 })
-    const res = await request(app)
-      .get("/notifications?page=2&limit=5")
-      .set("x-user-id", USER_ID)
+    const res = await request(app).get("/notifications?page=2&limit=5").set("x-user-id", USER_ID)
     expect(res.status).toBe(200)
     expect(mockService.list).toHaveBeenCalledWith(USER_ID, { page: 2, limit: 5, read: undefined })
   })
@@ -65,9 +66,7 @@ describe("GET /notifications", () => {
   })
 
   it("rejects limit > 100 with 400", async () => {
-    const res = await request(app)
-      .get("/notifications?limit=200")
-      .set("x-user-id", USER_ID)
+    const res = await request(app).get("/notifications?limit=200").set("x-user-id", USER_ID)
     expect(res.status).toBe(400)
     expect(mockService.list).not.toHaveBeenCalled()
   })
@@ -105,17 +104,13 @@ describe("PATCH /notifications/:id/read", () => {
   })
 
   it("returns 400 when id param is empty", async () => {
-    const res = await request(app)
-      .patch("/notifications//read")
-      .set("x-user-id", USER_ID)
+    const res = await request(app).patch("/notifications//read").set("x-user-id", USER_ID)
     expect(res.status).toBe(404)
   })
 
   it("returns 200 when notification marked read", async () => {
     mockService.markRead.mockResolvedValue(true)
-    const res = await request(app)
-      .patch("/notifications/notif1/read")
-      .set("x-user-id", USER_ID)
+    const res = await request(app).patch("/notifications/notif1/read").set("x-user-id", USER_ID)
     expect(res.status).toBe(200)
     expect(res.body.success).toBe(true)
     expect(mockService.markRead).toHaveBeenCalledWith("notif1", USER_ID)
@@ -123,9 +118,7 @@ describe("PATCH /notifications/:id/read", () => {
 
   it("returns 404 when notification not found", async () => {
     mockService.markRead.mockResolvedValue(false)
-    const res = await request(app)
-      .patch("/notifications/missing/read")
-      .set("x-user-id", USER_ID)
+    const res = await request(app).patch("/notifications/missing/read").set("x-user-id", USER_ID)
     expect(res.status).toBe(404)
     expect(res.body.success).toBe(false)
   })
@@ -141,18 +134,14 @@ describe("DELETE /notifications/:id", () => {
 
   it("returns 204 when notification deleted", async () => {
     mockService.remove.mockResolvedValue(true)
-    const res = await request(app)
-      .delete("/notifications/notif1")
-      .set("x-user-id", USER_ID)
+    const res = await request(app).delete("/notifications/notif1").set("x-user-id", USER_ID)
     expect(res.status).toBe(204)
     expect(mockService.remove).toHaveBeenCalledWith("notif1", USER_ID)
   })
 
   it("returns 404 when notification not found", async () => {
     mockService.remove.mockResolvedValue(false)
-    const res = await request(app)
-      .delete("/notifications/missing")
-      .set("x-user-id", USER_ID)
+    const res = await request(app).delete("/notifications/missing").set("x-user-id", USER_ID)
     expect(res.status).toBe(404)
   })
 })

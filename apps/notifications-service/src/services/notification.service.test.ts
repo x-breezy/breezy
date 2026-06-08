@@ -86,10 +86,15 @@ describe("NotificationService.list", () => {
 
 describe("NotificationService.markRead", () => {
   it("returns true when notification found and updated", async () => {
-    mockModel.findOneAndUpdate.mockReturnValue({ exec: jest.fn().mockResolvedValue({ _id: "id1" }) } as never)
+    mockModel.findOneAndUpdate.mockReturnValue({
+      exec: jest.fn().mockResolvedValue({ _id: "id1" }),
+    } as never)
     const result = await service.markRead("id1", "u1")
     expect(result).toBe(true)
-    expect(mockModel.findOneAndUpdate).toHaveBeenCalledWith({ _id: "id1", userId: "u1" }, { read: true })
+    expect(mockModel.findOneAndUpdate).toHaveBeenCalledWith(
+      { _id: "id1", userId: "u1" },
+      { read: true }
+    )
   })
 
   it("returns false when notification not found", async () => {
@@ -109,7 +114,9 @@ describe("NotificationService.markAllRead", () => {
 
 describe("NotificationService.remove", () => {
   it("returns true when notification deleted", async () => {
-    mockModel.findOneAndDelete.mockReturnValue({ exec: jest.fn().mockResolvedValue({ _id: "id1" }) } as never)
+    mockModel.findOneAndDelete.mockReturnValue({
+      exec: jest.fn().mockResolvedValue({ _id: "id1" }),
+    } as never)
     const result = await service.remove("id1", "u1")
     expect(result).toBe(true)
     expect(mockModel.findOneAndDelete).toHaveBeenCalledWith({ _id: "id1", userId: "u1" })

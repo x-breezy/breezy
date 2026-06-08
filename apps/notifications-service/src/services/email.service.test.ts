@@ -30,7 +30,11 @@ describe("EmailService.sendEmailVerification", () => {
 
 describe("EmailService.sendForgotPassword", () => {
   it("sends reset email with reset token", async () => {
-    await service.sendForgotPassword({ userId: "u1", email: "a@example.com", resetToken: "reset99" })
+    await service.sendForgotPassword({
+      userId: "u1",
+      email: "a@example.com",
+      resetToken: "reset99",
+    })
     const call = mockSendMail.mock.calls[0][0]
     expect(call.to).toBe("a@example.com")
     expect(call.subject).toContain("Reset")

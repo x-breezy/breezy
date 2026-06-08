@@ -40,7 +40,10 @@ describe("validate middleware", () => {
     const { req, res, next } = mockReqRes({ name: "bob", age: "25" }, "query")
     validate(schema, "query")(req, res, next)
     expect(next).toHaveBeenCalled()
-    expect((req as unknown as Record<string, unknown>).query).toMatchObject({ name: "bob", age: 25 })
+    expect((req as unknown as Record<string, unknown>).query).toMatchObject({
+      name: "bob",
+      age: 25,
+    })
   })
 
   it("validates params target", () => {
