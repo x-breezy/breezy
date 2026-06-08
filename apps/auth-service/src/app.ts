@@ -2,7 +2,7 @@ import express from "express"
 import type { Express, Request, Response, NextFunction } from "express"
 import swaggerUi from "swagger-ui-express"
 import { createAuthRouter } from "./routes/auth.route"
-import { createLogger } from "@breezy/logger"
+import { createLogger, httpLogger } from "@breezy/logger"
 import { createUserRouter } from "./routes/user.route"
 import { createReportRouter } from "./routes/report.route"
 import { swaggerSpec } from "./config/swagger"
@@ -13,6 +13,7 @@ const logger = createLogger({ service: "auth-service" })
 export function createApp(): Express {
   const app = express()
 
+  app.use(httpLogger(logger))
   app.use(express.json())
 
   app.get("/", (_req, res) => {

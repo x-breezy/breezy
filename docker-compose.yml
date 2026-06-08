@@ -140,6 +140,9 @@ services:
       PORT: 4000
       DATABASE_URL: postgres://postgres:postgres@postgres-user-service:5432/user_service
       RABBITMQ_URL: amqp://breezy:breezy@rabbitmq:5672
+      LOG_FILE: /logs/auth-service.log
+    volumes:
+      - shared-logs:/logs
     depends_on:
       postgres-user-service:
         condition: service_healthy
@@ -160,6 +163,9 @@ services:
       PORT: 4010
       DATABASE_URL: postgres://postgres:postgres@postgres-profile-service:5432/profile_service
       RABBITMQ_URL: amqp://breezy:breezy@rabbitmq:5672
+      LOG_FILE: /logs/profile-service.log
+    volumes:
+      - shared-logs:/logs
     depends_on:
       postgres-profile-service:
         condition: service_healthy
@@ -180,6 +186,9 @@ services:
       PORT: 4040
       DATABASE_URL: mongodb://mongo-post-service:27017/post_service
       RABBITMQ_URL: amqp://breezy:breezy@rabbitmq:5672
+      LOG_FILE: /logs/post-service.log
+    volumes:
+      - shared-logs:/logs
     depends_on:
       mongo-post-service:
         condition: service_healthy
@@ -199,6 +208,9 @@ services:
     environment:
       PORT: 4050
       DATABASE_URL: mongodb://mongo-media-service:27017/media_service
+      LOG_FILE: /logs/media-service.log
+    volumes:
+      - shared-logs:/logs
     depends_on:
       mongo-media-service:
         condition: service_healthy
@@ -217,6 +229,9 @@ services:
       PORT: 4060
       DATABASE_URL: mongodb://mongo-notifications-service:27017/notifications_service
       RABBITMQ_URL: amqp://breezy:breezy@rabbitmq:5672
+      LOG_FILE: /logs/notifications-service.log
+    volumes:
+      - shared-logs:/logs
     depends_on:
       mongo-notifications-service:
         condition: service_healthy
@@ -235,6 +250,57 @@ services:
     networks:
       - breezy
 
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.15.0
+    container_name: breezy-elasticsearch
+    restart: unless-stopped
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
+    networks:
+      - breezy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9200/_cluster/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.15.0
+    container_name: breezy-kibana
+    restart: unless-stopped
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - XPACK_SECURITY_ENABLED=false
+    ports:
+      - "5601:5601"
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    networks:
+      - breezy
+
+  filebeat:
+    build:
+      context: ./apps/filebeat
+      dockerfile: Dockerfile
+    container_name: breezy-filebeat
+    restart: unless-stopped
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    volumes:
+      - shared-logs:/logs
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    networks:
+      - breezy
+
 networks:
   breezy:
     driver: bridge
@@ -245,3 +311,5 @@ volumes:
   mongo-notifications-service-data:
   postgres-user-service-data:
   postgres-profile-service-data:
+  elasticsearch-data:
+  shared-logs:
