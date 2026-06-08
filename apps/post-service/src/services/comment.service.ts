@@ -93,7 +93,7 @@ export class CommentService {
     if (!comment) return null
     const post = await PostModel.findByIdAndUpdate(
       comment.postId,
-      { $inc: { commentsCount: -1 } },
+      [{ $set: { commentsCount: { $max: [0, { $subtract: ["$commentsCount", 1] }] } } }],
       { new: true }
     ).exec()
     if (!post) throw Object.assign(new Error("Post not found"), { code: "POST_NOT_FOUND" })

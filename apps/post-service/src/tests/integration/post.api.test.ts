@@ -18,12 +18,15 @@ jest.mock("../../models/post.model", () => ({
 const mockedModel = PostModel as jest.Mocked<typeof PostModel>
 const app = createApp()
 
+const USER1_UUID = "11111111-1111-1111-1111-111111111111"
+const USER2_UUID = "22222222-2222-2222-2222-222222222222"
+
 const NOW = new Date("2026-01-01T00:00:00.000Z")
 
 const MOCK_POST = {
   id: "abc",
   content: "Hello world",
-  authorId: "user1",
+  authorId: USER1_UUID,
   tags: ["tag1"],
   media: [{ id: "media1", type: "image" }],
   createdAt: NOW,
@@ -72,7 +75,7 @@ describe("POST /posts", () => {
     const res = await request(app)
       .post("/posts")
       .set("Content-Type", "application/json")
-      .set("x-user-id", "user1")
+      .set("x-user-id", USER1_UUID)
       .set("x-roles", "user")
       .send({ content: "Hello world", tags: ["tag1"], media: [{ id: "media1", type: "image" }] })
 
@@ -82,14 +85,14 @@ describe("POST /posts", () => {
       data: expect.objectContaining({
         id: "abc",
         content: "Hello world",
-        authorId: "user1",
+        authorId: USER1_UUID,
         tags: ["tag1"],
         media: [{ id: "media1", type: "image" }],
         createdAt: NOW.toISOString(),
       }),
     })
     expect(mockedModel.create).toHaveBeenCalledWith(
-      expect.objectContaining({ content: "Hello world", authorId: "user1" })
+      expect.objectContaining({ content: "Hello world", authorId: USER1_UUID })
     )
   })
 
@@ -108,7 +111,7 @@ describe("POST /posts", () => {
     const res = await request(app)
       .post("/posts")
       .set("Content-Type", "application/json")
-      .set("x-user-id", "user1")
+      .set("x-user-id", USER1_UUID)
       .set("x-roles", "user")
       .send({ content: "" })
 
@@ -121,7 +124,7 @@ describe("POST /posts", () => {
     const res = await request(app)
       .post("/posts")
       .set("Content-Type", "application/json")
-      .set("x-user-id", "user1")
+      .set("x-user-id", USER1_UUID)
       .set("x-roles", "user")
       .send({})
 
@@ -139,7 +142,7 @@ describe("POST /posts", () => {
     await request(app)
       .post("/posts")
       .set("Content-Type", "application/json")
-      .set("x-user-id", "user1")
+      .set("x-user-id", USER1_UUID)
       .set("x-roles", "user")
       .send({ content: "Just text" })
 
@@ -159,7 +162,7 @@ describe("GET /posts/:id", () => {
 
     const res = await request(app)
       .get("/posts/abc")
-      .set("x-user-id", "user1")
+      .set("x-user-id", USER1_UUID)
       .set("x-roles", "user")
 
     expect(res.status).toBe(200)
@@ -176,7 +179,7 @@ describe("GET /posts/:id", () => {
 
     const res = await request(app)
       .get("/posts/notfound")
-      .set("x-user-id", "user1")
+      .set("x-user-id", USER1_UUID)
       .set("x-roles", "user")
 
     expect(res.status).toBe(404)
@@ -197,7 +200,7 @@ describe("GET /posts/feed", () => {
 
     const res = await request(app)
       .get("/posts/feed")
-      .set("x-user-id", "user1")
+      .set("x-user-id", USER1_UUID)
       .set("x-roles", "user")
 
     expect(res.status).toBe(200)
@@ -217,7 +220,7 @@ describe("GET /posts/feed", () => {
 
     const res = await request(app)
       .get("/posts/feed?page=3&limit=5")
-      .set("x-user-id", "user1")
+      .set("x-user-id", USER1_UUID)
       .set("x-roles", "user")
 
     expect(res.status).toBe(200)
@@ -229,7 +232,7 @@ describe("GET /posts/feed", () => {
 
     const res = await request(app)
       .get("/posts/feed")
-      .set("x-user-id", "user1")
+      .set("x-user-id", USER1_UUID)
       .set("x-roles", "user")
 
     // If routed to /:id, findById would be called (not find) and data would not have total
@@ -240,7 +243,7 @@ describe("GET /posts/feed", () => {
   it("uses global filter when user-service unavailable (no USER_SERVICE_URL)", async () => {
     mockFindPaginated([MOCK_POST], 1)
 
-    await request(app).get("/posts/feed").set("x-user-id", "user1").set("x-roles", "user")
+    await request(app).get("/posts/feed").set("x-user-id", USER1_UUID).set("x-roles", "user")
 
     expect(mockedModel.find).toHaveBeenCalledWith({})
   })
@@ -258,29 +261,29 @@ describe("GET /posts/users/:userId", () => {
     mockFindPaginated([MOCK_POST], 1)
 
     const res = await request(app)
-      .get("/posts/users/user1")
-      .set("x-user-id", "user1")
+      .get(`/posts/users/${USER1_UUID}`)
+      .set("x-user-id", USER1_UUID)
       .set("x-roles", "user")
 
     expect(res.status).toBe(200)
     expect(res.body).toMatchObject({
       success: true,
       data: expect.objectContaining({
-        data: expect.arrayContaining([expect.objectContaining({ authorId: "user1" })]),
+        data: expect.arrayContaining([expect.objectContaining({ authorId: USER1_UUID })]),
         total: 1,
         page: 1,
         limit: 20,
       }),
     })
-    expect(mockedModel.find).toHaveBeenCalledWith({ authorId: "user1" })
+    expect(mockedModel.find).toHaveBeenCalledWith({ authorId: USER1_UUID })
   })
 
   it("returns empty list for user with no posts", async () => {
     mockFindPaginated([], 0)
 
     const res = await request(app)
-      .get("/posts/users/nobody")
-      .set("x-user-id", "nobody")
+      .get(`/posts/users/${USER1_UUID}`)
+      .set("x-user-id", USER1_UUID)
       .set("x-roles", "user")
 
     expect(res.status).toBe(200)
@@ -289,8 +292,8 @@ describe("GET /posts/users/:userId", () => {
 
   it("returns 403 when user accesses another user's posts", async () => {
     const res = await request(app)
-      .get("/posts/users/user2")
-      .set("x-user-id", "user1")
+      .get(`/posts/users/${USER2_UUID}`)
+      .set("x-user-id", USER1_UUID)
       .set("x-roles", "user")
 
     expect(res.status).toBe(403)
@@ -301,8 +304,8 @@ describe("GET /posts/users/:userId", () => {
     mockFindPaginated([MOCK_POST], 1)
 
     const res = await request(app)
-      .get("/posts/users/user2")
-      .set("x-user-id", "user1")
+      .get(`/posts/users/${USER2_UUID}`)
+      .set("x-user-id", USER1_UUID)
       .set("x-roles", "moderator")
 
     expect(res.status).toBe(200)
@@ -313,8 +316,8 @@ describe("GET /posts/users/:userId", () => {
     mockFindPaginated([MOCK_POST], 1)
 
     const res = await request(app)
-      .get("/posts/users/user2")
-      .set("x-user-id", "user1")
+      .get(`/posts/users/${USER2_UUID}`)
+      .set("x-user-id", USER1_UUID)
       .set("x-roles", "admin")
 
     expect(res.status).toBe(200)
@@ -322,7 +325,7 @@ describe("GET /posts/users/:userId", () => {
   })
 
   it("returns 401 without auth", async () => {
-    const res = await request(app).get("/posts/users/user1")
+    const res = await request(app).get(`/posts/users/${USER1_UUID}`)
     expect(res.status).toBe(401)
   })
 })
@@ -332,7 +335,7 @@ describe("GET /posts/users/:userId", () => {
 describe("DELETE /posts/:id", () => {
   it("allows owner to delete own post", async () => {
     ;(mockedModel.findById as jest.Mock).mockReturnValue({
-      exec: jest.fn().mockResolvedValue({ authorId: "user1" }),
+      exec: jest.fn().mockResolvedValue({ authorId: USER1_UUID }),
     })
     ;(mockedModel.findByIdAndDelete as jest.Mock).mockReturnValue({
       exec: jest.fn().mockResolvedValue({ id: "abc" }),
@@ -340,7 +343,7 @@ describe("DELETE /posts/:id", () => {
 
     const res = await request(app)
       .delete("/posts/abc")
-      .set("x-user-id", "user1")
+      .set("x-user-id", USER1_UUID)
       .set("x-roles", "user")
 
     expect(res.status).toBe(200)
@@ -354,7 +357,7 @@ describe("DELETE /posts/:id", () => {
 
     const res = await request(app)
       .delete("/posts/notfound")
-      .set("x-user-id", "user1")
+      .set("x-user-id", USER1_UUID)
       .set("x-roles", "user")
 
     expect(res.status).toBe(404)
@@ -363,12 +366,12 @@ describe("DELETE /posts/:id", () => {
 
   it("returns 403 when non-owner user tries to delete", async () => {
     ;(mockedModel.findById as jest.Mock).mockReturnValue({
-      exec: jest.fn().mockResolvedValue({ authorId: "user2" }),
+      exec: jest.fn().mockResolvedValue({ authorId: USER2_UUID }),
     })
 
     const res = await request(app)
       .delete("/posts/abc")
-      .set("x-user-id", "user1")
+      .set("x-user-id", USER1_UUID)
       .set("x-roles", "user")
 
     expect(res.status).toBe(403)
@@ -377,7 +380,7 @@ describe("DELETE /posts/:id", () => {
 
   it("allows moderator to delete any post", async () => {
     ;(mockedModel.findById as jest.Mock).mockReturnValue({
-      exec: jest.fn().mockResolvedValue({ authorId: "user2" }),
+      exec: jest.fn().mockResolvedValue({ authorId: USER2_UUID }),
     })
     ;(mockedModel.findByIdAndDelete as jest.Mock).mockReturnValue({
       exec: jest.fn().mockResolvedValue({ id: "abc" }),
@@ -385,7 +388,7 @@ describe("DELETE /posts/:id", () => {
 
     const res = await request(app)
       .delete("/posts/abc")
-      .set("x-user-id", "user1")
+      .set("x-user-id", USER1_UUID)
       .set("x-roles", "moderator")
 
     expect(res.status).toBe(200)
@@ -394,7 +397,7 @@ describe("DELETE /posts/:id", () => {
 
   it("allows admin to delete any post", async () => {
     ;(mockedModel.findById as jest.Mock).mockReturnValue({
-      exec: jest.fn().mockResolvedValue({ authorId: "user2" }),
+      exec: jest.fn().mockResolvedValue({ authorId: USER2_UUID }),
     })
     ;(mockedModel.findByIdAndDelete as jest.Mock).mockReturnValue({
       exec: jest.fn().mockResolvedValue({ id: "abc" }),
@@ -402,7 +405,7 @@ describe("DELETE /posts/:id", () => {
 
     const res = await request(app)
       .delete("/posts/abc")
-      .set("x-user-id", "user1")
+      .set("x-user-id", USER1_UUID)
       .set("x-roles", "admin")
 
     expect(res.status).toBe(200)
@@ -411,7 +414,7 @@ describe("DELETE /posts/:id", () => {
 
   it("returns 404 when post is deleted between ownership check and deletion", async () => {
     ;(mockedModel.findById as jest.Mock).mockReturnValue({
-      exec: jest.fn().mockResolvedValue({ authorId: "user1" }),
+      exec: jest.fn().mockResolvedValue({ authorId: USER1_UUID }),
     })
     ;(mockedModel.findByIdAndDelete as jest.Mock).mockReturnValue({
       exec: jest.fn().mockResolvedValue(null),
@@ -419,7 +422,7 @@ describe("DELETE /posts/:id", () => {
 
     const res = await request(app)
       .delete("/posts/abc")
-      .set("x-user-id", "user1")
+      .set("x-user-id", USER1_UUID)
       .set("x-roles", "user")
 
     expect(res.status).toBe(404)
@@ -444,7 +447,7 @@ describe("global error handler", () => {
 
     const res = await request(app)
       .post("/posts")
-      .set("x-user-id", "user1")
+      .set("x-user-id", USER1_UUID)
       .set("x-roles", "user")
       .send({ content: "Hello" })
 
@@ -459,7 +462,7 @@ describe("global error handler", () => {
 
     const res = await request(app)
       .get("/posts/abc")
-      .set("x-user-id", "user1")
+      .set("x-user-id", USER1_UUID)
       .set("x-roles", "user")
 
     expect(res.status).toBe(500)
@@ -476,7 +479,7 @@ describe("global error handler", () => {
 
     const res = await request(app)
       .get("/posts/feed")
-      .set("x-user-id", "user1")
+      .set("x-user-id", USER1_UUID)
       .set("x-roles", "user")
 
     expect(res.status).toBe(500)
@@ -492,8 +495,8 @@ describe("global error handler", () => {
     ;(mockedModel.countDocuments as jest.Mock).mockResolvedValue(0)
 
     const res = await request(app)
-      .get("/posts/users/user1")
-      .set("x-user-id", "user1")
+      .get(`/posts/users/${USER1_UUID}`)
+      .set("x-user-id", USER1_UUID)
       .set("x-roles", "user")
 
     expect(res.status).toBe(500)
@@ -501,7 +504,7 @@ describe("global error handler", () => {
 
   it("returns 500 when PostModel.findByIdAndDelete throws on DELETE /:id", async () => {
     ;(mockedModel.findById as jest.Mock).mockReturnValue({
-      exec: jest.fn().mockResolvedValue({ authorId: "user1" }),
+      exec: jest.fn().mockResolvedValue({ authorId: USER1_UUID }),
     })
     ;(mockedModel.findByIdAndDelete as jest.Mock).mockReturnValue({
       exec: jest.fn().mockRejectedValue(new Error("db error")),
@@ -509,7 +512,7 @@ describe("global error handler", () => {
 
     const res = await request(app)
       .delete("/posts/abc")
-      .set("x-user-id", "user1")
+      .set("x-user-id", USER1_UUID)
       .set("x-roles", "user")
 
     expect(res.status).toBe(500)

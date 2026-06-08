@@ -4,10 +4,11 @@ import { Follow } from "../../models/follow.model"
 
 jest.mock("../../models/profile.model", () => ({
   Profile: {
-    create: jest.fn(),
     findOne: jest.fn(),
+    findOrCreate: jest.fn(),
     increment: jest.fn(),
     decrement: jest.fn(),
+    sequelize: { transaction: jest.fn().mockImplementation((cb) => cb({})) },
   },
 }))
 
@@ -16,6 +17,7 @@ jest.mock("../../models/follow.model", () => ({
     create: jest.fn(),
     findOne: jest.fn(),
     findAll: jest.fn(),
+    count: jest.fn(),
   },
 }))
 
@@ -33,11 +35,14 @@ describe("ProfileService", () => {
   describe("createProfile", () => {
     it("should create a profile", async () => {
       const input = { profileId: "profile-1", displayName: "Profile 1", bio: "Hello" }
-      ;(mockedProfile.create as jest.Mock).mockResolvedValue(input)
+      ;(mockedProfile.findOrCreate as jest.Mock).mockResolvedValue([input, true])
 
       const result = await service.createProfile(input as never)
 
-      expect(mockedProfile.create).toHaveBeenCalledWith(input)
+      expect(mockedProfile.findOrCreate).toHaveBeenCalledWith({
+        where: { profileId: input.profileId },
+        defaults: input,
+      })
       expect(result).toEqual(input)
     })
   })
@@ -104,18 +109,21 @@ describe("ProfileService", () => {
     it("should create follow and increment counts", async () => {
       ;(mockedFollow.create as jest.Mock).mockResolvedValue({})
       ;(mockedProfile.increment as jest.Mock).mockResolvedValue({})
+      ;(mockedProfile.sequelize!.transaction as jest.Mock).mockImplementation((cb) => cb({}))
 
       await service.follow("follower-1", "following-1")
 
-      expect(mockedFollow.create).toHaveBeenCalledWith({
-        followerId: "follower-1",
-        followingId: "following-1",
-      })
+      expect(mockedFollow.create).toHaveBeenCalledWith(
+        { followerId: "follower-1", followingId: "following-1" },
+        { transaction: {} }
+      )
       expect(mockedProfile.increment).toHaveBeenCalledWith("followingCount", {
         where: { profileId: "follower-1" },
+        transaction: {},
       })
       expect(mockedProfile.increment).toHaveBeenCalledWith("followersCount", {
         where: { profileId: "following-1" },
+        transaction: {},
       })
     })
   })
@@ -126,24 +134,29 @@ describe("ProfileService", () => {
       const followDoc = { destroy: destroyMock }
       ;(mockedFollow.findOne as jest.Mock).mockResolvedValue(followDoc)
       ;(mockedProfile.decrement as jest.Mock).mockResolvedValue({})
+      ;(mockedProfile.sequelize!.transaction as jest.Mock).mockImplementation((cb) => cb({}))
 
       const result = await service.unfollow("follower-1", "following-1")
 
       expect(mockedFollow.findOne).toHaveBeenCalledWith({
         where: { followerId: "follower-1", followingId: "following-1" },
+        transaction: {},
       })
-      expect(destroyMock).toHaveBeenCalled()
+      expect(destroyMock).toHaveBeenCalledWith({ transaction: {} })
       expect(mockedProfile.decrement).toHaveBeenCalledWith("followingCount", {
         where: { profileId: "follower-1" },
+        transaction: {},
       })
       expect(mockedProfile.decrement).toHaveBeenCalledWith("followersCount", {
         where: { profileId: "following-1" },
+        transaction: {},
       })
       expect(result).toBe(true)
     })
 
     it("should return false if follow not found", async () => {
       ;(mockedFollow.findOne as jest.Mock).mockResolvedValue(null)
+      ;(mockedProfile.sequelize!.transaction as jest.Mock).mockImplementation((cb) => cb({}))
       const result = await service.unfollow("follower-1", "following-1")
       expect(result).toBe(false)
     })
@@ -158,15 +171,20 @@ describe("ProfileService", () => {
         makeFollow("follower-1"),
         makeFollow("follower-2"),
       ])
+      ;(mockedFollow.count as jest.Mock).mockResolvedValue(2)
 
       const result = await service.getFollowers("profile-1")
 
-      expect(mockedFollow.findAll).toHaveBeenCalledWith({ where: { followingId: "profile-1" } })
+      expect(mockedFollow.findAll).toHaveBeenCalledWith(
+        expect.objectContaining({ where: { followingId: "profile-1" } })
+      )
+      expect(mockedFollow.count).toHaveBeenCalledWith({ where: { followingId: "profile-1" } })
       expect(result).toEqual({ count: 2, followers: ["follower-1", "follower-2"] })
     })
 
     it("should return empty list when no followers", async () => {
       ;(mockedFollow.findAll as jest.Mock).mockResolvedValue([])
+      ;(mockedFollow.count as jest.Mock).mockResolvedValue(0)
 
       const result = await service.getFollowers("profile-1")
 
@@ -180,15 +198,20 @@ describe("ProfileService", () => {
         get: (key: string) => (key === "followingId" ? followingId : undefined),
       })
       ;(mockedFollow.findAll as jest.Mock).mockResolvedValue([makeFollow("following-1")])
+      ;(mockedFollow.count as jest.Mock).mockResolvedValue(1)
 
       const result = await service.getFollowing("profile-1")
 
-      expect(mockedFollow.findAll).toHaveBeenCalledWith({ where: { followerId: "profile-1" } })
+      expect(mockedFollow.findAll).toHaveBeenCalledWith(
+        expect.objectContaining({ where: { followerId: "profile-1" } })
+      )
+      expect(mockedFollow.count).toHaveBeenCalledWith({ where: { followerId: "profile-1" } })
       expect(result).toEqual({ count: 1, following: ["following-1"] })
     })
 
     it("should return empty list when following no one", async () => {
       ;(mockedFollow.findAll as jest.Mock).mockResolvedValue([])
+      ;(mockedFollow.count as jest.Mock).mockResolvedValue(0)
 
       const result = await service.getFollowing("profile-1")
 

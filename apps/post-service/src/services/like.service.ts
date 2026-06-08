@@ -1,15 +1,15 @@
 import { LikeModel } from "../models/like.model"
 import { PostModel } from "../models/post.model"
-import PostService from "./post.service"
 import { publish } from "../clients/rabbitmq"
 
 export class LikeService {
-  constructor(private postService = new PostService()) {}
-
   async like(postId: string, userId: string): Promise<{ alreadyLiked: boolean; nb: number }> {
-    const existing = await LikeModel.findOne({ postId, userId }).exec()
-    if (existing) return { alreadyLiked: true, nb: 0 }
-    await LikeModel.create({ postId, userId })
+    try {
+      await LikeModel.create({ postId, userId })
+    } catch (err) {
+      if ((err as { code?: number }).code === 11000) return { alreadyLiked: true, nb: 0 }
+      throw err
+    }
     const post = await PostModel.findByIdAndUpdate(
       postId,
       { $inc: { likesCount: 1 } },
@@ -23,9 +23,6 @@ export class LikeService {
   }
 
   async unlike(postId: string, userId: string): Promise<{ wasLiked: boolean; nb: number }> {
-    const post = await this.postService.getPost(postId)
-    if (!post) return { wasLiked: false, nb: 0 }
-
     const deleted = await LikeModel.findOneAndDelete({ postId, userId }).exec()
     if (!deleted) return { wasLiked: false, nb: 0 }
     const updated = await PostModel.findByIdAndUpdate(

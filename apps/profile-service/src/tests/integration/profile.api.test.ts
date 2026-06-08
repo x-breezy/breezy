@@ -5,10 +5,13 @@ import { Follow } from "../../models/follow.model"
 
 jest.mock("../../models/profile.model", () => ({
   Profile: {
-    create: jest.fn(),
     findOne: jest.fn(),
+    findOrCreate: jest.fn(),
     increment: jest.fn(),
     decrement: jest.fn(),
+    sequelize: {
+      transaction: jest.fn().mockImplementation((cb: (t: unknown) => unknown) => cb({})),
+    },
   },
 }))
 
@@ -17,6 +20,7 @@ jest.mock("../../models/follow.model", () => ({
     create: jest.fn(),
     findOne: jest.fn(),
     findAll: jest.fn(),
+    count: jest.fn(),
   },
 }))
 
@@ -96,6 +100,7 @@ describe("GET /profiles/:profileId/followers", () => {
       get: (k: string) => (k === "followerId" ? followerId : undefined),
     })
     ;(mockedFollow.findAll as jest.Mock).mockResolvedValue([makeFollow(FOLLOWER_UUID)])
+    ;(mockedFollow.count as jest.Mock).mockResolvedValue(1)
 
     const res = await request(app)
       .get(`/profiles/${PROFILE_UUID}/followers`)
@@ -117,6 +122,7 @@ describe("GET /profiles/:profileId/following", () => {
       get: (k: string) => (k === "followingId" ? followingId : undefined),
     })
     ;(mockedFollow.findAll as jest.Mock).mockResolvedValue([makeFollow(FOLLOWING_UUID)])
+    ;(mockedFollow.count as jest.Mock).mockResolvedValue(1)
 
     const res = await request(app)
       .get(`/profiles/${PROFILE_UUID}/following`)
@@ -134,7 +140,7 @@ describe("GET /profiles/:profileId/following", () => {
 // ─── POST /profiles ───────────────────────────────────────────────────────────────
 describe("POST /profiles", () => {
   it("creates a profile and returns 201", async () => {
-    ;(mockedProfile.create as jest.Mock).mockResolvedValue(MOCK_PROFILE)
+    ;(mockedProfile.findOrCreate as jest.Mock).mockResolvedValue([MOCK_PROFILE, true])
 
     const res = await request(app)
       .post("/profiles")
@@ -148,8 +154,8 @@ describe("POST /profiles", () => {
       success: true,
       data: expect.objectContaining({ profileId: PROFILE_UUID }),
     })
-    expect(mockedProfile.create).toHaveBeenCalledWith(
-      expect.objectContaining({ profileId: PROFILE_UUID })
+    expect(mockedProfile.findOrCreate).toHaveBeenCalledWith(
+      expect.objectContaining({ defaults: expect.objectContaining({ profileId: PROFILE_UUID }) })
     )
   })
 
@@ -246,6 +252,9 @@ describe("POST /profiles/follow", () => {
   it("creates a follow relationship", async () => {
     ;(mockedFollow.create as jest.Mock).mockResolvedValue({})
     ;(mockedProfile.increment as jest.Mock).mockResolvedValue({})
+    ;(mockedProfile.sequelize!.transaction as jest.Mock).mockImplementation(
+      (cb: (t: unknown) => unknown) => cb({})
+    )
 
     const res = await request(app)
       .post("/profiles/follow")
@@ -268,6 +277,9 @@ describe("POST /profiles/unfollow", () => {
   it("removes a follow relationship", async () => {
     ;(mockedFollow.findOne as jest.Mock).mockResolvedValue({ destroy: jest.fn() })
     ;(mockedProfile.decrement as jest.Mock).mockResolvedValue({})
+    ;(mockedProfile.sequelize!.transaction as jest.Mock).mockImplementation(
+      (cb: (t: unknown) => unknown) => cb({})
+    )
 
     const res = await request(app)
       .post("/profiles/unfollow")
@@ -281,6 +293,9 @@ describe("POST /profiles/unfollow", () => {
 
   it("returns 404 if follow relationship does not exist", async () => {
     ;(mockedFollow.findOne as jest.Mock).mockResolvedValue(null)
+    ;(mockedProfile.sequelize!.transaction as jest.Mock).mockImplementation(
+      (cb: (t: unknown) => unknown) => cb({})
+    )
 
     const res = await request(app)
       .post("/profiles/unfollow")
