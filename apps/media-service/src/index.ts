@@ -5,7 +5,7 @@ import { connect } from "./config/database"
 export const logger = createLogger({ service: "media-service" })
 
 const app = createApp()
-const port = process.env.PORT ?? 4000
+const port = process.env.PORT ?? 4050
 const mongoUri = process.env.DATABASE_URL ?? "mongodb://localhost:27017/breezy"
 
 async function start(): Promise<void> {

@@ -8,7 +8,7 @@ import { connectRabbitMQ } from "./clients/rabbitmq"
 const logger = createLogger({ service: "auth-service" })
 
 const app = createApp()
-const port = process.env.PORT ?? 4040
+const port = process.env.PORT ?? 4000
 const databaseUrl =
   process.env.DATABASE_URL ?? "postgres://breezy:breezy@localhost:5432/breezy_auth"
 
