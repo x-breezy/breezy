@@ -19,9 +19,11 @@ export function AuthLayout({ children }: AuthLayoutProps) {
           />
         </div>
         <div className='text-center'>
-          <p className='mt-1 text-2xl'>Share your world, simply with</p>
+          <p className='mt-1 text-2xl text-foreground'>Share your world, simply with</p>
 
-          <p className='font-mono text-2xl font-semibold tracking-tight text-foreground'>Breezy</p>
+          <p className='font-georama text-2xl font-semibold tracking-tight text-foreground'>
+            Breezy
+          </p>
         </div>
       </div>
     </div>

@@ -10,11 +10,11 @@ export function AuthHeader({ title, subtitle }: AuthHeaderProps) {
     <div className='mb-8 flex flex-col items-center text-center'>
       <div className='mb-4'>
         <Image
-          src='/navbar/breezy_icon.svg'
+          src='/navbar/breezy_icon_green.svg'
           alt='Breezy'
           width={56}
           height={56}
-          className='object-contain'
+          className='rounded-lg object-contain'
           priority
         />
       </div>
