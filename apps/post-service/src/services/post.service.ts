@@ -2,9 +2,8 @@ import { PostModel } from "../models/post.model"
 import type { CreatePostDTO } from "../schemas/post.schema"
 import type { Post } from "../types/post"
 import type { PaginatedResponse } from "../types/api"
-import { HttpFollowGraph, type FollowGraphPort } from "../clients/follow-graph"
-import { publish } from "../clients/rabbitmq"
 import { GrpcFollowGraph, type FollowGraphPort } from "../clients/follow-graph"
+import { publish } from "../clients/rabbitmq"
 
 const MENTION_RE = /@([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/gi
 
