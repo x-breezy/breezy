@@ -40,6 +40,7 @@ class ProfileService {
         transaction: t,
       })
     })
+    publish("profile.followed", { followerId, followingId })
   }
 
   async unfollow(followerId: string, followingId: string): Promise<boolean> {
