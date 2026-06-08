@@ -1,10 +1,10 @@
-import { LoginScreen } from "@/components/login"
+import { SignUpScreen } from "@/components/login"
 import { AuthLayout } from "@/components/login/components/AuthLayout"
 
-export default function LoginPage() {
+export default function SignUpPage() {
   return (
     <AuthLayout>
-      <LoginScreen />
+      <SignUpScreen />
     </AuthLayout>
   )
 }
