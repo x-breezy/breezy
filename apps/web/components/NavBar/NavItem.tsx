@@ -1,8 +1,8 @@
 "use client"
 
 import Link from "next/link"
-import { cn } from "@breezy/ui/lib/utils"
-import { buttonVariants } from "@breezy/ui/components/button"
+import { cn } from "@/lib/utils"
+import { buttonVariants } from "@/components/ui/button"
 import type { NavItemProps } from "./types"
 
 export function NavItem({

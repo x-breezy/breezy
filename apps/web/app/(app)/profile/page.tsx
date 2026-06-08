@@ -3,7 +3,7 @@ import { ProfileSection, ProfilePostsSection, BioMention } from "@/components/pr
 
 // Mock data - à remplacer par API
 const profileData = {
-  avatar: "/navbar/pp_test.png",
+  avatar: "/test/pp_test.png",
   name: "Sam Altman",
   username: "sam_alt",
   role: "admin" as "user" | "moderator" | "admin",
@@ -16,7 +16,7 @@ const profileData = {
       author: {
         name: "Grod",
         username: "grod_le_goat",
-        avatar: "/navbar/pp_test.png",
+        avatar: "/test/pp_test.png",
       },
       content:
         "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since 1966, when designers at Letraset and James Mosley, the librarian at St Bride Printing Library, took a 1914 Cicero translation and scrambled it to make dummy text for Letraset's Body Type sheets.",

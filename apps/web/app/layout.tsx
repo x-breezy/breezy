@@ -1,9 +1,9 @@
-import { Geist, Geist_Mono, Georama } from "next/font/google"
-import "@breezy/ui/globals.css"
+import { Geist, Geist_Mono, Geom } from "next/font/google"
+import "@/styles/globals.css"
 import type { Metadata } from "next"
 import { cookies } from "next/headers"
 import { ThemeProvider } from "@/components/providers/theme-provider"
-import { cn } from "@breezy/ui/lib/utils"
+import { cn } from "@/lib/utils"
 import type { Theme } from "@/lib/theme"
 
 // base font
@@ -15,9 +15,9 @@ const geistMono = Geist_Mono({
   variable: "--font-mono",
 })
 
-const georama = Georama({
+const geom = Geom({
   subsets: ["latin"],
-  variable: "--font-georama",
+  variable: "--font-geom",
 })
 
 export const metadata: Metadata = {
@@ -58,13 +58,7 @@ export default async function RootLayout({
       lang='en'
       suppressHydrationWarning
       data-theme={theme}
-      className={cn(
-        "antialiased",
-        geistMono.variable,
-        "font-sans",
-        geist.variable,
-        georama.variable
-      )}
+      className={cn("antialiased", geistMono.variable, "font-sans", geist.variable, geom.variable)}
     >
       <body>
         <ThemeProvider defaultTheme={theme}>{children}</ThemeProvider>

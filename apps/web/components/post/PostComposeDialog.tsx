@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Dialog, DialogContent, DialogPortal } from "@breezy/ui/components/dialog"
+import { Dialog, DialogContent, DialogPortal } from "@/components/ui/dialog"
 import { PostHeader } from "@/components/post/PostHeader"
 import { PostForm } from "@/components/post/PostForm"
 import { useIsMobile } from "@/hooks/use-is-mobile"

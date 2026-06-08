@@ -1,7 +1,7 @@
 "use client"
 
 import { Dialog as DialogPrimitive } from "@base-ui/react/dialog"
-import { Dialog, DialogOverlay, DialogPortal } from "@breezy/ui/components/dialog"
+import { Dialog, DialogOverlay, DialogPortal } from "@/components/ui/dialog"
 import { useIsMobile } from "@/hooks/use-is-mobile"
 import { SettingsHeader } from "./settings-header"
 import SettingsScreen from "./SettingsScreen"

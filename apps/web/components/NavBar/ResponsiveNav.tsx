@@ -43,7 +43,7 @@ export function ResponsiveNav() {
       {/* Desktop: Sidebar - visible à partir de lg */}
       <aside className='fixed top-0 left-0 z-50 hidden h-screen w-64 flex-col border-r bg-background py-6 lg:flex'>
         <div className='px-6 pb-6'>
-          <span className='font-georama text-xl font-bold'>Breezy</span>
+          <span className='font-geom text-xl font-bold'>Breezy</span>
         </div>
         <nav className='flex flex-1 flex-col gap-1'>
           {NAV_ITEMS.map(({ href, icon, label }) => (

@@ -1,4 +1,4 @@
-import { cn } from "@breezy/ui/lib/utils"
+import { cn } from "@/lib/utils"
 import { ModeratorBadge } from "@/components/badges/moderateur-badge"
 import { AdminBadge } from "@/components/badges/admin-badge"
 

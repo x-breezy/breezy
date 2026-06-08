@@ -28,10 +28,10 @@ class UserController {
       }
 
       const user = await this.userService.addUser(req.body)
-      
+
       // Create profile via gRPC
       await this.profileClient.createProfile(user.id)
-      
+
       res.status(201).json({ success: true, message: "User created successfully", data: user })
     } catch (error) {
       next(error)

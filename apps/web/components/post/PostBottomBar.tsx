@@ -2,7 +2,7 @@
 
 import { useRef } from "react"
 import { IconPhoto } from "@tabler/icons-react"
-import { Button } from "@breezy/ui/components/button"
+import { Button } from "@/components/ui/button"
 
 export function PostBottomBar() {
   const inputRef = useRef<HTMLInputElement>(null)

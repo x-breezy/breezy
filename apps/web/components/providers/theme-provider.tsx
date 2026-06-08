@@ -7,7 +7,7 @@ import type { Theme } from "@/lib/theme"
 import { setThemeCookie, deleteThemeCookie } from "@/lib/theme"
 
 function ThemeSync() {
-  const { theme, resolvedTheme } = useTheme()
+  const { theme } = useTheme()
 
   useEffect(() => {
     if (theme === "system") {
@@ -15,7 +15,7 @@ function ThemeSync() {
     } else if (theme) {
       setThemeCookie(theme as Theme)
     }
-  }, [theme, resolvedTheme])
+  }, [theme])
 
   return null
 }
