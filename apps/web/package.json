@@ -12,20 +12,21 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@tabler/icons-react": "^3.44.0",
     "@breezy/ui": "*",
+    "@tabler/icons-react": "^3.44.0",
     "next": "16.2.6",
     "next-themes": "^0.4.6",
     "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "react-dom": "19.2.4",
+    "sharp": "^0.34.5"
   },
   "devDependencies": {
+    "@breezy/eslint-config": "*",
+    "@breezy/typescript-config": "*",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "@breezy/eslint-config": "*",
-    "@breezy/typescript-config": "*",
     "eslint": "^9",
     "typescript": "^5"
   }
