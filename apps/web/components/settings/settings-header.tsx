@@ -1,34 +1,23 @@
 "use client"
 
-import { IconArrowLeft, IconX } from "@tabler/icons-react"
-import { useRouter } from "next/navigation"
+import { IconX } from "@tabler/icons-react"
 import { PageHeader, PageHeaderContent } from "@/components/layout/page-header"
 
 interface SettingsHeaderProps {
-  onClose?: () => void
+  onClose: () => void
 }
 
 export function SettingsHeader({ onClose }: SettingsHeaderProps) {
-  const router = useRouter()
-
-  const handleClose = () => {
-    if (onClose) {
-      onClose()
-    } else {
-      router.back()
-    }
-  }
-
   return (
     <PageHeader className='bg-background'>
       <PageHeaderContent
         left={
           <button
-            aria-label={onClose ? "Close settings" : "Go back"}
+            aria-label='Close settings'
             className='flex size-8 items-center justify-center text-foreground transition hover:opacity-70'
-            onClick={handleClose}
+            onClick={onClose}
           >
-            {onClose ? <IconX stroke={2} /> : <IconArrowLeft stroke={2} />}
+            <IconX stroke={2} />
           </button>
         }
         center={<h1 className='text-lg font-bold'>Settings</h1>}

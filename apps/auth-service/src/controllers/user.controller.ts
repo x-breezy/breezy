@@ -40,7 +40,7 @@ class UserController {
     try {
       const user = await this.userService.getUser(req.params.id)
       if (!user) {
-        res.status(404).json({ sucess: false, message: "User not found" })
+        res.status(404).json({ success: false, message: "User not found" })
         return
       }
       res.status(200).json({ success: true, data: user, message: "User retrieved successfully" })
