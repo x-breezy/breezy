@@ -6,7 +6,7 @@ import {
   SettingsLanguageSelect,
   SettingsThemeSelect,
   SettingsLogoutButton,
-} from "./settings"
+} from "."
 
 interface SettingsScreenProps {
   name: string

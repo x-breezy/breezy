@@ -29,6 +29,7 @@ function ThemeProvider({ children, defaultTheme = "system", ...props }: ThemePro
       defaultTheme={defaultTheme}
       enableSystem
       disableTransitionOnChange
+      scriptProps={{ suppressHydrationWarning: true }}
       {...props}
     >
       <ThemeSync />
