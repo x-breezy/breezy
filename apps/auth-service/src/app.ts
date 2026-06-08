@@ -1,6 +1,7 @@
 import express from "express"
 import type { Express, Request, Response, NextFunction } from "express"
 import swaggerUi from "swagger-ui-express"
+import { createAuthRouter } from "./routes/auth.route"
 import { createUserRouter } from "./routes/user.route"
 import { createReportRouter } from "./routes/report.route"
 import { swaggerSpec } from "./config/swagger"
@@ -20,6 +21,7 @@ export function createApp(): Express {
     res.json(swaggerSpec)
   })
 
+  app.use("/auth", createAuthRouter())
   app.use("/auth/users", createUserRouter())
   app.use("/auth/reports", createReportRouter())
 

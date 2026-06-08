@@ -12,7 +12,13 @@ function createUserRouter(
 ): Router {
   const router = Router({ mergeParams: true })
 
-  router.post("/", validate(createUserSchema), userController.createUser)
+  router.post(
+    "/",
+    identity,
+    requirePermission(PERMISSIONS.USER_CREATE),
+    validate(createUserSchema),
+    userController.createUser
+  )
   router.get(
     "/:id",
     identity,

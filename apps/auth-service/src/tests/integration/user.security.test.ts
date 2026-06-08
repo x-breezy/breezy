@@ -5,6 +5,7 @@ import UserController from "../../controllers/user.controller"
 
 const USER_ID = "11111111-1111-1111-1111-111111111111"
 const OTHER_ID = "22222222-2222-2222-2222-222222222222"
+const ADMIN_ID = "00000000-0000-0000-0000-000000000000"
 
 const mockService = {
   isEmailAndUsernameTaken: jest.fn(),
@@ -31,21 +32,45 @@ beforeEach(() => jest.clearAllMocks())
 // ── POST /users ───────────────────────────────────────────────────────────────
 
 describe("POST /users", () => {
-  it("rejects missing fields with 400", async () => {
+  it("returns 401 when x-user-id header is missing", async () => {
     const res = await request(app).post("/users").send({})
+    expect(res.status).toBe(401)
+    expect(mockService.addUser).not.toHaveBeenCalled()
+  })
+
+  it("returns 403 for non-admin (user role lacks user:create)", async () => {
+    const res = await request(app)
+      .post("/users")
+      .set("x-user-id", USER_ID)
+      .set("x-roles", "user")
+      .send({ username: "alice", email: "alice@example.com", password: "securepass" })
+    expect(res.status).toBe(403)
+    expect(mockService.addUser).not.toHaveBeenCalled()
+  })
+
+  it("rejects missing fields with 400 for admin", async () => {
+    const res = await request(app)
+      .post("/users")
+      .set("x-user-id", ADMIN_ID)
+      .set("x-roles", "admin")
+      .send({})
     expect(res.status).toBe(400)
   })
 
-  it("rejects invalid email with 400", async () => {
+  it("rejects invalid email with 400 for admin", async () => {
     const res = await request(app)
       .post("/users")
+      .set("x-user-id", ADMIN_ID)
+      .set("x-roles", "admin")
       .send({ username: "alice", email: "not-an-email", password: "securepass" })
     expect(res.status).toBe(400)
   })
 
-  it("rejects password shorter than 8 chars with 400", async () => {
+  it("rejects password shorter than 8 chars with 400 for admin", async () => {
     const res = await request(app)
       .post("/users")
+      .set("x-user-id", ADMIN_ID)
+      .set("x-roles", "admin")
       .send({ username: "alice", email: "alice@example.com", password: "short" })
     expect(res.status).toBe(400)
   })
@@ -57,12 +82,14 @@ describe("POST /users", () => {
     })
     const res = await request(app)
       .post("/users")
+      .set("x-user-id", ADMIN_ID)
+      .set("x-roles", "admin")
       .send({ username: "alice", email: "alice@example.com", password: "securepass" })
     expect(res.status).toBe(409)
     expect(mockService.addUser).not.toHaveBeenCalled()
   })
 
-  it("is accessible without authentication (public registration)", async () => {
+  it("returns 201 when admin creates a user successfully", async () => {
     mockService.isEmailAndUsernameTaken.mockResolvedValue({
       emailTaken: false,
       usernameTaken: false,
@@ -74,6 +101,8 @@ describe("POST /users", () => {
     })
     const res = await request(app)
       .post("/users")
+      .set("x-user-id", ADMIN_ID)
+      .set("x-roles", "admin")
       .send({ username: "alice", email: "alice@example.com", password: "securepass" })
     expect(res.status).toBe(201)
   })
