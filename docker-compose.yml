@@ -126,6 +126,103 @@ services:
       timeout: 5s
       retries: 5
 
+  auth-service:
+    build:
+      context: .
+      dockerfile: apps/auth-service/Dockerfile
+    container_name: breezy-auth-service
+    restart: unless-stopped
+    ports:
+      - "4000:4000"
+    environment:
+      PORT: 4000
+      DATABASE_URL: postgres://postgres:postgres@postgres-user-service:5432/user_service
+      RABBITMQ_URL: amqp://breezy:breezy@rabbitmq:5672
+    depends_on:
+      postgres-user-service:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - breezy
+
+  profile-service:
+    build:
+      context: .
+      dockerfile: apps/profile-service/Dockerfile
+    container_name: breezy-profile-service
+    restart: unless-stopped
+    ports:
+      - "4010:4010"
+    environment:
+      PORT: 4010
+      DATABASE_URL: postgres://postgres:postgres@postgres-profile-service:5432/profile_service
+      RABBITMQ_URL: amqp://breezy:breezy@rabbitmq:5672
+    depends_on:
+      postgres-profile-service:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - breezy
+
+  post-service:
+    build:
+      context: .
+      dockerfile: apps/post-service/Dockerfile
+    container_name: breezy-post-service
+    restart: unless-stopped
+    ports:
+      - "4040:4040"
+    environment:
+      PORT: 4040
+      DATABASE_URL: mongodb://mongo-post-service:27017/post_service
+      RABBITMQ_URL: amqp://breezy:breezy@rabbitmq:5672
+    depends_on:
+      mongo-post-service:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - breezy
+
+  media-service:
+    build:
+      context: .
+      dockerfile: apps/media-service/Dockerfile
+    container_name: breezy-media-service
+    restart: unless-stopped
+    ports:
+      - "4050:4050"
+    environment:
+      PORT: 4050
+      DATABASE_URL: mongodb://mongo-media-service:27017/media_service
+    depends_on:
+      mongo-media-service:
+        condition: service_healthy
+    networks:
+      - breezy
+
+  notifications-service:
+    build:
+      context: .
+      dockerfile: apps/notifications-service/Dockerfile
+    container_name: breezy-notifications-service
+    restart: unless-stopped
+    ports:
+      - "4060:4060"
+    environment:
+      PORT: 4060
+      DATABASE_URL: mongodb://mongo-notifications-service:27017/notifications_service
+      RABBITMQ_URL: amqp://breezy:breezy@rabbitmq:5672
+    depends_on:
+      mongo-notifications-service:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - breezy
+
 networks:
   breezy:
     driver: bridge
