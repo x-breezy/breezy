@@ -3,6 +3,7 @@ import { createApp } from "./app"
 import { connect } from "./config/database"
 import { initFollowModel } from "./models/follow.model"
 import { initProfileModel } from "./models/profile.model"
+import { startGrpcServer } from "./config/grpc.server"
 
 const logger = createLogger({ service: "profile-service" })
 
@@ -21,6 +22,7 @@ async function start(): Promise<void> {
   await sequelize.sync(process.env.NODE_ENV === "production" ? undefined : { alter: true })
   logger.info("Models synchronized")
 
+  startGrpcServer(50051)
   app.listen(port, () => {
     logger.info({ port }, "Profile service listening")
   })

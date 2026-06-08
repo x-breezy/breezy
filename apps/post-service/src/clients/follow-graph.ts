@@ -1,55 +1,43 @@
-const TIMEOUT_MS = 1500
+import * as grpc from "@grpc/grpc-js"
+import * as protoLoader from "@grpc/proto-loader"
+import path from "path"
 
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+const PROTO_PATH = path.resolve(__dirname, "../config/data/post.service.proto")
+const packageDefinition = protoLoader.loadSync(PROTO_PATH, {
+  keepCase: true,
+  longs: String,
+  enums: String,
+  defaults: true,
+  oneofs: true,
+})
+const protoDescriptor = grpc.loadPackageDefinition(packageDefinition) as any
+const profileData = protoDescriptor.profile.data
 
 export interface FollowGraphPort {
-  /**
-   * Returns the list of userIds that viewerId follows.
-   * Returns null when the source is unavailable or the call fails — callers return an empty feed.
-   */
   getFollowing(viewerId: string): Promise<string[] | null>
 }
 
-/**
- * Fetches the follow graph from profile-service via HTTP.
- * Expects PROFILE_SERVICE_URL env var (e.g. http://profile-service:3000).
- * Endpoint: GET {PROFILE_SERVICE_URL}/profiles/:id/following
- * Expected response shape: { success: true, data: { count: number, following: string[] } }
- * On missing env var, timeout, non-2xx, or any network error returns null.
- */
-export class HttpFollowGraph implements FollowGraphPort {
-  private readonly baseUrl: string | undefined
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+const TIMEOUT_MS = 2000
+
+export class GrpcFollowGraph implements FollowGraphPort {
+  private readonly client: any
 
   constructor() {
-    this.baseUrl = process.env.PROFILE_SERVICE_URL
+    this.client = new profileData.ProfileData(
+      process.env.PROFILE_SERVICE_GRPC_URL ?? "localhost:50051",
+      grpc.credentials.createInsecure()
+    )
   }
 
   async getFollowing(viewerId: string): Promise<string[] | null> {
-    if (!this.baseUrl) return null
     if (!UUID_RE.test(viewerId)) return null
-
-    const controller = new AbortController()
-    const timer = setTimeout(() => controller.abort(), TIMEOUT_MS)
-
-    try {
-      const res = await fetch(
-        `${this.baseUrl}/profiles/${encodeURIComponent(viewerId)}/following`,
-        {
-          signal: controller.signal,
-          headers: {
-            "x-user-id": viewerId,
-            "x-roles": "user",
-          },
-        }
-      )
-      if (!res.ok) return null
-      const body = (await res.json()) as { success?: boolean; data?: { following?: string[] } }
-      if (Array.isArray(body.data?.following)) return body.data.following
-      return null
-    } catch {
-      return null
-    } finally {
-      clearTimeout(timer)
-    }
+    return new Promise((resolve) => {
+      const timer = setTimeout(() => resolve(null), TIMEOUT_MS)
+      this.client.getFollowing({ profileId: viewerId }, (err: any, res: any) => {
+        clearTimeout(timer)
+        resolve(err ? null : res.following)
+      })
+    })
   }
 }
