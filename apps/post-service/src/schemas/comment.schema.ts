@@ -1,10 +1,9 @@
 import { z } from "zod"
 import mongoose from "mongoose"
 
-export const objectIdSchema = z.string().refine(
-  (val) => mongoose.isValidObjectId(val),
-  { message: "Invalid ObjectId" }
-)
+export const objectIdSchema = z
+  .string()
+  .refine((val) => mongoose.isValidObjectId(val), { message: "Invalid ObjectId" })
 
 const mediaRefSchema = z.object({
   id: z.string(),

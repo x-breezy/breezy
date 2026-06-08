@@ -16,7 +16,9 @@ class ReportController {
   ): Promise<void> => {
     try {
       const report = await this.reportService.createReport(req.user!.id, req.body)
-      res.status(201).json({ success: true, message: "Report submitted successfully", data: report })
+      res
+        .status(201)
+        .json({ success: true, message: "Report submitted successfully", data: report })
     } catch (error) {
       next(error)
     }

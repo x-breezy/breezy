@@ -1,6 +1,7 @@
 import { LikeModel } from "../models/like.model"
 import { PostModel } from "../models/post.model"
 import PostService from "./post.service"
+import { publish } from "../clients/rabbitmq"
 
 export class LikeService {
   constructor(private postService = new PostService()) {}
@@ -15,6 +16,9 @@ export class LikeService {
       { new: true }
     ).exec()
     if (!post) throw Object.assign(new Error("Post not found"), { code: "POST_NOT_FOUND" })
+    if (post.authorId !== userId) {
+      void publish("content.like", { actorId: userId, targetUserId: post.authorId, postId })
+    }
     return { alreadyLiked: false, nb: post.likesCount }
   }
 

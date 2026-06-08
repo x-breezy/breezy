@@ -117,7 +117,9 @@ class ProfileController {
   ): Promise<void> => {
     try {
       const result = await this.profileService.getFollowers(req.params.profileId)
-      res.status(200).json({ success: true, data: result, message: "Followers retrieved successfully" })
+      res
+        .status(200)
+        .json({ success: true, data: result, message: "Followers retrieved successfully" })
     } catch (err) {
       next(err)
     }
@@ -130,7 +132,9 @@ class ProfileController {
   ): Promise<void> => {
     try {
       const result = await this.profileService.getFollowing(req.params.profileId)
-      res.status(200).json({ success: true, data: result, message: "Following retrieved successfully" })
+      res
+        .status(200)
+        .json({ success: true, data: result, message: "Following retrieved successfully" })
     } catch (err) {
       next(err)
     }

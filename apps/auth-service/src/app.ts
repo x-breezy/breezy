@@ -20,8 +20,8 @@ export function createApp(): Express {
     res.json(swaggerSpec)
   })
 
-  app.use("/users", createUserRouter())
-  app.use("/reports", createReportRouter())
+  app.use("/auth/users", createUserRouter())
+  app.use("/auth/reports", createReportRouter())
 
   // Global error handler — must be registered last and have exactly 4 params
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

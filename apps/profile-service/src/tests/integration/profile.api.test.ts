@@ -258,9 +258,7 @@ describe("POST /profiles/follow", () => {
   })
 
   it("returns 401 without auth", async () => {
-    const res = await request(app)
-      .post("/profiles/follow")
-      .send({ followingId: FOLLOWING_UUID })
+    const res = await request(app).post("/profiles/follow").send({ followingId: FOLLOWING_UUID })
     expect(res.status).toBe(401)
   })
 })
@@ -295,9 +293,7 @@ describe("POST /profiles/unfollow", () => {
   })
 
   it("returns 401 without auth", async () => {
-    const res = await request(app)
-      .post("/profiles/unfollow")
-      .send({ followingId: FOLLOWING_UUID })
+    const res = await request(app).post("/profiles/unfollow").send({ followingId: FOLLOWING_UUID })
     expect(res.status).toBe(401)
   })
 })

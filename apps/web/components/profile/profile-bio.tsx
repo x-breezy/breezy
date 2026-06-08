@@ -7,10 +7,7 @@ interface BioMentionProps {
 
 function BioMention({ username }: BioMentionProps) {
   return (
-    <Link
-      href={`/${username}`}
-      className='text-primary hover:underline'
-    >
+    <Link href={`/${username}`} className='text-primary hover:underline'>
       @{username}
     </Link>
   )
@@ -22,15 +19,11 @@ interface ProfileBioProps {
   className?: string
 }
 
-export function ProfileBio({
-  title = "Biography",
-  children,
-  className,
-}: ProfileBioProps) {
+export function ProfileBio({ title = "Biography", children, className }: ProfileBioProps) {
   return (
     <section className={cn("space-y-2", className)}>
       <h2 className='text-lg font-semibold'>{title}</h2>
-      <p className='text-muted-foreground leading-relaxed'>{children}</p>
+      <p className='leading-relaxed text-muted-foreground'>{children}</p>
     </section>
   )
 }

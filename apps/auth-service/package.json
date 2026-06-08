@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@breezy/logger": "*",
+    "amqplib": "^0.10.4",
     "dotenv": "^16.0.3",
     "express": "^4.21.2",
     "jest": "^30.4.2",
@@ -31,6 +32,7 @@
   "devDependencies": {
     "@breezy/eslint-config": "*",
     "@breezy/typescript-config": "*",
+    "@types/amqplib": "^0.10.7",
     "@types/express": "^4.17.21",
     "@types/jest": "^29.5.14",
     "@types/node": "^22.0.0",

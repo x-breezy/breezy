@@ -1,6 +1,7 @@
 import { createLogger } from "@breezy/logger"
 import { createApp } from "./app"
 import { connect } from "./config/database"
+import { connectRabbitMQ } from "./clients/rabbitmq"
 
 const logger = createLogger({ service: "post-service" })
 
@@ -11,6 +12,8 @@ const mongoUri = process.env.DATABASE_URL ?? "mongodb://localhost:27017/breezy"
 async function start(): Promise<void> {
   await connect(mongoUri)
   logger.info("Connected to MongoDB")
+
+  await connectRabbitMQ()
 
   app.listen(port, () => {
     logger.info({ port }, "Post service listening")

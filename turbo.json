@@ -1,7 +1,14 @@
 {
   "$schema": "https://turborepo.dev/schema.json",
   "ui": "tui",
-  "globalEnv": ["PORT", "NODE_ENV", "LOG_LEVEL", "DATABASE_URL", "PROFILE_SERVICE_URL"],
+  "globalEnv": [
+    "PORT",
+    "NODE_ENV",
+    "LOG_LEVEL",
+    "DATABASE_URL",
+    "PROFILE_SERVICE_URL",
+    "RABBITMQ_URL"
+  ],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],

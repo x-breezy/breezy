@@ -41,7 +41,12 @@ const options: swaggerJsdoc.Options = {
         UpdateProfileInput: {
           type: "object",
           properties: {
-            profilename: { type: "string", minLength: 3, maxLength: 50, example: "johndoe_updated" },
+            profilename: {
+              type: "string",
+              minLength: 3,
+              maxLength: 50,
+              example: "johndoe_updated",
+            },
             passwordHash: { type: "string", example: "$2b$10$..." },
             isVerified: { type: "boolean", example: true },
           },

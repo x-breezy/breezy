@@ -1,4 +1,3 @@
-
 import { Sequelize } from "sequelize"
 
 let sequelize: Sequelize | null = null

@@ -1,5 +1,6 @@
 import { Profile, CreateProfileInput, UpdateProfileInput } from "../models/profile.model"
 import { Follow } from "../models/follow.model"
+import { publish } from "../clients/rabbitmq"
 
 class ProfileService {
   async createProfile(input: CreateProfileInput): Promise<Profile> {
@@ -28,6 +29,8 @@ class ProfileService {
 
     await Profile.increment("followingCount", { where: { profileId: followerId } })
     await Profile.increment("followersCount", { where: { profileId: followingId } })
+
+    void publish("social.follow", { followerId, followingId })
   }
 
   async unfollow(followerId: string, followingId: string): Promise<boolean> {
@@ -44,13 +47,13 @@ class ProfileService {
 
   async getFollowers(profileId: string): Promise<{ count: number; followers: string[] }> {
     const relations = await Follow.findAll({ where: { followingId: profileId } })
-    const followers = relations.map(f => f.get("followerId") as string)
+    const followers = relations.map((f) => f.get("followerId") as string)
     return { count: followers.length, followers }
   }
 
   async getFollowing(profileId: string): Promise<{ count: number; following: string[] }> {
     const relations = await Follow.findAll({ where: { followerId: profileId } })
-    const following = relations.map(f => f.get("followingId") as string)
+    const following = relations.map((f) => f.get("followingId") as string)
     return { count: following.length, following }
   }
 }

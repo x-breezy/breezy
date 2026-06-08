@@ -1,6 +1,7 @@
 import { User, type SafeUser } from "../models/user.model"
 import { hashPassword, verifyPassword } from "../utils/password.util"
 import type { CreateUserDTO } from "../schemas/user.schema"
+import { publish } from "../clients/rabbitmq"
 
 class UserService {
   /** Create a user, hashing the plain password into passwordHash. Returns the safe (no-hash) user. */
@@ -11,7 +12,13 @@ class UserService {
       email: input.email,
       passwordHash,
     })
-    return user.toJSON()
+    const safe = user.toJSON()
+    void publish("auth.email_verification", {
+      userId: safe.id,
+      email: safe.email,
+      token: safe.id,
+    })
+    return safe
   }
 
   async getUser(id: string): Promise<SafeUser | null> {
