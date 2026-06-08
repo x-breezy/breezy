@@ -28,6 +28,8 @@ const mockedPost = PostModel as jest.Mocked<typeof PostModel>
 const mockedComment = CommentModel as jest.Mocked<typeof CommentModel>
 const app = createApp()
 
+const USER1_UUID = "11111111-1111-1111-1111-111111111111"
+const USER2_UUID = "22222222-2222-2222-2222-222222222222"
 const POST_ID = "64f1a2b3c4d5e6f7a8b9c0d1"
 const COMMENT_ID = "64f1a2b3c4d5e6f7a8b9c0d2"
 const NOW = new Date("2026-01-01T00:00:00.000Z")
@@ -35,7 +37,7 @@ const NOW = new Date("2026-01-01T00:00:00.000Z")
 const MOCK_COMMENT = {
   id: COMMENT_ID,
   content: "Nice post!",
-  authorId: "user-1",
+  authorId: USER1_UUID,
   postId: POST_ID,
   parentCommentId: null,
   createdAt: NOW,
@@ -70,7 +72,7 @@ describe("GET /posts/:id/comments", () => {
 
     const res = await request(app)
       .get(`/posts/${POST_ID}/comments`)
-      .set("x-user-id", "user-1")
+      .set("x-user-id", USER1_UUID)
       .set("x-roles", "user")
 
     expect(res.status).toBe(200)
@@ -99,7 +101,7 @@ describe("GET /posts/:id/comments", () => {
 
     await request(app)
       .get(`/posts/${POST_ID}/comments?parentCommentId=${COMMENT_ID}`)
-      .set("x-user-id", "user-1")
+      .set("x-user-id", USER1_UUID)
       .set("x-roles", "user")
 
     expect(mockedComment.find).toHaveBeenCalledWith({
@@ -125,7 +127,7 @@ describe("POST /posts/:id/comments", () => {
 
     const res = await request(app)
       .post(`/posts/${POST_ID}/comments`)
-      .set("x-user-id", "user-1")
+      .set("x-user-id", USER1_UUID)
       .set("x-roles", "user")
       .send({ content: "Nice post!" })
 
@@ -155,7 +157,7 @@ describe("POST /posts/:id/comments", () => {
 
     const res = await request(app)
       .post(`/posts/${POST_ID}/comments`)
-      .set("x-user-id", "user-1")
+      .set("x-user-id", USER1_UUID)
       .set("x-roles", "user")
       .send({ content: "Replying!", parentCommentId: COMMENT_ID })
 
@@ -172,7 +174,7 @@ describe("POST /posts/:id/comments", () => {
 
     const res = await request(app)
       .post(`/posts/${POST_ID}/comments`)
-      .set("x-user-id", "user-1")
+      .set("x-user-id", USER1_UUID)
       .set("x-roles", "user")
       .send({ content: "Nice post!" })
 
@@ -184,7 +186,7 @@ describe("POST /posts/:id/comments", () => {
   it("returns 400 when content is empty", async () => {
     const res = await request(app)
       .post(`/posts/${POST_ID}/comments`)
-      .set("x-user-id", "user-1")
+      .set("x-user-id", USER1_UUID)
       .set("x-roles", "user")
       .send({ content: "" })
 
@@ -196,7 +198,7 @@ describe("POST /posts/:id/comments", () => {
   it("returns 400 when content exceeds 280 chars", async () => {
     const res = await request(app)
       .post(`/posts/${POST_ID}/comments`)
-      .set("x-user-id", "user-1")
+      .set("x-user-id", USER1_UUID)
       .set("x-roles", "user")
       .send({ content: "x".repeat(281) })
 
@@ -217,7 +219,7 @@ describe("POST /posts/:id/comments", () => {
 describe("DELETE /posts/:id/comments/:commentId", () => {
   it("allows owner to delete own comment", async () => {
     ;(mockedComment.findById as jest.Mock).mockReturnValue({
-      exec: jest.fn().mockResolvedValue(MOCK_COMMENT), // authorId: "user-1"
+      exec: jest.fn().mockResolvedValue(MOCK_COMMENT),
     })
     ;(mockedComment.findByIdAndDelete as jest.Mock).mockReturnValue({
       exec: jest.fn().mockResolvedValue(MOCK_COMMENT),
@@ -225,26 +227,26 @@ describe("DELETE /posts/:id/comments/:commentId", () => {
 
     const res = await request(app)
       .delete(`/posts/${POST_ID}/comments/${COMMENT_ID}`)
-      .set("x-user-id", "user-1")
+      .set("x-user-id", USER1_UUID)
       .set("x-roles", "user")
 
     expect(res.status).toBe(200)
     expect(res.body).toMatchObject({ success: true, data: { commentsCount: 5 } })
     expect(mockedPost.findByIdAndUpdate).toHaveBeenCalledWith(
       POST_ID,
-      { $inc: { commentsCount: -1 } },
+      [{ $set: { commentsCount: { $max: [0, { $subtract: ["$commentsCount", 1] }] } } }],
       { new: true }
     )
   })
 
   it("returns 403 when non-owner user tries to delete", async () => {
     ;(mockedComment.findById as jest.Mock).mockReturnValue({
-      exec: jest.fn().mockResolvedValue(MOCK_COMMENT), // authorId: "user-1"
+      exec: jest.fn().mockResolvedValue(MOCK_COMMENT),
     })
 
     const res = await request(app)
       .delete(`/posts/${POST_ID}/comments/${COMMENT_ID}`)
-      .set("x-user-id", "user-2")
+      .set("x-user-id", USER2_UUID)
       .set("x-roles", "user")
 
     expect(res.status).toBe(403)
@@ -261,7 +263,7 @@ describe("DELETE /posts/:id/comments/:commentId", () => {
 
     const res = await request(app)
       .delete(`/posts/${POST_ID}/comments/${COMMENT_ID}`)
-      .set("x-user-id", "user-2")
+      .set("x-user-id", USER2_UUID)
       .set("x-roles", "moderator")
 
     expect(res.status).toBe(200)
@@ -278,7 +280,7 @@ describe("DELETE /posts/:id/comments/:commentId", () => {
 
     const res = await request(app)
       .delete(`/posts/${POST_ID}/comments/${COMMENT_ID}`)
-      .set("x-user-id", "user-2")
+      .set("x-user-id", USER2_UUID)
       .set("x-roles", "admin")
 
     expect(res.status).toBe(200)
@@ -292,7 +294,7 @@ describe("DELETE /posts/:id/comments/:commentId", () => {
 
     const res = await request(app)
       .delete(`/posts/${POST_ID}/comments/${COMMENT_ID}`)
-      .set("x-user-id", "user-1")
+      .set("x-user-id", USER1_UUID)
       .set("x-roles", "user")
 
     expect(res.status).toBe(404)
@@ -323,7 +325,7 @@ describe("comment controller error handling", () => {
 
     const res = await request(app)
       .get(`/posts/${POST_ID}/comments`)
-      .set("x-user-id", "user-1")
+      .set("x-user-id", USER1_UUID)
       .set("x-roles", "user")
 
     expect(res.status).toBe(500)
@@ -338,7 +340,7 @@ describe("comment controller error handling", () => {
 
     const res = await request(app)
       .post(`/posts/${POST_ID}/comments`)
-      .set("x-user-id", "user-1")
+      .set("x-user-id", USER1_UUID)
       .set("x-roles", "user")
       .send({ content: "Nice!" })
 
@@ -355,7 +357,7 @@ describe("comment controller error handling", () => {
 
     const res = await request(app)
       .delete(`/posts/${POST_ID}/comments/${COMMENT_ID}`)
-      .set("x-user-id", "user-1")
+      .set("x-user-id", USER1_UUID)
       .set("x-roles", "user")
 
     expect(res.status).toBe(500)

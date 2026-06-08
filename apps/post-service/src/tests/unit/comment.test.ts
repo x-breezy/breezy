@@ -26,6 +26,7 @@ jest.mock("../../models/post.model", () => ({
 const mockedComment = CommentModel as jest.Mocked<typeof CommentModel>
 const mockedPost = PostModel as jest.Mocked<typeof PostModel>
 
+const USER1_UUID = "11111111-1111-1111-1111-111111111111"
 const POST_ID = "64f1a2b3c4d5e6f7a8b9c0d1"
 const COMMENT_ID = "64f1a2b3c4d5e6f7a8b9c0d2"
 const NOW = new Date("2026-01-01T00:00:00.000Z")
@@ -33,7 +34,7 @@ const NOW = new Date("2026-01-01T00:00:00.000Z")
 const MOCK_COMMENT = {
   id: COMMENT_ID,
   content: "Nice post!",
-  authorId: "user-1",
+  authorId: USER1_UUID,
   postId: POST_ID,
   parentCommentId: null,
   createdAt: NOW,
@@ -73,7 +74,7 @@ describe("CommentService", () => {
       expect(result).toEqual({ comment: MOCK_COMMENT, commentsCount: 0 })
       expect(mockedPost.findByIdAndUpdate).toHaveBeenCalledWith(
         POST_ID,
-        { $inc: { commentsCount: -1 } },
+        [{ $set: { commentsCount: { $max: [0, { $subtract: ["$commentsCount", 1] }] } } }],
         { new: true }
       )
     })
