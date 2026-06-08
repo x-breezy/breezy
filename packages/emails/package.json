@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "email dev --dir=src/templates",
-    "build": "email build --dir=src/templates --out=dist",
+    "build": "email build --dir=src/templates",
     "lint": "eslint src/",
     "check-types": "tsc --noEmit"
   },
