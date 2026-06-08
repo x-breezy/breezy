@@ -8,13 +8,16 @@
     "test": "turbo run test",
     "test:coverage": "turbo run test:coverage",
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,md}\"",
-    "check-types": "turbo run check-types"
+    "check-types": "turbo run check-types",
+    "generate:openapi": "tsx tools/generate-openapi.ts",
+    "test:api": "tsx tools/test-api.ts"
   },
   "devDependencies": {
     "@breezy/eslint-config": "*",
     "@breezy/typescript-config": "*",
     "prettier": "^3.8.3",
     "prettier-plugin-tailwindcss": "^0.8.0",
+    "tsx": "^4.22.4",
     "turbo": "^2.9.16",
     "typescript": "5.9.2"
   },
