@@ -2,10 +2,10 @@ import { PostModel } from "../models/post.model"
 import type { CreatePostDTO } from "../schemas/post.schema"
 import type { Post } from "../types/post"
 import type { PaginatedResponse } from "../types/api"
-import { HttpFollowGraph, type FollowGraphPort } from "../clients/follow-graph"
+import { GrpcFollowGraph, type FollowGraphPort } from "../clients/follow-graph"
 
 export class PostService {
-  constructor(private follow: FollowGraphPort = new HttpFollowGraph()) {}
+  constructor(private follow: FollowGraphPort = new GrpcFollowGraph()) {}
 
   async createPost(data: CreatePostDTO & { authorId: string }): Promise<Post> {
     const post = await PostModel.create({
@@ -24,9 +24,7 @@ export class PostService {
   async feed(viewerId: string, page: number, limit: number): Promise<PaginatedResponse<Post>> {
     const following = await this.follow.getFollowing(viewerId)
     const filter =
-      following === null
-        ? {}
-        : { authorId: { $in: [...new Set([viewerId, ...following])] } }
+      following === null ? {} : { authorId: { $in: [...new Set([viewerId, ...following])] } }
     const skip = (page - 1) * limit
     const [data, total] = await Promise.all([
       PostModel.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).exec(),

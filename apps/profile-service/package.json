@@ -17,8 +17,10 @@
   },
   "dependencies": {
     "@breezy/logger": "*",
-    "express": "^4.21.2",
+    "@grpc/grpc-js": "^1.14.4",
+    "@grpc/proto-loader": "^0.8.1",
     "dotenv": "^16.0.3",
+    "express": "^4.21.2",
     "pg": "^8.21.0",
     "pg-hstore": "^2.3.4",
     "sequelize": "^6.37.8",
