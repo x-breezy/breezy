@@ -42,9 +42,6 @@ describe("POST /posts/:id/likes", () => {
     ;(mockedPost.findById as jest.Mock).mockReturnValue({
       exec: jest.fn().mockResolvedValue({ id: POST_ID }),
     })
-    ;(mockedLike.findOne as jest.Mock).mockReturnValue({
-      exec: jest.fn().mockResolvedValue(null),
-    })
     ;(mockedLike.create as jest.Mock).mockResolvedValue({})
     ;(mockedPost.findByIdAndUpdate as jest.Mock).mockReturnValue({
       exec: jest.fn().mockResolvedValue({ likesCount: 5 }),
