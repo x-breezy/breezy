@@ -1,6 +1,6 @@
 import NotificationService from "../../services/notification.service"
 
-jest.mock("../models/notification.model", () => ({
+jest.mock("../../models/notification.model", () => ({
   NotificationModel: {
     create: jest.fn(),
     find: jest.fn(),
@@ -11,7 +11,7 @@ jest.mock("../models/notification.model", () => ({
   },
 }))
 
-jest.mock("./sse.service", () => ({
+jest.mock("../../services/sse.service", () => ({
   sseService: { push: jest.fn() },
 }))
 

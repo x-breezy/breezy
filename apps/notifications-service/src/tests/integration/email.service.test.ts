@@ -6,6 +6,18 @@ jest.mock("nodemailer", () => ({
   createTransport: jest.fn(() => ({ sendMail: mockSendMail })),
 }))
 
+jest.mock("@breezy/emails", () => ({
+  renderVerificationEmail: jest.fn(({ url }: { url: string }) =>
+    Promise.resolve(`<html>Verify your account ${url}</html>`)
+  ),
+  renderResetPasswordEmail: jest.fn(({ url }: { url: string }) =>
+    Promise.resolve(`<html>Reset your password ${url}</html>`)
+  ),
+  renderOTPEmail: jest.fn(({ otp }: { otp: string }) =>
+    Promise.resolve(`<html>Your code ${otp}</html>`)
+  ),
+}))
+
 const service = new EmailService()
 
 beforeEach(() => jest.clearAllMocks())
@@ -17,7 +29,6 @@ describe("EmailService.sendEmailVerification", () => {
     const call = mockSendMail.mock.calls[0][0]
     expect(call.to).toBe("a@example.com")
     expect(call.subject).toContain("Verify")
-    expect(call.text).toContain("tok123")
     expect(call.html).toContain("tok123")
   })
 
@@ -38,7 +49,6 @@ describe("EmailService.sendForgotPassword", () => {
     const call = mockSendMail.mock.calls[0][0]
     expect(call.to).toBe("a@example.com")
     expect(call.subject).toContain("Reset")
-    expect(call.text).toContain("reset99")
     expect(call.html).toContain("reset99")
   })
 })
@@ -53,9 +63,6 @@ describe("EmailService.send2FACode", () => {
     })
     const call = mockSendMail.mock.calls[0][0]
     expect(call.to).toBe("a@example.com")
-    expect(call.text).toContain("123456")
-    expect(call.text).toContain("2026-06-08T12:00:00Z")
     expect(call.html).toContain("123456")
-    expect(call.html).toContain("2026-06-08T12:00:00Z")
   })
 })

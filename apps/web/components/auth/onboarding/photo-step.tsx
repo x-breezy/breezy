@@ -44,7 +44,7 @@ export function PhotoStep({
         <button
           type='button'
           onClick={() => fileInputRef.current?.click()}
-          className='group relative h-24 w-24 overflow-hidden rounded-full border-2 border-dashed border-border bg-muted transition-colors hover:border-foreground/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+          className='group relative h-24 w-24 overflow-hidden rounded-full border-2 border-dashed border-border bg-muted transition-colors hover:border-foreground/40 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none'
           aria-label='Upload profile photo'
         >
           {preview ? (
