@@ -1,89 +1,45 @@
-import { API_URL } from "@/lib/auth/session"
-
-const JSON_HEADERS = { "Content-Type": "application/json" }
+import serverClient from "@/lib/api/server-client"
 
 export function signUp(username: string, email: string, password: string) {
-  return fetch(`${API_URL}/api/auth/sign-up`, {
-    method: "POST",
-    headers: JSON_HEADERS,
-    body: JSON.stringify({ username, email, password }),
-  })
+  return serverClient.post("/api/auth/sign-up", { username, email, password })
 }
 
 export function signIn(identifier: string, password: string) {
-  return fetch(`${API_URL}/api/auth/sign-in`, {
-    method: "POST",
-    headers: JSON_HEADERS,
-    body: JSON.stringify({ identifier, password }),
-  })
+  return serverClient.post("/api/auth/sign-in", { identifier, password })
 }
 
 export function logout(refreshToken: string) {
-  return fetch(`${API_URL}/api/auth/logout`, {
-    method: "POST",
-    headers: JSON_HEADERS,
-    body: JSON.stringify({ refreshToken }),
-  })
+  return serverClient.post("/api/auth/logout", { refreshToken })
 }
 
 export function forgotPassword(email: string) {
-  return fetch(`${API_URL}/api/auth/forgot-password`, {
-    method: "POST",
-    headers: JSON_HEADERS,
-    body: JSON.stringify({ email }),
-  })
+  return serverClient.post("/api/auth/forgot-password", { email })
 }
 
 export function verifyEmail(token: string) {
-  return fetch(`${API_URL}/api/auth/verify-email`, {
-    method: "POST",
-    headers: JSON_HEADERS,
-    body: JSON.stringify({ token }),
-  })
+  return serverClient.post("/api/auth/verify-email", { token })
 }
 
 export function resendVerificationEmail(email: string) {
-  return fetch(`${API_URL}/api/auth/resend-verification`, {
-    method: "POST",
-    headers: JSON_HEADERS,
-    body: JSON.stringify({ email }),
-  })
+  return serverClient.post("/api/auth/resend-verification", { email })
 }
 
 export function verifyTwoFactorLogin(pendingToken: string, code: string) {
-  return fetch(`${API_URL}/api/auth/2fa/verify-login`, {
-    method: "POST",
-    headers: JSON_HEADERS,
-    body: JSON.stringify({ pendingToken, code }),
-  })
+  return serverClient.post("/api/auth/2fa/verify-login", { pendingToken, code })
 }
 
 export function resendTwoFactorLoginCode(pendingToken: string) {
-  return fetch(`${API_URL}/api/auth/2fa/resend-login-code`, {
-    method: "POST",
-    headers: JSON_HEADERS,
-    body: JSON.stringify({ pendingToken }),
-  })
+  return serverClient.post("/api/auth/2fa/resend-login-code", { pendingToken })
 }
 
 export function sendTwoFactorCode(authHeader: Record<string, string>) {
-  return fetch(`${API_URL}/api/auth/2fa/send-code`, {
-    method: "POST",
-    headers: { ...JSON_HEADERS, ...authHeader },
-  })
+  return serverClient.post("/api/auth/2fa/send-code", null, { headers: authHeader })
 }
 
 export function enableTwoFactor(code: string, authHeader: Record<string, string>) {
-  return fetch(`${API_URL}/api/auth/2fa/enable`, {
-    method: "POST",
-    headers: { ...JSON_HEADERS, ...authHeader },
-    body: JSON.stringify({ code }),
-  })
+  return serverClient.post("/api/auth/2fa/enable", { code }, { headers: authHeader })
 }
 
 export function disableTwoFactor(authHeader: Record<string, string>) {
-  return fetch(`${API_URL}/api/auth/2fa/disable`, {
-    method: "POST",
-    headers: { ...JSON_HEADERS, ...authHeader },
-  })
+  return serverClient.post("/api/auth/2fa/disable", null, { headers: authHeader })
 }

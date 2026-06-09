@@ -1,7 +1,8 @@
 "use server"
 
 import { cookies } from "next/headers"
-import { setSessionCookies, getServerAuthHeader, ACCESS_COOKIE } from "@/lib/auth/session"
+import { isAxiosError } from "axios"
+import { setSessionCookies, API_URL, getServerAuthHeader, ACCESS_COOKIE } from "@/lib/auth/session"
 import { signUp } from "@/lib/services/auth-service"
 
 function getUserIdFromToken(token: string): string | null {
@@ -29,16 +30,11 @@ export async function signUpAction(
   const password = formData.get("password") as string
 
   try {
-    const res = await signUp(username, email, password)
-    const body = await res.json()
-
-    if (!res.ok) {
-      return { error: (body.message as string) ?? "Something went wrong." }
-    }
-
-    const { token, refreshToken } = body.data as { token: string; refreshToken: string }
+    const { data } = await signUp(username, email, password)
+    const { token, refreshToken } = data.data as { token: string; refreshToken: string }
     await setSessionCookies(token, refreshToken)
-  } catch {
+  } catch (err) {
+    if (isAxiosError(err)) return { error: err.response?.data?.message ?? "Something went wrong." }
     return { error: "Could not reach the server." }
   }
 

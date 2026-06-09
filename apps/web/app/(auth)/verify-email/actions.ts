@@ -1,7 +1,7 @@
 "use server"
 
 import { redirect } from "next/navigation"
-import { getAuthActionError } from "@/lib/auth/api-error"
+import { isAxiosError } from "axios"
 import { verifyEmail, resendVerificationEmail } from "@/lib/services/auth-service"
 
 interface ActionState {
@@ -18,9 +18,9 @@ export async function verifyEmailAction(
   const token = formData.get("token") as string
 
   try {
-    const res = await verifyEmail(token)
-    if (!res.ok) return { ...(await getAuthActionError(res, "Verification failed.")), success: false }
-  } catch {
+    await verifyEmail(token)
+  } catch (err) {
+    if (isAxiosError(err)) return { error: err.response?.data?.message ?? "Verification failed.", success: false }
     return { error: "Could not reach the server.", success: false }
   }
 
@@ -34,10 +34,17 @@ export async function resendVerificationAction(
   const email = formData.get("email") as string
 
   try {
-    const res = await resendVerificationEmail(email)
-    if (!res.ok)
-      return { ...(await getAuthActionError(res, "Could not resend the email.")), success: false }
-  } catch {
+    await resendVerificationEmail(email)
+  } catch (err) {
+    if (isAxiosError(err)) {
+      const d = err.response?.data as { message?: string; code?: string }
+      return {
+        error: d?.message ?? "Could not resend the email.",
+        code: d?.code,
+        retryAfter: err.response?.status === 429 ? 60 : undefined,
+        success: false,
+      }
+    }
     return { error: "Could not reach the server.", success: false }
   }
 

@@ -3,7 +3,7 @@ import { ACCESS_COOKIE, REFRESH_COOKIE } from "./auth-cookies"
 
 export { ACCESS_COOKIE, REFRESH_COOKIE }
 
-export const API_URL = process.env.API_URL ?? "http://localhost"
+export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost"
 const MAX_AGE = 60 * 60 * 24 * 7
 
 export async function setSessionCookies(accessToken: string, refreshToken: string): Promise<void> {

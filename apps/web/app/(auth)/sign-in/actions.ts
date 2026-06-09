@@ -1,7 +1,7 @@
 "use server"
 
 import { redirect } from "next/navigation"
-import { getAuthActionError } from "@/lib/auth/api-error"
+import { isAxiosError } from "axios"
 import { setSessionCookies } from "@/lib/auth/session"
 import { signIn } from "@/lib/services/auth-service"
 
@@ -23,19 +23,17 @@ export async function signInAction(
   let twoFactorPath: string | undefined
 
   try {
-    const res = await signIn(identifier, password)
-    if (!res.ok) return await getAuthActionError(res, "Something went wrong.")
-
-    const body = await res.json()
-    if (body.requiresTwoFactor) {
-      const pendingToken = body.data?.pendingToken as string | undefined
+    const { data } = await signIn(identifier, password)
+    if (data.requiresTwoFactor) {
+      const pendingToken = data.data?.pendingToken as string | undefined
       if (!pendingToken) return { error: "Two-factor verification could not be started." }
       twoFactorPath = `/two-factor?t=${encodeURIComponent(pendingToken)}`
     } else {
-      accessToken = body.data?.token
-      refreshToken = body.data?.refreshToken
+      accessToken = data.data?.token
+      refreshToken = data.data?.refreshToken
     }
-  } catch {
+  } catch (err) {
+    if (isAxiosError(err)) return { error: err.response?.data?.message ?? "Something went wrong." }
     return { error: "Could not reach the server." }
   }
 

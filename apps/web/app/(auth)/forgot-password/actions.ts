@@ -1,6 +1,6 @@
 "use server"
 
-import { getAuthActionError } from "@/lib/auth/api-error"
+import { isAxiosError } from "axios"
 import { forgotPassword } from "@/lib/services/auth-service"
 
 interface ActionState {
@@ -17,9 +17,17 @@ export async function forgotPasswordAction(
   const email = formData.get("email") as string
 
   try {
-    const res = await forgotPassword(email)
-    if (!res.ok) return { ...(await getAuthActionError(res, "Something went wrong.")), sent: false }
-  } catch {
+    await forgotPassword(email)
+  } catch (err) {
+    if (isAxiosError(err)) {
+      const d = err.response?.data as { message?: string; code?: string }
+      return {
+        error: d?.message ?? "Something went wrong.",
+        code: d?.code,
+        retryAfter: err.response?.status === 429 ? 60 : undefined,
+        sent: false,
+      }
+    }
     return { error: "Could not reach the server.", sent: false }
   }
 

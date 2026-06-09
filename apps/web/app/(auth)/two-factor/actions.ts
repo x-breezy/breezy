@@ -1,7 +1,7 @@
 "use server"
 
 import { redirect } from "next/navigation"
-import { getAuthActionError } from "@/lib/auth/api-error"
+import { isAxiosError } from "axios"
 import { setSessionCookies } from "@/lib/auth/session"
 import { verifyTwoFactorLogin, resendTwoFactorLoginCode } from "@/lib/services/auth-service"
 
@@ -23,13 +23,11 @@ export async function twoFactorAction(
   let refreshToken: string
 
   try {
-    const res = await verifyTwoFactorLogin(pendingToken, code)
-    if (!res.ok) return await getAuthActionError(res, "Invalid code.")
-
-    const body = await res.json()
-    token = body.data.token
-    refreshToken = body.data.refreshToken
-  } catch {
+    const { data } = await verifyTwoFactorLogin(pendingToken, code)
+    token = data.data.token
+    refreshToken = data.data.refreshToken
+  } catch (err) {
+    if (isAxiosError(err)) return { error: err.response?.data?.message ?? "Invalid code." }
     return { error: "Could not reach the server." }
   }
 
@@ -45,9 +43,16 @@ export async function resendTwoFactorCodeAction(
   const pendingToken = formData.get("pendingToken") as string
 
   try {
-    const res = await resendTwoFactorLoginCode(pendingToken)
-    if (!res.ok) return await getAuthActionError(res, "Could not resend the code.")
-  } catch {
+    await resendTwoFactorLoginCode(pendingToken)
+  } catch (err) {
+    if (isAxiosError(err)) {
+      const d = err.response?.data as { message?: string; code?: string }
+      return {
+        error: d?.message ?? "Could not resend the code.",
+        code: d?.code,
+        retryAfter: err.response?.status === 429 ? 60 : undefined,
+      }
+    }
     return { error: "Could not reach the server." }
   }
 

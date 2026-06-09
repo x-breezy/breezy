@@ -2,7 +2,7 @@
 
 import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
-import { getAuthActionError } from "@/lib/auth/api-error"
+import { isAxiosError } from "axios"
 import { clearSessionCookies, getServerAuthHeader, REFRESH_COOKIE } from "@/lib/auth/session"
 import { logout, sendTwoFactorCode, enableTwoFactor, disableTwoFactor } from "@/lib/services/auth-service"
 
@@ -29,9 +29,16 @@ interface ActionState {
 
 export async function twoFactorSendCodeAction(): Promise<ActionState> {
   try {
-    const res = await sendTwoFactorCode(await getServerAuthHeader())
-    if (!res.ok) return await getAuthActionError(res, "Failed to send code.")
-  } catch {
+    await sendTwoFactorCode(await getServerAuthHeader())
+  } catch (err) {
+    if (isAxiosError(err)) {
+      const d = err.response?.data as { message?: string; code?: string }
+      return {
+        error: d?.message ?? "Failed to send code.",
+        code: d?.code,
+        retryAfter: err.response?.status === 429 ? 60 : undefined,
+      }
+    }
     return { error: "Could not reach the server." }
   }
   return { error: null, sent: true }
@@ -43,9 +50,9 @@ export async function twoFactorEnableAction(
 ): Promise<ActionState> {
   const code = formData.get("code") as string
   try {
-    const res = await enableTwoFactor(code, await getServerAuthHeader())
-    if (!res.ok) return await getAuthActionError(res, "Invalid code.")
-  } catch {
+    await enableTwoFactor(code, await getServerAuthHeader())
+  } catch (err) {
+    if (isAxiosError(err)) return { error: err.response?.data?.message ?? "Invalid code." }
     return { error: "Could not reach the server." }
   }
   redirect("/settings")
@@ -53,9 +60,9 @@ export async function twoFactorEnableAction(
 
 export async function twoFactorDisableAction(): Promise<ActionState> {
   try {
-    const res = await disableTwoFactor(await getServerAuthHeader())
-    if (!res.ok) return await getAuthActionError(res, "Failed to disable 2FA.")
-  } catch {
+    await disableTwoFactor(await getServerAuthHeader())
+  } catch (err) {
+    if (isAxiosError(err)) return { error: err.response?.data?.message ?? "Failed to disable 2FA." }
     return { error: "Could not reach the server." }
   }
   redirect("/settings")
