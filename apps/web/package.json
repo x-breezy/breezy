@@ -12,22 +12,32 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@breezy/ui": "*",
+    "@base-ui/react": "^1.5.0",
     "@tabler/icons-react": "^3.44.0",
+    "@tanstack/react-query": "^5.101.0",
+    "axios": "^1.17.0",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
     "next": "^16.2.6",
     "next-themes": "^0.4.6",
     "react": "19.2.4",
     "react-dom": "19.2.4",
-    "sharp": "^0.34.5"
+    "shadcn": "^4.10.0",
+    "sharp": "^0.34.5",
+    "tailwind-merge": "^3.6.0",
+    "tw-animate-css": "^1.4.0",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@breezy/eslint-config": "*",
     "@breezy/typescript-config": "*",
     "@tailwindcss/postcss": "^4",
+    "@turbo/gen": "^2.9.15",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
+    "tailwindcss": "^4",
     "typescript": "^5"
   }
 }

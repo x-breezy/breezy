@@ -4,11 +4,10 @@
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": "explicit"
   },
-  "eslint.validate": [
-    "javascript",
-    "javascriptreact",
-    "typescript",
-    "typescriptreact"
-  ],
+  "eslint.validate": ["javascript", "javascriptreact", "typescript", "typescriptreact"],
   "eslint.format.enable": false,
+  "sonarlint.connectedMode.project": {
+    "connectionId": "http-localhost-9000-",
+    "projectKey": "Brezy"
+  }
 }

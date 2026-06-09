@@ -12,11 +12,13 @@
   },
   "dependencies": {
     "pino": "^9.5.0",
+    "pino-http": "^11.0.0",
     "pino-pretty": "^13.0.0"
   },
   "devDependencies": {
     "@breezy/eslint-config": "*",
     "@breezy/typescript-config": "*",
+    "@types/express": "^4.17.25",
     "@types/node": "^22.0.0",
     "typescript": "^5"
   }

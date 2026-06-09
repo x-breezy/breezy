@@ -1,6 +1,6 @@
 "use client"
 
-import { Button } from "@breezy/ui/components/button"
+import { Button } from "@/components/ui/button"
 import { IconArrowLeft } from "@tabler/icons-react"
 import { useRouter } from "next/navigation"
 

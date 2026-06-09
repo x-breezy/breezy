@@ -1,18 +1,23 @@
 export interface AuthEmailVerificationEvent {
   userId: string
   email: string
+  username?: string
   token: string
+  verifyUrl?: string
 }
 
 export interface AuthForgotPasswordEvent {
   userId: string
   email: string
+  username?: string
   resetToken: string
+  resetUrl?: string
 }
 
 export interface Auth2FAEvent {
   userId: string
   email: string
+  username?: string
   code: string
   expiresAt: string
 }

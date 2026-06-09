@@ -1,7 +1,7 @@
 import { IconDots } from "@tabler/icons-react"
 import { NotificationsHeader } from "@/components/notifications/NotificationsHeader"
-import { Button } from "@breezy/ui/components/button"
-import { Avatar, AvatarFallback, AvatarImage } from "@breezy/ui/components/avatar"
+import { Button } from "@/components/ui/button"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 interface Notification {
   id: string

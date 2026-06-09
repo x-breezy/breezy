@@ -13,3 +13,7 @@ export function getThemeCookie(): Theme {
 export function setThemeCookie(theme: Theme) {
   document.cookie = `${THEME_COOKIE}=${theme};path=/;max-age=${60 * 60 * 24 * 365};SameSite=Lax`
 }
+
+export function deleteThemeCookie() {
+  document.cookie = `${THEME_COOKIE}=;path=/;max-age=0`
+}

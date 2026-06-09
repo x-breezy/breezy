@@ -8,7 +8,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@breezy/ui/components/select"
+} from "@/components/ui/select"
 
 interface SettingsLanguageSelectProps {
   value: string | null

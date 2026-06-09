@@ -1,12 +1,16 @@
 import express from "express"
 import type { Express, Request, Response, NextFunction } from "express"
 import swaggerUi from "swagger-ui-express"
+import { createLogger, httpLogger } from "@breezy/logger"
 import { createNotificationRouter } from "./routes/notification.route"
 import { swaggerSpec } from "./config/swagger"
+
+const logger = createLogger({ service: "notifications-service" })
 
 export function createApp(): Express {
   const app = express()
 
+  app.use(httpLogger(logger))
   app.use(express.json())
 
   app.get("/", (_req, res) => {
@@ -22,7 +26,7 @@ export function createApp(): Express {
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
-    console.error(err)
+    logger.error({ err }, "Unhandled error")
     res.status(500).json({ success: false, error: "Internal server error" })
   })
 

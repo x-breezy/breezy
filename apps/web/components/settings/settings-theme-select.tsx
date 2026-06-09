@@ -9,7 +9,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@breezy/ui/components/select"
+} from "@/components/ui/select"
 
 const themes = [
   { value: "light", label: "Light" },

@@ -1,0 +1,258 @@
+services:
+  mongo-post-service:
+    image: mongo:8
+    container_name: breezy-mongo-post-service
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: post_service
+    volumes:
+      - mongo-post-service-data:/data/db
+    networks:
+      - breezy
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mongo-media-service:
+    image: mongo:8
+    container_name: breezy-mongo-media-service
+    restart: unless-stopped
+    ports:
+      - "27018:27017"
+    environment:
+      MONGO_INITDB_DATABASE: media_service
+    volumes:
+      - mongo-media-service-data:/data/db
+    networks:
+      - breezy
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-user-service:
+    image: postgres:16
+    container_name: breezy-postgres-user-service
+    restart: unless-stopped
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: user_service
+      POSTGRES_HOST_AUTH_METHOD: md5
+      POSTGRES_INITDB_ARGS: "--auth-host=md5 --auth-local=md5"
+    volumes:
+      - postgres-user-service-data:/var/lib/postgresql/data
+    networks:
+      - breezy
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-profile-service:
+    image: postgres:16
+    container_name: breezy-postgres-profile-service
+    restart: unless-stopped
+    ports:
+      - "5434:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: profile_service
+      POSTGRES_HOST_AUTH_METHOD: md5
+      POSTGRES_INITDB_ARGS: "--auth-host=md5 --auth-local=md5"
+    volumes:
+      - postgres-profile-service-data:/var/lib/postgresql/data
+    networks:
+      - breezy
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: breezy-rabbitmq
+    restart: unless-stopped
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: breezy
+      RABBITMQ_DEFAULT_PASS: breezy
+    networks:
+      - breezy
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mongo-notifications-service:
+    image: mongo:8
+    container_name: breezy-mongo-notifications-service
+    restart: unless-stopped
+    ports:
+      - "27019:27017"
+    environment:
+      MONGO_INITDB_DATABASE: notifications_service
+    volumes:
+      - mongo-notifications-service-data:/data/db
+    networks:
+      - breezy
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  auth-service:
+    build:
+      context: .
+      dockerfile: apps/auth-service/Dockerfile
+    container_name: breezy-auth-service
+    restart: unless-stopped
+    ports:
+      - "4000:4000"
+    volumes:
+      - shared-logs:/logs
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      DATABASE_URL: postgres://postgres:postgres@postgres-user-service:5432/user_service
+      RABBITMQ_URL: amqp://breezy:breezy@rabbitmq:5672
+      LOG_FILE: /logs/auth-service.log
+    depends_on:
+      postgres-user-service:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - breezy
+
+  profile-service:
+    build:
+      context: .
+      dockerfile: apps/profile-service/Dockerfile
+    container_name: breezy-profile-service
+    restart: unless-stopped
+    ports:
+      - "4010:4010"
+    volumes:
+      - shared-logs:/logs
+    environment:
+      NODE_ENV: production
+      PORT: 4010
+      DATABASE_URL: postgres://postgres:postgres@postgres-profile-service:5432/profile_service
+      RABBITMQ_URL: amqp://breezy:breezy@rabbitmq:5672
+      LOG_FILE: /logs/profile-service.log
+    depends_on:
+      postgres-profile-service:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - breezy
+
+  post-service:
+    build:
+      context: .
+      dockerfile: apps/post-service/Dockerfile
+    container_name: breezy-post-service
+    restart: unless-stopped
+    ports:
+      - "4040:4040"
+    volumes:
+      - shared-logs:/logs
+    environment:
+      NODE_ENV: production
+      PORT: 4040
+      DATABASE_URL: mongodb://mongo-post-service:27017/post_service
+      RABBITMQ_URL: amqp://breezy:breezy@rabbitmq:5672
+      LOG_FILE: /logs/post-service.log
+    depends_on:
+      mongo-post-service:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - breezy
+
+  media-service:
+    build:
+      context: .
+      dockerfile: apps/media-service/Dockerfile
+    container_name: breezy-media-service
+    restart: unless-stopped
+    ports:
+      - "4050:4050"
+    volumes:
+      - shared-logs:/logs
+    environment:
+      NODE_ENV: production
+      PORT: 4050
+      DATABASE_URL: mongodb://mongo-media-service:27017/media_service
+      LOG_FILE: /logs/media-service.log
+    depends_on:
+      mongo-media-service:
+        condition: service_healthy
+    networks:
+      - breezy
+
+  notifications-service:
+    build:
+      context: .
+      dockerfile: apps/notifications-service/Dockerfile
+    container_name: breezy-notifications-service
+    restart: unless-stopped
+    ports:
+      - "4060:4060"
+    volumes:
+      - shared-logs:/logs
+    environment:
+      NODE_ENV: production
+      PORT: 4060
+      DATABASE_URL: mongodb://mongo-notifications-service:27017/notifications_service
+      RABBITMQ_URL: amqp://breezy:breezy@rabbitmq:5672
+      LOG_FILE: /logs/notifications-service.log
+    depends_on:
+      mongo-notifications-service:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - breezy
+
+  filebeat:
+    build:
+      context: ./apps/filebeat
+      dockerfile: Dockerfile
+    container_name: breezy-filebeat
+    restart: unless-stopped
+    environment:
+      - ELASTICSEARCH_HOSTS=${ELASTICSEARCH_HOSTS}
+    volumes:
+      - shared-logs:/logs
+    networks:
+      - breezy
+
+networks:
+  breezy:
+    driver: bridge
+
+volumes:
+  mongo-post-service-data:
+  mongo-media-service-data:
+  mongo-notifications-service-data:
+  postgres-user-service-data:
+  postgres-profile-service-data:
+  shared-logs:

@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation"
 import { IconBell, IconPlus } from "@tabler/icons-react"
-import { Button } from "@breezy/ui/components/button"
+import { Button } from "@/components/ui/button"
 import { PageHeader, PageHeaderContent } from "@/components/layout/page-header"
 import {
   Select,
@@ -11,7 +11,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@breezy/ui/components/select"
+} from "@/components/ui/select"
 
 const FEED_OPTIONS = ["For you", "Following", "Trending"]
 

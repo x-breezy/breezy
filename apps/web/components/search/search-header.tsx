@@ -8,8 +8,8 @@ import {
   InputGroupButton,
   InputGroupInput,
   InputGroupText,
-} from "@breezy/ui/components/input-group"
-import { Button } from "@breezy/ui/components/button"
+} from "@/components/ui/input-group"
+import { Button } from "@/components/ui/button"
 import { PageHeader } from "@/components/layout/page-header"
 
 export function SearchHeader() {

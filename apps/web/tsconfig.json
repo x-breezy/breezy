@@ -3,13 +3,12 @@
   "compilerOptions": {
     "paths": {
       "@/*": ["./*"],
-      "@breezy/ui/*": ["../../packages/ui/src/*"]
     },
     "plugins": [
       {
-        "name": "next"
-      }
-    ]
+        "name": "next",
+      },
+    ],
   },
   "include": [
     "next-env.d.ts",
@@ -18,7 +17,7 @@
     "**/*.tsx",
     "**/*.mts",
     ".next/types/**/*.ts",
-    ".next/dev/types/**/*.ts"
+    ".next/dev/types/**/*.ts",
   ],
-  "exclude": ["node_modules", "components/ui/next-app"]
+  "exclude": ["node_modules", "components/ui/next-app"],
 }

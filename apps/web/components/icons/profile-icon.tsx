@@ -1,5 +1,5 @@
-import { Avatar, AvatarImage } from "@breezy/ui/components/avatar"
-import { cn } from "@breezy/ui/lib/utils"
+import { Avatar, AvatarImage } from "@/components/ui/avatar"
+import { cn } from "@/lib/utils"
 
 interface ProfileIconProps {
   active?: boolean
@@ -10,7 +10,7 @@ interface ProfileIconProps {
 
 export function ProfileIcon({
   active = false,
-  src = "/navbar/pp_test.png",
+  src = "/test/pp_test.png",
   alt = "Profile",
   className,
 }: ProfileIconProps) {
