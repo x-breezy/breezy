@@ -1,5 +1,5 @@
 import type { Response } from "express"
-import { sseService } from "./sse.service"
+import { sseService } from "../../services/sse.service"
 
 function mockRes(): Response & { written: string[] } {
   const written: string[] = []

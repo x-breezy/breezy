@@ -1,7 +1,7 @@
-import { getPermissions } from "./permission.service"
-import { PERMISSIONS } from "../constants/permissions"
-import { ROLES } from "../constants/roles"
-import { VISITOR_PERMISSIONS } from "../constants/rbac"
+import { getPermissions } from "../../services/permission.service"
+import { PERMISSIONS } from "../../constants/permissions"
+import { ROLES } from "../../constants/roles"
+import { VISITOR_PERMISSIONS } from "../../constants/rbac"
 
 describe("getPermissions", () => {
   it("grants all permissions to user role", () => {

@@ -1,4 +1,4 @@
-import NotificationService from "./notification.service"
+import NotificationService from "../../services/notification.service"
 
 jest.mock("../models/notification.model", () => ({
   NotificationModel: {
@@ -15,8 +15,8 @@ jest.mock("./sse.service", () => ({
   sseService: { push: jest.fn() },
 }))
 
-import { NotificationModel } from "../models/notification.model"
-import { sseService } from "./sse.service"
+import { NotificationModel } from "../../models/notification.model"
+import { sseService } from "../../services/sse.service"
 
 const mockModel = NotificationModel as jest.Mocked<typeof NotificationModel>
 const mockSse = sseService as jest.Mocked<typeof sseService>

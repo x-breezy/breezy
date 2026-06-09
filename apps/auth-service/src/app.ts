@@ -25,8 +25,8 @@ export function createApp(): Express {
   })
 
   app.use("/auth", createAuthRouter())
-  app.use("/auth/users", createUserRouter())
-  app.use("/auth/reports", createReportRouter())
+  app.use("/users", createUserRouter())
+  app.use("/reports", createReportRouter())
 
   // Global error handler — must be registered last and have exactly 4 params
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

@@ -2,17 +2,17 @@ import { Button, Section, Text } from "react-email"
 import { Layout } from "../layouts/layout"
 
 interface ResetPasswordEmailProps {
-  token: string
+  url: string
   appUrl?: string
   user: {
     name: string
   }
 }
 
-export function ResetPasswordEmail({ token, appUrl, user }: ResetPasswordEmailProps) {
+export function ResetPasswordEmail({ url, appUrl, user }: ResetPasswordEmailProps) {
   const previewMessage = "Reset your Breezy password."
   const baseUrl = (appUrl ?? "http://localhost:3000").replace(/\/$/, "")
-  const resetUrl = `${baseUrl}/app/reset-password?token=${token}`
+  const resetUrl = url
 
   return (
     <Layout previewMessage={previewMessage} appUrl={baseUrl}>
@@ -35,7 +35,7 @@ export function ResetPasswordEmail({ token, appUrl, user }: ResetPasswordEmailPr
 
       <Section className='mt-6'>
         <Text className='m-0 text-sm leading-6 text-muted-foreground'>
-          This link expires in 10 minutes.
+          This link expires in 1 hour.
         </Text>
         <Text className='m-0 mt-2 text-sm leading-6 text-muted-foreground'>
           If you did not request a password reset, you can safely ignore this email.
@@ -46,7 +46,7 @@ export function ResetPasswordEmail({ token, appUrl, user }: ResetPasswordEmailPr
 }
 
 ResetPasswordEmail.PreviewProps = {
-  token: "bc8fcea8-07ea-4321-884a-ce9f1a01a9e0",
+  url: "http://localhost:3000/reset-password?token=bc8fcea8-07ea-4321-884a-ce9f1a01a9e0",
   user: {
     name: "John Doe",
   },

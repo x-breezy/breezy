@@ -9,14 +9,23 @@ export interface UserAttributes {
   roles: Role[]
   isBanned: boolean
   isSuspended: boolean
+  isEmailVerified: boolean
+  twoFactorEnabled: boolean
   createdAt: Date
   updatedAt: Date
 }
 
-/** Fields a caller provides on create; id/roles/isBanned/isSuspended/timestamps are defaulted by the model. */
+/** Fields a caller provides on create; the rest are defaulted by the model. */
 export type CreateUserInput = Omit<
   UserAttributes,
-  "id" | "roles" | "isBanned" | "isSuspended" | "createdAt" | "updatedAt"
+  | "id"
+  | "roles"
+  | "isBanned"
+  | "isSuspended"
+  | "isEmailVerified"
+  | "twoFactorEnabled"
+  | "createdAt"
+  | "updatedAt"
 >
 
 /** User without the password hash — safe to serialize to clients/tokens. */
@@ -30,6 +39,8 @@ export class User extends Model<UserAttributes, CreateUserInput> implements User
   declare roles: Role[]
   declare isBanned: boolean
   declare isSuspended: boolean
+  declare isEmailVerified: boolean
+  declare twoFactorEnabled: boolean
   declare readonly createdAt: Date
   declare readonly updatedAt: Date
 
@@ -78,6 +89,16 @@ export function initUserModel(sequelize: Sequelize): void {
         defaultValue: false,
       },
       isSuspended: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+      },
+      isEmailVerified: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+      },
+      twoFactorEnabled: {
         type: DataTypes.BOOLEAN,
         allowNull: false,
         defaultValue: false,

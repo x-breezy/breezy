@@ -2,13 +2,22 @@
   "name": "@breezy/emails",
   "version": "0.0.0",
   "private": true,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
   "scripts": {
-    "dev": "email dev --dir=src/templates",
-    "build": "email build --dir=src/templates",
+    "email": "email dev --dir=src/templates",
+    "build": "tsc -p tsconfig.build.json",
     "lint": "eslint src/",
     "check-types": "tsc --noEmit"
   },
   "dependencies": {
+    "@react-email/render": "^2.0.8",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "react-email": "6.5.0"
