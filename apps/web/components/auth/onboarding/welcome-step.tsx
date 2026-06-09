@@ -1,6 +1,7 @@
 "use client"
 
 import { useTransition, useState } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { IconUserFilled } from "@tabler/icons-react"
@@ -17,6 +18,7 @@ interface WelcomeStepProps {
 export function WelcomeStep({ avatar, avatarPreview, firstName, lastName, bio }: WelcomeStepProps) {
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
+  const router = useRouter()
 
   const displayName = [firstName, lastName].filter(Boolean).join(" ") || null
 
@@ -28,7 +30,11 @@ export function WelcomeStep({ avatar, avatarPreview, firstName, lastName, bio }:
       fd.append("lastName", lastName)
       fd.append("bio", bio)
       const result = await setupProfileAction(null, fd)
-      if (result?.error) setError(result.error)
+      if (result?.error) {
+        setError(result.error)
+      } else {
+        router.push("/")
+      }
     })
   }
 

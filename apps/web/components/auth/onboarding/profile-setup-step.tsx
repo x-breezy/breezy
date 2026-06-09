@@ -1,7 +1,6 @@
 "use client"
 
 import { useActionState, useRef, useState } from "react"
-import { useRouter } from "next/navigation"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Field, FieldGroup, FieldSet } from "@/components/ui/field"
@@ -12,7 +11,6 @@ import { IconCamera } from "@tabler/icons-react"
 import { setupProfileAction } from "@/app/(auth)/sign-up/actions"
 
 export function ProfileSetupStep() {
-  const router = useRouter()
   const [preview, setPreview] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [state, action, isPending] = useActionState(setupProfileAction, null)
@@ -66,7 +64,7 @@ export function ProfileSetupStep() {
                   id='firstName'
                   name='firstName'
                   type='text'
-                  placeholder='Sam'
+                  placeholder='Luca'
                   autoComplete='given-name'
                 />
               </Field>
@@ -76,7 +74,7 @@ export function ProfileSetupStep() {
                   id='lastName'
                   name='lastName'
                   type='text'
-                  placeholder='Altman'
+                  placeholder='Fourfooz'
                   autoComplete='family-name'
                 />
               </Field>
@@ -104,7 +102,6 @@ export function ProfileSetupStep() {
 
       <button
         type='button'
-        onClick={() => router.push("/")}
         className='text-sm font-medium text-muted-foreground transition-colors hover:text-foreground'
       >
         Skip for now

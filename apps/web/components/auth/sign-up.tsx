@@ -14,7 +14,7 @@ const STEPS: { label: string }[] = [{ label: "Account" }, { label: "Profile" }, 
 
 const STEP_META: Record<Step, { title: string; subtitle: string }> = {
   1: { title: "Create an account", subtitle: "Sign up to get started" },
-  2: { title: "Set up your profile", subtitle: "Add a few details — you can update these later" },
+  2: { title: "Set up your profile", subtitle: "Add a few details, you can update these later" },
   3: { title: "You're all set!", subtitle: "Your account is ready" },
 }
 

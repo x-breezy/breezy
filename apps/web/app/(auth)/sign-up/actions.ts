@@ -1,7 +1,6 @@
 "use server"
 
 import { cookies } from "next/headers"
-import { redirect } from "next/navigation"
 import { setSessionCookies, API_URL, getServerAuthHeader, ACCESS_COOKIE } from "@/lib/auth/session"
 
 function getUserIdFromToken(token: string): string | null {
@@ -106,5 +105,5 @@ export async function setupProfileAction(
     return { error: "Could not reach the server." }
   }
 
-  redirect("/")
+  return { error: null, success: true }
 }
