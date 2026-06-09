@@ -4,6 +4,7 @@ import { useTransition, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { IconUserFilled } from "@tabler/icons-react"
+import { useRouter } from "next/navigation"
 import { setupProfileAction } from "@/app/(auth)/sign-up/actions"
 
 interface WelcomeStepProps {
@@ -15,6 +16,7 @@ interface WelcomeStepProps {
 }
 
 export function WelcomeStep({ avatar, avatarPreview, firstName, lastName, bio }: WelcomeStepProps) {
+  const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
 
@@ -28,7 +30,12 @@ export function WelcomeStep({ avatar, avatarPreview, firstName, lastName, bio }:
       fd.append("lastName", lastName)
       fd.append("bio", bio)
       const result = await setupProfileAction(null, fd)
-      if (result?.error) setError(result.error)
+      if (result?.error) {
+        setError(result.error)
+      } else {
+        router.push("/")
+        router.refresh()
+      }
     })
   }
 
