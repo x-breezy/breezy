@@ -44,24 +44,11 @@ export function createPostRouter(
 
 /**
  * @openapi
- * /posts:
+ * /api/posts:
  *   post:
  *     summary: Create a post
  *     description: Create a new post. Requires authentication via x-user-id and x-roles headers.
  *     tags: [Posts]
- *     parameters:
- *       - in: header
- *         name: x-user-id
- *         required: true
- *         schema:
- *           type: string
- *         description: Authenticated user identifier (injected by gateway).
- *       - in: header
- *         name: x-roles
- *         required: true
- *         schema:
- *           type: string
- *         description: Comma-separated roles (e.g. "user" or "admin,moderator").
  *     requestBody:
  *       required: true
  *       content:
@@ -116,7 +103,7 @@ export function createPostRouter(
  *             schema:
  *               $ref: '#/components/schemas/ApiError'
  *
- * /posts/feed:
+ * /api/posts/feed:
  *   get:
  *     summary: Personalized chronological feed
  *     description: >
@@ -153,7 +140,7 @@ export function createPostRouter(
  *                 data:
  *                   $ref: '#/components/schemas/PaginatedPosts'
  *
- * /posts/users/{userId}:
+ * /api/posts/users/{userId}:
  *   get:
  *     summary: Posts by user
  *     description: >
@@ -199,7 +186,7 @@ export function createPostRouter(
  *             schema:
  *               $ref: '#/components/schemas/ApiError'
  *
- * /posts/{id}:
+ * /api/posts/{id}:
  *   get:
  *     summary: Get a post by id
  *     tags: [Posts]

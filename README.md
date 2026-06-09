@@ -99,3 +99,61 @@ It add to the request:
 
 Visitors have no permissions. They can only reach the registration endpoint (public) and the login
 endpoint (public).
+
+## API Documentation
+
+### Generate OpenAPI spec
+
+```bash
+npm run generate:openapi
+```
+
+This creates `openapi.json` at the root by aggregating JSDoc annotations from all microservices.
+
+### Swagger UI
+
+Access interactive docs at: http://localhost/api-docs/
+
+### Test all endpoints
+
+```bash
+npm run test:api
+```
+
+Automatically tests all 41 endpoints with a generated user, reports:
+
+- ✅ Pass: valid responses (200, 201, 400, 401, 403, 404, 429)
+- ❌ Fail: unexpected errors (500, 502)
+- ⏭ Skip: internal endpoints
+
+### Troubleshooting Filebeat
+
+If logs stop appearing in Kibana after restarting services:
+
+```bash
+# Reset Filebeat registry (it tracks which files have been read)
+docker exec breezy-filebeat rm -rf /usr/share/filebeat/data/registry
+docker restart breezy-filebeat
+```
+
+### Known API bugs
+
+| Endpoint                                | Error | Issue                                   |
+| --------------------------------------- | ----- | --------------------------------------- |
+| `GET /api/posts/{id}`                   | 500   | Should return 404 when post not found   |
+| `DELETE /api/posts/{id}`                | 502   | Service crashes on invalid ID           |
+| `POST/DELETE /api/posts/{postId}/likes` | 502   | Service crashes when post doesn't exist |
+
+These are `post-service` bugs (not Swagger). The endpoints work correctly with valid IDs.
+
+# Voir les logs dans Kibana
+
+open http://localhost:5601
+
+# Reset Filebeat si besoin
+
+docker exec breezy-filebeat rm -rf /usr/share/filebeat/data/registry docker restart breezy-filebeat
+
+# Compter les logs indexés
+
+curl http://localhost:9200/breezy-logs-\*/\_count

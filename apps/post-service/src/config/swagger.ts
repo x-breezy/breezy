@@ -10,6 +10,13 @@ const options: swaggerJsdoc.Options = {
       description: "HTTP microservice for creating and serving posts.",
     },
     components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: "http",
+          scheme: "bearer",
+          bearerFormat: "JWT",
+        },
+      },
       schemas: {
         ApiError: {
           type: "object",

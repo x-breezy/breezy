@@ -49,3 +49,97 @@ function createAuthRouter(
 }
 
 export { createAuthRouter }
+
+/**
+ * @openapi
+ * /api/auth/sign-in:
+ *   post:
+ *     summary: Sign in
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email, password]
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: john@example.com
+ *               password:
+ *                 type: string
+ *                 example: Test1234!
+ *     responses:
+ *       200:
+ *         description: Authenticated.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/AuthResponse'
+ *       401:
+ *         description: Invalid credentials.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
+ *
+ * /api/auth/sign-up:
+ *   post:
+ *     summary: Sign up
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [username, email, password]
+ *             properties:
+ *               username:
+ *                 type: string
+ *                 example: johndoe
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: john@example.com
+ *               password:
+ *                 type: string
+ *                 example: Test1234!
+ *     responses:
+ *       201:
+ *         description: Account created.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/AuthResponse'
+ *       409:
+ *         description: Email or username already taken.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
+ *
+ * /api/auth/validate:
+ *   get:
+ *     summary: Validate JWT (internal)
+ *     description: Used internally by nginx auth_request. Returns 200 with x-user-id and x-roles headers on success.
+ *     tags: [Auth]
+ *     parameters:
+ *       - in: header
+ *         name: Authorization
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: Bearer eyJhbGci...
+ *     responses:
+ *       200:
+ *         description: Token valid.
+ *       401:
+ *         description: Token missing or invalid.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
+ */

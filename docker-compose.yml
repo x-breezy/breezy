@@ -1,6 +1,8 @@
 services:
   gateway:
-    build: ./apps/gateway
+    build:
+      context: .
+      dockerfile: apps/gateway/Dockerfile
     container_name: breezy-gateway
     restart: unless-stopped
     ports:
@@ -126,6 +128,137 @@ services:
       timeout: 5s
       retries: 5
 
+  swagger-ui:
+    image: swaggerapi/swagger-ui:latest
+    container_name: breezy-swagger-ui
+    restart: unless-stopped
+    environment:
+      URL: /openapi.json
+      BASE_URL: /api-docs
+    networks:
+      - breezy
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.15.0
+    container_name: breezy-elasticsearch
+    restart: unless-stopped
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
+    networks:
+      - breezy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9200/_cluster/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.15.0
+    container_name: breezy-kibana
+    restart: unless-stopped
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - XPACK_SECURITY_ENABLED=false
+    ports:
+      - "5601:5601"
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    networks:
+      - breezy
+
+  filebeat:
+    build:
+      context: ./apps/filebeat
+      dockerfile: Dockerfile
+    container_name: breezy-filebeat
+    restart: unless-stopped
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    volumes:
+      - shared-logs:/logs
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    networks:
+      - breezy
+
+  sonarqube:
+    image: sonarqube:10.6-community
+    container_name: breezy-sonarqube
+    restart: unless-stopped
+    environment:
+      - SONAR_ES_BOOTSTRAP_CHECKS_DISABLE=true
+      - SONAR_SEARCH_JAVAOPTS=-Xms512m -Xmx512m
+      - SONAR_WEB_JAVAOPTS=-Xmx512m
+      - SONAR_JDBC_URL=jdbc:postgresql://postgres-sonar:5432/sonar
+      - SONAR_JDBC_USERNAME=sonar
+      - SONAR_JDBC_PASSWORD=sonar
+    ports:
+      - "9000:9000"
+    depends_on:
+      postgres-sonar:
+        condition: service_healthy
+    networks:
+      - breezy
+    volumes:
+      - sonarqube-data:/opt/sonarqube/data
+      - sonarqube-logs:/opt/sonarqube/logs
+    mem_limit: 2g
+
+  postgres-sonar:
+    image: postgres:16-alpine
+    container_name: breezy-postgres-sonar
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: sonar
+      POSTGRES_PASSWORD: sonar
+      POSTGRES_DB: sonar
+    volumes:
+      - postgres-sonar-data:/var/lib/postgresql/data
+    networks:
+      - breezy
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sonar"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # PostgreSQL Admin GUI with auto-configured connections
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: breezy-pgadmin
+    restart: unless-stopped
+    entrypoint:
+      [
+        "/bin/sh",
+        "-c",
+        "mkdir -p /var/lib/pgadmin/storage/admin_breezy.com && cp /pgadmin4/servers.json
+        /var/lib/pgadmin/servers.json 2>/dev/null || true; /entrypoint.sh",
+      ]
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@breezy.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+      - ./apps/pgadmin/servers.json:/pgadmin4/servers.json:ro
+      - ./apps/pgadmin/.pgpass:/pgadmin4/.pgpass:ro
+    networks:
+      - breezy
+    depends_on:
+      - postgres-user-service
+      - postgres-profile-service
+
 networks:
   breezy:
     driver: bridge
@@ -136,3 +269,9 @@ volumes:
   mongo-notifications-service-data:
   postgres-user-service-data:
   postgres-profile-service-data:
+  elasticsearch-data:
+  shared-logs:
+  sonarqube-data:
+  sonarqube-logs:
+  postgres-sonar-data:
+  pgadmin-data:
