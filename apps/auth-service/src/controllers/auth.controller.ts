@@ -13,6 +13,7 @@ import type {
   RefreshDTO,
   LogoutDTO,
   TwoFactorVerifyLoginDTO,
+  TwoFactorResendLoginDTO,
   TwoFactorEnableDTO,
 } from "../schemas/auth.schema"
 
@@ -273,6 +274,41 @@ class AuthController {
         res.status(401).json({ success: false, message: "Invalid or expired code" })
         return
       }
+      next(error)
+    }
+  }
+
+  twoFactorResendLoginCode = async (
+    req: Request<Record<string, never>, unknown, TwoFactorResendLoginDTO>,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      let userId: string
+      try {
+        userId = verifyPendingToken(req.body.pendingToken)
+      } catch {
+        res.status(401).json({ success: false, message: "Invalid or expired session" })
+        return
+      }
+
+      const user = await this.userService.getUser(userId)
+      if (!user || !user.twoFactorEnabled) {
+        res.status(401).json({ success: false, message: "Invalid or expired session" })
+        return
+      }
+
+      const { code, expiresAt } = await this.authService.createTwoFactorCode(userId)
+      void publish("auth.2fa_code", {
+        userId,
+        email: user.email,
+        username: user.username,
+        code,
+        expiresAt: expiresAt.toISOString(),
+      })
+
+      res.status(200).json({ success: true })
+    } catch (error) {
       next(error)
     }
   }

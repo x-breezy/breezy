@@ -16,7 +16,7 @@ export function SettingsUserCard({ name, username, avatarUrl, onClick }: Setting
   return (
     <button
       onClick={onClick}
-      className='flex w-full items-center justify-between rounded-3xl bg-muted p-3.5 text-left transition active:bg-accent/50'
+      className='flex w-full items-center justify-between rounded-3xl bg-input/50 p-3.5 text-left transition'
     >
       <div className='flex items-center gap-3'>
         {avatarUrl ? (
@@ -25,10 +25,10 @@ export function SettingsUserCard({ name, username, avatarUrl, onClick }: Setting
             alt={name}
             width={48}
             height={48}
-            className='h-12 w-12 flex-shrink-0 rounded-full object-cover'
+            className='h-12 w-12 shrink-0 rounded-full object-cover'
           />
         ) : (
-          <div className='flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-muted-foreground/20 text-base font-bold text-muted-foreground uppercase'>
+          <div className='flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-muted-foreground/20 text-base font-bold text-muted-foreground uppercase'>
             {initial}
           </div>
         )}
@@ -37,7 +37,7 @@ export function SettingsUserCard({ name, username, avatarUrl, onClick }: Setting
           <span className='text-xs text-muted-foreground'>@{username}</span>
         </div>
       </div>
-      <IconChevronRight className='h-4 w-4 text-foreground' />
+      <IconChevronRight className='pointer-events-none size-4 text-muted-foreground' />
     </button>
   )
 }

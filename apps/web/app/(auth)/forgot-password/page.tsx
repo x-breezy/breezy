@@ -2,6 +2,7 @@
 
 import { useActionState } from "react"
 import Link from "next/link"
+import { useCooldown } from "@/hooks/use-cooldown"
 import { AuthHeader } from "@/components/auth/auth-header"
 import { Button } from "@/components/ui/button"
 import { Field, FieldGroup, FieldSet } from "@/components/ui/field"
@@ -12,10 +13,11 @@ import { forgotPasswordAction } from "./actions"
 
 export default function ForgotPasswordPage() {
   const [state, action, isPending] = useActionState(forgotPasswordAction, null)
+  const cooldown = useCooldown(state?.retryAfter, state)
 
   if (state?.sent) {
     return (
-      <div className='mx-auto flex w-full max-w-sm flex-col justify-center px-4 py-12 text-center font-sans select-none'>
+      <div className='mx-auto flex w-full max-w-sm animate-in flex-col justify-center px-4 py-12 text-center font-sans duration-300 select-none fade-in slide-in-from-bottom-4'>
         <AuthHeader
           title='Check your email'
           subtitle='A reset link has been sent if that account exists.'
@@ -30,7 +32,7 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className='mx-auto flex w-full max-w-sm flex-col justify-center px-4 py-12 font-sans select-none'>
+    <div className='mx-auto flex w-full max-w-sm animate-in flex-col justify-center px-4 py-12 font-sans duration-300 select-none fade-in slide-in-from-bottom-4'>
       <AuthHeader title='Forgot password' subtitle='Enter your email to receive a reset link' />
 
       <form action={action} className='flex w-full flex-col gap-4'>
@@ -53,11 +55,20 @@ export default function ForgotPasswordPage() {
               </InputGroup>
             </Field>
 
-            {state?.error && <p className='text-xs text-destructive'>{state.error}</p>}
+            {state?.error && (
+              <div className='text-xs text-destructive'>
+                <p>{state.error}</p>
+                {state.code && <p className='mt-1 text-muted-foreground'>Code: {state.code}</p>}
+              </div>
+            )}
 
             <Field>
-              <Button type='submit' size='lg' disabled={isPending}>
-                {isPending ? "Sending…" : "Send reset link"}
+              <Button type='submit' size='lg' disabled={isPending || cooldown > 0}>
+                {isPending
+                  ? "Sending…"
+                  : cooldown > 0
+                    ? `Try again in ${cooldown}s`
+                    : "Send reset link"}
               </Button>
             </Field>
           </FieldGroup>

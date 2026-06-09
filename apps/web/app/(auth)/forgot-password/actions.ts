@@ -1,10 +1,13 @@
 "use server"
 
+import { getAuthActionError } from "@/lib/auth/api-error"
 import { API_URL } from "@/lib/auth/session"
 
 interface ActionState {
   error: string | null
   sent: boolean
+  code?: string
+  retryAfter?: number
 }
 
 export async function forgotPasswordAction(
@@ -21,7 +24,7 @@ export async function forgotPasswordAction(
     })
 
     if (!res.ok) {
-      return { error: "Something went wrong.", sent: false }
+      return { ...(await getAuthActionError(res, "Something went wrong.")), sent: false }
     }
   } catch {
     return { error: "Could not reach the server.", sent: false }

@@ -1,11 +1,14 @@
 "use server"
 
 import { redirect } from "next/navigation"
+import { getAuthActionError } from "@/lib/auth/api-error"
 import { API_URL } from "@/lib/auth/session"
 
 interface ActionState {
   error: string | null
   success: boolean
+  code?: string
+  retryAfter?: number
 }
 
 export async function verifyEmailAction(
@@ -21,10 +24,8 @@ export async function verifyEmailAction(
       body: JSON.stringify({ token }),
     })
 
-    const body = await res.json()
-
     if (!res.ok) {
-      return { error: (body.message as string) ?? "Verification failed.", success: false }
+      return { ...(await getAuthActionError(res, "Verification failed.")), success: false }
     }
   } catch {
     return { error: "Could not reach the server.", success: false }
@@ -47,8 +48,7 @@ export async function resendVerificationAction(
     })
 
     if (!res.ok) {
-      const body = await res.json()
-      return { error: (body.message as string) ?? "Could not resend the email.", success: false }
+      return { ...(await getAuthActionError(res, "Could not resend the email.")), success: false }
     }
   } catch {
     return { error: "Could not reach the server.", success: false }

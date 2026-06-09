@@ -21,6 +21,7 @@ export function SettingsHeader({ onClose }: SettingsHeaderProps) {
           </button>
         }
         center={<h1 className='text-lg font-bold'>Settings</h1>}
+        right={<div className='size-8'></div>}
       />
     </PageHeader>
   )

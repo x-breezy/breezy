@@ -2,6 +2,7 @@
 
 import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
+import { getAuthActionError } from "@/lib/auth/api-error"
 import {
   API_URL,
   clearSessionCookies,
@@ -30,6 +31,8 @@ export async function logoutAction() {
 interface ActionState {
   error: string | null
   sent?: boolean
+  code?: string
+  retryAfter?: number
 }
 
 export async function twoFactorSendCodeAction(): Promise<ActionState> {
@@ -38,7 +41,7 @@ export async function twoFactorSendCodeAction(): Promise<ActionState> {
       method: "POST",
       headers: { "Content-Type": "application/json", ...(await getServerAuthHeader()) },
     })
-    if (!res.ok) return { error: "Failed to send code." }
+    if (!res.ok) return await getAuthActionError(res, "Failed to send code.")
   } catch {
     return { error: "Could not reach the server." }
   }
@@ -56,8 +59,7 @@ export async function twoFactorEnableAction(
       headers: { "Content-Type": "application/json", ...(await getServerAuthHeader()) },
       body: JSON.stringify({ code }),
     })
-    const body = await res.json()
-    if (!res.ok) return { error: (body.message as string) ?? "Invalid code." }
+    if (!res.ok) return await getAuthActionError(res, "Invalid code.")
   } catch {
     return { error: "Could not reach the server." }
   }
@@ -70,7 +72,7 @@ export async function twoFactorDisableAction(): Promise<ActionState> {
       method: "POST",
       headers: { "Content-Type": "application/json", ...(await getServerAuthHeader()) },
     })
-    if (!res.ok) return { error: "Failed to disable 2FA." }
+    if (!res.ok) return await getAuthActionError(res, "Failed to disable 2FA.")
   } catch {
     return { error: "Could not reach the server." }
   }

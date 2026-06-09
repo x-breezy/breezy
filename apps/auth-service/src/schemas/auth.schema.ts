@@ -52,5 +52,8 @@ export const twoFactorVerifyLoginSchema = z.object({
 })
 export type TwoFactorVerifyLoginDTO = z.infer<typeof twoFactorVerifyLoginSchema>
 
+export const twoFactorResendLoginSchema = z.object({ pendingToken: z.string() })
+export type TwoFactorResendLoginDTO = z.infer<typeof twoFactorResendLoginSchema>
+
 export const twoFactorEnableSchema = z.object({ code: z.string().length(6) })
 export type TwoFactorEnableDTO = z.infer<typeof twoFactorEnableSchema>

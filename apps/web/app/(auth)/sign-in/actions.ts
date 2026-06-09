@@ -1,10 +1,13 @@
 "use server"
 
 import { redirect } from "next/navigation"
+import { getAuthActionError } from "@/lib/auth/api-error"
 import { setSessionCookies, API_URL } from "@/lib/auth/session"
 
 interface ActionState {
   error: string | null
+  code?: string
+  retryAfter?: number
 }
 
 export async function signInAction(
@@ -14,8 +17,9 @@ export async function signInAction(
   const identifier = formData.get("identifier") as string
   const password = formData.get("password") as string
 
-  let accessToken: string
-  let refreshToken: string
+  let accessToken: string | undefined
+  let refreshToken: string | undefined
+  let twoFactorPath: string | undefined
 
   try {
     const res = await fetch(`${API_URL}/api/auth/sign-in`, {
@@ -23,14 +27,27 @@ export async function signInAction(
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ identifier, password }),
     })
-    const body = await res.json()
     if (!res.ok) {
-      return { error: (body.message as string) ?? "Something went wrong." }
+      return await getAuthActionError(res, "Something went wrong.")
     }
-    accessToken = body.data.token
-    refreshToken = body.data.refreshToken
+
+    const body = await res.json()
+    if (body.requiresTwoFactor) {
+      const pendingToken = body.data?.pendingToken as string | undefined
+      if (!pendingToken) return { error: "Two-factor verification could not be started." }
+      twoFactorPath = `/two-factor?t=${encodeURIComponent(pendingToken)}`
+    } else {
+      accessToken = body.data?.token
+      refreshToken = body.data?.refreshToken
+    }
   } catch {
     return { error: "Could not reach the server." }
+  }
+
+  if (twoFactorPath) redirect(twoFactorPath)
+
+  if (!accessToken || !refreshToken) {
+    return { error: "Authentication response was incomplete." }
   }
 
   await setSessionCookies(accessToken, refreshToken)
