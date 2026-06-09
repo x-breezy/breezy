@@ -1,0 +1,25 @@
+{
+  "Servers": {
+    "1": {
+      "Name": "auth-service (users)",
+      "Group": "Breezy Services",
+      "Host": "postgres-user-service",
+      "Port": 5432,
+      "MaintenanceDB": "user_service",
+      "Username": "postgres",
+      "PassFile": "/pgadmin4/.pgpass",
+      "SSLMode": "prefer",
+      "Favorite": true
+    },
+    "2": {
+      "Name": "profile-service",
+      "Group": "Breezy Services",
+      "Host": "postgres-profile-service",
+      "Port": 5432,
+      "MaintenanceDB": "profile_service",
+      "Username": "postgres",
+      "PassFile": "/pgadmin4/.pgpass",
+      "SSLMode": "prefer"
+    }
+  }
+}
