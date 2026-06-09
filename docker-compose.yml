@@ -138,57 +138,6 @@ services:
     networks:
       - breezy
 
-  elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.15.0
-    container_name: breezy-elasticsearch
-    restart: unless-stopped
-    environment:
-      - discovery.type=single-node
-      - xpack.security.enabled=false
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-    ports:
-      - "9200:9200"
-    volumes:
-      - elasticsearch-data:/usr/share/elasticsearch/data
-    networks:
-      - breezy
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9200/_cluster/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  kibana:
-    image: docker.elastic.co/kibana/kibana:8.15.0
-    container_name: breezy-kibana
-    restart: unless-stopped
-    environment:
-      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
-      - XPACK_SECURITY_ENABLED=false
-    ports:
-      - "5601:5601"
-    depends_on:
-      elasticsearch:
-        condition: service_healthy
-    networks:
-      - breezy
-
-  filebeat:
-    build:
-      context: ./apps/filebeat
-      dockerfile: Dockerfile
-    container_name: breezy-filebeat
-    restart: unless-stopped
-    environment:
-      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
-    volumes:
-      - shared-logs:/logs
-    depends_on:
-      elasticsearch:
-        condition: service_healthy
-    networks:
-      - breezy
-
   sonarqube:
     image: sonarqube:10.6-community
     container_name: breezy-sonarqube
@@ -230,35 +179,6 @@ services:
       timeout: 5s
       retries: 5
 
-  # PostgreSQL Admin GUI with auto-configured connections
-  pgadmin:
-    image: dpage/pgadmin4:latest
-    container_name: breezy-pgadmin
-    restart: unless-stopped
-    entrypoint:
-      [
-        "/bin/sh",
-        "-c",
-        "mkdir -p /var/lib/pgadmin/storage/admin_breezy.com && cp /pgadmin4/servers.json
-        /var/lib/pgadmin/servers.json 2>/dev/null || true; /entrypoint.sh",
-      ]
-    environment:
-      PGADMIN_DEFAULT_EMAIL: admin@breezy.com
-      PGADMIN_DEFAULT_PASSWORD: admin
-      PGADMIN_CONFIG_SERVER_MODE: "False"
-      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
-    ports:
-      - "5050:80"
-    volumes:
-      - pgadmin-data:/var/lib/pgadmin
-      - ./apps/pgadmin/servers.json:/pgadmin4/servers.json:ro
-      - ./apps/pgadmin/.pgpass:/pgadmin4/.pgpass:ro
-    networks:
-      - breezy
-    depends_on:
-      - postgres-user-service
-      - postgres-profile-service
-
 networks:
   breezy:
     driver: bridge
@@ -269,9 +189,6 @@ volumes:
   mongo-notifications-service-data:
   postgres-user-service-data:
   postgres-profile-service-data:
-  elasticsearch-data:
-  shared-logs:
   sonarqube-data:
   sonarqube-logs:
   postgres-sonar-data:
-  pgadmin-data:
