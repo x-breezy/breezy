@@ -18,7 +18,7 @@ export default function SignInScreen() {
   const [state, action, isPending] = useActionState(signInAction, null)
 
   return (
-    <div className='mx-auto flex w-full max-w-sm flex-col justify-center px-4 py-12 font-sans select-none'>
+    <div className='mx-auto flex w-full max-w-sm animate-in flex-col justify-center px-4 py-12 font-sans duration-300 select-none fade-in slide-in-from-bottom-4'>
       <AuthHeader title='Welcome to Breezy' subtitle='Log in to continue' />
 
       <form action={action} className='flex w-full flex-col gap-4'>
@@ -81,7 +81,13 @@ export default function SignInScreen() {
         </FieldSet>
       </form>
 
-      <div className='mt-6 text-center text-sm font-medium text-muted-foreground'>
+      <div className='mt-4 text-center text-sm font-medium text-muted-foreground'>
+        <Link href='/forgot-password' className='font-semibold text-foreground underline'>
+          Forgot password?
+        </Link>
+      </div>
+
+      <div className='mt-4 text-center text-sm font-medium text-muted-foreground'>
         Don&apos;t have an account?{" "}
         <Link href='/sign-up' className='font-semibold text-foreground underline'>
           Sign up

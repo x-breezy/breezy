@@ -29,7 +29,13 @@ interface PasswordFieldProps {
   showStrength?: boolean
 }
 
-export function PasswordField({ id, name, value, onChange, showStrength = false }: PasswordFieldProps) {
+export function PasswordField({
+  id,
+  name,
+  value,
+  onChange,
+  showStrength = false,
+}: PasswordFieldProps) {
   const [visible, setVisible] = useState(false)
   const strength = getStrength(value)
 

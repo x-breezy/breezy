@@ -6,6 +6,7 @@ import {
   SettingsLanguageSelect,
   SettingsThemeSelect,
   SettingsLogoutButton,
+  SettingsTwoFactor,
 } from "."
 import { logoutAction } from "@/app/(app)/settings/actions"
 
@@ -13,9 +14,15 @@ interface SettingsScreenProps {
   name: string
   username: string
   avatarUrl?: string
+  twoFactorEnabled?: boolean
 }
 
-export default function SettingsScreen({ name, username, avatarUrl }: SettingsScreenProps) {
+export default function SettingsScreen({
+  name,
+  username,
+  avatarUrl,
+  twoFactorEnabled = false,
+}: SettingsScreenProps) {
   const [language, setLanguage] = useState<string | null>("fr")
 
   async function handleLogout() {
@@ -35,6 +42,8 @@ export default function SettingsScreen({ name, username, avatarUrl }: SettingsSc
         <SettingsLanguageSelect value={language} onChange={setLanguage} />
 
         <SettingsThemeSelect />
+
+        <SettingsTwoFactor enabled={twoFactorEnabled} />
 
         <SettingsLogoutButton onLogout={handleLogout} />
       </div>

@@ -1,110 +1,143 @@
 "use client"
 
-import { useActionState, useState } from "react"
+import { useState } from "react"
 import Link from "next/link"
-import { Button } from "@/components/ui/button"
 import { AuthHeader } from "./auth-header"
-import { PasswordField, getStrength } from "./password-field"
-import { ConfirmPasswordField } from "./confirm-password-field"
-import { Field, FieldGroup, FieldSet } from "../ui/field"
-import { Label } from "../ui/label"
-import OAuthButtons from "./oauth-buttons"
-import { InputGroup, InputGroupAddon, InputGroupInput } from "../ui/input-group"
-import { IconAt, IconMail } from "@tabler/icons-react"
-import { signUpAction } from "@/app/(auth)/sign-up/actions"
+import { AccountStep } from "./onboarding/account-step"
+import { PhotoStep } from "./onboarding/photo-step"
+import { WelcomeStep } from "./onboarding/welcome-step"
+import { cn } from "@/lib/utils"
+
+type Step = 1 | 2 | 3
+
+const STEPS: { label: string }[] = [{ label: "Account" }, { label: "Profile" }, { label: "Done" }]
+
+const STEP_META: Record<Step, { title: string; subtitle: string }> = {
+  1: { title: "Create an account", subtitle: "Sign up to get started" },
+  2: { title: "Set up your profile", subtitle: "Add a few details — you can update these later" },
+  3: { title: "You're all set!", subtitle: "Your account is ready" },
+}
+
+function StepIndicator({ current }: { current: Step }) {
+  return (
+    <div className='mb-8 flex items-center justify-center'>
+      {STEPS.map((s, i) => {
+        const num = (i + 1) as Step
+        const isActive = num === current
+        const isDone = num < current
+        return (
+          <div key={s.label} className='flex items-center'>
+            <div className='flex flex-col items-center gap-1.5'>
+              <div
+                className={cn(
+                  "flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold transition-colors",
+                  isActive
+                    ? "bg-primary text-primary-foreground"
+                    : isDone
+                      ? "bg-primary/20 text-primary"
+                      : "bg-muted text-muted-foreground"
+                )}
+              >
+                {isDone ? (
+                  <svg width='12' height='12' viewBox='0 0 12 12' fill='none'>
+                    <path
+                      d='M2 6l3 3 5-5'
+                      stroke='currentColor'
+                      strokeWidth='1.5'
+                      strokeLinecap='round'
+                      strokeLinejoin='round'
+                    />
+                  </svg>
+                ) : (
+                  num
+                )}
+              </div>
+              <span
+                className={cn(
+                  "text-[11px] font-medium transition-colors",
+                  isActive ? "text-foreground" : "text-muted-foreground"
+                )}
+              >
+                {s.label}
+              </span>
+            </div>
+            {i < STEPS.length - 1 && (
+              <div
+                className={cn(
+                  "mb-4 h-px w-12 transition-colors",
+                  current > num ? "bg-primary/40" : "bg-border"
+                )}
+              />
+            )}
+          </div>
+        )
+      })}
+    </div>
+  )
+}
 
 export default function SignUpScreen() {
-  const [password, setPassword] = useState("")
-  const [confirmPassword, setConfirmPassword] = useState("")
-  const [localError, setLocalError] = useState<string | null>(null)
-  const [state, action, isPending] = useActionState(signUpAction, null)
+  const [step, setStep] = useState<Step>(1)
+  const [avatar, setAvatar] = useState<File | null>(null)
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
+  const [firstName, setFirstName] = useState("")
+  const [lastName, setLastName] = useState("")
+  const [bio, setBio] = useState("")
 
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    if (getStrength(password) < 3) {
-      event.preventDefault()
-      setLocalError("Please choose a stronger password.")
-      return
-    }
-    if (password !== confirmPassword) {
-      event.preventDefault()
-      setLocalError("Passwords do not match.")
-      return
-    }
-    setLocalError(null)
+  function handleAvatarChange(file: File, preview: string) {
+    setAvatar(file)
+    setAvatarPreview(preview)
   }
 
-  const error = localError ?? state?.error ?? null
+  function handleFieldChange(field: "firstName" | "lastName" | "bio", value: string) {
+    if (field === "firstName") setFirstName(value)
+    else if (field === "lastName") setLastName(value)
+    else setBio(value)
+  }
+
+  const { title, subtitle } = STEP_META[step]
 
   return (
-    <div className='mx-auto flex w-full max-w-sm flex-col justify-center px-4 py-12 font-sans select-none'>
-      <AuthHeader title='Create an account' subtitle='Sign up to get started' />
+    <div className='mx-auto flex w-full max-w-sm animate-in flex-col justify-center px-4 py-12 font-sans duration-300 select-none fade-in slide-in-from-bottom-4'>
+      <AuthHeader title={title} subtitle={subtitle} />
 
-      <form action={action} onSubmit={handleSubmit} className='flex w-full flex-col gap-4'>
-        <FieldSet>
-          <FieldGroup>
-            <OAuthButtons status='register' />
-            <Field>
-              <Label htmlFor='username'>Username</Label>
-              <InputGroup>
-                <InputGroupInput
-                  id='username'
-                  name='username'
-                  type='text'
-                  placeholder='samaltman'
-                  autoComplete='username'
-                  required
-                />
-                <InputGroupAddon align='inline-start'>
-                  <IconAt />
-                </InputGroupAddon>
-              </InputGroup>
-            </Field>
+      <StepIndicator current={step} />
 
-            <Field>
-              <Label htmlFor='email'>Email address</Label>
-              <InputGroup>
-                <InputGroupInput
-                  id='email'
-                  name='email'
-                  type='email'
-                  placeholder='you@example.com'
-                  autoComplete='email'
-                  required
-                />
-                <InputGroupAddon align='inline-start'>
-                  <IconMail />
-                </InputGroupAddon>
-              </InputGroup>
-            </Field>
+      <div key={step} className='animate-in duration-200 fade-in slide-in-from-right-4'>
+        {step === 1 && (
+          <>
+            <AccountStep onSuccess={() => setStep(2)} />
+            <div className='mt-6 text-center text-sm font-medium text-muted-foreground'>
+              Already have an account?{" "}
+              <Link href='/sign-in' className='font-semibold text-foreground underline'>
+                Sign in
+              </Link>
+            </div>
+          </>
+        )}
 
-            <PasswordField
-              id='signup-password'
-              name='password'
-              value={password}
-              onChange={setPassword}
-              showStrength
-            />
+        {step === 2 && (
+          <PhotoStep
+            preview={avatarPreview}
+            onAvatarChange={handleAvatarChange}
+            firstName={firstName}
+            lastName={lastName}
+            bio={bio}
+            onChange={handleFieldChange}
+            onNext={() => setStep(3)}
+            onSkip={() => setStep(3)}
+          />
+        )}
 
-            <ConfirmPasswordField
-              value={confirmPassword}
-              password={password}
-              onChange={setConfirmPassword}
-            />
-
-            {error && <p className='text-sm text-destructive'>{error}</p>}
-
-            <Button type='submit' size='lg' disabled={isPending}>
-              {isPending ? "Creating account…" : "Sign up"}
-            </Button>
-          </FieldGroup>
-        </FieldSet>
-      </form>
-
-      <div className='mt-6 text-center text-sm font-medium text-muted-foreground'>
-        Already have an account?{" "}
-        <Link href='/sign-in' className='font-semibold text-foreground underline'>
-          Sign in
-        </Link>
+        {step === 3 && (
+          <WelcomeStep
+            avatar={avatar}
+            avatarPreview={avatarPreview}
+            firstName={firstName}
+            lastName={lastName}
+            bio={bio}
+          />
+        )}
       </div>
     </div>
   )

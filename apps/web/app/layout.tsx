@@ -19,6 +19,7 @@ const geistMono = Geist_Mono({
 const geom = Geom({
   subsets: ["latin"],
   variable: "--font-geom",
+  fallback: ["ui-sans-serif", "system-ui", "-apple-system", "BlinkMacSystemFont", "sans-serif"],
 })
 
 export const metadata: Metadata = {

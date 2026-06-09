@@ -7,33 +7,36 @@ interface ActionState {
   error: string | null
 }
 
-export async function signInAction(
+export async function twoFactorAction(
   _prev: ActionState | null,
   formData: FormData
 ): Promise<ActionState> {
-  const identifier = formData.get("identifier") as string
-  const password = formData.get("password") as string
+  const pendingToken = formData.get("pendingToken") as string
+  const code = formData.get("code") as string
 
-  let accessToken: string
+  let token: string
   let refreshToken: string
 
   try {
-    const res = await fetch(`${API_URL}/api/auth/sign-in`, {
+    const res = await fetch(`${API_URL}/api/auth/2fa/verify-login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ identifier, password }),
+      body: JSON.stringify({ pendingToken, code }),
     })
+
     const body = await res.json()
+
     if (!res.ok) {
-      return { error: (body.message as string) ?? "Something went wrong." }
+      return { error: (body.message as string) ?? "Invalid code." }
     }
-    accessToken = body.data.token
+
+    token = body.data.token
     refreshToken = body.data.refreshToken
   } catch {
     return { error: "Could not reach the server." }
   }
 
-  await setSessionCookies(accessToken, refreshToken)
+  await setSessionCookies(token, refreshToken)
 
   redirect("/")
 }
