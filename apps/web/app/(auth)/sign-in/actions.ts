@@ -2,7 +2,8 @@
 
 import { redirect } from "next/navigation"
 import { getAuthActionError } from "@/lib/auth/api-error"
-import { setSessionCookies, API_URL } from "@/lib/auth/session"
+import { setSessionCookies } from "@/lib/auth/session"
+import { signIn } from "@/lib/services/auth-service"
 
 interface ActionState {
   error: string | null
@@ -22,14 +23,8 @@ export async function signInAction(
   let twoFactorPath: string | undefined
 
   try {
-    const res = await fetch(`${API_URL}/api/auth/sign-in`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ identifier, password }),
-    })
-    if (!res.ok) {
-      return await getAuthActionError(res, "Something went wrong.")
-    }
+    const res = await signIn(identifier, password)
+    if (!res.ok) return await getAuthActionError(res, "Something went wrong.")
 
     const body = await res.json()
     if (body.requiresTwoFactor) {

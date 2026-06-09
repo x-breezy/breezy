@@ -1,7 +1,8 @@
 "use server"
 
 import { cookies } from "next/headers"
-import { setSessionCookies, API_URL, getServerAuthHeader, ACCESS_COOKIE } from "@/lib/auth/session"
+import { setSessionCookies, getServerAuthHeader, ACCESS_COOKIE } from "@/lib/auth/session"
+import { signUp } from "@/lib/services/auth-service"
 
 function getUserIdFromToken(token: string): string | null {
   try {
@@ -28,12 +29,7 @@ export async function signUpAction(
   const password = formData.get("password") as string
 
   try {
-    const res = await fetch(`${API_URL}/api/auth/sign-up`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, email, password }),
-    })
-
+    const res = await signUp(username, email, password)
     const body = await res.json()
 
     if (!res.ok) {

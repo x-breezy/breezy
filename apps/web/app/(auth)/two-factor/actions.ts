@@ -2,7 +2,8 @@
 
 import { redirect } from "next/navigation"
 import { getAuthActionError } from "@/lib/auth/api-error"
-import { setSessionCookies, API_URL } from "@/lib/auth/session"
+import { setSessionCookies } from "@/lib/auth/session"
+import { verifyTwoFactorLogin, resendTwoFactorLoginCode } from "@/lib/services/auth-service"
 
 interface ActionState {
   error: string | null
@@ -22,15 +23,8 @@ export async function twoFactorAction(
   let refreshToken: string
 
   try {
-    const res = await fetch(`${API_URL}/api/auth/2fa/verify-login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ pendingToken, code }),
-    })
-
-    if (!res.ok) {
-      return await getAuthActionError(res, "Invalid code.")
-    }
+    const res = await verifyTwoFactorLogin(pendingToken, code)
+    if (!res.ok) return await getAuthActionError(res, "Invalid code.")
 
     const body = await res.json()
     token = body.data.token
@@ -51,15 +45,8 @@ export async function resendTwoFactorCodeAction(
   const pendingToken = formData.get("pendingToken") as string
 
   try {
-    const res = await fetch(`${API_URL}/api/auth/2fa/resend-login-code`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ pendingToken }),
-    })
-
-    if (!res.ok) {
-      return await getAuthActionError(res, "Could not resend the code.")
-    }
+    const res = await resendTwoFactorLoginCode(pendingToken)
+    if (!res.ok) return await getAuthActionError(res, "Could not resend the code.")
   } catch {
     return { error: "Could not reach the server." }
   }
