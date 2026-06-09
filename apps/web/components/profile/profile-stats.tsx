@@ -1,4 +1,4 @@
-import { cn } from "@breezy/ui/lib/utils"
+import { cn } from "@/lib/utils"
 
 interface ProfileStatProps {
   count: number

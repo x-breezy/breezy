@@ -17,11 +17,12 @@
   },
   "dependencies": {
     "@breezy/logger": "*",
-    "amqplib": "^0.10.4",
     "@grpc/grpc-js": "^1.14.4",
     "@grpc/proto-loader": "^0.8.1",
+    "amqplib": "^0.10.4",
     "dotenv": "^16.0.3",
     "express": "^4.21.2",
+    "express-rate-limit": "^8.5.2",
     "jest": "^30.4.2",
     "jsonwebtoken": "^9.0.3",
     "pg": "^8.21.0",

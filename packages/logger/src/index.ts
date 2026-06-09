@@ -36,9 +36,8 @@ const sensitiveFields = ["password", "token", "authorization", "cookie", "secret
 export function createLogger(options: CreateLoggerOptions): Logger {
   const isProd = process.env.NODE_ENV === "production"
   const pretty = options.pretty ?? !isProd
-  const logFile = process.env.LOG_FILE
+  const logFile = isProd ? process.env.LOG_FILE : undefined
 
-  // For file logging, use direct stream (no worker thread)
   if (logFile) {
     const stream = createWriteStream(logFile, { flags: "a" })
     stream.on("error", (err) => {
@@ -55,7 +54,7 @@ export function createLogger(options: CreateLoggerOptions): Logger {
     )
   }
 
-  // No file logging - use pretty or default stdout
+  // stdout only (dev) or prod fallback
   return pino({
     level: options.level ?? process.env.LOG_LEVEL ?? "info",
     base: { service: options.service },

@@ -128,118 +128,6 @@ services:
       timeout: 5s
       retries: 5
 
-  auth-service:
-    build:
-      context: .
-      dockerfile: apps/auth-service/Dockerfile
-    container_name: breezy-auth-service
-    restart: unless-stopped
-    ports:
-      - "4000:4000"
-    environment:
-      PORT: 4000
-      DATABASE_URL: postgres://postgres:postgres@postgres-user-service:5432/user_service
-      RABBITMQ_URL: amqp://breezy:breezy@rabbitmq:5672
-      LOG_FILE: /logs/auth-service.log
-    volumes:
-      - shared-logs:/logs
-    depends_on:
-      postgres-user-service:
-        condition: service_healthy
-      rabbitmq:
-        condition: service_healthy
-    networks:
-      - breezy
-
-  profile-service:
-    build:
-      context: .
-      dockerfile: apps/profile-service/Dockerfile
-    container_name: breezy-profile-service
-    restart: unless-stopped
-    ports:
-      - "4010:4010"
-    environment:
-      PORT: 4010
-      DATABASE_URL: postgres://postgres:postgres@postgres-profile-service:5432/profile_service
-      RABBITMQ_URL: amqp://breezy:breezy@rabbitmq:5672
-      LOG_FILE: /logs/profile-service.log
-    volumes:
-      - shared-logs:/logs
-    depends_on:
-      postgres-profile-service:
-        condition: service_healthy
-      rabbitmq:
-        condition: service_healthy
-    networks:
-      - breezy
-
-  post-service:
-    build:
-      context: .
-      dockerfile: apps/post-service/Dockerfile
-    container_name: breezy-post-service
-    restart: unless-stopped
-    ports:
-      - "4040:4040"
-    environment:
-      PORT: 4040
-      DATABASE_URL: mongodb://mongo-post-service:27017/post_service
-      RABBITMQ_URL: amqp://breezy:breezy@rabbitmq:5672
-      LOG_FILE: /logs/post-service.log
-    volumes:
-      - shared-logs:/logs
-    depends_on:
-      mongo-post-service:
-        condition: service_healthy
-      rabbitmq:
-        condition: service_healthy
-    networks:
-      - breezy
-
-  media-service:
-    build:
-      context: .
-      dockerfile: apps/media-service/Dockerfile
-    container_name: breezy-media-service
-    restart: unless-stopped
-    ports:
-      - "4050:4050"
-    environment:
-      PORT: 4050
-      DATABASE_URL: mongodb://mongo-media-service:27017/media_service
-      LOG_FILE: /logs/media-service.log
-    volumes:
-      - shared-logs:/logs
-    depends_on:
-      mongo-media-service:
-        condition: service_healthy
-    networks:
-      - breezy
-
-  notifications-service:
-    build:
-      context: .
-      dockerfile: apps/notifications-service/Dockerfile
-    container_name: breezy-notifications-service
-    restart: unless-stopped
-    ports:
-      - "4060:4060"
-    environment:
-      PORT: 4060
-      DATABASE_URL: mongodb://mongo-notifications-service:27017/notifications_service
-      RABBITMQ_URL: amqp://breezy:breezy@rabbitmq:5672
-      LOG_FILE: /logs/notifications-service.log
-    volumes:
-      - shared-logs:/logs
-    depends_on:
-      mongo-notifications-service:
-        condition: service_healthy
-      rabbitmq:
-        condition: service_healthy
-    networks:
-      - breezy
-
   swagger-ui:
     image: swaggerapi/swagger-ui:latest
     container_name: breezy-swagger-ui
@@ -247,57 +135,6 @@ services:
     environment:
       URL: /openapi.json
       BASE_URL: /api-docs
-    networks:
-      - breezy
-
-  elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.15.0
-    container_name: breezy-elasticsearch
-    restart: unless-stopped
-    environment:
-      - discovery.type=single-node
-      - xpack.security.enabled=false
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-    ports:
-      - "9200:9200"
-    volumes:
-      - elasticsearch-data:/usr/share/elasticsearch/data
-    networks:
-      - breezy
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9200/_cluster/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  kibana:
-    image: docker.elastic.co/kibana/kibana:8.15.0
-    container_name: breezy-kibana
-    restart: unless-stopped
-    environment:
-      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
-      - XPACK_SECURITY_ENABLED=false
-    ports:
-      - "5601:5601"
-    depends_on:
-      elasticsearch:
-        condition: service_healthy
-    networks:
-      - breezy
-
-  filebeat:
-    build:
-      context: ./apps/filebeat
-      dockerfile: Dockerfile
-    container_name: breezy-filebeat
-    restart: unless-stopped
-    environment:
-      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
-    volumes:
-      - shared-logs:/logs
-    depends_on:
-      elasticsearch:
-        condition: service_healthy
     networks:
       - breezy
 
@@ -342,35 +179,6 @@ services:
       timeout: 5s
       retries: 5
 
-  # PostgreSQL Admin GUI with auto-configured connections
-  pgadmin:
-    image: dpage/pgadmin4:latest
-    container_name: breezy-pgadmin
-    restart: unless-stopped
-    entrypoint:
-      [
-        "/bin/sh",
-        "-c",
-        "mkdir -p /var/lib/pgadmin/storage/admin_breezy.com && cp /pgadmin4/servers.json
-        /var/lib/pgadmin/servers.json 2>/dev/null || true; /entrypoint.sh",
-      ]
-    environment:
-      PGADMIN_DEFAULT_EMAIL: admin@breezy.com
-      PGADMIN_DEFAULT_PASSWORD: admin
-      PGADMIN_CONFIG_SERVER_MODE: "False"
-      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
-    ports:
-      - "5050:80"
-    volumes:
-      - pgadmin-data:/var/lib/pgadmin
-      - ./apps/pgadmin/servers.json:/pgadmin4/servers.json:ro
-      - ./apps/pgadmin/.pgpass:/pgadmin4/.pgpass:ro
-    networks:
-      - breezy
-    depends_on:
-      - postgres-user-service
-      - postgres-profile-service
-
 networks:
   breezy:
     driver: bridge
@@ -381,9 +189,6 @@ volumes:
   mongo-notifications-service-data:
   postgres-user-service-data:
   postgres-profile-service-data:
-  elasticsearch-data:
-  shared-logs:
   sonarqube-data:
   sonarqube-logs:
   postgres-sonar-data:
-  pgadmin-data:

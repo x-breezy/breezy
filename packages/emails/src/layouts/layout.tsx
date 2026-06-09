@@ -1,6 +1,6 @@
 import { Body, Container, Hr, Html, Preview, Row, Section, Tailwind, Text } from "react-email"
 import React from "react"
-import tailwindConfig from "../../tailwind"
+import tailwindConfig from "../tailwind"
 
 type EmailLayoutProps = {
   children: React.ReactNode

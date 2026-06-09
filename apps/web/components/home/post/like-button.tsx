@@ -1,5 +1,5 @@
 import { IconHeart } from "@tabler/icons-react"
-import { cn } from "@breezy/ui/lib/utils"
+import { cn } from "@/lib/utils"
 
 interface LikeButtonProps {
   count: number

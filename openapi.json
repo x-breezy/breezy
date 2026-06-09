@@ -47,20 +47,14 @@
     "/api/auth/users": {
       "post": {
         "summary": "Create a user (admin)",
-        "tags": [
-          "Users"
-        ],
+        "tags": ["Users"],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": [
-                  "username",
-                  "email",
-                  "password"
-                ],
+                "required": ["username", "email", "password"],
                 "properties": {
                   "username": {
                     "type": "string"
@@ -118,9 +112,7 @@
     "/api/auth/users/{id}": {
       "get": {
         "summary": "Get user by id",
-        "tags": [
-          "Users"
-        ],
+        "tags": ["Users"],
         "parameters": [
           {
             "in": "path",
@@ -173,9 +165,7 @@
     "/api/auth/users/{id}/ban": {
       "patch": {
         "summary": "Ban a user",
-        "tags": [
-          "Users"
-        ],
+        "tags": ["Users"],
         "parameters": [
           {
             "in": "path",
@@ -212,9 +202,7 @@
     "/api/auth/users/{id}/suspend": {
       "patch": {
         "summary": "Suspend a user",
-        "tags": [
-          "Users"
-        ],
+        "tags": ["Users"],
         "parameters": [
           {
             "in": "path",
@@ -251,9 +239,7 @@
     "/api/auth/users/{id}/password": {
       "patch": {
         "summary": "Update password",
-        "tags": [
-          "Users"
-        ],
+        "tags": ["Users"],
         "parameters": [
           {
             "in": "path",
@@ -271,9 +257,7 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": [
-                  "password"
-                ],
+                "required": ["password"],
                 "properties": {
                   "password": {
                     "type": "string",
@@ -309,19 +293,14 @@
     "/api/auth/reports": {
       "post": {
         "summary": "Create a report",
-        "tags": [
-          "Reports"
-        ],
+        "tags": ["Reports"],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": [
-                  "targetId",
-                  "reason"
-                ],
+                "required": ["targetId", "reason"],
                 "properties": {
                   "targetId": {
                     "type": "string",
@@ -362,9 +341,7 @@
     "/api/auth/reports/{id}/resolve": {
       "patch": {
         "summary": "Resolve a report",
-        "tags": [
-          "Reports"
-        ],
+        "tags": ["Reports"],
         "parameters": [
           {
             "in": "path",
@@ -411,19 +388,14 @@
     "/api/auth/sign-in": {
       "post": {
         "summary": "Sign in",
-        "tags": [
-          "Auth"
-        ],
+        "tags": ["Auth"],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": [
-                  "email",
-                  "password"
-                ],
+                "required": ["email", "password"],
                 "properties": {
                   "email": {
                     "type": "string",
@@ -466,20 +438,14 @@
     "/api/auth/sign-up": {
       "post": {
         "summary": "Sign up",
-        "tags": [
-          "Auth"
-        ],
+        "tags": ["Auth"],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": [
-                  "username",
-                  "email",
-                  "password"
-                ],
+                "required": ["username", "email", "password"],
                 "properties": {
                   "username": {
                     "type": "string",
@@ -527,9 +493,7 @@
       "get": {
         "summary": "Validate JWT (internal)",
         "description": "Used internally by nginx auth_request. Returns 200 with x-user-id and x-roles headers on success.",
-        "tags": [
-          "Auth"
-        ],
+        "tags": ["Auth"],
         "parameters": [
           {
             "in": "header",
@@ -566,9 +530,7 @@
     "/api/profiles/{profileId}": {
       "get": {
         "summary": "Get a profile",
-        "tags": [
-          "Profiles"
-        ],
+        "tags": ["Profiles"],
         "parameters": [
           {
             "in": "path",
@@ -621,9 +583,7 @@
     "/api/profiles/{profileId}/followers": {
       "get": {
         "summary": "Get followers of a profile",
-        "tags": [
-          "Profiles"
-        ],
+        "tags": ["Profiles"],
         "parameters": [
           {
             "in": "path",
@@ -650,9 +610,7 @@
     "/api/profiles/{profileId}/following": {
       "get": {
         "summary": "Get profiles followed by a profile",
-        "tags": [
-          "Profiles"
-        ],
+        "tags": ["Profiles"],
         "parameters": [
           {
             "in": "path",
@@ -679,9 +637,7 @@
     "/api/profiles": {
       "post": {
         "summary": "Create a profile",
-        "tags": [
-          "Profiles"
-        ],
+        "tags": ["Profiles"],
         "requestBody": {
           "required": true,
           "content": {
@@ -721,9 +677,7 @@
       },
       "patch": {
         "summary": "Update own profile",
-        "tags": [
-          "Profiles"
-        ],
+        "tags": ["Profiles"],
         "requestBody": {
           "required": true,
           "content": {
@@ -763,9 +717,7 @@
       },
       "delete": {
         "summary": "Delete own profile",
-        "tags": [
-          "Profiles"
-        ],
+        "tags": ["Profiles"],
         "responses": {
           "200": {
             "description": "Profile deleted."
@@ -791,18 +743,14 @@
     "/api/profiles/follow": {
       "post": {
         "summary": "Follow a profile",
-        "tags": [
-          "Profiles"
-        ],
+        "tags": ["Profiles"],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": [
-                  "targetId"
-                ],
+                "required": ["targetId"],
                 "properties": {
                   "targetId": {
                     "type": "string",
@@ -838,18 +786,14 @@
     "/api/profiles/unfollow": {
       "post": {
         "summary": "Unfollow a profile",
-        "tags": [
-          "Profiles"
-        ],
+        "tags": ["Profiles"],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": [
-                  "targetId"
-                ],
+                "required": ["targetId"],
                 "properties": {
                   "targetId": {
                     "type": "string",
@@ -886,18 +830,14 @@
       "post": {
         "summary": "Create a post",
         "description": "Create a new post. Requires authentication via x-user-id and x-roles headers.",
-        "tags": [
-          "Posts"
-        ],
+        "tags": ["Posts"],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": [
-                  "content"
-                ],
+                "required": ["content"],
                 "properties": {
                   "content": {
                     "type": "string",
@@ -909,10 +849,7 @@
                     "items": {
                       "type": "string"
                     },
-                    "example": [
-                      "news",
-                      "tech"
-                    ]
+                    "example": ["news", "tech"]
                   },
                   "media": {
                     "type": "array",
@@ -924,10 +861,7 @@
                         },
                         "type": {
                           "type": "string",
-                          "enum": [
-                            "image",
-                            "video"
-                          ]
+                          "enum": ["image", "video"]
                         }
                       }
                     },
@@ -995,9 +929,7 @@
       "get": {
         "summary": "Personalized chronological feed",
         "description": "Returns posts from users the authenticated viewer follows, sorted newest first, paginated. The viewer's own posts are always included. Follow graph is resolved server-side from user-service (GET /users/:id/following). Falls back to a global chronological feed when user-service is unavailable — the endpoint never errors due to follow-graph failures.\n",
-        "tags": [
-          "Posts"
-        ],
+        "tags": ["Posts"],
         "parameters": [
           {
             "in": "query",
@@ -1051,9 +983,7 @@
       "get": {
         "summary": "Posts by user",
         "description": "Returns paginated posts authored by the given userId, newest first. Users may only access their own profile; moderators and admins may access any.\n",
-        "tags": [
-          "Posts"
-        ],
+        "tags": ["Posts"],
         "parameters": [
           {
             "in": "path",
@@ -1124,9 +1054,7 @@
     "/api/posts/{id}": {
       "get": {
         "summary": "Get a post by id",
-        "tags": [
-          "Posts"
-        ],
+        "tags": ["Posts"],
         "parameters": [
           {
             "in": "path",
@@ -1177,9 +1105,7 @@
       "delete": {
         "summary": "Delete a post",
         "description": "Post owner may delete their own post. Moderators and admins may delete any post.\n",
-        "tags": [
-          "Posts"
-        ],
+        "tags": ["Posts"],
         "parameters": [
           {
             "in": "path",
@@ -1242,9 +1168,7 @@
     "/api/posts/{postId}/likes": {
       "post": {
         "summary": "Like a post",
-        "tags": [
-          "Likes"
-        ],
+        "tags": ["Likes"],
         "parameters": [
           {
             "in": "path",
@@ -1278,9 +1202,7 @@
       },
       "delete": {
         "summary": "Unlike a post",
-        "tags": [
-          "Likes"
-        ],
+        "tags": ["Likes"],
         "parameters": [
           {
             "in": "path",
@@ -1316,9 +1238,7 @@
     "/api/posts/{postId}/comments": {
       "get": {
         "summary": "List comments on a post",
-        "tags": [
-          "Comments"
-        ],
+        "tags": ["Comments"],
         "parameters": [
           {
             "in": "path",
@@ -1342,9 +1262,7 @@
       },
       "post": {
         "summary": "Add a comment to a post",
-        "tags": [
-          "Comments"
-        ],
+        "tags": ["Comments"],
         "parameters": [
           {
             "in": "path",
@@ -1361,9 +1279,7 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": [
-                  "content"
-                ],
+                "required": ["content"],
                 "properties": {
                   "content": {
                     "type": "string",
@@ -1399,9 +1315,7 @@
     "/api/posts/{postId}/comments/{commentId}": {
       "delete": {
         "summary": "Delete a comment",
-        "tags": [
-          "Comments"
-        ],
+        "tags": ["Comments"],
         "parameters": [
           {
             "in": "path",
@@ -1445,9 +1359,7 @@
     "/api/media/videos": {
       "post": {
         "summary": "Upload a video",
-        "tags": [
-          "Media"
-        ],
+        "tags": ["Media"],
         "requestBody": {
           "required": true,
           "content": {
@@ -1490,9 +1402,7 @@
     "/api/media/videos/{id}/meta": {
       "get": {
         "summary": "Get video metadata",
-        "tags": [
-          "Media"
-        ],
+        "tags": ["Media"],
         "parameters": [
           {
             "in": "path",
@@ -1544,9 +1454,7 @@
     "/api/media/videos/{id}": {
       "get": {
         "summary": "Stream a video",
-        "tags": [
-          "Media"
-        ],
+        "tags": ["Media"],
         "parameters": [
           {
             "in": "path",
@@ -1588,9 +1496,7 @@
       },
       "delete": {
         "summary": "Delete a video",
-        "tags": [
-          "Media"
-        ],
+        "tags": ["Media"],
         "parameters": [
           {
             "in": "path",
@@ -1636,9 +1542,7 @@
     "/api/media/images": {
       "post": {
         "summary": "Upload an image",
-        "tags": [
-          "Media"
-        ],
+        "tags": ["Media"],
         "requestBody": {
           "required": true,
           "content": {
@@ -1691,9 +1595,7 @@
     "/api/media/images/{id}/meta": {
       "get": {
         "summary": "Get image metadata",
-        "tags": [
-          "Media"
-        ],
+        "tags": ["Media"],
         "parameters": [
           {
             "in": "path",
@@ -1745,9 +1647,7 @@
     "/api/media/images/{id}": {
       "get": {
         "summary": "Stream an image",
-        "tags": [
-          "Media"
-        ],
+        "tags": ["Media"],
         "parameters": [
           {
             "in": "path",
@@ -1789,9 +1689,7 @@
       },
       "delete": {
         "summary": "Delete an image",
-        "tags": [
-          "Media"
-        ],
+        "tags": ["Media"],
         "parameters": [
           {
             "in": "path",
@@ -1838,9 +1736,7 @@
       "get": {
         "summary": "SSE stream for real-time notifications",
         "description": "Server-Sent Events stream. Keeps connection open and pushes new notifications as they arrive.",
-        "tags": [
-          "Notifications"
-        ],
+        "tags": ["Notifications"],
         "responses": {
           "200": {
             "description": "SSE stream open.",
@@ -1863,9 +1759,7 @@
     "/api/notifications": {
       "get": {
         "summary": "List notifications",
-        "tags": [
-          "Notifications"
-        ],
+        "tags": ["Notifications"],
         "parameters": [
           {
             "in": "query",
@@ -1909,9 +1803,7 @@
     "/api/notifications/read-all": {
       "patch": {
         "summary": "Mark all notifications as read",
-        "tags": [
-          "Notifications"
-        ],
+        "tags": ["Notifications"],
         "responses": {
           "200": {
             "description": "All notifications marked as read."
@@ -1927,9 +1819,7 @@
     "/api/notifications/{id}/read": {
       "patch": {
         "summary": "Mark a notification as read",
-        "tags": [
-          "Notifications"
-        ],
+        "tags": ["Notifications"],
         "parameters": [
           {
             "in": "path",
@@ -1965,9 +1855,7 @@
     "/api/notifications/{id}": {
       "delete": {
         "summary": "Delete a notification",
-        "tags": [
-          "Notifications"
-        ],
+        "tags": ["Notifications"],
         "parameters": [
           {
             "in": "path",
@@ -2043,9 +1931,7 @@
             "items": {
               "type": "string"
             },
-            "example": [
-              "user"
-            ]
+            "example": ["user"]
           },
           "isBanned": {
             "type": "boolean",
@@ -2119,11 +2005,7 @@
       },
       "CreateProfileInput": {
         "type": "object",
-        "required": [
-          "profilename",
-          "email",
-          "passwordHash"
-        ],
+        "required": ["profilename", "email", "passwordHash"],
         "properties": {
           "profilename": {
             "type": "string",
@@ -2181,10 +2063,7 @@
             "items": {
               "type": "string"
             },
-            "example": [
-              "news",
-              "tech"
-            ]
+            "example": ["news", "tech"]
           },
           "media": {
             "type": "array",
@@ -2196,10 +2075,7 @@
                 },
                 "type": {
                   "type": "string",
-                  "enum": [
-                    "image",
-                    "video"
-                  ]
+                  "enum": ["image", "video"]
                 }
               }
             },

@@ -2,6 +2,8 @@
   "$schema": "https://turborepo.dev/schema.json",
   "ui": "tui",
   "globalEnv": [
+    "API_URL",
+    "APP_URL",
     "PORT",
     "NODE_ENV",
     "LOG_LEVEL",
@@ -12,7 +14,10 @@
     "SMTP_PORT",
     "SMTP_USER",
     "SMTP_PASS",
-    "SMTP_FROM"
+    "SMTP_FROM",
+    "JWT_SECRET",
+    "JWT_EXPIRES_IN",
+    "REFRESH_TOKEN_TTL_MS"
   ],
   "tasks": {
     "build": {

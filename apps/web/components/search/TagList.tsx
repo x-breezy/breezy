@@ -1,4 +1,4 @@
-import { ListItem, ListItemLabel, ListItemMeta } from "@breezy/ui/components/list"
+import { ListItem, ListItemLabel, ListItemMeta } from "@/components/ui/list"
 
 const TAGS = [
   { tag: "WebDev", posts: "12.4k" },
