@@ -38,7 +38,13 @@ async function refreshTokens(
 }
 
 function setSession(res: NextResponse, token: string, refreshToken: string) {
-  const opts = { path: "/", maxAge: MAX_AGE, sameSite: "lax" as const, httpOnly: true, secure: process.env.NODE_ENV === "production" }
+  const opts = {
+    path: "/",
+    maxAge: MAX_AGE,
+    sameSite: "lax" as const,
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+  }
   res.cookies.set(ACCESS_COOKIE, token, opts)
   res.cookies.set(REFRESH_COOKIE, refreshToken, opts)
 }

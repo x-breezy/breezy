@@ -8,7 +8,13 @@ const MAX_AGE = 60 * 60 * 24 * 7
 
 export async function setSessionCookies(accessToken: string, refreshToken: string): Promise<void> {
   const cookieStore = await cookies()
-  const opts = { path: "/", maxAge: MAX_AGE, sameSite: "lax" as const, httpOnly: true, secure: process.env.NODE_ENV === "production" }
+  const opts = {
+    path: "/",
+    maxAge: MAX_AGE,
+    sameSite: "lax" as const,
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+  }
   cookieStore.set(ACCESS_COOKIE, accessToken, opts)
   cookieStore.set(REFRESH_COOKIE, refreshToken, opts)
 }

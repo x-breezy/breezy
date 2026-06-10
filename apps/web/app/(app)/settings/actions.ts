@@ -9,6 +9,9 @@ import {
   sendTwoFactorCode,
   enableTwoFactor,
   disableTwoFactor,
+  resendVerificationEmail,
+  verifyEmail,
+  getMe,
 } from "@/lib/services/auth-service"
 
 export async function logoutAction() {
@@ -28,8 +31,42 @@ export async function logoutAction() {
 interface ActionState {
   error: string | null
   sent?: boolean
+  success?: boolean
   code?: string
   retryAfter?: number
+}
+
+export async function sendVerificationEmailAction(): Promise<ActionState> {
+  try {
+    const authHeader = await getServerAuthHeader()
+    const { data: user } = await getMe(authHeader)
+    await resendVerificationEmail(user.email)
+  } catch (err) {
+    if (isAxiosError(err)) {
+      const d = err.response?.data as { message?: string; code?: string }
+      return {
+        error: d?.message ?? "Failed to send verification email.",
+        code: d?.code,
+        retryAfter: err.response?.status === 429 ? 60 : undefined,
+      }
+    }
+    return { error: "Could not reach the server." }
+  }
+  return { error: null, sent: true }
+}
+
+export async function verifyEmailTokenAction(
+  _prev: ActionState | null,
+  formData: FormData
+): Promise<ActionState> {
+  const token = formData.get("token") as string
+  try {
+    await verifyEmail(token)
+  } catch (err) {
+    if (isAxiosError(err)) return { error: err.response?.data?.message ?? "Verification failed." }
+    return { error: "Could not reach the server." }
+  }
+  redirect("/settings")
 }
 
 export async function twoFactorSendCodeAction(): Promise<ActionState> {
