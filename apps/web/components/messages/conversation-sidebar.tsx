@@ -32,6 +32,73 @@ interface SidebarProps {
   onConversationDeleted?: (id: string) => void
 }
 
+function SidebarItem({
+  conv,
+  currentUserId,
+  activeId,
+  onDelete,
+}: {
+  conv: ConversationMeta
+  currentUserId: string | undefined
+  activeId?: string
+  onDelete: (e: React.MouseEvent, conversationId: string) => void
+}) {
+  const otherUserId = conv.participantIds.find((id) => id !== currentUserId) || "Unknown"
+  const isActive = conv._id === activeId
+  const [username, setUsername] = useState<string | null>(null)
+
+  React.useEffect(() => {
+    if (otherUserId === "Unknown" || !currentUserId) return
+    const AUTH_URL = process.env.NEXT_PUBLIC_AUTH_API_URL || "http://localhost:4000"
+    fetch(`${AUTH_URL}/users/${otherUserId}`, {
+      headers: { "x-user-id": currentUserId, "x-roles": "user" },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.data) {
+          setUsername(data.data.username)
+        }
+      })
+      .catch(console.error)
+  }, [otherUserId, currentUserId])
+
+  return (
+    <div className="group relative">
+      <Link
+        href={`/messages/${conv._id}`}
+        className={`flex flex-col p-3 rounded-2xl transition-colors duration-200 pr-10 ${
+          isActive
+            ? "bg-primary/10 border border-primary/20 text-foreground"
+            : "hover:bg-muted border border-transparent text-muted-foreground hover:text-foreground"
+        }`}
+      >
+        <div className="flex justify-between items-baseline mb-1">
+          <span className={`font-semibold text-sm truncate ${isActive ? "text-foreground" : "text-foreground"}`}>
+            {username ? username : `User ${otherUserId.slice(0, 8)}`}
+          </span>
+          {conv.lastMessageAt && (
+            <span className="text-xs opacity-70">
+              {new Date(conv.lastMessageAt).toLocaleDateString()}
+            </span>
+          )}
+        </div>
+        {conv.lastMessage && (
+          <p className="text-xs opacity-70 truncate">
+            {conv.lastMessage}
+          </p>
+        )}
+      </Link>
+      <button
+        onClick={(e) => onDelete(e, conv._id)}
+        className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-red-500 opacity-0 group-hover:opacity-100 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-full transition-all"
+        title="Supprimer la conversation"
+      >
+        <IconTrash size={16} />
+      </button>
+    </div>
+  )
+}
+
 export function ConversationSidebar({ conversations, currentUserId, activeId, onConversationCreated, onConversationDeleted }: SidebarProps) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
@@ -160,44 +227,15 @@ export function ConversationSidebar({ conversations, currentUserId, activeId, on
         {conversations.length === 0 ? (
           <p className="text-sm text-muted-foreground p-4 text-center">No conversations yet.</p>
         ) : (
-          conversations.map((conv) => {
-            const otherUserId = conv.participantIds.find((id) => id !== currentUserId) || "Unknown"
-            const isActive = conv._id === activeId
-
-            return (
-              <div key={conv._id} className="group relative">
-                <Link
-                  href={`/messages/${conv._id}`}
-                  className={`flex flex-col p-3 rounded-2xl transition-colors duration-200 pr-10 ${
-                    isActive
-                      ? "bg-primary/10 border border-primary/20 text-foreground"
-                      : "hover:bg-muted border border-transparent text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  <div className="flex justify-between items-baseline mb-1">
-                    <span className={`font-semibold text-sm truncate ${isActive ? "text-foreground" : "text-foreground"}`}>User {otherUserId.slice(0, 8)}</span>
-                    {conv.lastMessageAt && (
-                      <span className="text-xs opacity-70">
-                        {new Date(conv.lastMessageAt).toLocaleDateString()}
-                      </span>
-                    )}
-                  </div>
-                  {conv.lastMessage && (
-                    <p className="text-xs opacity-70 truncate">
-                      {conv.lastMessage}
-                    </p>
-                  )}
-                </Link>
-                <button
-                  onClick={(e) => handleDeleteConversation(e, conv._id)}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-red-500 opacity-0 group-hover:opacity-100 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-full transition-all"
-                  title="Supprimer la conversation"
-                >
-                  <IconTrash size={16} />
-                </button>
-              </div>
-            )
-          })
+          conversations.map((conv) => (
+            <SidebarItem
+              key={conv._id}
+              conv={conv}
+              currentUserId={currentUserId}
+              activeId={activeId}
+              onDelete={handleDeleteConversation}
+            />
+          ))
         )}
       </div>
     </aside>
