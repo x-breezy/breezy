@@ -2,10 +2,11 @@ import { DataTypes, Model, Optional, Sequelize } from "sequelize"
 
 export interface ProfileAttributes {
   profileId: string
+  username: string
   firstName: string | null
   lastName: string | null
   bio: string | null
-  avatarUrl: string | null
+  avatarId: string | null
   followersCount: number
   followingCount: number
   deletedAt: Date | null
@@ -18,7 +19,8 @@ export type CreateProfileInput = Optional<
   | "firstName"
   | "lastName"
   | "bio"
-  | "avatarUrl"
+  | "username"
+  | "avatarId"
   | "followersCount"
   | "followingCount"
   | "deletedAt"
@@ -27,7 +29,7 @@ export type CreateProfileInput = Optional<
 >
 
 export type UpdateProfileInput = Partial<
-  Pick<ProfileAttributes, "firstName" | "lastName" | "bio" | "avatarUrl">
+  Pick<ProfileAttributes, "firstName" | "lastName" | "bio" | "avatarId">
 >
 
 export class Profile
@@ -35,10 +37,11 @@ export class Profile
   implements ProfileAttributes
 {
   declare profileId: string
+  declare username: string
   declare firstName: string | null
   declare lastName: string | null
   declare bio: string | null
-  declare avatarUrl: string | null
+  declare avatarId: string | null
   declare followersCount: number
   declare followingCount: number
   declare deletedAt: Date | null
@@ -53,6 +56,10 @@ export function initProfileModel(sequelize: Sequelize): void {
         type: DataTypes.UUID,
         primaryKey: true,
         field: "profile_id",
+      },
+      username: {
+        type: DataTypes.STRING(50),
+        allowNull: false,
       },
       firstName: {
         type: DataTypes.STRING(100),
@@ -71,7 +78,7 @@ export function initProfileModel(sequelize: Sequelize): void {
         allowNull: true,
         defaultValue: null,
       },
-      avatarUrl: {
+      avatarId: {
         type: DataTypes.STRING(500),
         allowNull: true,
         defaultValue: null,
@@ -109,7 +116,7 @@ export function initProfileModel(sequelize: Sequelize): void {
       tableName: "profiles",
       timestamps: true,
       underscored: false,
-      paranoid: true, // soft-delete via deletedAt
+      paranoid: true,
       indexes: [{ fields: ["profile_id"] }],
     }
   )

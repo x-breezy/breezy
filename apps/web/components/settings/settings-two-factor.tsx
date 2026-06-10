@@ -1,6 +1,7 @@
 "use client"
 
 import { useActionState } from "react"
+import { useCooldown } from "@/hooks/use-cooldown"
 import { Button } from "@/components/ui/button"
 import { Field, FieldGroup, FieldSet } from "@/components/ui/field"
 import { Label } from "@/components/ui/label"
@@ -19,6 +20,7 @@ export function SettingsTwoFactor({ enabled }: SettingsTwoFactorProps) {
   const [sendState, sendAction, sendPending] = useActionState(twoFactorSendCodeAction, null)
   const [enableState, enableAction, enablePending] = useActionState(twoFactorEnableAction, null)
   const [disableState, disableAction, disablePending] = useActionState(twoFactorDisableAction, null)
+  const sendCooldown = useCooldown(sendState?.retryAfter, sendState)
 
   if (enabled) {
     return (
@@ -31,9 +33,11 @@ export function SettingsTwoFactor({ enabled }: SettingsTwoFactorProps) {
         </div>
         <form action={disableAction}>
           {disableState?.error && (
-            <p className='mb-2 text-xs text-destructive'>{disableState.error}</p>
+            <div className='mb-2 text-xs text-destructive'>
+              <p>{disableState.error}</p>
+            </div>
           )}
-          <Button type='submit' variant='destructive' size='sm' disabled={disablePending}>
+          <Button type='submit' variant='destructive' size='lg' disabled={disablePending}>
             {disablePending ? "Disabling…" : "Disable 2FA"}
           </Button>
         </form>
@@ -54,9 +58,22 @@ export function SettingsTwoFactor({ enabled }: SettingsTwoFactorProps) {
 
       {!codeSent ? (
         <form action={sendAction}>
-          {sendState?.error && <p className='mb-2 text-xs text-destructive'>{sendState.error}</p>}
-          <Button type='submit' variant='outline' size='sm' disabled={sendPending}>
-            {sendPending ? "Sending…" : "Enable 2FA"}
+          {sendState?.error && (
+            <div className='mb-2 text-xs text-destructive'>
+              <p>{sendState.error}</p>
+            </div>
+          )}
+          <Button
+            type='submit'
+            variant='outline'
+            size='lg'
+            disabled={sendPending || sendCooldown > 0}
+          >
+            {sendPending
+              ? "Sending…"
+              : sendCooldown > 0
+                ? `Try again in ${sendCooldown}s`
+                : "Enable 2FA"}
           </Button>
         </form>
       ) : (
@@ -79,10 +96,12 @@ export function SettingsTwoFactor({ enabled }: SettingsTwoFactorProps) {
                 </InputGroup>
               </Field>
               {enableState?.error && (
-                <p className='text-xs text-destructive'>{enableState.error}</p>
+                <div className='text-xs text-destructive'>
+                  <p>{enableState.error}</p>
+                </div>
               )}
               <Field>
-                <Button type='submit' size='sm' disabled={enablePending}>
+                <Button type='submit' size='lg' disabled={enablePending}>
                   {enablePending ? "Confirming…" : "Confirm"}
                 </Button>
               </Field>

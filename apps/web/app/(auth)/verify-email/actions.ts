@@ -1,11 +1,14 @@
 "use server"
 
 import { redirect } from "next/navigation"
-import { API_URL } from "@/lib/auth/session"
+import { isAxiosError } from "axios"
+import { verifyEmail, resendVerificationEmail } from "@/lib/services/auth-service"
 
 interface ActionState {
   error: string | null
   success: boolean
+  code?: string
+  retryAfter?: number
 }
 
 export async function verifyEmailAction(
@@ -15,18 +18,10 @@ export async function verifyEmailAction(
   const token = formData.get("token") as string
 
   try {
-    const res = await fetch(`${API_URL}/api/auth/verify-email`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ token }),
-    })
-
-    const body = await res.json()
-
-    if (!res.ok) {
-      return { error: (body.message as string) ?? "Verification failed.", success: false }
-    }
-  } catch {
+    await verifyEmail(token)
+  } catch (err) {
+    if (isAxiosError(err))
+      return { error: err.response?.data?.message ?? "Verification failed.", success: false }
     return { error: "Could not reach the server.", success: false }
   }
 
@@ -40,17 +35,17 @@ export async function resendVerificationAction(
   const email = formData.get("email") as string
 
   try {
-    const res = await fetch(`${API_URL}/api/auth/resend-verification`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email }),
-    })
-
-    if (!res.ok) {
-      const body = await res.json()
-      return { error: (body.message as string) ?? "Could not resend the email.", success: false }
+    await resendVerificationEmail(email)
+  } catch (err) {
+    if (isAxiosError(err)) {
+      const d = err.response?.data as { message?: string; code?: string }
+      return {
+        error: d?.message ?? "Could not resend the email.",
+        code: d?.code,
+        retryAfter: err.response?.status === 429 ? 60 : undefined,
+        success: false,
+      }
     }
-  } catch {
     return { error: "Could not reach the server.", success: false }
   }
 

@@ -1,5 +1,6 @@
-import { Avatar, AvatarImage } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { cn } from "@/lib/utils"
+import { IconUserFilled } from "@tabler/icons-react"
 
 interface ProfileIconProps {
   active?: boolean
@@ -23,6 +24,9 @@ export function ProfileIcon({
       )}
     >
       <AvatarImage src={src} alt={alt} />
+      <AvatarFallback>
+        <IconUserFilled />
+      </AvatarFallback>
     </Avatar>
   )
 }

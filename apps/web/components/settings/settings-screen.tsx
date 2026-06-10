@@ -13,14 +13,14 @@ import { logoutAction } from "@/app/(app)/settings/actions"
 interface SettingsScreenProps {
   name: string
   username: string
-  avatarUrl?: string
+  avatarId?: string
   twoFactorEnabled?: boolean
 }
 
 export default function SettingsScreen({
   name,
   username,
-  avatarUrl,
+  avatarId,
   twoFactorEnabled = false,
 }: SettingsScreenProps) {
   const [language, setLanguage] = useState<string | null>("fr")
@@ -35,7 +35,7 @@ export default function SettingsScreen({
         <SettingsUserCard
           name={name}
           username={username}
-          avatarUrl={avatarUrl}
+          avatarId={avatarId}
           onClick={() => console.log("Navigate to profile edit")}
         />
 
