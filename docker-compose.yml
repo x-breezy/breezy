@@ -201,6 +201,6 @@ volumes:
   mongo-notifications-service-data:
   postgres-user-service-data:
   postgres-profile-service-data:
-  sonarqube-data:
-  sonarqube-logs:
-  postgres-sonar-data:
+  # sonarqube-data:
+  # sonarqube-logs:
+  # postgres-sonar-data:
