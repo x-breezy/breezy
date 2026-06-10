@@ -1,7 +1,6 @@
 "use client"
 
 import { usePathname } from "next/navigation"
-import { cn } from "@/lib/utils"
 import { HomeIcon, SearchIcon, GrodIcon, SendIcon, ProfileIcon } from "@/components/icons"
 import { NavItem } from "./nav-item"
 import { useUserStore } from "@/stores/user-store"
