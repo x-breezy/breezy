@@ -1,10 +1,11 @@
 "use server"
 
 import { redirect } from "next/navigation"
-import { API_URL } from "@/lib/auth/session"
+import { resetPassword } from "@/lib/services/auth-service"
 
 interface ActionState {
   error: string | null
+  success: boolean
 }
 
 export async function resetPasswordAction(
@@ -15,19 +16,10 @@ export async function resetPasswordAction(
   const password = formData.get("password") as string
 
   try {
-    const res = await fetch(`${API_URL}/api/auth/reset-password`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ token, password }),
-    })
-
-    const body = await res.json()
-
-    if (!res.ok) {
-      return { error: (body.message as string) ?? "Reset failed." }
-    }
+    await resetPassword(token, password)
+    return { error: null, success: true }
   } catch {
-    return { error: "Could not reach the server." }
+    return { error: "Could not reach the server.", success: false }
   }
 
   redirect("/sign-in")

@@ -20,6 +20,10 @@ export function verifyEmail(token: string) {
   return serverClient.post("/api/auth/verify-email", { token })
 }
 
+export function resetPassword(token: string, password: string) {
+  return serverClient.post("/api/auth/reset-password", { token, password })
+}
+
 export function resendVerificationEmail(email: string) {
   return serverClient.post("/api/auth/resend-verification", { email })
 }

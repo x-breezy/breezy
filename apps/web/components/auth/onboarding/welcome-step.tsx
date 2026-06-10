@@ -1,6 +1,6 @@
 "use client"
 
-import { useTransition, useState } from "react"
+import { useActionState, useEffect, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
@@ -16,27 +16,31 @@ interface WelcomeStepProps {
 }
 
 export function WelcomeStep({ avatar, avatarPreview, firstName, lastName, bio }: WelcomeStepProps) {
-  const [isPending, startTransition] = useTransition()
-  const [error, setError] = useState<string | null>(null)
+  const [state, action, isPending] = useActionState(setupProfileAction, null)
+  const [, startTransition] = useTransition()
   const router = useRouter()
 
   const displayName = [firstName, lastName].filter(Boolean).join(" ") || null
 
-  function handleFinish() {
-    startTransition(async () => {
-      const fd = new FormData()
-      if (avatar) fd.append("avatar", avatar)
-      fd.append("firstName", firstName)
-      fd.append("lastName", lastName)
-      fd.append("bio", bio)
-      const result = await setupProfileAction(null, fd)
-      if (result?.error) {
-        setError(result.error)
-      } else {
-        router.push("/")
-      }
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    const fd = new FormData()
+    fd.set("firstName", firstName ?? "")
+    fd.set("lastName", lastName ?? "")
+    fd.set("bio", bio ?? "")
+    if (avatar) fd.set("avatar", avatar)
+    startTransition(() => {
+      action(fd)
     })
   }
+
+  useEffect(() => {
+    if (!state?.success) return
+    router.replace("/")
+    router.refresh()
+  }, [router, state?.success])
+
+  const error = state?.error ?? null
 
   return (
     <div className='flex w-full animate-in flex-col items-center gap-10 text-center duration-500 fade-in slide-in-from-bottom-3'>
@@ -60,11 +64,11 @@ export function WelcomeStep({ avatar, avatarPreview, firstName, lastName, bio }:
 
       {error && <p className='text-sm text-destructive'>{error}</p>}
 
-      <div className='flex w-full flex-col gap-2'>
-        <Button size='lg' className='w-full' onClick={handleFinish} disabled={isPending}>
+      <form onSubmit={handleSubmit} className='flex w-full flex-col gap-2'>
+        <Button size='lg' className='w-full' type='submit' disabled={isPending}>
           {isPending ? "Setting up…" : "Get started"}
         </Button>
-      </div>
+      </form>
     </div>
   )
 }

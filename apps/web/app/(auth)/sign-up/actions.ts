@@ -1,22 +1,20 @@
 "use server"
 
+import { revalidatePath } from "next/cache"
 import { cookies } from "next/headers"
 import { isAxiosError } from "axios"
-import { setSessionCookies, API_URL, getServerAuthHeader, ACCESS_COOKIE } from "@/lib/auth/session"
+import {
+  setSessionCookies,
+  API_URL,
+  getServerAuthHeader,
+  ACCESS_COOKIE,
+  getUserId,
+} from "@/lib/auth/session"
 import { signUp } from "@/lib/services/auth-service"
+import { updateProfile } from "@/lib/services/profile-service"
+import { uploadImage } from "@/lib/services/image-service"
 
-function getUserIdFromToken(token: string): string | null {
-  try {
-    const part = token.split(".")[1]
-    if (!part) return null
-    const payload = JSON.parse(Buffer.from(part, "base64").toString()) as { sub?: string }
-    return payload.sub ?? null
-  } catch {
-    return null
-  }
-}
-
-interface ActionState {
+export interface ActionState {
   error: string | null
   success?: boolean
 }
@@ -47,10 +45,14 @@ export async function setupProfileAction(
 ): Promise<ActionState> {
   const cookieStore = await cookies()
   const token = cookieStore.get(ACCESS_COOKIE)?.value
-  if (!token) return { error: "Not authenticated." }
+  if (!token) return { error: "Not authenticated.", success: false }
 
-  const userId = getUserIdFromToken(token)
-  if (!userId) return { error: "Invalid session." }
+  let userId: string
+  try {
+    userId = await getUserId()
+  } catch {
+    return { error: "Invalid session. Please sign in again.", success: false }
+  }
 
   const authHeader = await getServerAuthHeader()
 
@@ -59,42 +61,38 @@ export async function setupProfileAction(
   const bio = (formData.get("bio") as string) || null
   const avatarFile = formData.get("avatar") as File | null
 
-  let avatarUrl: string | null = null
+  let avatarId: string | null = null
 
   if (avatarFile && avatarFile.size > 0) {
+    if (!avatarFile.type.startsWith("image/")) {
+      return { error: "Avatar must be an image file.", success: false }
+    }
+
     try {
-      const buffer = Buffer.from(await avatarFile.arrayBuffer())
-      const uploadRes = await fetch(`${API_URL}/api/media/images`, {
-        method: "POST",
-        headers: {
-          "Content-Type": avatarFile.type,
-          "X-Filename": avatarFile.name,
-          ...authHeader,
-        },
-        body: buffer,
-      })
-      if (uploadRes.ok) {
-        const uploadBody = (await uploadRes.json()) as { data?: { id?: string } }
-        const imageId = uploadBody.data?.id
-        if (imageId) avatarUrl = `/api/media/images/${imageId}`
+      const uploadRes = await uploadImage(avatarFile, authHeader)
+      const imageId = uploadRes.data?.data?._doc?._id ?? uploadRes.data?.data?.id
+      if (!imageId) return { error: "Avatar upload returned no image id.", success: false }
+
+      avatarId = `${API_URL}/api/media/images/${imageId}`
+    } catch (err) {
+      if (isAxiosError(err)) {
+        return {
+          error:
+            err.response?.data?.message ?? err.response?.data?.error ?? "Avatar upload failed.",
+          success: false,
+        }
       }
-    } catch {
-      // Avatar upload failed; proceed without it.
+      return { error: "Could not upload avatar.", success: false }
     }
   }
 
   try {
-    const res = await fetch(`${API_URL}/api/profiles/`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", ...authHeader },
-      body: JSON.stringify({ profileId: userId, firstName, lastName, bio, avatarUrl }),
-    })
-    if (!res.ok) {
-      const body = (await res.json()) as { message?: string }
-      return { error: body.message ?? "Failed to create profile." }
-    }
-  } catch {
-    return { error: "Could not reach the server." }
+    await updateProfile(userId, { firstName, lastName, bio, avatarId }, authHeader)
+    revalidatePath("/", "layout")
+  } catch (err) {
+    if (isAxiosError(err))
+      return { error: err.response?.data?.message ?? "Something went wrong.", success: false }
+    return { error: "Could not reach the server.", success: false }
   }
 
   return { error: null, success: true }

@@ -37,9 +37,9 @@ describe("ImageService", () => {
   })
 
   describe("uploadImage", () => {
-    it("persists optimized bytes and recomputes size", async () => {
+    it("persists optimized JPEG bytes and recomputes size", async () => {
       const data = Buffer.from("imagebytes")
-      const created = { id: "abc", size: OPTIMIZED.length, mimeType: "image/png" }
+      const created = { id: "abc", size: OPTIMIZED.length, mimeType: "image/jpeg" }
       ;(mockedModel.create as jest.Mock).mockResolvedValue(created)
 
       const result = await service.uploadImage({
@@ -50,7 +50,7 @@ describe("ImageService", () => {
       })
 
       expect(mockedModel.create).toHaveBeenCalledWith(
-        expect.objectContaining({ data: OPTIMIZED, size: OPTIMIZED.length, mimeType: "image/png" })
+        expect.objectContaining({ data: OPTIMIZED, size: OPTIMIZED.length, mimeType: "image/jpeg" })
       )
       expect(result).toBe(created)
     })

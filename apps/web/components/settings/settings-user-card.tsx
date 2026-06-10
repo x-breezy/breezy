@@ -6,11 +6,11 @@ import { IconChevronRight } from "@tabler/icons-react"
 interface SettingsUserCardProps {
   name: string
   username: string
-  avatarUrl?: string
+  avatarId?: string
   onClick?: () => void
 }
 
-export function SettingsUserCard({ name, username, avatarUrl, onClick }: SettingsUserCardProps) {
+export function SettingsUserCard({ name, username, avatarId, onClick }: SettingsUserCardProps) {
   const initial = name.charAt(0) || "?"
 
   return (
@@ -19,9 +19,9 @@ export function SettingsUserCard({ name, username, avatarUrl, onClick }: Setting
       className='flex w-full items-center justify-between rounded-3xl bg-input/50 p-3.5 text-left transition'
     >
       <div className='flex items-center gap-3'>
-        {avatarUrl ? (
+        {avatarId ? (
           <Image
-            src={avatarUrl}
+            src={avatarId}
             alt={name}
             width={48}
             height={48}

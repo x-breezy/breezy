@@ -82,7 +82,9 @@ export default async function proxy(request: NextRequest) {
     return NextResponse.next()
   }
 
-  if (isAuthPath) {
+  const isServerAction = request.headers.has("next-action")
+
+  if (isAuthPath && !isServerAction) {
     return NextResponse.redirect(new URL("/", request.url))
   }
 
