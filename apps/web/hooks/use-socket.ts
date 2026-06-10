@@ -12,7 +12,7 @@ export function useSocket(userId: string | undefined) {
     // Ensure we don't create multiple connections
     if (socketRef.current) return
 
-    const socketInstance = io(process.env.NEXT_PUBLIC_MESSAGE_WS_URL || "http://localhost:4060", {
+    const socketInstance = io(process.env.NEXT_PUBLIC_MESSAGE_WS_URL || "http://localhost:4030", {
       auth: { userId },
       reconnection: true,
       reconnectionAttempts: 5,

@@ -56,7 +56,7 @@ export function ConversationSidebar({ conversations, currentUserId, activeId }: 
 
       const recipientId = authData.data.id
 
-      const API_URL = process.env.NEXT_PUBLIC_MESSAGE_API_URL || "http://localhost:4060"
+      const API_URL = process.env.NEXT_PUBLIC_MESSAGE_API_URL || "http://localhost:4030"
       const res = await fetch(`${API_URL}/conversations`, {
         method: "POST",
         headers: {

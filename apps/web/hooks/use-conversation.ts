@@ -22,7 +22,7 @@ export function useConversation(conversationId: string, userId: string | undefin
 
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true)
-    const API_URL = process.env.NEXT_PUBLIC_MESSAGE_API_URL || "http://localhost:4060"
+    const API_URL = process.env.NEXT_PUBLIC_MESSAGE_API_URL || "http://localhost:4030"
     
     fetch(`${API_URL}/conversations/${conversationId}/messages`, {
       headers: {
@@ -62,7 +62,7 @@ export function useConversation(conversationId: string, userId: string | undefin
     async (content: string) => {
       if (!conversationId || !userId) return
 
-      const API_URL = process.env.NEXT_PUBLIC_MESSAGE_API_URL || "http://localhost:4060"
+      const API_URL = process.env.NEXT_PUBLIC_MESSAGE_API_URL || "http://localhost:4030"
       
       try {
         const res = await fetch(`${API_URL}/conversations/${conversationId}/messages`, {

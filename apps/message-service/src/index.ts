@@ -8,7 +8,7 @@ import { setupWebSocket } from "./config/websocket"
 const logger = createLogger({ service: "message-service" })
 
 const app = createApp()
-const port = process.env.PORT ?? 4040
+const port = process.env.PORT ?? 4030
 const mongoUri = process.env.DATABASE_URL ?? "mongodb://localhost:27017/breezy"
 
 async function start(): Promise<void> {

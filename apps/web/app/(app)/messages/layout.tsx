@@ -11,7 +11,7 @@ export default function MessagesLayout({ children }: { children: React.ReactNode
 
   useEffect(() => {
     // Fetch conversations list
-    const API_URL = process.env.NEXT_PUBLIC_MESSAGE_API_URL || "http://localhost:4060"
+    const API_URL = process.env.NEXT_PUBLIC_MESSAGE_API_URL || "http://localhost:4030"
     fetch(`${API_URL}/conversations`, {
       headers: {
         "x-user-id": CURRENT_USER_ID,
