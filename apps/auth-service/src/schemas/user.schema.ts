@@ -24,3 +24,8 @@ export const userIdParamSchema = z.object({
 export const emailQuerySchema = z.object({
   email: z.string().email(),
 })
+
+/** Route param: lookup by username. */
+export const usernameParamSchema = z.object({
+  username: z.string().min(1),
+})

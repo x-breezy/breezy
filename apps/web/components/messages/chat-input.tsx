@@ -2,8 +2,8 @@
 
 import React, { useState } from "react"
 import { IconSend } from "@tabler/icons-react"
-import { Button } from "@/components/button"
-import { Input } from "@/components/input"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 
 interface ChatInputProps {
   onSend: (content: string) => void

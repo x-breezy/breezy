@@ -25,6 +25,11 @@ class UserService {
     return user ? user.toJSON() : null
   }
 
+  async getUserByUsername(username: string): Promise<SafeUser | null> {
+    const user = await User.findOne({ where: { username } })
+    return user ? user.toJSON() : null
+  }
+
   async isEmailAndUsernameTaken(
     email: string,
     username: string

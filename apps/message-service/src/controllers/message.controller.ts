@@ -98,6 +98,24 @@ class ChatController {
       next(err)
     }
   }
+
+  // DELETE /conversations/:conversationId
+  deleteConversation = async (
+    req: Request<{ conversationId: string }>,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const deleted = await this.chatService.deleteConversation(req.params.conversationId, req.user!.id)
+      if (!deleted) {
+        res.status(404).json({ success: false, message: "Conversation not found" })
+        return
+      }
+      res.status(204).send()
+    } catch (err) {
+      next(err)
+    }
+  }
 }
 
 export default ChatController

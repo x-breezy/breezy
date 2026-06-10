@@ -24,6 +24,22 @@ export class ChatService {
       .exec() as unknown as Promise<Conversation[]>
   }
 
+  async deleteConversation(conversationId: string, userId: string): Promise<boolean> {
+    const conversation = await ConversationModel.findOne({
+      _id: conversationId,
+      participantIds: userId,
+    }).exec()
+    
+    if (!conversation) return false
+    
+    await Promise.all([
+      ConversationModel.findByIdAndDelete(conversationId).exec(),
+      MessageModel.deleteMany({ conversationId }).exec()
+    ])
+    
+    return true
+  }
+
   // ── Messages ───────────────────────────────────────────────
 
   async sendMessage(conversationId: string, senderId: string, content: string): Promise<Message> {

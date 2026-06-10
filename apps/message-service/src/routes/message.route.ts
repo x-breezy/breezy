@@ -15,6 +15,7 @@ export function createChatRouter(
   router.get("/:conversationId/messages", identity, controller.getMessages)
   router.post("/:conversationId/messages", identity, validate(sendMessageSchema), controller.sendMessage)
   router.patch("/:conversationId/read", identity, controller.markAsRead)
+  router.delete("/:conversationId", identity, controller.deleteConversation)
   router.delete("/messages/:messageId", identity, controller.deleteMessage)
 
   return router

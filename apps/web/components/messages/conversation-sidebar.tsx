@@ -3,7 +3,7 @@
 import React, { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { IconPlus } from "@tabler/icons-react"
+import { IconPlus, IconTrash } from "@tabler/icons-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -28,13 +28,47 @@ interface SidebarProps {
   conversations: ConversationMeta[]
   currentUserId: string | undefined
   activeId?: string
+  onConversationCreated?: (conv: ConversationMeta) => void
+  onConversationDeleted?: (id: string) => void
 }
 
-export function ConversationSidebar({ conversations, currentUserId, activeId }: SidebarProps) {
+export function ConversationSidebar({ conversations, currentUserId, activeId, onConversationCreated, onConversationDeleted }: SidebarProps) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [username, setUsername] = useState("")
   const [loading, setLoading] = useState(false)
+
+  const handleDeleteConversation = async (e: React.MouseEvent, conversationId: string) => {
+    e.preventDefault()
+    e.stopPropagation()
+    
+    if (!window.confirm("Êtes-vous sûr de vouloir supprimer cette conversation ?")) return
+
+    const API_URL = process.env.NEXT_PUBLIC_MESSAGE_API_URL || "http://localhost:4030"
+    try {
+      const res = await fetch(`${API_URL}/conversations/${conversationId}`, {
+        method: "DELETE",
+        headers: {
+          "x-user-id": currentUserId!,
+          "x-roles": "user",
+        },
+      })
+      if (res.ok) {
+        if (onConversationDeleted) {
+          onConversationDeleted(conversationId)
+        }
+        if (activeId === conversationId) {
+          router.push("/messages")
+        }
+        router.refresh()
+      } else {
+        alert("Erreur lors de la suppression")
+      }
+    } catch (err) {
+      console.error(err)
+      alert("Erreur lors de la suppression")
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -71,6 +105,9 @@ export function ConversationSidebar({ conversations, currentUserId, activeId }: 
       if (data.success && data.data) {
         setOpen(false)
         setUsername("")
+        if (onConversationCreated) {
+          onConversationCreated(data.data)
+        }
         router.push(`/messages/${data.data._id}`)
         // Force refresh the layout to fetch the updated conversation list
         router.refresh()
@@ -90,9 +127,11 @@ export function ConversationSidebar({ conversations, currentUserId, activeId }: 
       <div className="p-4 border-b border-border flex items-center justify-between">
         <h2 className="text-xl font-bold tracking-tight">Messages</h2>
         <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger render={<Button size="icon" variant="ghost" className="rounded-full" title="New conversation" />}>
-            <IconPlus size={20} />
-          </DialogTrigger>
+          <DialogTrigger render={
+            <Button size="icon" variant="ghost" className="rounded-full" title="New conversation">
+              <IconPlus size={20} />
+            </Button>
+          } />
           <DialogContent>
             <DialogHeader>
               <DialogTitle>New Conversation</DialogTitle>
@@ -108,9 +147,7 @@ export function ConversationSidebar({ conversations, currentUserId, activeId }: 
                 autoFocus
               />
               <DialogFooter>
-                <DialogClose render={<Button type="button" variant="outline" />}>
-                  Cancel
-                </DialogClose>
+                <DialogClose render={<Button type="button" variant="outline">Cancel</Button>} />
                 <Button type="submit" disabled={!username.trim() || loading}>
                   {loading ? "Starting..." : "Start Chat"}
                 </Button>
@@ -128,29 +165,37 @@ export function ConversationSidebar({ conversations, currentUserId, activeId }: 
             const isActive = conv._id === activeId
 
             return (
-              <Link
-                key={conv._id}
-                href={`/messages/${conv._id}`}
-                className={`flex flex-col p-3 rounded-2xl transition-colors duration-200 ${
-                  isActive
-                    ? "bg-primary/10 border border-primary/20 text-foreground"
-                    : "hover:bg-muted border border-transparent text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                <div className="flex justify-between items-baseline mb-1">
-                  <span className={`font-semibold text-sm truncate ${isActive ? "text-foreground" : "text-foreground"}`}>User {otherUserId.slice(0, 8)}</span>
-                  {conv.lastMessageAt && (
-                    <span className="text-xs opacity-70">
-                      {new Date(conv.lastMessageAt).toLocaleDateString()}
-                    </span>
+              <div key={conv._id} className="group relative">
+                <Link
+                  href={`/messages/${conv._id}`}
+                  className={`flex flex-col p-3 rounded-2xl transition-colors duration-200 pr-10 ${
+                    isActive
+                      ? "bg-primary/10 border border-primary/20 text-foreground"
+                      : "hover:bg-muted border border-transparent text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  <div className="flex justify-between items-baseline mb-1">
+                    <span className={`font-semibold text-sm truncate ${isActive ? "text-foreground" : "text-foreground"}`}>User {otherUserId.slice(0, 8)}</span>
+                    {conv.lastMessageAt && (
+                      <span className="text-xs opacity-70">
+                        {new Date(conv.lastMessageAt).toLocaleDateString()}
+                      </span>
+                    )}
+                  </div>
+                  {conv.lastMessage && (
+                    <p className="text-xs opacity-70 truncate">
+                      {conv.lastMessage}
+                    </p>
                   )}
-                </div>
-                {conv.lastMessage && (
-                  <p className="text-xs opacity-70 truncate">
-                    {conv.lastMessage}
-                  </p>
-                )}
-              </Link>
+                </Link>
+                <button
+                  onClick={(e) => handleDeleteConversation(e, conv._id)}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-red-500 opacity-0 group-hover:opacity-100 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-full transition-all"
+                  title="Supprimer la conversation"
+                >
+                  <IconTrash size={16} />
+                </button>
+              </div>
             )
           })
         )}

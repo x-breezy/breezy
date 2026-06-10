@@ -1,5 +1,6 @@
 import express from "express"
 import type { Express, Request, Response, NextFunction } from "express"
+import cors from "cors"
 import swaggerUi from "swagger-ui-express"
 import { createAuthRouter } from "./routes/auth.route"
 import { createLogger, httpLogger } from "@breezy/logger"
@@ -13,6 +14,7 @@ const logger = createLogger({ service: "auth-service" })
 export function createApp(): Express {
   const app = express()
 
+  app.use(cors())
   app.use(httpLogger(logger))
   app.use(express.json())
 

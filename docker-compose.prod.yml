@@ -79,6 +79,28 @@ services:
       timeout: 5s
       retries: 5
 
+    postgres-message-service:
+      image: postgres:16
+      container_name: breezy-postgres-message-service
+      restart: unless-stopped
+      ports:
+        - "5435:5432"
+      environment:
+        POSTGRES_USER: postgres
+        POSTGRES_PASSWORD: postgres
+        POSTGRES_DB: message_service
+        POSTGRES_HOST_AUTH_METHOD: md5
+        POSTGRES_INITDB_ARGS: "--auth-host=md5 --auth-local=md5"
+      volumes:
+        - postgres-message-service-data:/var/lib/postgresql/data
+      networks:
+        - breezy
+      healthcheck:
+        test: ["CMD", "pg_isready", "-U", "postgres"]
+        interval: 10s
+        timeout: 5s
+        retries: 5
+
   rabbitmq:
     image: rabbitmq:3-management
     container_name: breezy-rabbitmq

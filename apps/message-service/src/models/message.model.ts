@@ -40,7 +40,7 @@ const conversationSchema = new Schema<Conversation>(
   { timestamps: true, collection: "conversations" }
 )
 
-conversationSchema.index({ participantIds: 1 })
+
 
 export const MessageModel = model<Message>("Message", messageSchema)
 export const ConversationModel = model<Conversation>("Conversation", conversationSchema)
