@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils"
-import { ProfileBadges, UserRole } from "./profile-badge"
+import { ProfileBadges } from "./profile-badge"
+import { UserRole } from "@/lib/auth/role"
 
 interface ProfileInfoProps {
   name: string

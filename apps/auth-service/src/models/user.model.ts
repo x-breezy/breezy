@@ -6,7 +6,7 @@ export interface UserAttributes {
   username: string
   email: string
   passwordHash: string
-  roles: Role[]
+  role: Role
   isBanned: boolean
   isSuspended: boolean
   isEmailVerified: boolean
@@ -19,7 +19,7 @@ export interface UserAttributes {
 export type CreateUserInput = Omit<
   UserAttributes,
   | "id"
-  | "roles"
+  | "role"
   | "isBanned"
   | "isSuspended"
   | "isEmailVerified"
@@ -36,7 +36,7 @@ export class User extends Model<UserAttributes, CreateUserInput> implements User
   declare username: string
   declare email: string
   declare passwordHash: string
-  declare roles: Role[]
+  declare role: Role
   declare isBanned: boolean
   declare isSuspended: boolean
   declare isEmailVerified: boolean
@@ -78,10 +78,10 @@ export function initUserModel(sequelize: Sequelize): void {
         type: DataTypes.STRING(255),
         allowNull: false,
       },
-      roles: {
-        type: DataTypes.ARRAY(DataTypes.STRING),
+      role: {
+        type: DataTypes.STRING,
         allowNull: false,
-        defaultValue: [ROLES.USER],
+        defaultValue: ROLES.USER,
       },
       isBanned: {
         type: DataTypes.BOOLEAN,

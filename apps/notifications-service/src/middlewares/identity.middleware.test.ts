@@ -20,25 +20,25 @@ describe("identity middleware", () => {
   })
 
   it("sets req.user with id and permissions when header present", () => {
-    const { req, res, next } = mockReqRes({ "x-user-id": "u1", "x-roles": "user" })
+    const { req, res, next } = mockReqRes({ "x-user-id": "u1", "x-role": "user" })
     identity(req, res, next)
     expect(next).toHaveBeenCalled()
-    expect(req.user).toMatchObject({ id: "u1", roles: ["user"] })
+    expect(req.user).toMatchObject({ id: "u1", role: "user" })
     expect(req.user!.permissions).toContain(PERMISSIONS.NOTIFICATION_READ)
     expect(req.user!.permissions).toContain(PERMISSIONS.NOTIFICATION_DELETE)
   })
 
-  it("sets empty roles when x-roles header missing", () => {
+  it("sets empty role when x-role header missing", () => {
     const { req, res, next } = mockReqRes({ "x-user-id": "u1" })
     identity(req, res, next)
     expect(next).toHaveBeenCalled()
-    expect(req.user!.roles).toEqual([])
+    expect(req.user!.role).toEqual(undefined)
     expect(req.user!.permissions).toEqual([])
   })
 
-  it("parses comma-separated roles", () => {
-    const { req, res, next } = mockReqRes({ "x-user-id": "u1", "x-roles": "user,admin" })
+  it("parses comma-separated role", () => {
+    const { req, res, next } = mockReqRes({ "x-user-id": "u1", "x-role": "admin" })
     identity(req, res, next)
-    expect(req.user!.roles).toEqual(["user", "admin"])
+    expect(req.user!.role).toEqual("admin")
   })
 })

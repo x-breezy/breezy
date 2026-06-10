@@ -4,7 +4,7 @@ import type { Role } from "../constants/roles"
 
 export interface TokenPayload {
   sub: string
-  roles: Role[]
+  role: Role
 }
 
 const secret = process.env.JWT_SECRET ?? "changeme"

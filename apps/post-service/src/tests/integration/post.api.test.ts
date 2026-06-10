@@ -76,7 +76,7 @@ describe("POST /posts", () => {
       .post("/posts")
       .set("Content-Type", "application/json")
       .set("x-user-id", USER1_UUID)
-      .set("x-roles", "user")
+      .set("x-role", "user")
       .send({ content: "Hello world", tags: ["tag1"], media: [{ id: "media1", type: "image" }] })
 
     expect(res.status).toBe(201)
@@ -112,7 +112,7 @@ describe("POST /posts", () => {
       .post("/posts")
       .set("Content-Type", "application/json")
       .set("x-user-id", USER1_UUID)
-      .set("x-roles", "user")
+      .set("x-role", "user")
       .send({ content: "" })
 
     expect(res.status).toBe(400)
@@ -125,7 +125,7 @@ describe("POST /posts", () => {
       .post("/posts")
       .set("Content-Type", "application/json")
       .set("x-user-id", USER1_UUID)
-      .set("x-roles", "user")
+      .set("x-role", "user")
       .send({})
 
     expect(res.status).toBe(400)
@@ -143,7 +143,7 @@ describe("POST /posts", () => {
       .post("/posts")
       .set("Content-Type", "application/json")
       .set("x-user-id", USER1_UUID)
-      .set("x-roles", "user")
+      .set("x-role", "user")
       .send({ content: "Just text" })
 
     expect(mockedModel.create).toHaveBeenCalledWith(
@@ -163,7 +163,7 @@ describe("GET /posts/:id", () => {
     const res = await request(app)
       .get("/posts/abc")
       .set("x-user-id", USER1_UUID)
-      .set("x-roles", "user")
+      .set("x-role", "user")
 
     expect(res.status).toBe(200)
     expect(res.body).toMatchObject({
@@ -180,7 +180,7 @@ describe("GET /posts/:id", () => {
     const res = await request(app)
       .get("/posts/notfound")
       .set("x-user-id", USER1_UUID)
-      .set("x-roles", "user")
+      .set("x-role", "user")
 
     expect(res.status).toBe(404)
     expect(res.body.success).toBe(false)
@@ -201,7 +201,7 @@ describe("GET /posts/feed", () => {
     const res = await request(app)
       .get("/posts/feed")
       .set("x-user-id", USER1_UUID)
-      .set("x-roles", "user")
+      .set("x-role", "user")
 
     expect(res.status).toBe(200)
     expect(res.body).toMatchObject({
@@ -221,7 +221,7 @@ describe("GET /posts/feed", () => {
     const res = await request(app)
       .get("/posts/feed?page=3&limit=5")
       .set("x-user-id", USER1_UUID)
-      .set("x-roles", "user")
+      .set("x-role", "user")
 
     expect(res.status).toBe(200)
     expect(res.body.data).toMatchObject({ page: 3, limit: 5, total: 100 })
@@ -233,7 +233,7 @@ describe("GET /posts/feed", () => {
     const res = await request(app)
       .get("/posts/feed")
       .set("x-user-id", USER1_UUID)
-      .set("x-roles", "user")
+      .set("x-role", "user")
 
     // If routed to /:id, findById would be called (not find) and data would not have total
     expect(res.status).toBe(200)
@@ -243,7 +243,7 @@ describe("GET /posts/feed", () => {
   it("uses global filter when user-service unavailable (no USER_SERVICE_URL)", async () => {
     mockFindPaginated([MOCK_POST], 1)
 
-    await request(app).get("/posts/feed").set("x-user-id", USER1_UUID).set("x-roles", "user")
+    await request(app).get("/posts/feed").set("x-user-id", USER1_UUID).set("x-role", "user")
 
     expect(mockedModel.find).toHaveBeenCalledWith({})
   })
@@ -263,7 +263,7 @@ describe("GET /posts/users/:userId", () => {
     const res = await request(app)
       .get(`/posts/users/${USER1_UUID}`)
       .set("x-user-id", USER1_UUID)
-      .set("x-roles", "user")
+      .set("x-role", "user")
 
     expect(res.status).toBe(200)
     expect(res.body).toMatchObject({
@@ -284,7 +284,7 @@ describe("GET /posts/users/:userId", () => {
     const res = await request(app)
       .get(`/posts/users/${USER1_UUID}`)
       .set("x-user-id", USER1_UUID)
-      .set("x-roles", "user")
+      .set("x-role", "user")
 
     expect(res.status).toBe(200)
     expect(res.body.data).toMatchObject({ data: [], total: 0 })
@@ -294,7 +294,7 @@ describe("GET /posts/users/:userId", () => {
     const res = await request(app)
       .get(`/posts/users/${USER2_UUID}`)
       .set("x-user-id", USER1_UUID)
-      .set("x-roles", "user")
+      .set("x-role", "user")
 
     expect(res.status).toBe(403)
     expect(res.body.success).toBe(false)
@@ -306,7 +306,7 @@ describe("GET /posts/users/:userId", () => {
     const res = await request(app)
       .get(`/posts/users/${USER2_UUID}`)
       .set("x-user-id", USER1_UUID)
-      .set("x-roles", "moderator")
+      .set("x-role", "moderator")
 
     expect(res.status).toBe(200)
     expect(res.body.success).toBe(true)
@@ -318,7 +318,7 @@ describe("GET /posts/users/:userId", () => {
     const res = await request(app)
       .get(`/posts/users/${USER2_UUID}`)
       .set("x-user-id", USER1_UUID)
-      .set("x-roles", "admin")
+      .set("x-role", "admin")
 
     expect(res.status).toBe(200)
     expect(res.body.success).toBe(true)
@@ -344,7 +344,7 @@ describe("DELETE /posts/:id", () => {
     const res = await request(app)
       .delete("/posts/abc")
       .set("x-user-id", USER1_UUID)
-      .set("x-roles", "user")
+      .set("x-role", "user")
 
     expect(res.status).toBe(200)
     expect(res.body).toMatchObject({ success: true, message: "Post deleted successfully" })
@@ -358,7 +358,7 @@ describe("DELETE /posts/:id", () => {
     const res = await request(app)
       .delete("/posts/notfound")
       .set("x-user-id", USER1_UUID)
-      .set("x-roles", "user")
+      .set("x-role", "user")
 
     expect(res.status).toBe(404)
     expect(res.body.success).toBe(false)
@@ -372,7 +372,7 @@ describe("DELETE /posts/:id", () => {
     const res = await request(app)
       .delete("/posts/abc")
       .set("x-user-id", USER1_UUID)
-      .set("x-roles", "user")
+      .set("x-role", "user")
 
     expect(res.status).toBe(403)
     expect(res.body.success).toBe(false)
@@ -389,7 +389,7 @@ describe("DELETE /posts/:id", () => {
     const res = await request(app)
       .delete("/posts/abc")
       .set("x-user-id", USER1_UUID)
-      .set("x-roles", "moderator")
+      .set("x-role", "moderator")
 
     expect(res.status).toBe(200)
     expect(res.body.success).toBe(true)
@@ -406,7 +406,7 @@ describe("DELETE /posts/:id", () => {
     const res = await request(app)
       .delete("/posts/abc")
       .set("x-user-id", USER1_UUID)
-      .set("x-roles", "admin")
+      .set("x-role", "admin")
 
     expect(res.status).toBe(200)
     expect(res.body.success).toBe(true)
@@ -423,7 +423,7 @@ describe("DELETE /posts/:id", () => {
     const res = await request(app)
       .delete("/posts/abc")
       .set("x-user-id", USER1_UUID)
-      .set("x-roles", "user")
+      .set("x-role", "user")
 
     expect(res.status).toBe(404)
     expect(res.body.success).toBe(false)
@@ -448,7 +448,7 @@ describe("global error handler", () => {
     const res = await request(app)
       .post("/posts")
       .set("x-user-id", USER1_UUID)
-      .set("x-roles", "user")
+      .set("x-role", "user")
       .send({ content: "Hello" })
 
     expect(res.status).toBe(500)
@@ -463,7 +463,7 @@ describe("global error handler", () => {
     const res = await request(app)
       .get("/posts/abc")
       .set("x-user-id", USER1_UUID)
-      .set("x-roles", "user")
+      .set("x-role", "user")
 
     expect(res.status).toBe(500)
   })
@@ -480,7 +480,7 @@ describe("global error handler", () => {
     const res = await request(app)
       .get("/posts/feed")
       .set("x-user-id", USER1_UUID)
-      .set("x-roles", "user")
+      .set("x-role", "user")
 
     expect(res.status).toBe(500)
   })
@@ -497,7 +497,7 @@ describe("global error handler", () => {
     const res = await request(app)
       .get(`/posts/users/${USER1_UUID}`)
       .set("x-user-id", USER1_UUID)
-      .set("x-roles", "user")
+      .set("x-role", "user")
 
     expect(res.status).toBe(500)
   })
@@ -513,7 +513,7 @@ describe("global error handler", () => {
     const res = await request(app)
       .delete("/posts/abc")
       .set("x-user-id", USER1_UUID)
-      .set("x-roles", "user")
+      .set("x-role", "user")
 
     expect(res.status).toBe(500)
   })

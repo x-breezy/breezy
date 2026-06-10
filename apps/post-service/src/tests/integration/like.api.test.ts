@@ -50,7 +50,7 @@ describe("POST /posts/:id/likes", () => {
     const res = await request(app)
       .post(`/posts/${POST_ID}/likes`)
       .set("x-user-id", USER1_UUID)
-      .set("x-roles", "user")
+      .set("x-role", "user")
 
     expect(res.status).toBe(201)
     expect(res.body).toEqual({
@@ -76,7 +76,7 @@ describe("POST /posts/:id/likes", () => {
     const res = await request(app)
       .post(`/posts/${POST_ID}/likes`)
       .set("x-user-id", USER1_UUID)
-      .set("x-roles", "user")
+      .set("x-role", "user")
 
     expect(res.status).toBe(409)
     expect(res.body.success).toBe(false)
@@ -90,7 +90,7 @@ describe("POST /posts/:id/likes", () => {
     const res = await request(app)
       .post(`/posts/${POST_ID}/likes`)
       .set("x-user-id", USER1_UUID)
-      .set("x-roles", "user")
+      .set("x-role", "user")
 
     expect(res.status).toBe(404)
     expect(res.body.success).toBe(false)
@@ -120,7 +120,7 @@ describe("DELETE /posts/:id/likes", () => {
     const res = await request(app)
       .delete(`/posts/${POST_ID}/likes`)
       .set("x-user-id", USER1_UUID)
-      .set("x-roles", "user")
+      .set("x-role", "user")
 
     expect(res.status).toBe(200)
     expect(res.body).toEqual({
@@ -143,7 +143,7 @@ describe("DELETE /posts/:id/likes", () => {
     const res = await request(app)
       .delete(`/posts/${POST_ID}/likes`)
       .set("x-user-id", USER1_UUID)
-      .set("x-roles", "user")
+      .set("x-role", "user")
 
     expect(res.status).toBe(404)
     expect(res.body.success).toBe(false)
@@ -171,7 +171,7 @@ describe("like controller error handling", () => {
     const res = await request(app)
       .post(`/posts/${POST_ID}/likes`)
       .set("x-user-id", USER1_UUID)
-      .set("x-roles", "user")
+      .set("x-role", "user")
 
     expect(res.status).toBe(500)
     expect(res.body).toEqual({ success: false, error: "Internal server error" })
@@ -185,7 +185,7 @@ describe("like controller error handling", () => {
     const res = await request(app)
       .delete(`/posts/${POST_ID}/likes`)
       .set("x-user-id", USER1_UUID)
-      .set("x-roles", "user")
+      .set("x-role", "user")
 
     expect(res.status).toBe(500)
   })

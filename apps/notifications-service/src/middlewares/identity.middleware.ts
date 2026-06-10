@@ -4,19 +4,19 @@ import type { Role } from "../constants/roles"
 
 export function identity(req: Request, res: Response, next: NextFunction): void {
   const userId = req.headers["x-user-id"]
-  const roles = req.headers["x-roles"]
+  const role = req.headers["x-role"]
 
   if (!userId) {
     res.status(401).json({ success: false, error: "Unauthorized" })
     return
   }
 
-  const parsedRoles = (typeof roles === "string" ? roles.split(",") : []) as Role[]
+  const parsedRole = (typeof role === "string" ? role : undefined) as Role
 
   req.user = {
     id: String(userId),
-    roles: parsedRoles,
-    permissions: getPermissions(parsedRoles),
+    role: parsedRole,
+    permissions: getPermissions(parsedRole),
   }
 
   next()

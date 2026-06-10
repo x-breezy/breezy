@@ -1,12 +1,7 @@
 import { cn } from "@/lib/utils"
 import { ModeratorBadge } from "@/components/badges/moderator-badge"
 import { AdminBadge } from "@/components/badges/admin-badge"
-
-export enum UserRole {
-  User = "user",
-  Moderator = "moderator",
-  Admin = "admin",
-}
+import { UserRole } from "@/lib/auth/role"
 
 interface ProfileBadgesProps {
   role: UserRole

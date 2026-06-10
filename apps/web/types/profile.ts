@@ -1,6 +1,6 @@
 export interface Profile {
   profileId: string
-  roles: string[]
+  role: string
   username: string
   firstName: string | null
   lastName: string | null

@@ -20,12 +20,12 @@ and then: `npm run dev`
 ## API Gateway
 
 The API Gateway is the single entry point for all client requests. It handles authentication,
-routing, and response aggregation. It also enforces permissions based on user roles.
+routing, and response aggregation. It also enforces permissions based on user role.
 
 It add to the request:
 
 - `userId`: the ID of the authenticated user, if any.
-- `roles`: the roles assigned to the authenticated user, if any.
+- `role`: the role assigned to the authenticated user, if any.
 
 ## Permissions
 

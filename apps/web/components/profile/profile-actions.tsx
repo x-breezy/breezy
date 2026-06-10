@@ -1,32 +1,29 @@
 "use client"
 
-import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { IconPencil } from "@tabler/icons-react"
-
-interface ProfileEditButtonProps {
-  onClick?: () => void
-  className?: string
-}
-
-export function ProfileEditButton({ onClick, className }: ProfileEditButtonProps) {
-  return (
-    <Button variant='secondary' className={cn(className)} onClick={onClick}>
-      <span>Edit Profile</span>
-      <IconPencil className='size-4' strokeWidth={2} />
-    </Button>
-  )
-}
+import { ProfileEditDialog } from "./edit/profile-edit-dialog"
+import { useState } from "react"
+import { Button } from "../ui/button"
+import { IconPencilFilled } from "@tabler/icons-react"
+import type { Profile } from "@/types/profile"
 
 interface ProfileActionsProps {
-  onEdit?: () => void
   className?: string
+  profile?: Profile
 }
 
-export function ProfileActions({ onEdit, className }: ProfileActionsProps) {
+export function ProfileActions({ className, profile }: ProfileActionsProps) {
+  const [open, setOpen] = useState(false)
   return (
-    <div className={cn("flex justify-center", className)}>
-      <ProfileEditButton onClick={onEdit} />
+    <div className={cn(className, "*: flex w-full justify-center")}>
+      {profile && (
+        <ProfileEditDialog open={open} onClose={() => setOpen(false)} profile={profile} />
+      )}
+
+      <Button variant='outline' className='w-full max-w-40' size='lg' onClick={() => setOpen(true)}>
+        Edit Profile
+        <IconPencilFilled />
+      </Button>
     </div>
   )
 }

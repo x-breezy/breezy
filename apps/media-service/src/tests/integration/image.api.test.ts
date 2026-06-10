@@ -76,7 +76,7 @@ describe("POST /images", () => {
       .set("Content-Type", "image/png")
       .set("x-filename", "test.png")
       .set("x-user-id", "user-1")
-      .set("x-roles", "user")
+      .set("x-role", "user")
       .send(PNG)
 
     expect(res.status).toBe(201)
@@ -102,7 +102,7 @@ describe("POST /images", () => {
       .post("/images")
       .set("Content-Type", "image/png")
       .set("x-user-id", "user-1")
-      .set("x-roles", "user")
+      .set("x-role", "user")
       .send(PNG)
 
     expect(res.status).toBe(201)
@@ -116,7 +116,7 @@ describe("POST /images", () => {
       .post("/images")
       .set("Content-Type", "image/png")
       .set("x-user-id", "user-1")
-      .set("x-roles", "user")
+      .set("x-role", "user")
 
     expect(res.status).toBe(400)
     expect(res.body.success).toBe(false)
@@ -128,7 +128,7 @@ describe("POST /images", () => {
       .post("/images")
       .set("Content-Type", "")
       .set("x-user-id", "user-1")
-      .set("x-roles", "user")
+      .set("x-role", "user")
       .send(PNG)
 
     expect(res.status).toBe(400)
@@ -153,7 +153,7 @@ describe("GET /images/:id", () => {
     const res = await request(app)
       .get("/images/abc")
       .set("x-user-id", "user-1")
-      .set("x-roles", "user")
+      .set("x-role", "user")
       .responseType("blob")
 
     expect(res.status).toBe(200)
@@ -169,7 +169,7 @@ describe("GET /images/:id", () => {
     const res = await request(app)
       .get("/images/0123456789abcdef01234567")
       .set("x-user-id", "user-1")
-      .set("x-roles", "user")
+      .set("x-role", "user")
 
     expect(res.status).toBe(404)
   })
@@ -198,7 +198,7 @@ describe("GET /images/:id/meta", () => {
     const res = await request(app)
       .get("/images/abc/meta")
       .set("x-user-id", "user-1")
-      .set("x-roles", "user")
+      .set("x-role", "user")
 
     expect(res.status).toBe(200)
     expect(res.body).toMatchObject({
@@ -216,7 +216,7 @@ describe("GET /images/:id/meta", () => {
     const res = await request(app)
       .get("/images/0123456789abcdef01234567/meta")
       .set("x-user-id", "user-1")
-      .set("x-roles", "user")
+      .set("x-role", "user")
 
     expect(res.status).toBe(404)
     expect(res.body.success).toBe(false)
@@ -242,7 +242,7 @@ describe("DELETE /images/:id", () => {
     const res = await request(app)
       .delete("/images/abc")
       .set("x-user-id", "user-1")
-      .set("x-roles", "user")
+      .set("x-role", "user")
 
     expect(res.status).toBe(200)
     expect(res.body).toEqual({ success: true, message: "Image deleted successfully" })
@@ -256,7 +256,7 @@ describe("DELETE /images/:id", () => {
     const res = await request(app)
       .delete("/images/abc")
       .set("x-user-id", "user-2")
-      .set("x-roles", "user")
+      .set("x-role", "user")
 
     expect(res.status).toBe(403)
     expect(res.body.success).toBe(false)
@@ -273,7 +273,7 @@ describe("DELETE /images/:id", () => {
     const res = await request(app)
       .delete("/images/abc")
       .set("x-user-id", "user-2")
-      .set("x-roles", "moderator")
+      .set("x-role", "moderator")
 
     expect(res.status).toBe(200)
     expect(res.body.success).toBe(true)
@@ -290,7 +290,7 @@ describe("DELETE /images/:id", () => {
     const res = await request(app)
       .delete("/images/abc")
       .set("x-user-id", "user-2")
-      .set("x-roles", "admin")
+      .set("x-role", "admin")
 
     expect(res.status).toBe(200)
     expect(res.body.success).toBe(true)
@@ -304,7 +304,7 @@ describe("DELETE /images/:id", () => {
     const res = await request(app)
       .delete("/images/0123456789abcdef01234567")
       .set("x-user-id", "user-1")
-      .set("x-roles", "user")
+      .set("x-role", "user")
 
     expect(res.status).toBe(404)
     expect(res.body.success).toBe(false)
@@ -321,7 +321,7 @@ describe("DELETE /images/:id", () => {
     const res = await request(app)
       .delete("/images/abc")
       .set("x-user-id", "user-1")
-      .set("x-roles", "user")
+      .set("x-role", "user")
 
     expect(res.status).toBe(404)
     expect(res.body.success).toBe(false)
@@ -347,7 +347,7 @@ describe("image controller error handling", () => {
       .post("/images")
       .set("Content-Type", "image/png")
       .set("x-user-id", "user-1")
-      .set("x-roles", "user")
+      .set("x-role", "user")
       .send(PNG)
 
     expect(res.status).toBe(500)
@@ -362,7 +362,7 @@ describe("image controller error handling", () => {
     const res = await request(app)
       .get("/images/abc")
       .set("x-user-id", "user-1")
-      .set("x-roles", "user")
+      .set("x-role", "user")
 
     expect(res.status).toBe(500)
   })
@@ -375,7 +375,7 @@ describe("image controller error handling", () => {
     const res = await request(app)
       .get("/images/abc/meta")
       .set("x-user-id", "user-1")
-      .set("x-roles", "user")
+      .set("x-role", "user")
 
     expect(res.status).toBe(500)
   })
@@ -391,7 +391,7 @@ describe("image controller error handling", () => {
     const res = await request(app)
       .delete("/images/abc")
       .set("x-user-id", "user-1")
-      .set("x-roles", "user")
+      .set("x-role", "user")
 
     expect(res.status).toBe(500)
   })

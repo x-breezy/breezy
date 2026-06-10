@@ -47,7 +47,7 @@ export function createPostRouter(
  * /api/posts:
  *   post:
  *     summary: Create a post
- *     description: Create a new post. Requires authentication via x-user-id and x-roles headers.
+ *     description: Create a new post. Requires authentication via x-user-id and x-role headers.
  *     tags: [Posts]
  *     requestBody:
  *       required: true

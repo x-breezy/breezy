@@ -47,3 +47,7 @@ export function enableTwoFactor(code: string, authHeader: Record<string, string>
 export function disableTwoFactor(authHeader: Record<string, string>) {
   return serverClient.post("/api/auth/2fa/disable", null, { headers: authHeader })
 }
+
+export function getMe(authHeader: Record<string, string>) {
+  return serverClient.get("/api/users/me", { headers: authHeader })
+}
