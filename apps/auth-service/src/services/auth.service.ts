@@ -4,29 +4,32 @@ import { User, type SafeUser } from "../models/user.model"
 import { EmailVerificationToken } from "../models/email-verification-token.model"
 import { PasswordResetToken } from "../models/password-reset-token.model"
 import { TwoFactorCode } from "../models/two-factor-code.model"
-import { RefreshToken } from "../models/refresh-token.model"
 import { hashPassword, verifyPassword } from "../utils/password.util"
 import {
   signToken,
   generateRefreshToken,
   hashRefreshToken,
   REFRESH_TOKEN_TTL_MS,
-  type TokenPayload,
+  type TokenClaims,
 } from "../utils/jwt.util"
+import { getRedis } from "../clients/redis"
+import type { Role } from "../constants/roles"
 import type { SignInDTO } from "../schemas/auth.schema"
 
 const APP_URL = process.env.APP_URL ?? "http://localhost:3000"
+
+const REFRESH_TTL_SECONDS = Math.floor(REFRESH_TOKEN_TTL_MS / 1000)
 
 export interface TokenPair {
   accessToken: string
   refreshToken: string
 }
 
-/**
- * Owns authentication flows and all auth-related tokens (credential check,
- * email verification, password reset, 2FA codes, JWT access + refresh tokens).
- * Pure user CRUD stays in UserService.
- */
+interface RefreshRecord {
+  userId: string
+  role: Role
+}
+
 class AuthService {
   async verifyCredentials(input: SignInDTO): Promise<SafeUser> {
     const isEmail = input.identifier.includes("@")
@@ -58,70 +61,89 @@ class AuthService {
     return user.toJSON()
   }
 
-  /** Sign a short-lived access JWT and mint a rotating refresh token (stored hashed). */
-  async issueTokenPair(payload: TokenPayload): Promise<TokenPair> {
-    const accessToken = signToken(payload)
+  async issueTokenPair(claims: TokenClaims): Promise<TokenPair> {
+    const accessToken = signToken(claims)
     const refreshToken = generateRefreshToken()
-    await RefreshToken.create({
-      userId: payload.sub,
-      tokenHash: hashRefreshToken(refreshToken),
-      expiresAt: new Date(Date.now() + REFRESH_TOKEN_TTL_MS),
-      revokedAt: null,
-      replacedBy: null,
-    })
+    const tokenHash = hashRefreshToken(refreshToken)
+    const redis = getRedis()
+
+    const record: RefreshRecord = { userId: claims.sub, role: claims.role }
+    await redis
+      .multi()
+      .set(`refresh:${tokenHash}`, JSON.stringify(record), "EX", REFRESH_TTL_SECONDS)
+      .sadd(`session:${claims.sub}`, tokenHash)
+      .exec()
+
     return { accessToken, refreshToken }
   }
 
-  /**
-   * Validate a refresh token and rotate it. On reuse of an already-rotated token,
-   * revoke the user's entire refresh-token set (compromise containment).
-   */
   async rotateRefreshToken(raw: string): Promise<TokenPair & { user: SafeUser }> {
     const tokenHash = hashRefreshToken(raw)
-    const record = await RefreshToken.findOne({ where: { tokenHash } })
+    const redis = getRedis()
 
-    if (!record) {
+    const data = await redis.get(`refresh:${tokenHash}`)
+    if (!data) {
+      // check if this was already consumed, detect reuse and revoke entire session
+      const consumedUserId = await redis.get(`consumed:${tokenHash}`)
+      if (consumedUserId) {
+        const sessionHashes = await redis.smembers(`session:${consumedUserId}`)
+        if (sessionHashes.length > 0) {
+          const pipeline = redis.multi()
+          for (const hash of sessionHashes) {
+            pipeline.del(`refresh:${hash}`)
+            pipeline.del(`consumed:${hash}`)
+          }
+          pipeline.del(`session:${consumedUserId}`)
+          await pipeline.exec()
+        }
+      }
       throw Object.assign(new Error("Invalid refresh token"), { code: "INVALID_REFRESH" })
     }
-    if (record.revokedAt) {
-      // Reuse of a rotated token => likely theft. Nuke all sessions for this user.
-      await RefreshToken.update(
-        { revokedAt: new Date() },
-        { where: { userId: record.userId, revokedAt: null } }
-      )
-      throw Object.assign(new Error("Refresh token reuse detected"), { code: "INVALID_REFRESH" })
-    }
-    if (record.expiresAt.getTime() <= Date.now()) {
-      throw Object.assign(new Error("Refresh token expired"), { code: "INVALID_REFRESH" })
-    }
 
-    const user = await User.findByPk(record.userId)
+    const { userId, role } = JSON.parse(data) as RefreshRecord
+
+    const user = await User.findByPk(userId)
     if (!user) {
       throw Object.assign(new Error("Invalid refresh token"), { code: "INVALID_REFRESH" })
     }
 
-    const refreshToken = generateRefreshToken()
-    const newHash = hashRefreshToken(refreshToken)
-    await record.update({ revokedAt: new Date(), replacedBy: newHash })
-    await RefreshToken.create({
-      userId: user.id,
-      tokenHash: newHash,
-      expiresAt: new Date(Date.now() + REFRESH_TOKEN_TTL_MS),
-      revokedAt: null,
-      replacedBy: null,
-    })
+    const newRefreshToken = generateRefreshToken()
+    const newHash = hashRefreshToken(newRefreshToken)
+    const newRecord: RefreshRecord = { userId, role }
+
+    await redis
+      .multi()
+      .del(`refresh:${tokenHash}`)
+      .set(`consumed:${tokenHash}`, userId, "EX", REFRESH_TTL_SECONDS)
+      .srem(`session:${userId}`, tokenHash)
+      .set(`refresh:${newHash}`, JSON.stringify(newRecord), "EX", REFRESH_TTL_SECONDS)
+      .sadd(`session:${userId}`, newHash)
+      .exec()
 
     const safeUser = user.toJSON()
     const accessToken = signToken({ sub: safeUser.id, role: safeUser.role })
-    return { accessToken, refreshToken, user: safeUser }
+    return { accessToken, refreshToken: newRefreshToken, user: safeUser }
   }
 
-  /** Revoke a single refresh token (logout). Silent if unknown/already revoked. */
   async revokeRefreshToken(raw: string): Promise<void> {
-    await RefreshToken.update(
-      { revokedAt: new Date() },
-      { where: { tokenHash: hashRefreshToken(raw), revokedAt: null } }
-    )
+    const tokenHash = hashRefreshToken(raw)
+    const redis = getRedis()
+    const data = await redis.get(`refresh:${tokenHash}`)
+    if (!data) return
+    const { userId } = JSON.parse(data) as RefreshRecord
+    await redis.multi().del(`refresh:${tokenHash}`).srem(`session:${userId}`, tokenHash).exec()
+  }
+
+  private async revokeAllRefreshTokens(userId: string): Promise<void> {
+    const redis = getRedis()
+    const sessionHashes = await redis.smembers(`session:${userId}`)
+    if (sessionHashes.length === 0) return
+    const pipeline = redis.multi()
+    for (const hash of sessionHashes) {
+      pipeline.del(`refresh:${hash}`)
+    }
+    pipeline.del(`session:${userId}`)
+    await pipeline.exec()
   }
 
   async createEmailVerificationToken(
@@ -136,10 +158,6 @@ class AuthService {
     return { token, verifyUrl: `${APP_URL}/verify-email?token=${token}` }
   }
 
-  /**
-   * Issue a fresh verification token for an email if it belongs to an unverified
-   * account. Returns null otherwise (caller always responds 200 to avoid enumeration).
-   */
   async resendVerification(
     email: string
   ): Promise<{ userId: string; username: string; token: string; verifyUrl: string } | null> {
@@ -192,11 +210,7 @@ class AuthService {
     const passwordHash = await hashPassword(newPassword)
     await record.update({ usedAt: new Date() })
     await User.update({ passwordHash }, { where: { id: record.userId } })
-    // A password change invalidates every active session.
-    await RefreshToken.update(
-      { revokedAt: new Date() },
-      { where: { userId: record.userId, revokedAt: null } }
-    )
+    await this.revokeAllRefreshTokens(record.userId)
   }
 
   async createTwoFactorCode(userId: string): Promise<{ code: string; expiresAt: Date }> {

@@ -2,6 +2,7 @@ import { User, type SafeUser } from "../models/user.model"
 import { hashPassword, verifyPassword } from "../utils/password.util"
 import type { CreateUserDTO } from "../schemas/user.schema"
 import { publish } from "../clients/rabbitmq"
+import { getRedis } from "../clients/redis"
 
 class UserService {
   async addUser(input: CreateUserDTO): Promise<SafeUser> {
@@ -40,12 +41,26 @@ class UserService {
     const user = await User.findByPk(id)
     if (!user) throw Object.assign(new Error("User not found"), { code: "USER_NOT_FOUND" })
     await user.update({ isBanned: true })
+    await this.revokeAllSessions(id)
   }
 
   async suspendUser(id: string): Promise<void> {
     const user = await User.findByPk(id)
     if (!user) throw Object.assign(new Error("User not found"), { code: "USER_NOT_FOUND" })
     await user.update({ isSuspended: true })
+    await this.revokeAllSessions(id)
+  }
+
+  private async revokeAllSessions(userId: string): Promise<void> {
+    const redis = getRedis()
+    const hashes = await redis.smembers(`session:${userId}`)
+    if (hashes.length === 0) return
+    const pipeline = redis.multi()
+    for (const hash of hashes) {
+      pipeline.del(`refresh:${hash}`)
+    }
+    pipeline.del(`session:${userId}`)
+    await pipeline.exec()
   }
 
   async updatePassword(id: string, currentPassword: string, newPassword: string): Promise<void> {
