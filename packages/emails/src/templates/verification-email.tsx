@@ -2,17 +2,17 @@ import { Button, Section, Text } from "react-email"
 import { Layout } from "../layouts/layout"
 
 interface VerificationEmailProps {
-  token: string
+  url: string
   appUrl?: string
   user: {
     name: string
   }
 }
 
-export function VerificationEmail({ token, appUrl, user }: VerificationEmailProps) {
+export function VerificationEmail({ url, appUrl, user }: VerificationEmailProps) {
   const previewMessage = "Verify your email to complete your Breezy registration."
   const baseUrl = (appUrl ?? "http://localhost:3000").replace(/\/$/, "")
-  const verificationUrl = `${baseUrl}/app/verify-email?token=${token}`
+  const verificationUrl = url
 
   return (
     <Layout previewMessage={previewMessage} appUrl={baseUrl}>
@@ -35,7 +35,7 @@ export function VerificationEmail({ token, appUrl, user }: VerificationEmailProp
 
       <Section className='mt-6'>
         <Text className='m-0 text-sm leading-6 text-muted-foreground'>
-          This link expires in 10 minutes.
+          This link expires in 24 hours.
         </Text>
         <Text className='m-0 mt-2 text-sm leading-6 text-muted-foreground'>
           If you did not create an account, you can safely ignore this email.
@@ -46,7 +46,7 @@ export function VerificationEmail({ token, appUrl, user }: VerificationEmailProp
 }
 
 VerificationEmail.PreviewProps = {
-  token: "bc8fcea8-07ea-4321-884a-ce9f1a01a9e0",
+  url: "http://localhost:3000/verify-email?token=bc8fcea8-07ea-4321-884a-ce9f1a01a9e0",
   user: {
     name: "John Doe",
   },

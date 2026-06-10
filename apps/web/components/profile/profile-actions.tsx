@@ -1,7 +1,7 @@
 "use client"
 
-import { Button } from "@breezy/ui/components/button"
-import { cn } from "@breezy/ui/lib/utils"
+import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 import { IconPencil } from "@tabler/icons-react"
 
 interface ProfileEditButtonProps {

@@ -4,16 +4,18 @@ import * as React from "react"
 import { useEffect } from "react"
 import { useTheme, ThemeProvider as NextThemesProvider } from "next-themes"
 import type { Theme } from "@/lib/theme"
-import { setThemeCookie } from "@/lib/theme"
+import { setThemeCookie, deleteThemeCookie } from "@/lib/theme"
 
 function ThemeSync() {
-  const { theme, resolvedTheme } = useTheme()
+  const { theme } = useTheme()
 
   useEffect(() => {
-    if (theme) {
+    if (theme === "system") {
+      deleteThemeCookie()
+    } else if (theme) {
       setThemeCookie(theme as Theme)
     }
-  }, [theme, resolvedTheme])
+  }, [theme])
 
   return null
 }
@@ -29,6 +31,7 @@ function ThemeProvider({ children, defaultTheme = "system", ...props }: ThemePro
       defaultTheme={defaultTheme}
       enableSystem
       disableTransitionOnChange
+      scriptProps={{ suppressHydrationWarning: true }}
       {...props}
     >
       <ThemeSync />

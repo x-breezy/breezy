@@ -1,12 +1,12 @@
 services:
   gateway:
-    build: ./apps/gateway
+    build:
+      context: .
+      dockerfile: apps/gateway/Dockerfile
     container_name: breezy-gateway
     restart: unless-stopped
     ports:
       - "80:80"
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     networks:
       - breezy
 
@@ -126,6 +126,57 @@ services:
       timeout: 5s
       retries: 5
 
+  swagger-ui:
+    image: swaggerapi/swagger-ui:latest
+    container_name: breezy-swagger-ui
+    restart: unless-stopped
+    environment:
+      URL: /openapi.json
+      BASE_URL: /api-docs
+    networks:
+      - breezy
+
+  sonarqube:
+    image: sonarqube:10.6-community
+    container_name: breezy-sonarqube
+    restart: unless-stopped
+    environment:
+      - SONAR_ES_BOOTSTRAP_CHECKS_DISABLE=true
+      - SONAR_SEARCH_JAVAOPTS=-Xms512m -Xmx512m
+      - SONAR_WEB_JAVAOPTS=-Xmx512m
+      - SONAR_JDBC_URL=jdbc:postgresql://postgres-sonar:5432/sonar
+      - SONAR_JDBC_USERNAME=sonar
+      - SONAR_JDBC_PASSWORD=sonar
+    ports:
+      - "9000:9000"
+    depends_on:
+      postgres-sonar:
+        condition: service_healthy
+    networks:
+      - breezy
+    volumes:
+      - sonarqube-data:/opt/sonarqube/data
+      - sonarqube-logs:/opt/sonarqube/logs
+    mem_limit: 2g
+
+  postgres-sonar:
+    image: postgres:16-alpine
+    container_name: breezy-postgres-sonar
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: sonar
+      POSTGRES_PASSWORD: sonar
+      POSTGRES_DB: sonar
+    volumes:
+      - postgres-sonar-data:/var/lib/postgresql/data
+    networks:
+      - breezy
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sonar"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
 networks:
   breezy:
     driver: bridge
@@ -136,3 +187,6 @@ volumes:
   mongo-notifications-service-data:
   postgres-user-service-data:
   postgres-profile-service-data:
+  sonarqube-data:
+  sonarqube-logs:
+  postgres-sonar-data:

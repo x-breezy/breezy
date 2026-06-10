@@ -1,5 +1,5 @@
-import { cn } from "@breezy/ui/lib/utils"
-import { ModeratorBadge } from "@/components/badges/moderateur-badge"
+import { cn } from "@/lib/utils"
+import { ModeratorBadge } from "@/components/badges/moderator-badge"
 import { AdminBadge } from "@/components/badges/admin-badge"
 
 export type UserRole = "user" | "moderator" | "admin"
@@ -10,17 +10,14 @@ interface ProfileBadgesProps {
 }
 
 export function ProfileBadges({ role, className }: ProfileBadgesProps) {
-  // User: aucun badge
   if (role === "user") {
     return null
   }
 
-  // Moderator: uniquement le badge modérateur
   if (role === "moderator") {
     return <ModeratorBadge className={className} />
   }
 
-  // Admin: les deux badges collés avec chevauchement
   return (
     <div className='flex items-center'>
       {/* Badge admin (arrière-plan) */}

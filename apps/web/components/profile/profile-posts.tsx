@@ -1,5 +1,5 @@
 import Image from "next/image"
-import { cn } from "@breezy/ui/lib/utils"
+import { cn } from "@/lib/utils"
 
 interface ProfilePostProps {
   id: string

@@ -12,7 +12,7 @@ class ImageService {
 
   async uploadImage(input: ImageUploadDTO): Promise<Image> {
     const data = await this.optimizeImage(input.data)
-    return ImageModel.create({ ...input, data, size: data.length })
+    return ImageModel.create({ ...input, data, mimeType: "image/jpeg", size: data.length })
   }
 
   async getImage(id: string): Promise<Image | null> {

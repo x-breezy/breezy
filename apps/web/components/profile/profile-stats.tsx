@@ -1,4 +1,4 @@
-import { cn } from "@breezy/ui/lib/utils"
+import { cn } from "@/lib/utils"
 
 interface ProfileStatProps {
   count: number
@@ -32,7 +32,7 @@ interface ProfileStatsProps {
 
 export function ProfileStats({ followers, following, className }: ProfileStatsProps) {
   return (
-    <div className={cn("flex items-center justify-center gap-6", className)}>
+    <div className={cn("flex items-center gap-6", className)}>
       <ProfileStat count={followers} label='followers' />
       <ProfileStat count={following} label='following' />
     </div>

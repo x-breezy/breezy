@@ -1,4 +1,5 @@
 import nodemailer from "nodemailer"
+import { renderVerificationEmail, renderOTPEmail, renderResetPasswordEmail } from "@breezy/emails"
 import type {
   AuthEmailVerificationEvent,
   AuthForgotPasswordEvent,
@@ -17,35 +18,55 @@ function createTransport() {
 }
 
 const FROM = process.env.SMTP_FROM ?? "Breezy <noreply@breezy.clementomnes.dev>"
+const APP_URL = process.env.APP_URL ?? "http://localhost:3000"
+
+/** Best-effort display name: explicit username, else the local-part of the email. */
+function displayName(event: { username?: string; email: string }): string {
+  return event.username ?? event.email.split("@")[0] ?? "there"
+}
 
 class EmailService {
   async sendEmailVerification(event: AuthEmailVerificationEvent): Promise<void> {
+    const url = event.verifyUrl ?? `${APP_URL}/verify-email?token=${event.token}`
+    const html = await renderVerificationEmail({
+      url,
+      appUrl: APP_URL,
+      user: { name: displayName(event) },
+    })
     await createTransport().sendMail({
       from: FROM,
       to: event.email,
       subject: "Verify your Breezy account",
-      text: `Verify your account: ${event.token}`,
-      html: `<p>Use this token to verify your account: <strong>${event.token}</strong></p>`,
+      html,
     })
   }
 
   async sendForgotPassword(event: AuthForgotPasswordEvent): Promise<void> {
+    const url = event.resetUrl ?? `${APP_URL}/reset-password?token=${event.resetToken}`
+    const html = await renderResetPasswordEmail({
+      url,
+      appUrl: APP_URL,
+      user: { name: displayName(event) },
+    })
     await createTransport().sendMail({
       from: FROM,
       to: event.email,
       subject: "Reset your Breezy password",
-      text: `Reset token: ${event.resetToken}`,
-      html: `<p>Use this token to reset your password: <strong>${event.resetToken}</strong></p>`,
+      html,
     })
   }
 
   async send2FACode(event: Auth2FAEvent): Promise<void> {
+    const html = await renderOTPEmail({
+      otp: event.code,
+      appUrl: APP_URL,
+      user: { name: displayName(event) },
+    })
     await createTransport().sendMail({
       from: FROM,
       to: event.email,
       subject: "Your Breezy 2FA code",
-      text: `Your code: ${event.code} (expires at ${event.expiresAt})`,
-      html: `<p>Your 2FA code: <strong>${event.code}</strong></p><p>Expires at: ${event.expiresAt}</p>`,
+      html,
     })
   }
 }

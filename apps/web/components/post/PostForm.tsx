@@ -1,8 +1,8 @@
 "use client"
 
 import { useRef } from "react"
-import { Textarea } from "@breezy/ui/components/textarea"
-import { Avatar, AvatarFallback } from "@breezy/ui/components/avatar"
+import { Textarea } from "@/components/ui/textarea"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { PostBottomBar } from "@/components/post/PostBottomBar"
 
 export function PostForm({

@@ -2,7 +2,7 @@ import express from "express"
 import type { Express, Request, Response, NextFunction } from "express"
 import swaggerUi from "swagger-ui-express"
 import { createAuthRouter } from "./routes/auth.route"
-import { createLogger } from "@breezy/logger"
+import { createLogger, httpLogger } from "@breezy/logger"
 import { createUserRouter } from "./routes/user.route"
 import { createReportRouter } from "./routes/report.route"
 import { swaggerSpec } from "./config/swagger"
@@ -13,6 +13,7 @@ const logger = createLogger({ service: "auth-service" })
 export function createApp(): Express {
   const app = express()
 
+  app.use(httpLogger(logger))
   app.use(express.json())
 
   app.get("/", (_req, res) => {
@@ -25,8 +26,8 @@ export function createApp(): Express {
   })
 
   app.use("/auth", createAuthRouter())
-  app.use("/auth/users", createUserRouter())
-  app.use("/auth/reports", createReportRouter())
+  app.use("/users", createUserRouter())
+  app.use("/reports", createReportRouter())
 
   // Global error handler — must be registered last and have exactly 4 params
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

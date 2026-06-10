@@ -11,6 +11,13 @@ const options: swaggerJsdoc.Options = {
         "HTTP microservice for storing and serving images and videos via MongoDB (images) and GridFS (videos).",
     },
     components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: "http",
+          scheme: "bearer",
+          bearerFormat: "JWT",
+        },
+      },
       schemas: {
         ApiError: {
           type: "object",

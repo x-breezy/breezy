@@ -21,33 +21,38 @@ const profileDataHandler = {
     try {
       const result = await svc.getFollowers(call.request.profileId)
       cb(null, { count: result.count, followers: result.followers })
-    } catch (err) { cb(err as Error, null) }
+    } catch (err) {
+      cb(err as Error, null)
+    }
   },
 
   async getFollowing(call: any, cb: any) {
     try {
       const result = await svc.getFollowing(call.request.profileId)
       cb(null, { count: result.count, following: result.following })
-    } catch (err) { cb(err as Error, null) }
+    } catch (err) {
+      cb(err as Error, null)
+    }
   },
 
   async createProfile(call: any, cb: any) {
     try {
-      const result = await svc.createProfile({ profileId: call.request.profileId })
+      const result = await svc.createProfile({
+        profileId: call.request.profileId,
+        username: call.request.username,
+      })
       cb(null, { profileId: result.profileId })
-    } catch (err) { cb(err as Error, null) }
+    } catch (err) {
+      cb(err as Error, null)
+    }
   },
 }
 
 export function startGrpcServer(port = 50051): void {
   const server = new grpc.Server()
   server.addService(profileData.ProfileData.service, profileDataHandler as any)
-  server.bindAsync(
-    `0.0.0.0:${port}`,
-    grpc.ServerCredentials.createInsecure(),
-    (err, boundPort) => {
-      if (err) throw err
-      console.log(`gRPC server listening on port ${boundPort}`)
-    }
-  )
+  server.bindAsync(`0.0.0.0:${port}`, grpc.ServerCredentials.createInsecure(), (err, boundPort) => {
+    if (err) throw err
+    console.log(`gRPC server listening on port ${boundPort}`)
+  })
 }

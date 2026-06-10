@@ -36,7 +36,7 @@ const MOCK_PROFILE = {
   profileId: PROFILE_UUID,
   displayName: "Aaron Grod",
   bio: "Software Engineer",
-  avatarUrl: "https://example.com/avatar.jpg",
+  avatarId: "azdazd-azdazd-azd",
   followersCount: 10,
   followingCount: 5,
   update: jest.fn(),
@@ -45,7 +45,7 @@ const MOCK_PROFILE = {
     profileId: PROFILE_UUID,
     displayName: "Aaron Grod",
     bio: "Software Engineer",
-    avatarUrl: "https://example.com/avatar.jpg",
+    avatarId: "qsdqsds-qzdqzd-qzd",
     followersCount: 10,
     followingCount: 5,
   }),
@@ -147,7 +147,7 @@ describe("POST /profiles", () => {
       .set("Content-Type", "application/json")
       .set("x-user-id", PROFILE_UUID)
       .set("x-roles", "user")
-      .send({ profileId: PROFILE_UUID, firstName: "Aaron", lastName: "Grod" })
+      .send({ profileId: PROFILE_UUID, firstName: "Aaron", lastName: "Grod", username: "grodaron" })
 
     expect(res.status).toBe(201)
     expect(res.body).toMatchObject({

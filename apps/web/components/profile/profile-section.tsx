@@ -3,7 +3,7 @@ import { ProfileInfo } from "./profile-info"
 import { ProfileStats } from "./profile-stats"
 import { ProfileActions } from "./profile-actions"
 import { ProfileBio } from "./profile-bio"
-import { cn } from "@breezy/ui/lib/utils"
+import { cn } from "@/lib/utils"
 import type { UserRole } from "./profile-badge"
 
 interface ProfileSectionProps {

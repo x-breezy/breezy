@@ -1,0 +1,20 @@
+filebeat.inputs:
+  - type: log
+    paths:
+      - /logs/*.log
+    scan_frequency: 5s
+    close_inactive: 5m
+    json.keys_under_root: true
+    json.add_error_key: true
+
+output.elasticsearch:
+  hosts: ["${ELASTICSEARCH_HOSTS}"]
+  index: "breezy-logs-%{+yyyy.MM.dd}"
+
+setup.template.name: "breezy-logs"
+setup.template.pattern: "breezy-logs-*"
+setup.ilm.enabled: false
+
+logging.level: info
+logging.to_files: false
+logging.to_stderr: true
