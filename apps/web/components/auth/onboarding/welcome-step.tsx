@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { IconUserFilled } from "@tabler/icons-react"
-import { useRouter } from "next/navigation"
 import { setupProfileAction } from "@/app/(auth)/sign-up/actions"
 
 interface WelcomeStepProps {
