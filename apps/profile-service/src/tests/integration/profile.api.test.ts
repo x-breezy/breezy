@@ -147,7 +147,7 @@ describe("POST /profiles", () => {
       .set("Content-Type", "application/json")
       .set("x-user-id", PROFILE_UUID)
       .set("x-roles", "user")
-      .send({ profileId: PROFILE_UUID, firstName: "Aaron", lastName: "Grod" })
+      .send({ profileId: PROFILE_UUID, firstName: "Aaron", lastName: "Grod", username: "grodaron" })
 
     expect(res.status).toBe(201)
     expect(res.body).toMatchObject({

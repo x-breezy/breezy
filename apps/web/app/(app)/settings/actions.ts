@@ -4,7 +4,12 @@ import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
 import { isAxiosError } from "axios"
 import { clearSessionCookies, getServerAuthHeader, REFRESH_COOKIE } from "@/lib/auth/session"
-import { logout, sendTwoFactorCode, enableTwoFactor, disableTwoFactor } from "@/lib/services/auth-service"
+import {
+  logout,
+  sendTwoFactorCode,
+  enableTwoFactor,
+  disableTwoFactor,
+} from "@/lib/services/auth-service"
 
 export async function logoutAction() {
   const cookieStore = await cookies()

@@ -20,7 +20,8 @@ export async function verifyEmailAction(
   try {
     await verifyEmail(token)
   } catch (err) {
-    if (isAxiosError(err)) return { error: err.response?.data?.message ?? "Verification failed.", success: false }
+    if (isAxiosError(err))
+      return { error: err.response?.data?.message ?? "Verification failed.", success: false }
     return { error: "Could not reach the server.", success: false }
   }
 
