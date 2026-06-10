@@ -40,6 +40,7 @@ const profileDataHandler = {
       const result = await svc.createProfile({
         profileId: call.request.profileId,
         username: call.request.username,
+        roles: call.request.roles,
       })
       cb(null, { profileId: result.profileId })
     } catch (err) {

@@ -91,7 +91,7 @@ class AuthController {
 
       const user = await this.userService.addUser(req.body)
 
-      await this.profileClient.createProfile(user.id, user.username)
+      await this.profileClient.createProfile(user.id, user.username, user.roles)
 
       const { token, verifyUrl } = await this.authService.createEmailVerificationToken(user.id)
       void publish("auth.email_verification", {
