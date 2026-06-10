@@ -4,7 +4,7 @@ import type { Role } from "../constants/roles"
 
 /**
  * Factory that produces an ownership guard for any Mongoose model with an `ownerId` field.
- * Passes if the caller is the resource owner OR carries one of the elevated roles.
+ * Passes if the caller is the resource owner OR carries one of the elevated role.
  * Attaches the loaded document to req.post on success to avoid a second DB hit downstream.
  *
  * Usage:
@@ -21,7 +21,7 @@ export function requireOwnership(model: Model<any>, ...elevated: Role[]) {
     }
 
     const isOwner = resource.ownerId === req.user?.id
-    const hasRole = (req.user?.roles ?? []).some((r) => (elevated as string[]).includes(r))
+    const hasRole = elevated.includes(req.user?.role as Role)
 
     if (!isOwner && !hasRole) {
       res.status(403).json({ success: false, error: "Forbidden" })

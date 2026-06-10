@@ -11,7 +11,7 @@ interface ProfileIconProps {
 
 export function ProfileIcon({
   active = false,
-  src = "/test/pp_test.png",
+  src = undefined,
   alt = "Profile",
   className,
 }: ProfileIconProps) {

@@ -19,11 +19,11 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
   [ROLES.ADMIN]: ADMIN_PERMISSIONS,
 }
 
-export function getPermissions(roles: Role[]): Permission[] {
+export function getPermissions(role?: Role): Permission[] {
   const granted = new Set<Permission>()
-  for (const role of roles) {
-    const perms = ROLE_PERMISSIONS[role]
-    if (perms) perms.forEach((p) => granted.add(p))
-  }
+  if (!role) return [...granted]
+
+  const perms = ROLE_PERMISSIONS[role]
+  if (perms) perms.forEach((p) => granted.add(p))
   return [...granted]
 }

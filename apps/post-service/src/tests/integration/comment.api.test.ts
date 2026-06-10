@@ -73,7 +73,7 @@ describe("GET /posts/:id/comments", () => {
     const res = await request(app)
       .get(`/posts/${POST_ID}/comments`)
       .set("x-user-id", USER1_UUID)
-      .set("x-roles", "user")
+      .set("x-role", "user")
 
     expect(res.status).toBe(200)
     expect(res.body).toMatchObject({
@@ -102,7 +102,7 @@ describe("GET /posts/:id/comments", () => {
     await request(app)
       .get(`/posts/${POST_ID}/comments?parentCommentId=${COMMENT_ID}`)
       .set("x-user-id", USER1_UUID)
-      .set("x-roles", "user")
+      .set("x-role", "user")
 
     expect(mockedComment.find).toHaveBeenCalledWith({
       postId: POST_ID,
@@ -128,7 +128,7 @@ describe("POST /posts/:id/comments", () => {
     const res = await request(app)
       .post(`/posts/${POST_ID}/comments`)
       .set("x-user-id", USER1_UUID)
-      .set("x-roles", "user")
+      .set("x-role", "user")
       .send({ content: "Nice post!" })
 
     expect(res.status).toBe(201)
@@ -158,7 +158,7 @@ describe("POST /posts/:id/comments", () => {
     const res = await request(app)
       .post(`/posts/${POST_ID}/comments`)
       .set("x-user-id", USER1_UUID)
-      .set("x-roles", "user")
+      .set("x-role", "user")
       .send({ content: "Replying!", parentCommentId: COMMENT_ID })
 
     expect(res.status).toBe(201)
@@ -175,7 +175,7 @@ describe("POST /posts/:id/comments", () => {
     const res = await request(app)
       .post(`/posts/${POST_ID}/comments`)
       .set("x-user-id", USER1_UUID)
-      .set("x-roles", "user")
+      .set("x-role", "user")
       .send({ content: "Nice post!" })
 
     expect(res.status).toBe(404)
@@ -187,7 +187,7 @@ describe("POST /posts/:id/comments", () => {
     const res = await request(app)
       .post(`/posts/${POST_ID}/comments`)
       .set("x-user-id", USER1_UUID)
-      .set("x-roles", "user")
+      .set("x-role", "user")
       .send({ content: "" })
 
     expect(res.status).toBe(400)
@@ -199,7 +199,7 @@ describe("POST /posts/:id/comments", () => {
     const res = await request(app)
       .post(`/posts/${POST_ID}/comments`)
       .set("x-user-id", USER1_UUID)
-      .set("x-roles", "user")
+      .set("x-role", "user")
       .send({ content: "x".repeat(281) })
 
     expect(res.status).toBe(400)
@@ -228,7 +228,7 @@ describe("DELETE /posts/:id/comments/:commentId", () => {
     const res = await request(app)
       .delete(`/posts/${POST_ID}/comments/${COMMENT_ID}`)
       .set("x-user-id", USER1_UUID)
-      .set("x-roles", "user")
+      .set("x-role", "user")
 
     expect(res.status).toBe(200)
     expect(res.body).toMatchObject({ success: true, data: { commentsCount: 5 } })
@@ -247,7 +247,7 @@ describe("DELETE /posts/:id/comments/:commentId", () => {
     const res = await request(app)
       .delete(`/posts/${POST_ID}/comments/${COMMENT_ID}`)
       .set("x-user-id", USER2_UUID)
-      .set("x-roles", "user")
+      .set("x-role", "user")
 
     expect(res.status).toBe(403)
     expect(res.body.success).toBe(false)
@@ -264,7 +264,7 @@ describe("DELETE /posts/:id/comments/:commentId", () => {
     const res = await request(app)
       .delete(`/posts/${POST_ID}/comments/${COMMENT_ID}`)
       .set("x-user-id", USER2_UUID)
-      .set("x-roles", "moderator")
+      .set("x-role", "moderator")
 
     expect(res.status).toBe(200)
     expect(res.body.success).toBe(true)
@@ -281,7 +281,7 @@ describe("DELETE /posts/:id/comments/:commentId", () => {
     const res = await request(app)
       .delete(`/posts/${POST_ID}/comments/${COMMENT_ID}`)
       .set("x-user-id", USER2_UUID)
-      .set("x-roles", "admin")
+      .set("x-role", "admin")
 
     expect(res.status).toBe(200)
     expect(res.body.success).toBe(true)
@@ -295,7 +295,7 @@ describe("DELETE /posts/:id/comments/:commentId", () => {
     const res = await request(app)
       .delete(`/posts/${POST_ID}/comments/${COMMENT_ID}`)
       .set("x-user-id", USER1_UUID)
-      .set("x-roles", "user")
+      .set("x-role", "user")
 
     expect(res.status).toBe(404)
     expect(res.body.success).toBe(false)
@@ -327,7 +327,7 @@ describe("comment controller error handling", () => {
     const res = await request(app)
       .get(`/posts/${POST_ID}/comments`)
       .set("x-user-id", USER1_UUID)
-      .set("x-roles", "user")
+      .set("x-role", "user")
 
     expect(res.status).toBe(500)
     expect(res.body).toEqual({ success: false, error: "Internal server error" })
@@ -342,7 +342,7 @@ describe("comment controller error handling", () => {
     const res = await request(app)
       .post(`/posts/${POST_ID}/comments`)
       .set("x-user-id", USER1_UUID)
-      .set("x-roles", "user")
+      .set("x-role", "user")
       .send({ content: "Nice!" })
 
     expect(res.status).toBe(500)
@@ -359,7 +359,7 @@ describe("comment controller error handling", () => {
     const res = await request(app)
       .delete(`/posts/${POST_ID}/comments/${COMMENT_ID}`)
       .set("x-user-id", USER1_UUID)
-      .set("x-roles", "user")
+      .set("x-role", "user")
 
     expect(res.status).toBe(500)
   })

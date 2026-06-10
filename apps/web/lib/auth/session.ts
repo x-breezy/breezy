@@ -1,6 +1,5 @@
 import { cookies } from "next/headers"
 import { ACCESS_COOKIE, REFRESH_COOKIE } from "./auth-cookies"
-import { UserRole } from "@/components/profile"
 
 export { ACCESS_COOKIE, REFRESH_COOKIE }
 
@@ -32,18 +31,17 @@ export async function getUserId(): Promise<string> {
   return token ? decodeToken(token)?.userId : ""
 }
 
-function decodeToken(token: string): { userId: string; role: UserRole } {
+function decodeToken(token: string): { userId: string } {
   try {
     const part = token.split(".")[1]
     if (!part) throw new Error("Invalid token")
 
     const payload = JSON.parse(Buffer.from(part, "base64").toString()) as {
       sub?: string
-      role?: UserRole
     }
     if (!payload.sub) throw new Error("Invalid token")
 
-    return { userId: payload.sub, role: payload.role ?? "user" }
+    return { userId: payload.sub }
   } catch {
     throw new Error("Invalid token")
   }

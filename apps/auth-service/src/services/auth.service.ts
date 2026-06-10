@@ -37,7 +37,7 @@ class AuthService {
         "username",
         "email",
         "passwordHash",
-        "roles",
+        "role",
         "isBanned",
         "isSuspended",
         "isEmailVerified",
@@ -112,7 +112,7 @@ class AuthService {
     })
 
     const safeUser = user.toJSON()
-    const accessToken = signToken({ sub: safeUser.id, roles: safeUser.roles })
+    const accessToken = signToken({ sub: safeUser.id, role: safeUser.role })
     return { accessToken, refreshToken, user: safeUser }
   }
 

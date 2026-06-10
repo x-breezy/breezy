@@ -31,7 +31,7 @@ const options: swaggerJsdoc.Options = {
             id: { type: "string", format: "uuid" },
             username: { type: "string", example: "johndoe" },
             email: { type: "string", format: "email" },
-            roles: { type: "array", items: { type: "string" }, example: ["user"] },
+            role: { type: "string", example: "user" },
             isBanned: { type: "boolean", example: false },
             isSuspended: { type: "boolean", example: false },
             createdAt: { type: "string", format: "date-time" },

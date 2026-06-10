@@ -19,6 +19,7 @@ function createUserRouter(
     validate(createUserSchema),
     userController.createUser
   )
+  router.get("/me", identity, requirePermission(PERMISSIONS.USER_ME), userController.getMe)
   router.get(
     "/:id",
     identity,

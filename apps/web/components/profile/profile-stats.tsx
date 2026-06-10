@@ -6,6 +6,7 @@ interface ProfileStatProps {
 }
 
 function formatCount(count: number): string {
+  if (!count) return "0"
   if (count >= 1000000) {
     return `${(count / 1000000).toFixed(1)}M`
   }

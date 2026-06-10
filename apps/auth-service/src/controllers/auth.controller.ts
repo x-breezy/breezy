@@ -62,7 +62,7 @@ class AuthController {
 
       const { accessToken, refreshToken } = await this.authService.issueTokenPair({
         sub: user.id,
-        roles: user.roles,
+        role: user.role,
       })
       res.status(200).json({ success: true, data: { token: accessToken, refreshToken, user } })
     } catch (error) {
@@ -91,7 +91,7 @@ class AuthController {
 
       const user = await this.userService.addUser(req.body)
 
-      await this.profileClient.createProfile(user.id, user.username)
+      await this.profileClient.createProfile(user.id, user.username, user.role)
 
       const { token, verifyUrl } = await this.authService.createEmailVerificationToken(user.id)
       void publish("auth.email_verification", {
@@ -104,7 +104,7 @@ class AuthController {
 
       const { accessToken, refreshToken } = await this.authService.issueTokenPair({
         sub: user.id,
-        roles: user.roles,
+        role: user.role,
       })
       res.status(201).json({ success: true, data: { token: accessToken, refreshToken, user } })
     } catch (error) {
@@ -124,7 +124,7 @@ class AuthController {
     try {
       const payload = verifyToken(token)
       res.set("X-User-Id", payload.sub)
-      res.set("X-Roles", payload.roles.join(","))
+      res.set("X-Role", payload.role)
       res.status(200).json({ success: true })
     } catch {
       res.status(401).json({ success: false, message: "Invalid or expired token" })
@@ -271,7 +271,7 @@ class AuthController {
 
       const { accessToken, refreshToken } = await this.authService.issueTokenPair({
         sub: user.id,
-        roles: user.roles,
+        role: user.role,
       })
       res.status(200).json({ success: true, data: { token: accessToken, refreshToken, user } })
     } catch (error) {

@@ -30,7 +30,7 @@ class UserController {
       const user = await this.userService.addUser(req.body)
 
       // Create profile via gRPC
-      await this.profileClient.createProfile(user.id, user.username)
+      await this.profileClient.createProfile(user.id, user.username, user.role)
 
       res.status(201).json({ success: true, message: "User created successfully", data: user })
     } catch (error) {
@@ -45,6 +45,19 @@ class UserController {
   ): Promise<void> => {
     try {
       const user = await this.userService.getUser(req.params.id)
+      if (!user) {
+        res.status(404).json({ success: false, message: "User not found" })
+        return
+      }
+      res.status(200).json({ success: true, data: user, message: "User retrieved successfully" })
+    } catch (error) {
+      next(error)
+    }
+  }
+
+  getMe = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const user = await this.userService.getUser(req.user!.id)
       if (!user) {
         res.status(404).json({ success: false, message: "User not found" })
         return

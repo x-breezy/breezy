@@ -63,7 +63,7 @@ describe("POST /videos", () => {
       .set("content-type", "video/mp4")
       .set("x-filename", "clip.mp4")
       .set("x-user-id", "user-1")
-      .set("x-roles", "user")
+      .set("x-role", "user")
       .send(VIDEO_BYTES)
 
     expect(res.status).toBe(201)
@@ -78,7 +78,7 @@ describe("POST /videos", () => {
       .post("/videos")
       .set("content-type", "")
       .set("x-user-id", "user-1")
-      .set("x-roles", "user")
+      .set("x-role", "user")
       .send(VIDEO_BYTES)
 
     expect(res.status).toBe(400)
@@ -106,7 +106,7 @@ describe("GET /videos/:id (stream)", () => {
     const res = await request(app)
       .get(`/videos/${META_ID}`)
       .set("x-user-id", "user-1")
-      .set("x-roles", "user")
+      .set("x-role", "user")
       .responseType("blob")
 
     expect(res.status).toBe(200)
@@ -129,7 +129,7 @@ describe("GET /videos/:id (stream)", () => {
       .get(`/videos/${META_ID}`)
       .set("Range", "bytes=0-3")
       .set("x-user-id", "user-1")
-      .set("x-roles", "user")
+      .set("x-role", "user")
       .responseType("blob")
 
     expect(res.status).toBe(206)
@@ -145,7 +145,7 @@ describe("GET /videos/:id (stream)", () => {
       .get(`/videos/${META_ID}`)
       .set("Range", `bytes=${VIDEO_BYTES.length + 100}-`)
       .set("x-user-id", "user-1")
-      .set("x-roles", "user")
+      .set("x-role", "user")
 
     expect(res.status).toBe(416)
     expect(res.headers["content-range"]).toMatch(/\*\//)
@@ -159,7 +159,7 @@ describe("GET /videos/:id (stream)", () => {
     const res = await request(app)
       .get(`/videos/${META_ID}`)
       .set("x-user-id", "user-1")
-      .set("x-roles", "user")
+      .set("x-role", "user")
 
     expect(res.status).toBe(404)
     expect(res.body.success).toBe(false)
@@ -174,7 +174,7 @@ describe("GET /videos/:id (stream)", () => {
     const res = await request(app)
       .get(`/videos/${META_ID}`)
       .set("x-user-id", "user-1")
-      .set("x-roles", "user")
+      .set("x-role", "user")
 
     expect(res.status).toBe(404)
     expect(res.body.success).toBe(false)
@@ -197,7 +197,7 @@ describe("GET /videos/:id/meta", () => {
     const res = await request(app)
       .get(`/videos/${META_ID}/meta`)
       .set("x-user-id", "user-1")
-      .set("x-roles", "user")
+      .set("x-role", "user")
 
     expect(res.status).toBe(200)
     expect(res.body).toMatchObject({
@@ -214,7 +214,7 @@ describe("GET /videos/:id/meta", () => {
     const res = await request(app)
       .get(`/videos/${META_ID}/meta`)
       .set("x-user-id", "user-1")
-      .set("x-roles", "user")
+      .set("x-role", "user")
 
     expect(res.status).toBe(404)
     expect(res.body.success).toBe(false)
@@ -240,7 +240,7 @@ describe("DELETE /videos/:id", () => {
     const res = await request(app)
       .delete(`/videos/${META_ID}`)
       .set("x-user-id", "user-1")
-      .set("x-roles", "user")
+      .set("x-role", "user")
 
     expect(res.status).toBe(200)
     expect(res.body).toEqual({ success: true, message: "Video deleted successfully" })
@@ -255,7 +255,7 @@ describe("DELETE /videos/:id", () => {
     const res = await request(app)
       .delete(`/videos/${META_ID}`)
       .set("x-user-id", "user-2")
-      .set("x-roles", "user")
+      .set("x-role", "user")
 
     expect(res.status).toBe(403)
     expect(res.body.success).toBe(false)
@@ -272,7 +272,7 @@ describe("DELETE /videos/:id", () => {
     const res = await request(app)
       .delete(`/videos/${META_ID}`)
       .set("x-user-id", "user-2")
-      .set("x-roles", "moderator")
+      .set("x-role", "moderator")
 
     expect(res.status).toBe(200)
     expect(res.body.success).toBe(true)
@@ -289,7 +289,7 @@ describe("DELETE /videos/:id", () => {
     const res = await request(app)
       .delete(`/videos/${META_ID}`)
       .set("x-user-id", "user-2")
-      .set("x-roles", "admin")
+      .set("x-role", "admin")
 
     expect(res.status).toBe(200)
     expect(res.body.success).toBe(true)
@@ -303,7 +303,7 @@ describe("DELETE /videos/:id", () => {
     const res = await request(app)
       .delete(`/videos/${META_ID}`)
       .set("x-user-id", "user-1")
-      .set("x-roles", "user")
+      .set("x-role", "user")
 
     expect(res.status).toBe(404)
     expect(res.body.success).toBe(false)
@@ -318,7 +318,7 @@ describe("DELETE /videos/:id", () => {
     const res = await request(app)
       .delete(`/videos/${META_ID}`)
       .set("x-user-id", "user-1")
-      .set("x-roles", "user")
+      .set("x-role", "user")
 
     expect(res.status).toBe(404)
     expect(res.body.success).toBe(false)
@@ -345,7 +345,7 @@ describe("video controller error handling", () => {
       .set("content-type", "video/mp4")
       .set("x-filename", "clip.mp4")
       .set("x-user-id", "user-1")
-      .set("x-roles", "user")
+      .set("x-role", "user")
       .send(VIDEO_BYTES)
 
     expect(res.status).toBe(500)
@@ -359,7 +359,7 @@ describe("video controller error handling", () => {
     const res = await request(app)
       .get(`/videos/${META_ID}`)
       .set("x-user-id", "user-1")
-      .set("x-roles", "user")
+      .set("x-role", "user")
 
     expect(res.status).toBe(500)
   })
@@ -372,7 +372,7 @@ describe("video controller error handling", () => {
     const res = await request(app)
       .get(`/videos/${META_ID}/meta`)
       .set("x-user-id", "user-1")
-      .set("x-roles", "user")
+      .set("x-role", "user")
 
     expect(res.status).toBe(500)
   })
@@ -385,7 +385,7 @@ describe("video controller error handling", () => {
     const res = await request(app)
       .delete(`/videos/${META_ID}`)
       .set("x-user-id", "user-1")
-      .set("x-roles", "user")
+      .set("x-role", "user")
 
     expect(res.status).toBe(500)
   })

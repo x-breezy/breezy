@@ -141,7 +141,7 @@ export { createAuthRouter }
  * /api/auth/validate:
  *   get:
  *     summary: Validate JWT (internal)
- *     description: Used internally by nginx auth_request. Returns 200 with x-user-id and x-roles headers on success.
+ *     description: Used internally by nginx auth_request. Returns 200 with x-user-id and x-role headers on success.
  *     tags: [Auth]
  *     parameters:
  *       - in: header

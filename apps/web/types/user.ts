@@ -2,7 +2,7 @@ export interface User {
   id: string
   username: string
   email: string
-  roles: string[]
+  role: string
   isBanned: boolean
   isSuspended: boolean
   isEmailVerified: boolean
