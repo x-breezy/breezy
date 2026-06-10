@@ -12,6 +12,8 @@ import { IconAt, IconMail } from "@tabler/icons-react"
 import { signUpAction } from "@/app/(auth)/sign-up/actions"
 
 export function AccountStep({ onSuccess }: { onSuccess: () => void }) {
+  const [username, setUsername] = useState("")
+  const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
   const [localError, setLocalError] = useState<string | null>(null)
@@ -49,9 +51,11 @@ export function AccountStep({ onSuccess }: { onSuccess: () => void }) {
                 id='username'
                 name='username'
                 type='text'
-                placeholder='samaltman'
+                placeholder='omnescle'
                 autoComplete='username'
                 required
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
               />
               <InputGroupAddon align='inline-start'>
                 <IconAt />
@@ -69,6 +73,8 @@ export function AccountStep({ onSuccess }: { onSuccess: () => void }) {
                 placeholder='you@example.com'
                 autoComplete='email'
                 required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
               />
               <InputGroupAddon align='inline-start'>
                 <IconMail />

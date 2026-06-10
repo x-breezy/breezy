@@ -2,23 +2,21 @@
 
 import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
+import { isAxiosError } from "axios"
+import { clearSessionCookies, getServerAuthHeader, REFRESH_COOKIE } from "@/lib/auth/session"
 import {
-  API_URL,
-  clearSessionCookies,
-  getServerAuthHeader,
-  REFRESH_COOKIE,
-} from "@/lib/auth/session"
+  logout,
+  sendTwoFactorCode,
+  enableTwoFactor,
+  disableTwoFactor,
+} from "@/lib/services/auth-service"
 
 export async function logoutAction() {
   const cookieStore = await cookies()
   const refreshToken = cookieStore.get(REFRESH_COOKIE)?.value
   if (refreshToken) {
     try {
-      await fetch(`${API_URL}/api/auth/logout`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ refreshToken }),
-      })
+      await logout(refreshToken)
     } catch {
       // Best-effort revocation; clear cookies regardless.
     }
@@ -30,16 +28,22 @@ export async function logoutAction() {
 interface ActionState {
   error: string | null
   sent?: boolean
+  code?: string
+  retryAfter?: number
 }
 
 export async function twoFactorSendCodeAction(): Promise<ActionState> {
   try {
-    const res = await fetch(`${API_URL}/api/auth/2fa/send-code`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", ...(await getServerAuthHeader()) },
-    })
-    if (!res.ok) return { error: "Failed to send code." }
-  } catch {
+    await sendTwoFactorCode(await getServerAuthHeader())
+  } catch (err) {
+    if (isAxiosError(err)) {
+      const d = err.response?.data as { message?: string; code?: string }
+      return {
+        error: d?.message ?? "Failed to send code.",
+        code: d?.code,
+        retryAfter: err.response?.status === 429 ? 60 : undefined,
+      }
+    }
     return { error: "Could not reach the server." }
   }
   return { error: null, sent: true }
@@ -51,14 +55,9 @@ export async function twoFactorEnableAction(
 ): Promise<ActionState> {
   const code = formData.get("code") as string
   try {
-    const res = await fetch(`${API_URL}/api/auth/2fa/enable`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", ...(await getServerAuthHeader()) },
-      body: JSON.stringify({ code }),
-    })
-    const body = await res.json()
-    if (!res.ok) return { error: (body.message as string) ?? "Invalid code." }
-  } catch {
+    await enableTwoFactor(code, await getServerAuthHeader())
+  } catch (err) {
+    if (isAxiosError(err)) return { error: err.response?.data?.message ?? "Invalid code." }
     return { error: "Could not reach the server." }
   }
   redirect("/settings")
@@ -66,12 +65,9 @@ export async function twoFactorEnableAction(
 
 export async function twoFactorDisableAction(): Promise<ActionState> {
   try {
-    const res = await fetch(`${API_URL}/api/auth/2fa/disable`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", ...(await getServerAuthHeader()) },
-    })
-    if (!res.ok) return { error: "Failed to disable 2FA." }
-  } catch {
+    await disableTwoFactor(await getServerAuthHeader())
+  } catch (err) {
+    if (isAxiosError(err)) return { error: err.response?.data?.message ?? "Failed to disable 2FA." }
     return { error: "Could not reach the server." }
   }
   redirect("/settings")

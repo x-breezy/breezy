@@ -12,7 +12,7 @@ function createImageRouter(controller: ImageController = new ImageController(new
   // Accept any binary body up to 16MB (MongoDB document cap).
   router.post("/", identity, raw({ type: "*/*", limit: "16mb" }), controller.uploadImage)
   router.get("/:id/meta", identity, controller.getImageMeta)
-  router.get("/:id", identity, controller.getImage)
+  router.get("/:id", controller.getImage)
   router.delete(
     "/:id",
     identity,

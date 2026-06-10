@@ -37,7 +37,10 @@ const profileDataHandler = {
 
   async createProfile(call: any, cb: any) {
     try {
-      const result = await svc.createProfile({ profileId: call.request.profileId })
+      const result = await svc.createProfile({
+        profileId: call.request.profileId,
+        username: call.request.username,
+      })
       cb(null, { profileId: result.profileId })
     } catch (err) {
       cb(err as Error, null)

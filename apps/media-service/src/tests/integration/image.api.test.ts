@@ -22,6 +22,7 @@ const mockedModel = ImageModel as jest.Mocked<typeof ImageModel>
 const app = createApp()
 
 const PNG = Buffer.from("\x89PNG\r\n\x1a\n", "binary")
+const OPTIMIZED = Buffer.from("optimized")
 const NOW = new Date("2026-01-01T00:00:00.000Z")
 
 const MOCK_DOC = {
@@ -33,6 +34,13 @@ const MOCK_DOC = {
   ownerId: "user-1",
   createdAt: NOW,
   updatedAt: NOW,
+}
+
+const UPLOADED_DOC = {
+  ...MOCK_DOC,
+  data: OPTIMIZED,
+  size: OPTIMIZED.length,
+  mimeType: "image/jpeg",
 }
 
 beforeEach(() => {
@@ -60,8 +68,8 @@ describe("GET /docs.json", () => {
 // ─── POST /images ───────────────────────────────────────────────────────────
 
 describe("POST /images", () => {
-  it("stores an image and returns metadata (no bytes) in ApiResponse", async () => {
-    ;(mockedModel.create as jest.Mock).mockResolvedValue(MOCK_DOC)
+  it("stores an optimized JPEG image and returns metadata (no bytes) in ApiResponse", async () => {
+    ;(mockedModel.create as jest.Mock).mockResolvedValue(UPLOADED_DOC)
 
     const res = await request(app)
       .post("/images")
@@ -76,19 +84,19 @@ describe("POST /images", () => {
       success: true,
       data: expect.objectContaining({
         id: "abc",
-        size: PNG.length,
-        mimeType: "image/png",
+        size: OPTIMIZED.length,
+        mimeType: "image/jpeg",
         createdAt: NOW.toISOString(),
       }),
     })
     expect(res.body.data.data).toBeUndefined()
     expect(mockedModel.create).toHaveBeenCalledWith(
-      expect.objectContaining({ originalName: "test.png", mimeType: "image/png" })
+      expect.objectContaining({ originalName: "test.png", mimeType: "image/jpeg" })
     )
   })
 
   it("uses 'upload' as default filename when x-filename header absent", async () => {
-    ;(mockedModel.create as jest.Mock).mockResolvedValue(MOCK_DOC)
+    ;(mockedModel.create as jest.Mock).mockResolvedValue(UPLOADED_DOC)
 
     const res = await request(app)
       .post("/images")
@@ -166,9 +174,16 @@ describe("GET /images/:id", () => {
     expect(res.status).toBe(404)
   })
 
-  it("returns 401 without auth", async () => {
-    const res = await request(app).get("/images/abc")
-    expect(res.status).toBe(401)
+  it("returns raw bytes without auth", async () => {
+    ;(mockedModel.findById as jest.Mock).mockReturnValue({
+      exec: jest.fn().mockResolvedValue(MOCK_DOC),
+    })
+
+    const res = await request(app).get("/images/abc").responseType("blob")
+
+    expect(res.status).toBe(200)
+    expect(res.headers["content-type"]).toContain("image/png")
+    expect(Buffer.from(res.body).equals(PNG)).toBe(true)
   })
 })
 

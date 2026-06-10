@@ -40,3 +40,7 @@ yarn-error.log*
 # SonarQube
 sonar-project.properties
 .env.sonar
+
+# Local dev override (full containerization — not for everyone)
+docker-compose.override.yml
+Dockerfile.dev

@@ -2,6 +2,7 @@
 
 import { useActionState } from "react"
 import { useSearchParams } from "next/navigation"
+import { useCooldown } from "@/hooks/use-cooldown"
 import { AuthHeader } from "@/components/auth/auth-header"
 import { Button } from "@/components/ui/button"
 import { verifyEmailAction, resendVerificationAction } from "./actions"
@@ -12,6 +13,7 @@ export default function VerifyEmailPage() {
   const email = searchParams.get("email") ?? ""
   const [state, action, isPending] = useActionState(verifyEmailAction, null)
   const [resendState, resendAction, resendPending] = useActionState(resendVerificationAction, null)
+  const resendCooldown = useCooldown(resendState?.retryAfter, resendState)
 
   const hasToken = token.length > 0
 
@@ -29,7 +31,14 @@ export default function VerifyEmailPage() {
       {hasToken && (
         <form action={action} className='mt-6'>
           <input type='hidden' name='token' value={token} />
-          {state?.error && <p className='mb-4 text-sm text-destructive'>{state.error}</p>}
+          {state?.error && (
+            <div className='mb-4 text-sm text-destructive'>
+              <p>{state.error}</p>
+              {state.code && (
+                <p className='mt-1 text-xs text-muted-foreground'>Code: {state.code}</p>
+              )}
+            </div>
+          )}
           <Button type='submit' size='lg' disabled={isPending} className='w-full'>
             {isPending ? "Verifying…" : "Confirm email"}
           </Button>
@@ -47,7 +56,12 @@ export default function VerifyEmailPage() {
             </p>
           )}
           {resendState?.error && (
-            <p className='mt-3 text-sm text-destructive'>{resendState.error}</p>
+            <div className='mt-3 text-sm text-destructive'>
+              <p>{resendState.error}</p>
+              {resendState.code && (
+                <p className='mt-1 text-xs text-muted-foreground'>Code: {resendState.code}</p>
+              )}
+            </div>
           )}
           <form action={resendAction} className='mt-4'>
             <input type='hidden' name='email' value={email} />
@@ -55,10 +69,14 @@ export default function VerifyEmailPage() {
               type='submit'
               variant='outline'
               size='lg'
-              disabled={resendPending || email.length === 0}
+              disabled={resendPending || resendCooldown > 0 || email.length === 0}
               className='w-full'
             >
-              {resendPending ? "Sending…" : "Resend verification email"}
+              {resendPending
+                ? "Sending…"
+                : resendCooldown > 0
+                  ? `Try again in ${resendCooldown}s`
+                  : "Resend verification email"}
             </Button>
           </form>
         </div>

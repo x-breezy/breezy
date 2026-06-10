@@ -1,18 +1,39 @@
 "use client"
 
 import { useActionState } from "react"
+import Link from "next/link"
 import { useSearchParams } from "next/navigation"
+import { useCooldown } from "@/hooks/use-cooldown"
 import { AuthHeader } from "@/components/auth/auth-header"
 import { Button } from "@/components/ui/button"
 import { Field, FieldGroup, FieldSet } from "@/components/ui/field"
 import { Label } from "@/components/ui/label"
 import { InputGroup, InputGroupInput } from "@/components/ui/input-group"
-import { twoFactorAction } from "./actions"
+import { resendTwoFactorCodeAction, twoFactorAction } from "./actions"
 
 export default function TwoFactorPage() {
   const searchParams = useSearchParams()
   const pendingToken = searchParams.get("t") ?? ""
   const [state, action, isPending] = useActionState(twoFactorAction, null)
+  const [resendState, resendAction, resendPending] = useActionState(resendTwoFactorCodeAction, null)
+  const resendCooldown = useCooldown(resendState?.retryAfter, resendState)
+
+  if (!pendingToken) {
+    return (
+      <div className='mx-auto flex w-full max-w-sm animate-in flex-col justify-center px-4 py-12 text-center font-sans duration-300 select-none fade-in slide-in-from-bottom-4'>
+        <AuthHeader
+          title='Verification session expired'
+          subtitle='Please sign in again to request a new two-factor code.'
+        />
+        <Link
+          href='/sign-in'
+          className='mt-6 inline-flex h-9 w-full items-center justify-center rounded-2xl bg-primary px-4 text-sm font-medium text-primary-foreground transition-all hover:bg-primary/80'
+        >
+          Back to sign in
+        </Link>
+      </div>
+    )
+  }
 
   return (
     <div className='mx-auto flex w-full max-w-sm animate-in flex-col justify-center px-4 py-12 font-sans duration-300 select-none fade-in slide-in-from-bottom-4'>
@@ -38,7 +59,12 @@ export default function TwoFactorPage() {
               </InputGroup>
             </Field>
 
-            {state?.error && <p className='text-xs text-destructive'>{state.error}</p>}
+            {state?.error && (
+              <div className='text-xs text-destructive'>
+                <p>{state.error}</p>
+                {state.code && <p className='mt-1 text-muted-foreground'>Code: {state.code}</p>}
+              </div>
+            )}
 
             <Field>
               <Button type='submit' size='lg' disabled={isPending}>
@@ -48,6 +74,38 @@ export default function TwoFactorPage() {
           </FieldGroup>
         </FieldSet>
       </form>
+
+      <div className='mt-4 text-center text-sm text-muted-foreground'>
+        {resendState?.success && <p>A new code has been sent to your email.</p>}
+        {resendState?.error && (
+          <div className='text-destructive'>
+            <p>{resendState.error}</p>
+            {resendState.code && (
+              <p className='mt-1 text-xs text-muted-foreground'>Code: {resendState.code}</p>
+            )}
+          </div>
+        )}
+        <form action={resendAction} className='mt-3'>
+          <input type='hidden' name='pendingToken' value={pendingToken} />
+          <Button
+            type='submit'
+            variant='outline'
+            size='sm'
+            disabled={resendPending || resendCooldown > 0}
+          >
+            {resendPending
+              ? "Sending…"
+              : resendCooldown > 0
+                ? `Try again in ${resendCooldown}s`
+                : "Resend code"}
+          </Button>
+        </form>
+        <p className='mt-4'>
+          <Link href='/sign-in' className='font-semibold text-foreground underline'>
+            Back to sign in
+          </Link>
+        </p>
+      </div>
     </div>
   )
 }

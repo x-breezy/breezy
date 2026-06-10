@@ -17,6 +17,7 @@ import {
   refreshSchema,
   logoutSchema,
   twoFactorVerifyLoginSchema,
+  twoFactorResendLoginSchema,
   twoFactorEnableSchema,
 } from "../schemas/auth.schema"
 
@@ -50,6 +51,12 @@ function createAuthRouter(
     "/2fa/verify-login",
     validate(twoFactorVerifyLoginSchema),
     authController.twoFactorVerifyLogin
+  )
+  router.post(
+    "/2fa/resend-login-code",
+    emailSendRateLimit,
+    validate(twoFactorResendLoginSchema),
+    authController.twoFactorResendLoginCode
   )
   router.post("/2fa/send-code", authenticatedEmailRateLimit, authController.twoFactorSendCode)
   router.post("/2fa/enable", validate(twoFactorEnableSchema), authController.twoFactorEnable)

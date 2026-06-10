@@ -3,6 +3,7 @@ import UserService from "../services/user.service"
 import AuthService from "../services/auth.service"
 import { signPendingToken, verifyPendingToken, verifyToken } from "../utils/jwt.util"
 import { publish } from "../clients/rabbitmq"
+import { GrpcProfileClient } from "../clients/profile.client"
 import type {
   SignInDTO,
   SignUpDTO,
@@ -13,16 +14,19 @@ import type {
   RefreshDTO,
   LogoutDTO,
   TwoFactorVerifyLoginDTO,
+  TwoFactorResendLoginDTO,
   TwoFactorEnableDTO,
 } from "../schemas/auth.schema"
 
 class AuthController {
   private userService: UserService
   private authService: AuthService
+  private profileClient: GrpcProfileClient
 
   constructor(userService: UserService, authService: AuthService = new AuthService()) {
     this.userService = userService
     this.authService = authService
+    this.profileClient = new GrpcProfileClient()
   }
 
   signIn = async (
@@ -86,6 +90,8 @@ class AuthController {
       }
 
       const user = await this.userService.addUser(req.body)
+
+      await this.profileClient.createProfile(user.id, user.username)
 
       const { token, verifyUrl } = await this.authService.createEmailVerificationToken(user.id)
       void publish("auth.email_verification", {
@@ -273,6 +279,41 @@ class AuthController {
         res.status(401).json({ success: false, message: "Invalid or expired code" })
         return
       }
+      next(error)
+    }
+  }
+
+  twoFactorResendLoginCode = async (
+    req: Request<Record<string, never>, unknown, TwoFactorResendLoginDTO>,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      let userId: string
+      try {
+        userId = verifyPendingToken(req.body.pendingToken)
+      } catch {
+        res.status(401).json({ success: false, message: "Invalid or expired session" })
+        return
+      }
+
+      const user = await this.userService.getUser(userId)
+      if (!user || !user.twoFactorEnabled) {
+        res.status(401).json({ success: false, message: "Invalid or expired session" })
+        return
+      }
+
+      const { code, expiresAt } = await this.authService.createTwoFactorCode(userId)
+      void publish("auth.2fa_code", {
+        userId,
+        email: user.email,
+        username: user.username,
+        code,
+        expiresAt: expiresAt.toISOString(),
+      })
+
+      res.status(200).json({ success: true })
+    } catch (error) {
       next(error)
     }
   }

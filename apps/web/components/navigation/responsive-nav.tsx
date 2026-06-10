@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation"
 import { HomeIcon, SearchIcon, GrodIcon, SendIcon, ProfileIcon } from "@/components/icons"
 import { NavItem } from "./nav-item"
+import { useUserStore } from "@/stores/user-store"
 import type { NavItemData } from "./types"
 
 const NAV_ITEMS: NavItemData[] = [
@@ -12,8 +13,20 @@ const NAV_ITEMS: NavItemData[] = [
   { href: "/messages", icon: SendIcon, label: "Messages" },
 ]
 
+function makeProfileIcon(avatarId: string | null) {
+  return function ProfileNavIcon({ active, className }: { active?: boolean; className?: string }) {
+    if (avatarId) {
+      return <ProfileIcon src={avatarId} active={active} className={className} />
+    }
+    return <ProfileIcon active={active} className={className} />
+  }
+}
+
 export function ResponsiveNav() {
   const pathname = usePathname()
+  const profile = useUserStore((s) => s.profile)
+  const ProfileNavIcon = makeProfileIcon(profile?.avatarId ?? null)
+  const isProfileActive = pathname === "/profile"
 
   return (
     <>
@@ -32,9 +45,9 @@ export function ResponsiveNav() {
         ))}
         <NavItem
           href='/profile'
-          icon={ProfileIcon}
+          icon={ProfileNavIcon}
           label='Profile'
-          isActive={pathname === "/profile"}
+          isActive={isProfileActive}
           showLabel={false}
           iconClassName='block size-6'
         />
@@ -59,9 +72,9 @@ export function ResponsiveNav() {
           ))}
           <NavItem
             href='/profile'
-            icon={ProfileIcon}
+            icon={ProfileNavIcon}
             label='Profile'
-            isActive={pathname === "/profile"}
+            isActive={isProfileActive}
             showLabel={true}
             iconClassName='block size-7'
           />

@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { Dialog as DialogPrimitive } from "@base-ui/react/dialog"
 import { Dialog, DialogContent, DialogPortal } from "@/components/ui/dialog"
 import { PostHeader } from "@/components/post/PostHeader"
 import { PostForm } from "@/components/post/PostForm"
@@ -29,10 +30,10 @@ export function PostComposeDialog({ onDismiss }: { onDismiss: () => void }) {
     return (
       <Dialog open={open} onOpenChange={(isOpen) => !isOpen && handleClose()}>
         <DialogPortal>
-          <div className='fixed inset-0 z-120 flex flex-col bg-background'>
+          <DialogPrimitive.Popup className='fixed inset-0 z-120 flex flex-col bg-background'>
             <PostHeader onPost={handlePost} onClose={handleClose} />
             <PostForm content={content} setContent={setContent} />
-          </div>
+          </DialogPrimitive.Popup>
         </DialogPortal>
       </Dialog>
     )
