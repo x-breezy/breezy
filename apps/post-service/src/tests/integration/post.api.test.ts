@@ -1,4 +1,5 @@
 import request from "supertest"
+import { verifyJwt } from "../../utils/jwt"
 import { createApp } from "../../app"
 import { PostModel } from "../../models/post.model"
 
@@ -11,6 +12,9 @@ jest.mock("../../models/post.model", () => ({
     countDocuments: jest.fn(),
   },
 }))
+
+jest.mock("../../utils/jwt")
+const mockVerifyJwt = verifyJwt as jest.MockedFunction<typeof verifyJwt>
 
 // No USER_SERVICE_URL in test env -> HttpFollowGraph.getFollowing returns null -> global feed.
 // Personalized filtering is covered by unit tests (injected fake FollowGraphPort).
@@ -46,6 +50,7 @@ function mockFindPaginated(docs: unknown[], total: number) {
 
 beforeEach(() => {
   jest.clearAllMocks()
+  mockVerifyJwt.mockReturnValue({ sub: USER1_UUID, role: "user" })
 })
 
 // ─── Health ────────────────────────────────────────────────────────────────
@@ -75,8 +80,7 @@ describe("POST /posts", () => {
     const res = await request(app)
       .post("/posts")
       .set("Content-Type", "application/json")
-      .set("x-user-id", USER1_UUID)
-      .set("x-role", "user")
+      .set("Authorization", "Bearer fake-token")
       .send({ content: "Hello world", tags: ["tag1"], media: [{ id: "media1", type: "image" }] })
 
     expect(res.status).toBe(201)
@@ -111,8 +115,7 @@ describe("POST /posts", () => {
     const res = await request(app)
       .post("/posts")
       .set("Content-Type", "application/json")
-      .set("x-user-id", USER1_UUID)
-      .set("x-role", "user")
+      .set("Authorization", "Bearer fake-token")
       .send({ content: "" })
 
     expect(res.status).toBe(400)
@@ -124,8 +127,7 @@ describe("POST /posts", () => {
     const res = await request(app)
       .post("/posts")
       .set("Content-Type", "application/json")
-      .set("x-user-id", USER1_UUID)
-      .set("x-role", "user")
+      .set("Authorization", "Bearer fake-token")
       .send({})
 
     expect(res.status).toBe(400)
@@ -142,8 +144,7 @@ describe("POST /posts", () => {
     await request(app)
       .post("/posts")
       .set("Content-Type", "application/json")
-      .set("x-user-id", USER1_UUID)
-      .set("x-role", "user")
+      .set("Authorization", "Bearer fake-token")
       .send({ content: "Just text" })
 
     expect(mockedModel.create).toHaveBeenCalledWith(
@@ -162,8 +163,7 @@ describe("GET /posts/:id", () => {
 
     const res = await request(app)
       .get("/posts/abc")
-      .set("x-user-id", USER1_UUID)
-      .set("x-role", "user")
+      .set("Authorization", "Bearer fake-token")
 
     expect(res.status).toBe(200)
     expect(res.body).toMatchObject({
@@ -179,8 +179,7 @@ describe("GET /posts/:id", () => {
 
     const res = await request(app)
       .get("/posts/notfound")
-      .set("x-user-id", USER1_UUID)
-      .set("x-role", "user")
+      .set("Authorization", "Bearer fake-token")
 
     expect(res.status).toBe(404)
     expect(res.body.success).toBe(false)
@@ -200,8 +199,7 @@ describe("GET /posts/feed", () => {
 
     const res = await request(app)
       .get("/posts/feed")
-      .set("x-user-id", USER1_UUID)
-      .set("x-role", "user")
+      .set("Authorization", "Bearer fake-token")
 
     expect(res.status).toBe(200)
     expect(res.body).toMatchObject({
@@ -220,8 +218,7 @@ describe("GET /posts/feed", () => {
 
     const res = await request(app)
       .get("/posts/feed?page=3&limit=5")
-      .set("x-user-id", USER1_UUID)
-      .set("x-role", "user")
+      .set("Authorization", "Bearer fake-token")
 
     expect(res.status).toBe(200)
     expect(res.body.data).toMatchObject({ page: 3, limit: 5, total: 100 })
@@ -232,8 +229,7 @@ describe("GET /posts/feed", () => {
 
     const res = await request(app)
       .get("/posts/feed")
-      .set("x-user-id", USER1_UUID)
-      .set("x-role", "user")
+      .set("Authorization", "Bearer fake-token")
 
     // If routed to /:id, findById would be called (not find) and data would not have total
     expect(res.status).toBe(200)
@@ -243,7 +239,7 @@ describe("GET /posts/feed", () => {
   it("uses global filter when user-service unavailable (no USER_SERVICE_URL)", async () => {
     mockFindPaginated([MOCK_POST], 1)
 
-    await request(app).get("/posts/feed").set("x-user-id", USER1_UUID).set("x-role", "user")
+    await request(app).get("/posts/feed").set("Authorization", "Bearer fake-token")
 
     expect(mockedModel.find).toHaveBeenCalledWith({})
   })
@@ -262,8 +258,7 @@ describe("GET /posts/users/:userId", () => {
 
     const res = await request(app)
       .get(`/posts/users/${USER1_UUID}`)
-      .set("x-user-id", USER1_UUID)
-      .set("x-role", "user")
+      .set("Authorization", "Bearer fake-token")
 
     expect(res.status).toBe(200)
     expect(res.body).toMatchObject({
@@ -283,8 +278,7 @@ describe("GET /posts/users/:userId", () => {
 
     const res = await request(app)
       .get(`/posts/users/${USER1_UUID}`)
-      .set("x-user-id", USER1_UUID)
-      .set("x-role", "user")
+      .set("Authorization", "Bearer fake-token")
 
     expect(res.status).toBe(200)
     expect(res.body.data).toMatchObject({ data: [], total: 0 })
@@ -293,8 +287,7 @@ describe("GET /posts/users/:userId", () => {
   it("returns 403 when user accesses another user's posts", async () => {
     const res = await request(app)
       .get(`/posts/users/${USER2_UUID}`)
-      .set("x-user-id", USER1_UUID)
-      .set("x-role", "user")
+      .set("Authorization", "Bearer fake-token")
 
     expect(res.status).toBe(403)
     expect(res.body.success).toBe(false)
@@ -303,10 +296,10 @@ describe("GET /posts/users/:userId", () => {
   it("allows moderator to access any user's posts", async () => {
     mockFindPaginated([MOCK_POST], 1)
 
+    mockVerifyJwt.mockReturnValueOnce({ sub: USER1_UUID, role: "moderator" })
     const res = await request(app)
       .get(`/posts/users/${USER2_UUID}`)
-      .set("x-user-id", USER1_UUID)
-      .set("x-role", "moderator")
+      .set("Authorization", "Bearer fake-token")
 
     expect(res.status).toBe(200)
     expect(res.body.success).toBe(true)
@@ -315,10 +308,10 @@ describe("GET /posts/users/:userId", () => {
   it("allows admin to access any user's posts", async () => {
     mockFindPaginated([MOCK_POST], 1)
 
+    mockVerifyJwt.mockReturnValueOnce({ sub: USER1_UUID, role: "admin" })
     const res = await request(app)
       .get(`/posts/users/${USER2_UUID}`)
-      .set("x-user-id", USER1_UUID)
-      .set("x-role", "admin")
+      .set("Authorization", "Bearer fake-token")
 
     expect(res.status).toBe(200)
     expect(res.body.success).toBe(true)
@@ -343,8 +336,7 @@ describe("DELETE /posts/:id", () => {
 
     const res = await request(app)
       .delete("/posts/abc")
-      .set("x-user-id", USER1_UUID)
-      .set("x-role", "user")
+      .set("Authorization", "Bearer fake-token")
 
     expect(res.status).toBe(200)
     expect(res.body).toMatchObject({ success: true, message: "Post deleted successfully" })
@@ -357,8 +349,7 @@ describe("DELETE /posts/:id", () => {
 
     const res = await request(app)
       .delete("/posts/notfound")
-      .set("x-user-id", USER1_UUID)
-      .set("x-role", "user")
+      .set("Authorization", "Bearer fake-token")
 
     expect(res.status).toBe(404)
     expect(res.body.success).toBe(false)
@@ -371,8 +362,7 @@ describe("DELETE /posts/:id", () => {
 
     const res = await request(app)
       .delete("/posts/abc")
-      .set("x-user-id", USER1_UUID)
-      .set("x-role", "user")
+      .set("Authorization", "Bearer fake-token")
 
     expect(res.status).toBe(403)
     expect(res.body.success).toBe(false)
@@ -386,10 +376,10 @@ describe("DELETE /posts/:id", () => {
       exec: jest.fn().mockResolvedValue({ id: "abc" }),
     })
 
+    mockVerifyJwt.mockReturnValueOnce({ sub: USER1_UUID, role: "moderator" })
     const res = await request(app)
       .delete("/posts/abc")
-      .set("x-user-id", USER1_UUID)
-      .set("x-role", "moderator")
+      .set("Authorization", "Bearer fake-token")
 
     expect(res.status).toBe(200)
     expect(res.body.success).toBe(true)
@@ -403,10 +393,10 @@ describe("DELETE /posts/:id", () => {
       exec: jest.fn().mockResolvedValue({ id: "abc" }),
     })
 
+    mockVerifyJwt.mockReturnValueOnce({ sub: USER1_UUID, role: "admin" })
     const res = await request(app)
       .delete("/posts/abc")
-      .set("x-user-id", USER1_UUID)
-      .set("x-role", "admin")
+      .set("Authorization", "Bearer fake-token")
 
     expect(res.status).toBe(200)
     expect(res.body.success).toBe(true)
@@ -422,8 +412,7 @@ describe("DELETE /posts/:id", () => {
 
     const res = await request(app)
       .delete("/posts/abc")
-      .set("x-user-id", USER1_UUID)
-      .set("x-role", "user")
+      .set("Authorization", "Bearer fake-token")
 
     expect(res.status).toBe(404)
     expect(res.body.success).toBe(false)
@@ -447,8 +436,7 @@ describe("global error handler", () => {
 
     const res = await request(app)
       .post("/posts")
-      .set("x-user-id", USER1_UUID)
-      .set("x-role", "user")
+      .set("Authorization", "Bearer fake-token")
       .send({ content: "Hello" })
 
     expect(res.status).toBe(500)
@@ -462,8 +450,7 @@ describe("global error handler", () => {
 
     const res = await request(app)
       .get("/posts/abc")
-      .set("x-user-id", USER1_UUID)
-      .set("x-role", "user")
+      .set("Authorization", "Bearer fake-token")
 
     expect(res.status).toBe(500)
   })
@@ -479,8 +466,7 @@ describe("global error handler", () => {
 
     const res = await request(app)
       .get("/posts/feed")
-      .set("x-user-id", USER1_UUID)
-      .set("x-role", "user")
+      .set("Authorization", "Bearer fake-token")
 
     expect(res.status).toBe(500)
   })
@@ -496,8 +482,7 @@ describe("global error handler", () => {
 
     const res = await request(app)
       .get(`/posts/users/${USER1_UUID}`)
-      .set("x-user-id", USER1_UUID)
-      .set("x-role", "user")
+      .set("Authorization", "Bearer fake-token")
 
     expect(res.status).toBe(500)
   })
@@ -512,8 +497,7 @@ describe("global error handler", () => {
 
     const res = await request(app)
       .delete("/posts/abc")
-      .set("x-user-id", USER1_UUID)
-      .set("x-role", "user")
+      .set("Authorization", "Bearer fake-token")
 
     expect(res.status).toBe(500)
   })

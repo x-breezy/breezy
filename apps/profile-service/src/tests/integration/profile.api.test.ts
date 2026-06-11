@@ -1,4 +1,5 @@
 import request from "supertest"
+import { verifyJwt } from "../../utils/jwt"
 import { createApp } from "../../app"
 import { Profile } from "../../models/profile.model"
 import { Follow } from "../../models/follow.model"
@@ -23,6 +24,9 @@ jest.mock("../../models/follow.model", () => ({
     count: jest.fn(),
   },
 }))
+
+jest.mock("../../utils/jwt")
+const mockVerifyJwt = verifyJwt as jest.MockedFunction<typeof verifyJwt>
 
 const mockedProfile = Profile as jest.Mocked<typeof Profile>
 const mockedFollow = Follow as jest.Mocked<typeof Follow>
@@ -53,6 +57,7 @@ const MOCK_PROFILE = {
 
 beforeEach(() => {
   jest.clearAllMocks()
+  mockVerifyJwt.mockReturnValue({ sub: PROFILE_UUID, role: "user" })
 })
 
 // ─── GET /profiles/:profileId ────────────────────────────────────────────────────────
@@ -62,8 +67,7 @@ describe("GET /profiles/:profileId", () => {
 
     const res = await request(app)
       .get(`/profiles/${PROFILE_UUID}`)
-      .set("x-user-id", PROFILE_UUID)
-      .set("x-role", "user")
+      .set("Authorization", "Bearer fake-token")
 
     expect(res.status).toBe(200)
     expect(res.body).toMatchObject({
@@ -80,8 +84,7 @@ describe("GET /profiles/:profileId", () => {
 
     const res = await request(app)
       .get(`/profiles/${PROFILE_UUID}`)
-      .set("x-user-id", PROFILE_UUID)
-      .set("x-role", "user")
+      .set("Authorization", "Bearer fake-token")
 
     expect(res.status).toBe(404)
     expect(res.body.message).toBe("Profile not found")
@@ -104,8 +107,7 @@ describe("GET /profiles/:profileId/followers", () => {
 
     const res = await request(app)
       .get(`/profiles/${PROFILE_UUID}/followers`)
-      .set("x-user-id", PROFILE_UUID)
-      .set("x-role", "user")
+      .set("Authorization", "Bearer fake-token")
 
     expect(res.status).toBe(200)
     expect(res.body).toMatchObject({
@@ -126,8 +128,7 @@ describe("GET /profiles/:profileId/following", () => {
 
     const res = await request(app)
       .get(`/profiles/${PROFILE_UUID}/following`)
-      .set("x-user-id", PROFILE_UUID)
-      .set("x-role", "user")
+      .set("Authorization", "Bearer fake-token")
 
     expect(res.status).toBe(200)
     expect(res.body).toMatchObject({
@@ -145,8 +146,7 @@ describe("POST /profiles", () => {
     const res = await request(app)
       .post("/profiles")
       .set("Content-Type", "application/json")
-      .set("x-user-id", PROFILE_UUID)
-      .set("x-role", "user")
+      .set("Authorization", "Bearer fake-token")
       .send({ profileId: PROFILE_UUID, firstName: "Aaron", lastName: "Grod", username: "grodaron" })
 
     expect(res.status).toBe(201)
@@ -185,8 +185,7 @@ describe("PATCH /profiles", () => {
     const res = await request(app)
       .patch("/profiles")
       .set("Content-Type", "application/json")
-      .set("x-user-id", PROFILE_UUID)
-      .set("x-role", "user")
+      .set("Authorization", "Bearer fake-token")
       .send({ bio: "Updated bio" })
 
     expect(res.status).toBe(200)
@@ -199,8 +198,7 @@ describe("PATCH /profiles", () => {
     const res = await request(app)
       .patch("/profiles")
       .set("Content-Type", "application/json")
-      .set("x-user-id", PROFILE_UUID)
-      .set("x-role", "user")
+      .set("Authorization", "Bearer fake-token")
       .send({ bio: "Ghost" })
 
     expect(res.status).toBe(404)
@@ -223,8 +221,7 @@ describe("DELETE /profiles", () => {
 
     const res = await request(app)
       .delete("/profiles")
-      .set("x-user-id", PROFILE_UUID)
-      .set("x-role", "user")
+      .set("Authorization", "Bearer fake-token")
 
     expect(res.status).toBe(204)
   })
@@ -234,8 +231,7 @@ describe("DELETE /profiles", () => {
 
     const res = await request(app)
       .delete("/profiles")
-      .set("x-user-id", PROFILE_UUID)
-      .set("x-role", "user")
+      .set("Authorization", "Bearer fake-token")
 
     expect(res.status).toBe(404)
     expect(res.body.message).toBe("Profile not found")
@@ -258,8 +254,7 @@ describe("POST /profiles/follow", () => {
 
     const res = await request(app)
       .post("/profiles/follow")
-      .set("x-user-id", FOLLOWER_UUID)
-      .set("x-role", "user")
+      .set("Authorization", "Bearer fake-token")
       .send({ followingId: FOLLOWING_UUID })
 
     expect(res.status).toBe(201)
@@ -283,8 +278,7 @@ describe("POST /profiles/unfollow", () => {
 
     const res = await request(app)
       .post("/profiles/unfollow")
-      .set("x-user-id", FOLLOWER_UUID)
-      .set("x-role", "user")
+      .set("Authorization", "Bearer fake-token")
       .send({ followingId: FOLLOWING_UUID })
 
     expect(res.status).toBe(200)
@@ -299,8 +293,7 @@ describe("POST /profiles/unfollow", () => {
 
     const res = await request(app)
       .post("/profiles/unfollow")
-      .set("x-user-id", FOLLOWER_UUID)
-      .set("x-role", "user")
+      .set("Authorization", "Bearer fake-token")
       .send({ followingId: FOLLOWING_UUID })
 
     expect(res.status).toBe(404)
