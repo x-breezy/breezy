@@ -32,10 +32,18 @@ export class ChatService {
     
     if (!conversation) return false
     
-    await Promise.all([
-      ConversationModel.findByIdAndDelete(conversationId).exec(),
-      MessageModel.deleteMany({ conversationId }).exec()
-    ])
+    const remainingParticipants = conversation.participantIds.filter((id) => id !== userId)
+
+    if (remainingParticipants.length === 0) {
+      await Promise.all([
+        ConversationModel.findByIdAndDelete(conversationId).exec(),
+        MessageModel.deleteMany({ conversationId }).exec()
+      ])
+    } else {
+      await ConversationModel.findByIdAndUpdate(conversationId, {
+        participantIds: remainingParticipants
+      }).exec()
+    }
     
     return true
   }
