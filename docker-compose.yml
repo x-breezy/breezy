@@ -90,6 +90,20 @@ services:
       timeout: 5s
       retries: 5
 
+  redis:
+    image: redis:7-alpine
+    container_name: breezy-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    networks:
+      - breezy
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   rabbitmq:
     image: rabbitmq:3-management
     container_name: breezy-rabbitmq
@@ -187,6 +201,6 @@ volumes:
   mongo-notifications-service-data:
   postgres-user-service-data:
   postgres-profile-service-data:
-  sonarqube-data:
-  sonarqube-logs:
-  postgres-sonar-data:
+  # sonarqube-data:
+  # sonarqube-logs:
+  # postgres-sonar-data:

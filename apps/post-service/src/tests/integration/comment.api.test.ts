@@ -1,4 +1,5 @@
 import request from "supertest"
+import { verifyJwt } from "../../utils/jwt"
 import { createApp } from "../../app"
 import { PostModel } from "../../models/post.model"
 import { CommentModel } from "../../models/comment.model"
@@ -23,6 +24,9 @@ jest.mock("../../models/comment.model", () => ({
     countDocuments: jest.fn(),
   },
 }))
+
+jest.mock("../../utils/jwt")
+const mockVerifyJwt = verifyJwt as jest.MockedFunction<typeof verifyJwt>
 
 const mockedPost = PostModel as jest.Mocked<typeof PostModel>
 const mockedComment = CommentModel as jest.Mocked<typeof CommentModel>
@@ -49,6 +53,7 @@ beforeEach(() => {
   ;(mockedPost.findByIdAndUpdate as jest.Mock).mockReturnValue({
     exec: jest.fn().mockResolvedValue({ commentsCount: 5 }),
   })
+  mockVerifyJwt.mockReturnValue({ sub: USER1_UUID, role: "user" })
 })
 
 // ─── GET /posts/:id/comments ─────────────────────────────────────────────────
@@ -72,8 +77,7 @@ describe("GET /posts/:id/comments", () => {
 
     const res = await request(app)
       .get(`/posts/${POST_ID}/comments`)
-      .set("x-user-id", USER1_UUID)
-      .set("x-role", "user")
+      .set("Authorization", "Bearer fake-token")
 
     expect(res.status).toBe(200)
     expect(res.body).toMatchObject({
@@ -101,8 +105,7 @@ describe("GET /posts/:id/comments", () => {
 
     await request(app)
       .get(`/posts/${POST_ID}/comments?parentCommentId=${COMMENT_ID}`)
-      .set("x-user-id", USER1_UUID)
-      .set("x-role", "user")
+      .set("Authorization", "Bearer fake-token")
 
     expect(mockedComment.find).toHaveBeenCalledWith({
       postId: POST_ID,
@@ -127,8 +130,7 @@ describe("POST /posts/:id/comments", () => {
 
     const res = await request(app)
       .post(`/posts/${POST_ID}/comments`)
-      .set("x-user-id", USER1_UUID)
-      .set("x-role", "user")
+      .set("Authorization", "Bearer fake-token")
       .send({ content: "Nice post!" })
 
     expect(res.status).toBe(201)
@@ -157,8 +159,7 @@ describe("POST /posts/:id/comments", () => {
 
     const res = await request(app)
       .post(`/posts/${POST_ID}/comments`)
-      .set("x-user-id", USER1_UUID)
-      .set("x-role", "user")
+      .set("Authorization", "Bearer fake-token")
       .send({ content: "Replying!", parentCommentId: COMMENT_ID })
 
     expect(res.status).toBe(201)
@@ -174,8 +175,7 @@ describe("POST /posts/:id/comments", () => {
 
     const res = await request(app)
       .post(`/posts/${POST_ID}/comments`)
-      .set("x-user-id", USER1_UUID)
-      .set("x-role", "user")
+      .set("Authorization", "Bearer fake-token")
       .send({ content: "Nice post!" })
 
     expect(res.status).toBe(404)
@@ -186,8 +186,7 @@ describe("POST /posts/:id/comments", () => {
   it("returns 400 when content is empty", async () => {
     const res = await request(app)
       .post(`/posts/${POST_ID}/comments`)
-      .set("x-user-id", USER1_UUID)
-      .set("x-role", "user")
+      .set("Authorization", "Bearer fake-token")
       .send({ content: "" })
 
     expect(res.status).toBe(400)
@@ -198,8 +197,7 @@ describe("POST /posts/:id/comments", () => {
   it("returns 400 when content exceeds 280 chars", async () => {
     const res = await request(app)
       .post(`/posts/${POST_ID}/comments`)
-      .set("x-user-id", USER1_UUID)
-      .set("x-role", "user")
+      .set("Authorization", "Bearer fake-token")
       .send({ content: "x".repeat(281) })
 
     expect(res.status).toBe(400)
@@ -227,8 +225,7 @@ describe("DELETE /posts/:id/comments/:commentId", () => {
 
     const res = await request(app)
       .delete(`/posts/${POST_ID}/comments/${COMMENT_ID}`)
-      .set("x-user-id", USER1_UUID)
-      .set("x-role", "user")
+      .set("Authorization", "Bearer fake-token")
 
     expect(res.status).toBe(200)
     expect(res.body).toMatchObject({ success: true, data: { commentsCount: 5 } })
@@ -244,10 +241,10 @@ describe("DELETE /posts/:id/comments/:commentId", () => {
       exec: jest.fn().mockResolvedValue(MOCK_COMMENT),
     })
 
+    mockVerifyJwt.mockReturnValueOnce({ sub: USER2_UUID, role: "user" })
     const res = await request(app)
       .delete(`/posts/${POST_ID}/comments/${COMMENT_ID}`)
-      .set("x-user-id", USER2_UUID)
-      .set("x-role", "user")
+      .set("Authorization", "Bearer fake-token")
 
     expect(res.status).toBe(403)
     expect(res.body.success).toBe(false)
@@ -261,10 +258,10 @@ describe("DELETE /posts/:id/comments/:commentId", () => {
       exec: jest.fn().mockResolvedValue(MOCK_COMMENT),
     })
 
+    mockVerifyJwt.mockReturnValueOnce({ sub: USER2_UUID, role: "moderator" })
     const res = await request(app)
       .delete(`/posts/${POST_ID}/comments/${COMMENT_ID}`)
-      .set("x-user-id", USER2_UUID)
-      .set("x-role", "moderator")
+      .set("Authorization", "Bearer fake-token")
 
     expect(res.status).toBe(200)
     expect(res.body.success).toBe(true)
@@ -278,10 +275,10 @@ describe("DELETE /posts/:id/comments/:commentId", () => {
       exec: jest.fn().mockResolvedValue(MOCK_COMMENT),
     })
 
+    mockVerifyJwt.mockReturnValueOnce({ sub: USER2_UUID, role: "admin" })
     const res = await request(app)
       .delete(`/posts/${POST_ID}/comments/${COMMENT_ID}`)
-      .set("x-user-id", USER2_UUID)
-      .set("x-role", "admin")
+      .set("Authorization", "Bearer fake-token")
 
     expect(res.status).toBe(200)
     expect(res.body.success).toBe(true)
@@ -294,8 +291,7 @@ describe("DELETE /posts/:id/comments/:commentId", () => {
 
     const res = await request(app)
       .delete(`/posts/${POST_ID}/comments/${COMMENT_ID}`)
-      .set("x-user-id", USER1_UUID)
-      .set("x-role", "user")
+      .set("Authorization", "Bearer fake-token")
 
     expect(res.status).toBe(404)
     expect(res.body.success).toBe(false)
@@ -326,8 +322,7 @@ describe("comment controller error handling", () => {
 
     const res = await request(app)
       .get(`/posts/${POST_ID}/comments`)
-      .set("x-user-id", USER1_UUID)
-      .set("x-role", "user")
+      .set("Authorization", "Bearer fake-token")
 
     expect(res.status).toBe(500)
     expect(res.body).toEqual({ success: false, error: "Internal server error" })
@@ -341,8 +336,7 @@ describe("comment controller error handling", () => {
 
     const res = await request(app)
       .post(`/posts/${POST_ID}/comments`)
-      .set("x-user-id", USER1_UUID)
-      .set("x-role", "user")
+      .set("Authorization", "Bearer fake-token")
       .send({ content: "Nice!" })
 
     expect(res.status).toBe(500)
@@ -358,8 +352,7 @@ describe("comment controller error handling", () => {
 
     const res = await request(app)
       .delete(`/posts/${POST_ID}/comments/${COMMENT_ID}`)
-      .set("x-user-id", USER1_UUID)
-      .set("x-role", "user")
+      .set("Authorization", "Bearer fake-token")
 
     expect(res.status).toBe(500)
   })

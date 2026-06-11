@@ -8,12 +8,9 @@ import {
   SettingsTwoFactor,
 } from "."
 import { logoutAction } from "@/app/(app)/settings/actions"
+import { SettingsEmailVerification } from "./settings-email-verification"
 
-interface SettingsScreenProps {
-  twoFactorEnabled?: boolean
-}
-
-export default function SettingsScreen({ twoFactorEnabled = false }: SettingsScreenProps) {
+export default function SettingsScreen() {
   const [language, setLanguage] = useState<string | null>("fr")
 
   async function handleLogout() {
@@ -27,7 +24,8 @@ export default function SettingsScreen({ twoFactorEnabled = false }: SettingsScr
 
         <SettingsThemeSelect />
 
-        <SettingsTwoFactor enabled={twoFactorEnabled} />
+        <SettingsTwoFactor />
+        <SettingsEmailVerification />
 
         <SettingsLogoutButton onLogout={handleLogout} />
       </div>

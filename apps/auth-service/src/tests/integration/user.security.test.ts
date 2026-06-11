@@ -2,6 +2,11 @@ import express, { type Request, type Response, type NextFunction } from "express
 import request from "supertest"
 import { createUserRouter } from "../../routes/user.route"
 import UserController from "../../controllers/user.controller"
+import { verifyToken } from "../../utils/jwt.util"
+import type { Role } from "../../constants/roles"
+
+jest.mock("../../utils/jwt.util")
+const mockVerifyToken = verifyToken as jest.MockedFunction<typeof verifyToken>
 
 const USER_ID = "11111111-1111-1111-1111-111111111111"
 const OTHER_ID = "22222222-2222-2222-2222-222222222222"
@@ -27,12 +32,15 @@ function buildApp() {
 
 const app = buildApp()
 
-beforeEach(() => jest.clearAllMocks())
+beforeEach(() => {
+  jest.clearAllMocks()
+  mockVerifyToken.mockReturnValue({ sub: USER_ID, role: "user" as Role, jti: "x" })
+})
 
 // ── POST /users ───────────────────────────────────────────────────────────────
 
 describe("POST /users", () => {
-  it("returns 401 when x-user-id header is missing", async () => {
+  it("returns 401 when Authorization header is missing", async () => {
     const res = await request(app).post("/users").send({})
     expect(res.status).toBe(401)
     expect(mockService.addUser).not.toHaveBeenCalled()
@@ -41,36 +49,35 @@ describe("POST /users", () => {
   it("returns 403 for non-admin (user role lacks user:create)", async () => {
     const res = await request(app)
       .post("/users")
-      .set("x-user-id", USER_ID)
-      .set("x-role", "user")
+      .set("Authorization", "Bearer fake-token")
       .send({ username: "alice", email: "alice@example.com", password: "securepass" })
     expect(res.status).toBe(403)
     expect(mockService.addUser).not.toHaveBeenCalled()
   })
 
   it("rejects missing fields with 400 for admin", async () => {
+    mockVerifyToken.mockReturnValueOnce({ sub: ADMIN_ID, role: "admin" as Role, jti: "x" })
     const res = await request(app)
       .post("/users")
-      .set("x-user-id", ADMIN_ID)
-      .set("x-role", "admin")
+      .set("Authorization", "Bearer fake-token")
       .send({})
     expect(res.status).toBe(400)
   })
 
   it("rejects invalid email with 400 for admin", async () => {
+    mockVerifyToken.mockReturnValueOnce({ sub: ADMIN_ID, role: "admin" as Role, jti: "x" })
     const res = await request(app)
       .post("/users")
-      .set("x-user-id", ADMIN_ID)
-      .set("x-role", "admin")
+      .set("Authorization", "Bearer fake-token")
       .send({ username: "alice", email: "not-an-email", password: "securepass" })
     expect(res.status).toBe(400)
   })
 
   it("rejects password shorter than 8 chars with 400 for admin", async () => {
+    mockVerifyToken.mockReturnValueOnce({ sub: ADMIN_ID, role: "admin" as Role, jti: "x" })
     const res = await request(app)
       .post("/users")
-      .set("x-user-id", ADMIN_ID)
-      .set("x-role", "admin")
+      .set("Authorization", "Bearer fake-token")
       .send({ username: "alice", email: "alice@example.com", password: "short" })
     expect(res.status).toBe(400)
   })
@@ -80,10 +87,10 @@ describe("POST /users", () => {
       emailTaken: true,
       usernameTaken: false,
     })
+    mockVerifyToken.mockReturnValueOnce({ sub: ADMIN_ID, role: "admin" as Role, jti: "x" })
     const res = await request(app)
       .post("/users")
-      .set("x-user-id", ADMIN_ID)
-      .set("x-role", "admin")
+      .set("Authorization", "Bearer fake-token")
       .send({ username: "alice", email: "alice@example.com", password: "securepass" })
     expect(res.status).toBe(409)
     expect(mockService.addUser).not.toHaveBeenCalled()
@@ -99,10 +106,10 @@ describe("POST /users", () => {
       username: "alice",
       email: "alice@example.com",
     })
+    mockVerifyToken.mockReturnValueOnce({ sub: ADMIN_ID, role: "admin" as Role, jti: "x" })
     const res = await request(app)
       .post("/users")
-      .set("x-user-id", ADMIN_ID)
-      .set("x-role", "admin")
+      .set("Authorization", "Bearer fake-token")
       .send({ username: "alice", email: "alice@example.com", password: "securepass" })
     expect(res.status).toBe(201)
   })
@@ -111,15 +118,21 @@ describe("POST /users", () => {
 // ── GET /users/:id ────────────────────────────────────────────────────────────
 
 describe("GET /users/:id", () => {
-  it("returns 401 when x-user-id header is missing", async () => {
+  it("returns 401 when Authorization header is missing", async () => {
     const res = await request(app).get(`/users/${USER_ID}`)
     expect(res.status).toBe(401)
     expect(mockService.getUser).not.toHaveBeenCalled()
   })
 
   it("returns 403 when caller has no role (visitor - lacks user:read)", async () => {
-    const res = await request(app).get(`/users/${USER_ID}`).set("x-user-id", USER_ID)
-    // no x-role → identity sets role → visitor → no user:read
+    mockVerifyToken.mockReturnValueOnce({
+      sub: USER_ID,
+      role: undefined as unknown as Role,
+      jti: "x",
+    })
+    const res = await request(app)
+      .get(`/users/${USER_ID}`)
+      .set("Authorization", "Bearer fake-token")
     expect(res.status).toBe(403)
     expect(mockService.getUser).not.toHaveBeenCalled()
   })
@@ -127,35 +140,34 @@ describe("GET /users/:id", () => {
   it("returns 403 when caller is user (lacks user:read)", async () => {
     const res = await request(app)
       .get(`/users/${USER_ID}`)
-      .set("x-user-id", USER_ID)
-      .set("x-role", "user")
+      .set("Authorization", "Bearer fake-token")
     expect(res.status).toBe(403)
     expect(mockService.getUser).not.toHaveBeenCalled()
   })
 
   it("returns 400 when :id is not a UUID", async () => {
+    mockVerifyToken.mockReturnValueOnce({ sub: USER_ID, role: "admin" as Role, jti: "x" })
     const res = await request(app)
       .get("/users/not-a-uuid")
-      .set("x-user-id", USER_ID)
-      .set("x-role", "admin")
+      .set("Authorization", "Bearer fake-token")
     expect(res.status).toBe(400)
   })
 
   it("returns 404 when user does not exist", async () => {
     mockService.getUser.mockResolvedValue(null)
+    mockVerifyToken.mockReturnValueOnce({ sub: USER_ID, role: "admin" as Role, jti: "x" })
     const res = await request(app)
       .get(`/users/${USER_ID}`)
-      .set("x-user-id", USER_ID)
-      .set("x-role", "admin")
+      .set("Authorization", "Bearer fake-token")
     expect(res.status).toBe(404)
   })
 
   it("returns 200 with user data for admin with user:read", async () => {
     mockService.getUser.mockResolvedValue({ id: USER_ID, username: "alice" })
+    mockVerifyToken.mockReturnValueOnce({ sub: USER_ID, role: "admin" as Role, jti: "x" })
     const res = await request(app)
       .get(`/users/${USER_ID}`)
-      .set("x-user-id", USER_ID)
-      .set("x-role", "admin")
+      .set("Authorization", "Bearer fake-token")
     expect(res.status).toBe(200)
     expect(res.body.data).toMatchObject({ id: USER_ID })
   })
@@ -166,17 +178,17 @@ describe("GET /users/:id", () => {
 describe("PATCH /users/:id/password", () => {
   const validBody = { currentPassword: "oldpass123", newPassword: "newpass123" }
 
-  it("returns 401 when x-user-id header is missing", async () => {
+  it("returns 401 when Authorization header is missing", async () => {
     const res = await request(app).patch(`/users/${USER_ID}/password`).send(validBody)
     expect(res.status).toBe(401)
     expect(mockService.updatePassword).not.toHaveBeenCalled()
   })
 
   it("returns 403 when caller tries to change another user's password", async () => {
+    mockVerifyToken.mockReturnValueOnce({ sub: OTHER_ID, role: "user" as Role, jti: "x" })
     const res = await request(app)
       .patch(`/users/${USER_ID}/password`)
-      .set("x-user-id", OTHER_ID)
-      .set("x-role", "user")
+      .set("Authorization", "Bearer fake-token")
       .send(validBody)
     expect(res.status).toBe(403)
     expect(mockService.updatePassword).not.toHaveBeenCalled()
@@ -185,8 +197,7 @@ describe("PATCH /users/:id/password", () => {
   it("returns 403 when :id is not a UUID", async () => {
     const res = await request(app)
       .patch("/users/not-a-uuid/password")
-      .set("x-user-id", USER_ID)
-      .set("x-role", "user")
+      .set("Authorization", "Bearer fake-token")
       .send(validBody)
     expect(res.status).toBe(403)
   })
@@ -194,8 +205,7 @@ describe("PATCH /users/:id/password", () => {
   it("returns 400 when currentPassword is missing", async () => {
     const res = await request(app)
       .patch(`/users/${USER_ID}/password`)
-      .set("x-user-id", USER_ID)
-      .set("x-role", "user")
+      .set("Authorization", "Bearer fake-token")
       .send({ newPassword: "newpass123" })
     expect(res.status).toBe(400)
     expect(mockService.updatePassword).not.toHaveBeenCalled()
@@ -204,8 +214,7 @@ describe("PATCH /users/:id/password", () => {
   it("returns 400 when newPassword is too short", async () => {
     const res = await request(app)
       .patch(`/users/${USER_ID}/password`)
-      .set("x-user-id", USER_ID)
-      .set("x-role", "user")
+      .set("Authorization", "Bearer fake-token")
       .send({ currentPassword: "oldpass123", newPassword: "short" })
     expect(res.status).toBe(400)
   })
@@ -216,8 +225,7 @@ describe("PATCH /users/:id/password", () => {
     )
     const res = await request(app)
       .patch(`/users/${USER_ID}/password`)
-      .set("x-user-id", USER_ID)
-      .set("x-role", "user")
+      .set("Authorization", "Bearer fake-token")
       .send(validBody)
     expect(res.status).toBe(401)
   })
@@ -228,8 +236,7 @@ describe("PATCH /users/:id/password", () => {
     )
     const res = await request(app)
       .patch(`/users/${USER_ID}/password`)
-      .set("x-user-id", USER_ID)
-      .set("x-role", "user")
+      .set("Authorization", "Bearer fake-token")
       .send(validBody)
     expect(res.status).toBe(404)
   })
@@ -240,8 +247,7 @@ describe("PATCH /users/:id/password", () => {
     )
     const res = await request(app)
       .patch(`/users/${USER_ID}/password`)
-      .set("x-user-id", USER_ID)
-      .set("x-role", "user")
+      .set("Authorization", "Bearer fake-token")
       .send(validBody)
     expect(res.status).toBe(500)
     expect(JSON.stringify(res.body)).not.toContain("postgres://")
@@ -252,8 +258,7 @@ describe("PATCH /users/:id/password", () => {
     mockService.updatePassword.mockResolvedValue(undefined)
     const res = await request(app)
       .patch(`/users/${USER_ID}/password`)
-      .set("x-user-id", USER_ID)
-      .set("x-role", "user")
+      .set("Authorization", "Bearer fake-token")
       .send(validBody)
     expect(res.status).toBe(200)
     expect(mockService.updatePassword).toHaveBeenCalledWith(USER_ID, "oldpass123", "newpass123")

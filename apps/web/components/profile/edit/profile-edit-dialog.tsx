@@ -21,7 +21,7 @@ export function ProfileEditDialog({ open, onClose, profile }: ProfileEditDialogP
       <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
         <DialogPortal>
           <DialogOverlay />
-          <DialogPrimitive.Popup className='fixed inset-0 z-120 flex flex-col bg-background outline-none'>
+          <DialogPrimitive.Popup className='fixed inset-0 z-120 flex flex-col outline-none'>
             <ProfileEditHeader onClose={onClose} profile={profile} />
             <ProfileEditScreen profile={profile} onClose={onClose} />
           </DialogPrimitive.Popup>
