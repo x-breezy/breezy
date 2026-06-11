@@ -1,3 +1,4 @@
+import { Op } from "sequelize"
 import { User, type SafeUser } from "../models/user.model"
 import { hashPassword, verifyPassword } from "../utils/password.util"
 import type { CreateUserDTO } from "../schemas/user.schema"
@@ -61,6 +62,24 @@ class UserService {
     }
     pipeline.del(`session:${userId}`)
     await pipeline.exec()
+  }
+
+  async searchByUsername(
+    q: string,
+    page: number = 1,
+    limit: number = 20
+  ): Promise<{ count: number; users: Pick<SafeUser, "id" | "username">[] }> {
+    const offset = (page - 1) * limit
+    const { count, rows } = await User.findAndCountAll({
+      where: { username: { [Op.iLike]: `%${q}%` } },
+      attributes: ["id", "username"],
+      limit,
+      offset,
+    })
+    return {
+      count,
+      users: rows.map((u) => ({ id: u.id, username: u.username })),
+    }
   }
 
   async updatePassword(id: string, currentPassword: string, newPassword: string): Promise<void> {

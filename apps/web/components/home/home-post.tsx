@@ -41,7 +41,7 @@ function HomePost({
     >
       <PostAvatar name={name} />
 
-      <div className='min-w-0 flex-1'>
+      <div className='flex-1'>
         <div className='mb-0.5 flex items-center justify-between'>
           <PostMeta name={name} username={username} createdAt={createdAt} />
           <PostMenu />

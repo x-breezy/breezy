@@ -2,7 +2,7 @@ import type { Request, Response, NextFunction } from "express"
 import { PostService } from "../services/post.service"
 
 export class PostController {
-  constructor(private service = new PostService()) {}
+  constructor(private service = new PostService()) { }
 
   create = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
@@ -58,6 +58,32 @@ export class PostController {
         return
       }
       res.json({ success: true, message: "Post deleted successfully" })
+    } catch (err) {
+      next(err)
+    }
+  }
+
+  search = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const q = (req.query.q as string | undefined)?.trim() ?? ""
+      if (!q) {
+        res.status(400).json({ success: false, message: "Query parameter 'q' is required" })
+        return
+      }
+      const page = Math.max(1, parseInt(req.query.page as string) || 1)
+      const limit = Math.min(50, Math.max(1, parseInt(req.query.limit as string) || 20))
+      const result = await this.service.search(q, page, limit)
+      res.json({ success: true, data: result, message: "Search results retrieved successfully" })
+    } catch (err) {
+      next(err)
+    }
+  }
+
+  trendingTags = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const limit = Math.min(50, Math.max(1, parseInt(req.query.limit as string) || 10))
+      const tags = await this.service.trendingTags(limit)
+      res.json({ success: true, data: tags, message: "Trending tags retrieved successfully" })
     } catch (err) {
       next(err)
     }

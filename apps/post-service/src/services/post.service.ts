@@ -13,7 +13,7 @@ function extractMentions(content: string, authorId: string): string[] {
 }
 
 export class PostService {
-  constructor(private follow: FollowGraphPort = new GrpcFollowGraph()) {}
+  constructor(private follow: FollowGraphPort = new GrpcFollowGraph()) { }
 
   async createPost(data: CreatePostDTO & { authorId: string }): Promise<Post> {
     const post = await PostModel.create({
@@ -58,6 +58,57 @@ export class PostService {
   async deletePost(id: string): Promise<boolean> {
     const deleted = await PostModel.findByIdAndDelete(id).exec()
     return deleted !== null
+  }
+
+  async search(q: string, page: number, limit: number): Promise<PaginatedResponse<Post>> {
+    const skip = (page - 1) * limit
+    const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+    const tagRegex = new RegExp(`^${escaped}$`, "i")
+    const contentRegex = new RegExp(escaped, "i")
+
+    // Prioritise exact tag match, then full-text relevance, then content substring
+    const tagDocs = await PostModel.find({ tags: tagRegex })
+      .sort({ createdAt: -1 })
+      .limit(limit)
+      .exec()
+
+    const textDocs = await PostModel.find(
+      { $text: { $search: `"${q}"` } },
+      { score: { $meta: "textScore" } }
+    )
+      .sort({ score: { $meta: "textScore" } })
+      .limit(limit)
+      .exec()
+
+    const regexDocs = await PostModel.find({ content: contentRegex })
+      .sort({ createdAt: -1 })
+      .limit(limit)
+      .exec()
+
+    // Merge: tag matches first, then text-score ranked, then regex fallback — deduplicated
+    const seen = new Set<string>()
+    const merged: Post[] = []
+    for (const doc of [...tagDocs, ...textDocs, ...regexDocs]) {
+      const id = doc._id.toString()
+      if (seen.has(id)) continue
+      seen.add(id)
+      merged.push(doc as Post)
+    }
+
+    const total = merged.length
+    const data = merged.slice(skip, skip + limit)
+    return { data, total, page, limit }
+  }
+
+  async trendingTags(limit: number = 10): Promise<{ tag: string; count: number }[]> {
+    const results = await PostModel.aggregate([
+      { $unwind: "$tags" },
+      { $group: { _id: "$tags", count: { $sum: 1 } } },
+      { $sort: { count: -1 } },
+      { $limit: limit },
+      { $project: { _id: 0, tag: "$_id", count: 1 } },
+    ])
+    return results as { tag: string; count: number }[]
   }
 }
 

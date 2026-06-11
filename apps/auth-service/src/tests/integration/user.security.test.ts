@@ -17,6 +17,7 @@ const mockService = {
   addUser: jest.fn(),
   getUser: jest.fn(),
   updatePassword: jest.fn(),
+  searchByUsername: jest.fn(),
 }
 
 function buildApp() {
@@ -262,5 +263,65 @@ describe("PATCH /users/:id/password", () => {
       .send(validBody)
     expect(res.status).toBe(200)
     expect(mockService.updatePassword).toHaveBeenCalledWith(USER_ID, "oldpass123", "newpass123")
+  })
+  // ── GET /users/search ─────────────────────────────────────────────────────
+
+  describe("GET /users/search", () => {
+    it("returns matching users", async () => {
+      mockService.searchByUsername.mockResolvedValue({
+        count: 1,
+        users: [{ id: USER_ID, username: "alice" }],
+      })
+
+      const res = await request(app)
+        .get("/users/search?q=alice")
+        .set("x-user-id", USER_ID)
+        .set("x-roles", "user")
+
+      expect(res.status).toBe(200)
+      expect(res.body).toMatchObject({
+        success: true,
+        data: expect.objectContaining({ total: 1, page: 1 }),
+      })
+      expect(mockService.searchByUsername).toHaveBeenCalledWith("alice", 1, 20)
+    })
+
+    it("returns 400 when q is missing", async () => {
+      const res = await request(app)
+        .get("/users/search")
+        .set("x-user-id", USER_ID)
+        .set("x-roles", "user")
+
+      expect(res.status).toBe(400)
+      expect(res.body.success).toBe(false)
+      expect(mockService.searchByUsername).not.toHaveBeenCalled()
+    })
+
+    it("returns 400 when q is empty string", async () => {
+      const res = await request(app)
+        .get("/users/search?q=")
+        .set("x-user-id", USER_ID)
+        .set("x-roles", "user")
+
+      expect(res.status).toBe(400)
+      expect(res.body.success).toBe(false)
+    })
+
+    it("returns 401 without auth", async () => {
+      const res = await request(app).get("/users/search?q=alice")
+      expect(res.status).toBe(401)
+    })
+
+    it("is not caught by /:id route", async () => {
+      mockService.searchByUsername.mockResolvedValue({ count: 0, users: [] })
+
+      const res = await request(app)
+        .get("/users/search?q=test")
+        .set("x-user-id", USER_ID)
+        .set("x-roles", "user")
+
+      expect(res.status).toBe(200)
+      expect(res.body.data).toHaveProperty("total")
+    })
   })
 })
