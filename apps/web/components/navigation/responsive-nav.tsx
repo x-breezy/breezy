@@ -28,10 +28,12 @@ export function ResponsiveNav() {
   const ProfileNavIcon = makeProfileIcon(profile?.avatarId ?? null)
   const isProfileActive = pathname === "/profile"
 
+  const isConversationPage = pathname.startsWith("/messages/")
+
   return (
     <>
       {/* Mobile: Bottom bar - visible en dessous de lg */}
-      <nav className='fixed right-0 bottom-0 left-0 z-50 grid h-15 grid-cols-5 border-t bg-background pb-[env(safe-area-inset-bottom)] lg:hidden'>
+      <nav className={`fixed right-0 bottom-0 left-0 z-50 h-15 grid-cols-5 border-t bg-background pb-[env(safe-area-inset-bottom)] lg:hidden ${isConversationPage ? "hidden" : "grid"}`}>
         {NAV_ITEMS.map(({ href, icon, label }) => (
           <NavItem
             key={href}

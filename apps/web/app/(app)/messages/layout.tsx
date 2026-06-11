@@ -34,7 +34,7 @@ export default function MessagesLayout({ children }: { children: React.ReactNode
   if (!currentUserId) return null;
 
   return (
-    <div className="flex h-full bg-gray-50 dark:bg-black w-full font-sans overflow-hidden">
+    <div className={`flex bg-gray-50 dark:bg-black w-full font-sans overflow-hidden ${conversationId ? "h-[calc(100%+3.75rem)] -mb-[3.75rem] lg:h-full lg:mb-0" : "h-full"}`}>
 
 
       <ConversationSidebar
