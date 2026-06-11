@@ -9,7 +9,7 @@ interface ProfilePostsSectionProps {
 
 export function ProfilePostsSection({ posts, title, className }: ProfilePostsSectionProps) {
   return (
-    <section className={cn("mx-auto max-w-4xl p-4 md:p-0", className)}>
+    <section className={cn("container-center p-4 md:p-0", className)}>
       <ProfilePosts posts={posts} title={title} />
     </section>
   )

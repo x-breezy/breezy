@@ -30,7 +30,7 @@ export function ProfileSection({ className, profile, role }: ProfileSectionProps
       </div>
 
       {/* Desktop Layout */}
-      <div className='hidden max-w-4xl md:mx-auto md:flex md:items-start md:justify-center md:gap-8'>
+      <div className='container-center hidden md:mx-auto md:flex md:items-start md:justify-center md:gap-8'>
         <div className='flex flex-col items-center gap-4'>
           <ProfileAvatar src={profile.avatarId || undefined} alt={profile.username} size='2xl' />
           <ProfileActions profile={profile} />

@@ -4,6 +4,7 @@ import type { Metadata } from "next"
 import { cookies } from "next/headers"
 import { ThemeProvider } from "@/components/providers/theme-provider"
 import { QueryProvider } from "@/components/providers/query-provider"
+import { Toaster } from "@/components/ui/sonner"
 import { cn } from "@/lib/utils"
 import type { Theme } from "@/lib/theme"
 
@@ -64,7 +65,10 @@ export default async function RootLayout({
     >
       <body>
         <QueryProvider>
-          <ThemeProvider defaultTheme={theme}>{children}</ThemeProvider>
+          <ThemeProvider defaultTheme={theme}>
+            {children}
+            <Toaster position='top-center' />
+          </ThemeProvider>
         </QueryProvider>
       </body>
     </html>
