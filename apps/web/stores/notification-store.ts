@@ -1,6 +1,6 @@
 import { create } from "zustand"
 import type { Notification } from "@/types/notification"
-import * as notificationService from "@/lib/services/notification-service"
+import * as actions from "@/app/(app)/notifications/actions"
 
 interface NotificationState {
   notifications: Notification[]
@@ -31,10 +31,9 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
   list: async (options) => {
     set({ loading: true, error: null })
     try {
-      const res = await notificationService.listNotifications(
+      const res = await actions.listNotifications(
         options?.page ?? get().page,
-        options?.limit ?? get().limit,
-        options?.unreadOnly
+        options?.limit ?? get().limit
       )
       set({
         notifications: res.data,
@@ -51,9 +50,11 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
 
   markRead: async (id) => {
     try {
-      await notificationService.markNotificationRead(id)
+      await actions.markNotificationRead(id)
       set((state) => ({
-        notifications: state.notifications.map((n) => (n._id === id ? { ...n, read: true } : n)),
+        notifications: state.notifications.map((n) =>
+          n._id === id ? { ...n, read: true } : n
+        ),
         unreadCount: Math.max(0, state.unreadCount - 1),
       }))
     } catch {
@@ -63,7 +64,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
 
   markAllRead: async () => {
     try {
-      await notificationService.markAllNotificationsRead()
+      await actions.markAllNotificationsRead()
       set((state) => ({
         notifications: state.notifications.map((n) => ({ ...n, read: true })),
         unreadCount: 0,
@@ -75,13 +76,14 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
 
   remove: async (id) => {
     try {
-      await notificationService.deleteNotification(id)
+      await actions.deleteNotification(id)
       set((state) => {
         const removed = state.notifications.find((n) => n._id === id)
         return {
           notifications: state.notifications.filter((n) => n._id !== id),
           total: state.total - 1,
-          unreadCount: state.unreadCount - (removed?.read ? 0 : 1),
+          unreadCount:
+            state.unreadCount - (removed?.read ? 0 : 1),
         }
       })
     } catch {
