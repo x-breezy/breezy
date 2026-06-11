@@ -23,32 +23,77 @@ export default function ConversationPage({
 
   const bottomRef = useRef<HTMLDivElement>(null)
   const [avatarUrl, setAvatarUrl] = useState<string | undefined>(undefined)
+  const [username, setUsername] = useState<string>("Conversation")
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages])
 
-  // Fetch the other user's avatar
+  // Fetch the other user's avatar and username
   useEffect(() => {
-    if (!currentUserId || messages.length === 0) return
-    const otherUserId = messages.find((m) => m.senderId !== currentUserId)?.senderId
-    if (!otherUserId) return
+    if (!currentUserId) return
 
-    const PROFILE_URL = process.env.NEXT_PUBLIC_PROFILE_API_URL || "http://localhost:4002"
-    fetch(`${PROFILE_URL}/profiles/${otherUserId}`, {
-      headers: { "x-user-id": currentUserId, "x-roles": "user" },
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success && data.data?.avatarId) {
-          // If avatarId is just an ID, you might need a media service URL, 
-          // but assuming it's a valid src or handled by Avatar component
-          setAvatarUrl(data.data.avatarId)
+    const fetchOtherUser = async () => {
+      let otherUserId = messages.find((m) => m.senderId !== currentUserId)?.senderId
+
+      if (!otherUserId) {
+        try {
+          const MESSAGE_API_URL = process.env.NEXT_PUBLIC_MESSAGE_API_URL || "http://localhost:4030"
+          const convRes = await fetch(`${MESSAGE_API_URL}/conversations`, {
+            headers: { "x-user-id": currentUserId, "x-roles": "user" },
+          })
+          const convData = await convRes.json()
+          if (convData.success && convData.data) {
+            const conv = convData.data.find((c: any) => c._id === conversationId)
+            if (conv) {
+              otherUserId = conv.participantIds.find((id: string) => id !== currentUserId)
+            }
+          }
+        } catch (err) {
+          console.error("Failed to fetch conversation list", err)
         }
-      })
-      .catch(console.error)
-  }, [messages, currentUserId])
+      }
+
+      if (!otherUserId || otherUserId === "Unknown") {
+        setUsername("Conversation")
+        return
+      }
+
+      // Fetch Avatar
+      try {
+        const PROFILE_URL = process.env.NEXT_PUBLIC_PROFILE_API_URL || "http://localhost:4002"
+        const profileRes = await fetch(`${PROFILE_URL}/profiles/${otherUserId}`, {
+          headers: { "x-user-id": currentUserId, "x-roles": "user" },
+        })
+        const profileData = await profileRes.json()
+        if (profileData.success && profileData.data?.avatarId) {
+          setAvatarUrl(profileData.data.avatarId)
+        }
+      } catch (err) {
+        console.error("Failed to fetch avatar", err)
+      }
+
+      // Fetch Username
+      try {
+        const AUTH_URL = process.env.NEXT_PUBLIC_AUTH_API_URL || "http://localhost:4000"
+        const authRes = await fetch(`${AUTH_URL}/users/${otherUserId}`, {
+          headers: { "x-user-id": currentUserId, "x-roles": "user" },
+        })
+        const authData = await authRes.json()
+        if (authData.success && authData.data?.username) {
+          setUsername(authData.data.username)
+        } else {
+          setUsername(`User ${otherUserId.slice(0, 8)}`)
+        }
+      } catch (err) {
+        console.error("Failed to fetch username", err)
+        setUsername(`User ${otherUserId.slice(0, 8)}`)
+      }
+    }
+
+    fetchOtherUser()
+  }, [messages, currentUserId, conversationId])
 
   return (
     <div className='flex h-full flex-col bg-white dark:bg-gray-950'>
@@ -59,7 +104,7 @@ export default function ConversationPage({
             <IconArrowLeft size={20} />
           </Link>
           <div>
-            <h2 className='text-lg font-bold'>Conversation</h2>
+            <h2 className='text-lg font-bold truncate max-w-[200px] md:max-w-[300px]'>{username}</h2>
             <p className='text-xs text-gray-500'>
               {isConnected ? (
                 <span className='flex items-center gap-1 text-green-500'>
