@@ -8,6 +8,7 @@ import { useCurrentUser } from "@/hooks/use-current-user"
 import { IconLoader2, IconArrowLeft } from "@tabler/icons-react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import { useUserCache } from "@/hooks/use-user-cache"
 
 export default function ConversationPage({
   params,
@@ -22,22 +23,41 @@ export default function ConversationPage({
   )
 
   const bottomRef = useRef<HTMLDivElement>(null)
+  
+  // 1. Try to compute otherUserId synchronously from messages if available
+  const otherUserIdFromMessages = messages.find((m) => m.senderId !== currentUserId)?.senderId
+  const [fetchedOtherUserId, setFetchedOtherUserId] = useState<string | undefined>(undefined)
+  const otherUserId = otherUserIdFromMessages || fetchedOtherUserId
+
+  // 2. Access our global cache
+  const cachedUser = useUserCache((state) => (otherUserId ? state.users[otherUserId] : undefined))
+  const setUser = useUserCache((state) => state.setUser)
+
   const [avatarUrl, setAvatarUrl] = useState<string | undefined>(undefined)
-  const [username, setUsername] = useState<string>("Conversation")
+  const [username, setUsername] = useState<string | null>(null)
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages])
 
-  // Fetch the other user's avatar and username
+  // Sync cache -> local state instantly when cache updates
+  useEffect(() => {
+    if (cachedUser) {
+      setUsername(cachedUser.displayName)
+      if (cachedUser.avatarUrl) setAvatarUrl(cachedUser.avatarUrl)
+    }
+  }, [cachedUser])
+
+  // Fetch the other user's avatar and username if not cached
   useEffect(() => {
     if (!currentUserId) return
+    if (cachedUser) return // We already have the data, skip fetching
 
     const fetchOtherUser = async () => {
-      let otherUserId = messages.find((m) => m.senderId !== currentUserId)?.senderId
+      let resolvedId = otherUserIdFromMessages
 
-      if (!otherUserId) {
+      if (!resolvedId) {
         try {
           const MESSAGE_API_URL = process.env.NEXT_PUBLIC_MESSAGE_API_URL || "http://localhost:4030"
           const convRes = await fetch(`${MESSAGE_API_URL}/conversations`, {
@@ -47,7 +67,8 @@ export default function ConversationPage({
           if (convData.success && convData.data) {
             const conv = convData.data.find((c: any) => c._id === conversationId)
             if (conv) {
-              otherUserId = conv.participantIds.find((id: string) => id !== currentUserId)
+              resolvedId = conv.participantIds.find((id: string) => id !== currentUserId)
+              setFetchedOtherUserId(resolvedId)
             }
           }
         } catch (err) {
@@ -55,45 +76,70 @@ export default function ConversationPage({
         }
       }
 
-      if (!otherUserId || otherUserId === "Unknown") {
+      if (!resolvedId || resolvedId === "Unknown") {
         setUsername("Conversation")
         return
       }
 
-      // Fetch Avatar
-      try {
-        const PROFILE_URL = process.env.NEXT_PUBLIC_PROFILE_API_URL || "http://localhost:4002"
-        const profileRes = await fetch(`${PROFILE_URL}/profiles/${otherUserId}`, {
-          headers: { "x-user-id": currentUserId, "x-roles": "user" },
-        })
-        const profileData = await profileRes.json()
-        if (profileData.success && profileData.data?.avatarId) {
-          setAvatarUrl(profileData.data.avatarId)
-        }
-      } catch (err) {
-        console.error("Failed to fetch avatar", err)
+      // If we got here and the cache was updated in the meantime, abort
+      const currentCache = useUserCache.getState().users[resolvedId]
+      if (currentCache) {
+        setUsername(currentCache.displayName)
+        if (currentCache.avatarUrl) setAvatarUrl(currentCache.avatarUrl)
+        return
       }
 
-      // Fetch Username
+      // Fetch Username and Profile identically to sidebar
+      let authUsername = null;
+      let profileFirstName = null;
+      let profileLastName = null;
+      let fetchedAvatarUrl = undefined;
+
       try {
         const AUTH_URL = process.env.NEXT_PUBLIC_AUTH_API_URL || "http://localhost:4000"
-        const authRes = await fetch(`${AUTH_URL}/users/${otherUserId}`, {
+        const authRes = await fetch(`${AUTH_URL}/users/${resolvedId}`, {
           headers: { "x-user-id": currentUserId, "x-roles": "user" },
         })
         const authData = await authRes.json()
-        if (authData.success && authData.data?.username) {
-          setUsername(authData.data.username)
-        } else {
-          setUsername(`User ${otherUserId.slice(0, 8)}`)
+        if (authData.success && authData.data) {
+          authUsername = authData.data.username
         }
       } catch (err) {
-        console.error("Failed to fetch username", err)
-        setUsername(`User ${otherUserId.slice(0, 8)}`)
+        console.error("Auth fetch failed", err)
       }
+
+      try {
+        const PROFILE_URL = process.env.NEXT_PUBLIC_PROFILE_API_URL || "http://localhost:4010"
+        const profileRes = await fetch(`${PROFILE_URL}/profiles/${resolvedId}`, {
+          headers: { "x-user-id": currentUserId, "x-roles": "user" },
+        })
+        const profileData = await profileRes.json()
+        if (profileData.success && profileData.data) {
+          profileFirstName = profileData.data.firstName
+          profileLastName = profileData.data.lastName
+          if (profileData.data.avatarId) {
+            fetchedAvatarUrl = profileData.data.avatarId
+            setAvatarUrl(fetchedAvatarUrl)
+          }
+        }
+      } catch (err) {
+        console.error("Profile fetch failed", err)
+      }
+
+      const nameParts = []
+      if (profileFirstName) nameParts.push(profileFirstName)
+      if (profileLastName) nameParts.push(profileLastName)
+      
+      const fullName = nameParts.join(" ")
+      const uname = authUsername || `User ${resolvedId.slice(0, 8)}`
+      const display = fullName ? `${fullName} @${uname}` : `@${uname}`
+      
+      setUsername(display)
+      setUser(resolvedId, { displayName: display, avatarUrl: fetchedAvatarUrl })
     }
 
     fetchOtherUser()
-  }, [messages, currentUserId, conversationId])
+  }, [otherUserIdFromMessages, currentUserId, conversationId, cachedUser, setUser])
 
   return (
     <div className='flex h-full flex-col bg-white dark:bg-gray-950'>
@@ -104,7 +150,11 @@ export default function ConversationPage({
             <IconArrowLeft size={20} />
           </Link>
           <div>
-            <h2 className='text-lg font-bold truncate max-w-[200px] md:max-w-[300px]'>{username}</h2>
+            <div className='text-lg font-bold truncate max-w-[200px] md:max-w-[300px]'>
+              {username ? username : (
+                <div className="h-6 w-32 bg-foreground/10 animate-pulse rounded mt-1 mb-1"></div>
+              )}
+            </div>
             <p className='text-xs text-gray-500'>
               {isConnected ? (
                 <span className='flex items-center gap-1 text-green-500'>

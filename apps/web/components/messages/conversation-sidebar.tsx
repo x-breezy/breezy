@@ -4,6 +4,7 @@ import React, { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { IconPlus, IconTrash } from "@tabler/icons-react"
+import { useUserCache } from "@/hooks/use-user-cache"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -47,36 +48,81 @@ function SidebarItem({
   const otherUserId = conv.participantIds.find((id) => id !== currentUserId) || "Unknown"
   const isActive = conv._id === activeId
   const [username, setUsername] = useState<string | null>(null)
+  const cachedUser = useUserCache((state) => state.users[otherUserId])
+  const setUser = useUserCache((state) => state.setUser)
 
   React.useEffect(() => {
     if (otherUserId === "Unknown" || !currentUserId) return
-    const AUTH_URL = process.env.NEXT_PUBLIC_AUTH_API_URL || "http://localhost:4000"
-    fetch(`${AUTH_URL}/users/${otherUserId}`, {
-      headers: { "x-user-id": currentUserId, "x-roles": "user" },
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success && data.data) {
-          setUsername(data.data.username)
+    
+    // If we already have it in cache, just use it
+    if (cachedUser) {
+      setUsername(cachedUser.displayName)
+      return
+    }
+
+    const fetchDetails = async () => {
+      let authUsername = null;
+      let profileFirstName = null;
+      let profileLastName = null;
+
+      try {
+        const AUTH_URL = process.env.NEXT_PUBLIC_AUTH_API_URL || "http://localhost:4000"
+        const authRes = await fetch(`${AUTH_URL}/users/${otherUserId}`, {
+          headers: { "x-user-id": currentUserId, "x-roles": "user" },
+        })
+        const authData = await authRes.json()
+        if (authData.success && authData.data) {
+          authUsername = authData.data.username
         }
-      })
-      .catch(console.error)
-  }, [otherUserId, currentUserId])
+      } catch (err) {
+        console.error(err)
+      }
+
+      try {
+        const PROFILE_URL = process.env.NEXT_PUBLIC_PROFILE_API_URL || "http://localhost:4010"
+        const profileRes = await fetch(`${PROFILE_URL}/profiles/${otherUserId}`, {
+          headers: { "x-user-id": currentUserId, "x-roles": "user" },
+        })
+        const profileData = await profileRes.json()
+        if (profileData.success && profileData.data) {
+          profileFirstName = profileData.data.firstName
+          profileLastName = profileData.data.lastName
+        }
+      } catch (err) {
+        console.error(err)
+      }
+
+      const nameParts = []
+      if (profileFirstName) nameParts.push(profileFirstName)
+      if (profileLastName) nameParts.push(profileLastName)
+      
+      const fullName = nameParts.join(" ")
+      const uname = authUsername || `User ${otherUserId.slice(0, 8)}`
+      const display = fullName ? `${fullName} @${uname}` : `@${uname}`
+      
+      setUsername(display)
+      setUser(otherUserId, { displayName: display })
+    }
+
+    fetchDetails()
+  }, [otherUserId, currentUserId, cachedUser, setUser])
 
   return (
     <div className="group relative">
       <Link
         href={`/messages/${conv._id}`}
-        className={`flex flex-col p-3 rounded-2xl transition-colors duration-200 pr-10 ${
+        className={`flex flex-col p-3.5 border-b border-border transition-colors duration-200 pr-10 ${
           isActive
-            ? "bg-primary/10 border border-primary/20 text-foreground"
-            : "hover:bg-muted border border-transparent text-muted-foreground hover:text-foreground"
+            ? "bg-accent/50 text-foreground"
+            : "bg-transparent hover:bg-accent/50 text-muted-foreground hover:text-foreground"
         }`}
       >
         <div className="flex justify-between items-baseline mb-1">
-          <span className={`font-semibold text-sm truncate ${isActive ? "text-foreground" : "text-foreground"}`}>
-            {username ? username : `User ${otherUserId.slice(0, 8)}`}
-          </span>
+          <div className={`font-semibold text-sm truncate ${isActive ? "text-foreground" : "text-foreground"}`}>
+            {username ? username : (
+              <div className="h-4 w-24 bg-foreground/10 animate-pulse rounded"></div>
+            )}
+          </div>
           {conv.lastMessageAt && (
             <span className="text-xs opacity-70">
               {new Date(conv.lastMessageAt).toLocaleDateString()}
@@ -224,7 +270,7 @@ export function ConversationSidebar({ conversations, currentUserId, activeId, on
           </DialogContent>
         </Dialog>
       </div>
-      <div className="flex-1 overflow-y-auto p-2 space-y-1">
+      <div className="flex-1 overflow-y-auto">
         {conversations.length === 0 ? (
           <p className="text-sm text-muted-foreground p-4 text-center">No conversations yet.</p>
         ) : (
