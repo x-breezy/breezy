@@ -5,8 +5,9 @@ import { useConversation } from "@/hooks/use-conversation"
 import { MessageBubble } from "@/components/messages/message-bubble"
 import { ChatInput } from "@/components/messages/chat-input"
 import { useCurrentUser } from "@/hooks/use-current-user"
-import { IconLoader2 } from "@tabler/icons-react"
+import { IconLoader2, IconArrowLeft } from "@tabler/icons-react"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
 
 export default function ConversationPage({
   params,
@@ -52,18 +53,23 @@ export default function ConversationPage({
   return (
     <div className='flex h-full flex-col bg-white dark:bg-gray-950'>
       {/* Header */}
-      <header className='sticky top-0 z-10 flex h-16 items-center justify-between border-b border-gray-200 bg-white/80 px-6 backdrop-blur-md dark:border-gray-800 dark:bg-gray-950/80'>
-        <div>
-          <h2 className='text-lg font-bold'>Conversation</h2>
-          <p className='text-xs text-gray-500'>
-            {isConnected ? (
-              <span className='flex items-center gap-1 text-green-500'>
-                <span className='h-2 w-2 rounded-full bg-green-500'></span> Online
-              </span>
-            ) : (
-              <span className='text-gray-400'>Connecting...</span>
-            )}
-          </p>
+      <header className='sticky top-0 z-10 flex h-16 items-center justify-between border-b border-gray-200 bg-white/80 px-4 md:px-6 backdrop-blur-md dark:border-gray-800 dark:bg-gray-950/80'>
+        <div className="flex items-center">
+          <Link href="/messages" className="mr-3 md:hidden p-2 -ml-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+            <IconArrowLeft size={20} />
+          </Link>
+          <div>
+            <h2 className='text-lg font-bold'>Conversation</h2>
+            <p className='text-xs text-gray-500'>
+              {isConnected ? (
+                <span className='flex items-center gap-1 text-green-500'>
+                  <span className='h-2 w-2 rounded-full bg-green-500'></span> Online
+                </span>
+              ) : (
+                <span className='text-gray-400'>Connecting...</span>
+              )}
+            </p>
+          </div>
         </div>
       </header>
 

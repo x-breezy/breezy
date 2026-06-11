@@ -1,11 +1,15 @@
 "use client"
 
 import React, { useEffect, useState } from "react"
+import { useParams } from "next/navigation"
 import { ConversationSidebar, type ConversationMeta } from "@/components/messages/conversation-sidebar"
 import { useCurrentUser } from "@/hooks/use-current-user"
 export default function MessagesLayout({ children }: { children: React.ReactNode }) {
   const [conversations, setConversations] = useState<ConversationMeta[]>([])
   const { currentUserId, changeUser } = useCurrentUser()
+  const params = useParams()
+  const conversationId = params?.conversationId as string | undefined
+
 
   useEffect(() => {
     if (!currentUserId) return;
@@ -34,6 +38,8 @@ export default function MessagesLayout({ children }: { children: React.ReactNode
 
 
       <ConversationSidebar
+        className={conversationId ? "hidden md:flex" : "flex"}
+        activeId={conversationId}
         conversations={conversations}
         currentUserId={currentUserId}
         onConversationCreated={(newConv) => {
@@ -47,7 +53,7 @@ export default function MessagesLayout({ children }: { children: React.ReactNode
           setConversations(prev => prev.filter(c => c._id !== id))
         }}
       />
-      <main className="flex-1 relative">
+      <main className={`flex-1 relative ${!conversationId ? "hidden md:block" : "block"}`}>
         {children}
       </main>
     </div>

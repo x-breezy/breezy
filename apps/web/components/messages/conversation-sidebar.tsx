@@ -30,6 +30,7 @@ interface SidebarProps {
   activeId?: string
   onConversationCreated?: (conv: ConversationMeta) => void
   onConversationDeleted?: (id: string) => void
+  className?: string
 }
 
 function SidebarItem({
@@ -99,7 +100,7 @@ function SidebarItem({
   )
 }
 
-export function ConversationSidebar({ conversations, currentUserId, activeId, onConversationCreated, onConversationDeleted }: SidebarProps) {
+export function ConversationSidebar({ conversations, currentUserId, activeId, onConversationCreated, onConversationDeleted, className = "" }: SidebarProps) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [username, setUsername] = useState("")
@@ -190,7 +191,7 @@ export function ConversationSidebar({ conversations, currentUserId, activeId, on
   }
 
   return (
-    <aside className="w-80 border-r border-border bg-background/50 backdrop-blur-md flex flex-col h-full">
+    <aside className={`w-full md:w-80 border-r border-border bg-background/50 backdrop-blur-md flex-col h-full ${className}`}>
       <div className="p-4 border-b border-border flex items-center justify-between">
         <h2 className="text-xl font-bold tracking-tight">Messages</h2>
         <Dialog open={open} onOpenChange={setOpen}>
