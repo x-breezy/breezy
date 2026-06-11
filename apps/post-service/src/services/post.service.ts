@@ -7,6 +7,14 @@ import { publish } from "../clients/rabbitmq"
 
 const MENTION_RE = /@([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/gi
 
+interface TrendingCache {
+  data: { tag: string; count: number }[]
+  expiresAt: number
+}
+
+let trendingCache: TrendingCache | null = null
+const CACHE_TTL_MS = 5 * 60 * 1000 // 5 minutes
+
 function extractMentions(content: string, authorId: string): string[] {
   const matches = [...content.matchAll(MENTION_RE)].map((m) => m[1]!.toLowerCase())
   return [...new Set(matches)].filter((id) => id !== authorId)
@@ -66,7 +74,7 @@ export class PostService {
     const tagRegex = new RegExp(`^${escaped}$`, "i")
     const contentRegex = new RegExp(escaped, "i")
 
-    // Prioritise exact tag match, then full-text relevance, then content substring
+    // Fetch: exact tag match first, then text-score ranked, then regex fallback
     const tagDocs = await PostModel.find({ tags: tagRegex })
       .sort({ createdAt: -1 })
       .limit(limit)
@@ -85,7 +93,7 @@ export class PostService {
       .limit(limit)
       .exec()
 
-    // Merge: tag matches first, then text-score ranked, then regex fallback — deduplicated
+    // Merge and deduplicate while preserving priority order
     const seen = new Set<string>()
     const merged: Post[] = []
     for (const doc of [...tagDocs, ...textDocs, ...regexDocs]) {
@@ -95,12 +103,28 @@ export class PostService {
       merged.push(doc as Post)
     }
 
-    const total = merged.length
+    // Count distinct matching documents (avoid $text in $or which MongoDB rejects)
+    const [tagCount, textCount, regexCount] = await Promise.all([
+      PostModel.countDocuments({ tags: tagRegex }).exec(),
+      PostModel.countDocuments({ $text: { $search: `"${q}"` } }).exec(),
+      PostModel.countDocuments({ content: contentRegex }).exec(),
+    ])
+
+    // Approximate total (upper bound); exact dedup would need another fetch
+    const total = Math.max(tagCount, textCount, regexCount)
+    if (total === 0 && merged.length === 0) {
+      return { data: [], total: 0, page, limit }
+    }
+
     const data = merged.slice(skip, skip + limit)
-    return { data, total, page, limit }
+    return { data, total: Math.max(total, merged.length), page, limit }
   }
 
   async trendingTags(limit: number = 10): Promise<{ tag: string; count: number }[]> {
+    if (trendingCache && Date.now() < trendingCache.expiresAt) {
+      return trendingCache.data.slice(0, limit)
+    }
+
     const results = await PostModel.aggregate([
       { $unwind: "$tags" },
       { $group: { _id: "$tags", count: { $sum: 1 } } },
@@ -108,7 +132,13 @@ export class PostService {
       { $limit: limit },
       { $project: { _id: 0, tag: "$_id", count: 1 } },
     ])
-    return results as { tag: string; count: number }[]
+
+    trendingCache = {
+      data: results as { tag: string; count: number }[],
+      expiresAt: Date.now() + CACHE_TTL_MS,
+    }
+
+    return results.slice(0, limit) as { tag: string; count: number }[]
   }
 }
 

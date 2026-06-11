@@ -15,6 +15,7 @@ export function MediaGrid({ items }: MediaGridProps) {
               key={item.id}
               src={`/api/media/images/${item.id}`}
               alt=''
+              loading='lazy'
               className='aspect-square w-full cursor-pointer rounded object-cover'
               onClick={() => window.open(`/api/media/images/${item.id}`, "_blank")}
             />
@@ -22,6 +23,7 @@ export function MediaGrid({ items }: MediaGridProps) {
             <video
               key={item.id}
               src={`/api/media/videos/${item.id}`}
+              preload='none'
               className='aspect-square w-full cursor-pointer rounded object-cover'
               controls
             />

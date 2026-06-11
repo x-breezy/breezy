@@ -2,7 +2,7 @@
 
 import { useRouter, useSearchParams } from "next/navigation"
 import { IconFileText, IconUser, IconPhoto } from "@tabler/icons-react"
-import { cn } from "@/lib/utils"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { parseTab, type Tab } from "./types"
 
 const TABS: { key: Tab; label: string; icon: React.ReactNode }[] = [
@@ -16,30 +16,26 @@ export function SearchTabs() {
   const searchParams = useSearchParams()
   const activeTab = parseTab(searchParams.get("tab"))
 
-  function setTab(tab: Tab) {
+  function setTab(tab: string) {
     const params = new URLSearchParams(searchParams.toString())
     params.set("tab", tab)
     router.push(`/search?${params.toString()}`)
   }
 
   return (
-    <div className='flex items-center justify-around border-b border-border'>
-      {TABS.map((t) => (
-        <div key={t.key} className='flex flex-1 items-center justify-center'>
-          <button
-            onClick={() => setTab(t.key)}
-            className={cn(
-              "flex items-center justify-center gap-1.5 py-3 text-sm font-medium transition-colors",
-              activeTab === t.key
-                ? "border-b-2 border-primary text-foreground"
-                : "text-muted-foreground hover:text-foreground"
-            )}
-          >
+    <Tabs
+      value={activeTab}
+      onValueChange={setTab}
+      className='fixed top-15 z-10 w-full bg-background lg:w-[calc(100%-256px)]'
+    >
+      <TabsList variant='line' className='w-full'>
+        {TABS.map((t) => (
+          <TabsTrigger key={t.key} value={t.key} className='flex-1'>
             {t.icon}
             {t.label}
-          </button>
-        </div>
-      ))}
-    </div>
+          </TabsTrigger>
+        ))}
+      </TabsList>
+    </Tabs>
   )
 }

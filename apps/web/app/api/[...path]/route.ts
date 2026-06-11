@@ -21,20 +21,27 @@ async function proxyRequest(req: NextRequest): Promise<NextResponse> {
       ? await req.arrayBuffer()
       : undefined
 
-  const upstream = await fetch(target, {
-    method: req.method,
-    headers,
-    body,
-    redirect: "manual",
-  })
+  try {
+    const upstream = await fetch(target, {
+      method: req.method,
+      headers,
+      body,
+      redirect: "manual",
+    })
 
-  const responseHeaders = new Headers(upstream.headers)
-  responseHeaders.delete("transfer-encoding")
+    const responseHeaders = new Headers(upstream.headers)
+    responseHeaders.delete("transfer-encoding")
 
-  return new NextResponse(upstream.body, {
-    status: upstream.status,
-    headers: responseHeaders,
-  })
+    return new NextResponse(upstream.body, {
+      status: upstream.status,
+      headers: responseHeaders,
+    })
+  } catch {
+    return NextResponse.json(
+      { success: false, error: "Service unavailable" },
+      { status: 503 }
+    )
+  }
 }
 
 export const GET = proxyRequest

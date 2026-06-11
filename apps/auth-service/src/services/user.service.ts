@@ -71,7 +71,11 @@ class UserService {
   ): Promise<{ count: number; users: Pick<SafeUser, "id" | "username">[] }> {
     const offset = (page - 1) * limit
     const { count, rows } = await User.findAndCountAll({
-      where: { username: { [Op.iLike]: `%${q}%` } },
+      where: {
+        username: { [Op.iLike]: `%${q}%` },
+        isBanned: false,
+        isSuspended: false,
+      },
       attributes: ["id", "username"],
       limit,
       offset,

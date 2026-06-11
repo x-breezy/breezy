@@ -23,6 +23,7 @@ export interface SearchUser {
 
 export interface SearchProfile {
     profileId: string
+    username: string | null
     firstName: string | null
     lastName: string | null
     avatarUrl: string | null
@@ -73,13 +74,14 @@ export async function fetchProfilesByIds(ids: string[]): Promise<SearchProfile[]
     return (
         data.data as Array<{
             profileId: string
-            username: string
+            username: string | null
             firstName: string | null
             lastName: string | null
             avatarId: string | null
         }>
     ).map((p) => ({
         profileId: p.profileId,
+        username: p.username,
         firstName: p.firstName,
         lastName: p.lastName,
         avatarUrl: p.avatarId,

@@ -2,7 +2,7 @@ import type { SearchUser, SearchProfile, SearchPost, SearchPostMedia } from "@/l
 
 export interface MergedPerson {
     id: string
-    username: string | undefined
+    username: string
     displayName: string | null
     avatarUrl: string | null
 }
@@ -26,7 +26,7 @@ export function mergeByProfileId(users: SearchUser[], profiles: SearchProfile[])
         const firstName = p.firstName ?? null
         const lastName = p.lastName ?? null
         const displayName = [firstName, lastName].filter(Boolean).join(" ") || null
-        result.push({ id: p.profileId, username: undefined, displayName, avatarUrl: p.avatarUrl })
+        result.push({ id: p.profileId, username: "", displayName, avatarUrl: p.avatarUrl })
     }
 
     return result

@@ -18,7 +18,7 @@ export function createPostRouter(
   // Static routes BEFORE /:id to avoid param-route swallowing
   router.post("/", identity, validate(createPostSchema), controller.create)
   router.get("/feed", identity, controller.getFeed)
-  router.get("/search", identity, controller.search)
+  router.get("/search", controller.search)
   router.get("/trending-tags", controller.trendingTags)
   router.get(
     "/users/:userId",

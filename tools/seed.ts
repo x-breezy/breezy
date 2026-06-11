@@ -313,10 +313,10 @@ async function main() {
     console.log("── Users & profiles ─────────────────────────────")
     for (const user of USERS) {
         const { token, userId } = await createOrSignIn(user)
-        await sleep(400)
+        await sleep(1200)
         await ensureProfile(token, userId, user)
         sessions.push({ token, userId, username: user.username })
-        await sleep(400)
+        await sleep(1200)
     }
 
     console.log("\n── Posts ────────────────────────────────────────")

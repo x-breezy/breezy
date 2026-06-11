@@ -19,7 +19,7 @@ function createUserRouter(
     validate(createUserSchema),
     userController.createUser
   )
-  router.get("/search", identity, userController.search)
+  router.get("/search", userController.search)
   router.get("/me", identity, requirePermission(PERMISSIONS.USER_ME), userController.getMe)
   router.get(
     "/:id",

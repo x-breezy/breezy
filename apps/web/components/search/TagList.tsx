@@ -22,7 +22,7 @@ export function TagList() {
   if (tags.length === 0) return null
 
   return (
-    <div className='m-auto flex max-w-4xl flex-col gap-4 px-4 py-4'>
+    <div className='m-auto mt-[30px] flex max-w-4xl flex-col gap-4 px-4 py-4'>
       <div className='flex items-center justify-between gap-2'>
         <p className='font-semibold'>Tendances en ce moment</p>
         <IconTrendingUp stroke={2} />
