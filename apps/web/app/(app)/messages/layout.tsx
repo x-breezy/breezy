@@ -34,7 +34,7 @@ export default function MessagesLayout({ children }: { children: React.ReactNode
   if (!currentUserId) return null;
 
   return (
-    <div className="flex h-screen bg-gray-50 dark:bg-black w-full font-sans overflow-hidden">
+    <div className="flex h-full bg-gray-50 dark:bg-black w-full font-sans overflow-hidden">
 
 
       <ConversationSidebar
@@ -53,7 +53,7 @@ export default function MessagesLayout({ children }: { children: React.ReactNode
           setConversations(prev => prev.filter(c => c._id !== id))
         }}
       />
-      <main className={`flex-1 relative ${!conversationId ? "hidden md:block" : "block"}`}>
+      <main className={`flex-1 relative h-full flex flex-col min-w-0 min-h-0 ${!conversationId ? "hidden md:block" : "flex"}`}>
         {children}
       </main>
     </div>
