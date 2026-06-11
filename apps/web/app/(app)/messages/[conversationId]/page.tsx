@@ -23,39 +23,22 @@ export default function ConversationPage({
   )
 
   const bottomRef = useRef<HTMLDivElement>(null)
-  
-  // 1. Try to compute otherUserId synchronously from messages if available
-  const otherUserIdFromMessages = messages.find((m) => m.senderId !== currentUserId)?.senderId
-  const [fetchedOtherUserId, setFetchedOtherUserId] = useState<string | undefined>(undefined)
-  const otherUserId = otherUserIdFromMessages || fetchedOtherUserId
-
-  // 2. Access our global cache
-  const cachedUser = useUserCache((state) => (otherUserId ? state.users[otherUserId] : undefined))
-  const setUser = useUserCache((state) => state.setUser)
-
   const [avatarUrl, setAvatarUrl] = useState<string | undefined>(undefined)
   const [username, setUsername] = useState<string | null>(null)
+  const cachedUsers = useUserCache((state) => state.users)
+  const setUser = useUserCache((state) => state.setUser)
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages])
 
-  // Sync cache -> local state instantly when cache updates
-  useEffect(() => {
-    if (cachedUser) {
-      setUsername(cachedUser.displayName)
-      if (cachedUser.avatarUrl) setAvatarUrl(cachedUser.avatarUrl)
-    }
-  }, [cachedUser])
-
-  // Fetch the other user's avatar and username if not cached
+  // Fetch the other user's avatar and username
   useEffect(() => {
     if (!currentUserId) return
-    if (cachedUser) return // We already have the data, skip fetching
 
     const fetchOtherUser = async () => {
-      let resolvedId = otherUserIdFromMessages
+      let resolvedId = messages.find((m) => m.senderId !== currentUserId)?.senderId
 
       if (!resolvedId) {
         try {
@@ -68,7 +51,6 @@ export default function ConversationPage({
             const conv = convData.data.find((c: any) => c._id === conversationId)
             if (conv) {
               resolvedId = conv.participantIds.find((id: string) => id !== currentUserId)
-              setFetchedOtherUserId(resolvedId)
             }
           }
         } catch (err) {
@@ -81,11 +63,10 @@ export default function ConversationPage({
         return
       }
 
-      // If we got here and the cache was updated in the meantime, abort
-      const currentCache = useUserCache.getState().users[resolvedId]
-      if (currentCache) {
-        setUsername(currentCache.displayName)
-        if (currentCache.avatarUrl) setAvatarUrl(currentCache.avatarUrl)
+      // Check cache first
+      if (cachedUsers[resolvedId]) {
+        setUsername(cachedUsers[resolvedId].displayName)
+        if (cachedUsers[resolvedId].avatarUrl) setAvatarUrl(cachedUsers[resolvedId].avatarUrl)
         return
       }
 
@@ -139,7 +120,7 @@ export default function ConversationPage({
     }
 
     fetchOtherUser()
-  }, [otherUserIdFromMessages, currentUserId, conversationId, cachedUser, setUser])
+  }, [messages, currentUserId, conversationId, cachedUsers, setUser])
 
   return (
     <div className='flex h-full flex-col bg-white dark:bg-gray-950'>
