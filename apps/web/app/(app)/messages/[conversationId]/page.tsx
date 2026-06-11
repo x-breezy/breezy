@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect, useRef, use } from "react"
+import React, { useEffect, useRef, use, useState } from "react"
 import { useConversation } from "@/hooks/use-conversation"
 import { MessageBubble } from "@/components/messages/message-bubble"
 import { ChatInput } from "@/components/messages/chat-input"
@@ -21,11 +21,33 @@ export default function ConversationPage({
   )
 
   const bottomRef = useRef<HTMLDivElement>(null)
+  const [avatarUrl, setAvatarUrl] = useState<string | undefined>(undefined)
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages])
+
+  // Fetch the other user's avatar
+  useEffect(() => {
+    if (!currentUserId || messages.length === 0) return
+    const otherUserId = messages.find((m) => m.senderId !== currentUserId)?.senderId
+    if (!otherUserId) return
+
+    const PROFILE_URL = process.env.NEXT_PUBLIC_PROFILE_API_URL || "http://localhost:4002"
+    fetch(`${PROFILE_URL}/profiles/${otherUserId}`, {
+      headers: { "x-user-id": currentUserId, "x-roles": "user" },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.data?.avatarId) {
+          // If avatarId is just an ID, you might need a media service URL, 
+          // but assuming it's a valid src or handled by Avatar component
+          setAvatarUrl(data.data.avatarId)
+        }
+      })
+      .catch(console.error)
+  }, [messages, currentUserId])
 
   return (
     <div className='flex h-full flex-col bg-white dark:bg-gray-950'>
@@ -57,14 +79,20 @@ export default function ConversationPage({
           </div>
         ) : (
           <div className='flex flex-col'>
-            {messages.map((msg) => (
+            {messages.map((msg, index) => {
+              const prevMsg = index > 0 ? messages[index - 1] : null
+              const isConsecutive = prevMsg !== null && prevMsg.senderId === msg.senderId
+              return (
               <MessageBubble
                 key={msg._id}
                 content={msg.content}
                 createdAt={msg.createdAt}
                 isOwn={msg.senderId === currentUserId}
+                  isConsecutive={isConsecutive}
+                  avatarUrl={avatarUrl}
               />
-            ))}
+              )
+            })}
             <div ref={bottomRef} />
           </div>
         )}
