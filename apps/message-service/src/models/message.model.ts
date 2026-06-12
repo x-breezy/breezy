@@ -13,6 +13,8 @@ export interface Message {
 export interface Conversation {
   id: string
   participantIds: string[]
+  isGroup: boolean
+  name: string | null
   lastMessage: string | null
   lastMessageAt: Date | null
   createdAt: Date
@@ -34,6 +36,8 @@ messageSchema.index({ conversationId: 1, createdAt: -1 })
 const conversationSchema = new Schema<Conversation>(
   {
     participantIds: { type: [String], required: true, index: true },
+    isGroup: { type: Boolean, default: false },
+    name: { type: String, default: null },
     lastMessage: { type: String, default: null },
     lastMessageAt: { type: Date, default: null },
   },

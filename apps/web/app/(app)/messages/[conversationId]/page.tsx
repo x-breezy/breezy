@@ -38,24 +38,38 @@ export default function ConversationPage({
     if (!currentUserId) return
 
     const fetchOtherUser = async () => {
-      let resolvedId = messages.find((m) => m.senderId !== currentUserId)?.senderId
+      let resolvedId = null;
+      let isGroup = false;
+      let groupName = null;
 
-      if (!resolvedId) {
-        try {
-          const MESSAGE_API_URL = process.env.NEXT_PUBLIC_MESSAGE_API_URL || "http://localhost:4030"
-          const convRes = await fetch(`${MESSAGE_API_URL}/conversations`, {
-            headers: { "x-user-id": currentUserId, "x-roles": "user" },
-          })
-          const convData = await convRes.json()
-          if (convData.success && convData.data) {
-            const conv = convData.data.find((c: any) => c._id === conversationId)
-            if (conv) {
+      try {
+        const MESSAGE_API_URL = process.env.NEXT_PUBLIC_MESSAGE_API_URL || "http://localhost:4030"
+        const convRes = await fetch(`${MESSAGE_API_URL}/conversations`, {
+          headers: { "x-user-id": currentUserId, "x-roles": "user" },
+        })
+        const convData = await convRes.json()
+        if (convData.success && convData.data) {
+          const conv = convData.data.find((c: any) => c._id === conversationId)
+          if (conv) {
+            if (conv.isGroup) {
+              isGroup = true;
+              groupName = conv.name || "Groupe";
+            } else {
               resolvedId = conv.participantIds.find((id: string) => id !== currentUserId)
             }
           }
-        } catch (err) {
-          console.error("Failed to fetch conversation list", err)
         }
+      } catch (err) {
+        console.error("Failed to fetch conversation list", err)
+      }
+
+      if (isGroup) {
+        setUsername(groupName)
+        return
+      }
+
+      if (!resolvedId) {
+        resolvedId = messages.find((m) => m.senderId !== currentUserId)?.senderId
       }
 
       if (!resolvedId || resolvedId === "Unknown") {

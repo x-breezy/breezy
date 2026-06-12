@@ -14,19 +14,39 @@ class ChatController {
     }
   }
 
-  // POST /conversations  { recipientId }
+  // POST /conversations  { recipientId, recipientIds, name }
   getOrCreateConversation = async (
     req: Request,
     res: Response,
     next: NextFunction
   ): Promise<void> => {
     try {
-      const { recipientId } = req.body
-      if (req.user!.id === recipientId) {
+      const { recipientId, recipientIds, name } = req.body
+      
+      let ids: string[] = []
+      if (recipientIds && Array.isArray(recipientIds)) {
+        ids = recipientIds
+      } else if (recipientId) {
+        ids = [recipientId]
+      }
+
+      if (ids.length === 0) {
+        res.status(400).json({ success: false, message: "Recipient(s) required" })
+        return
+      }
+
+      // Filter out current user if they accidentally included themselves
+      const filteredIds = ids.filter(id => id !== req.user!.id)
+      if (filteredIds.length === 0) {
         res.status(400).json({ success: false, message: "Cannot message yourself" })
         return
       }
-      const conversation = await this.chatService.getOrCreateConversation(req.user!.id, recipientId)
+
+      const allParticipants = [req.user!.id, ...filteredIds]
+      // deduplicate
+      const uniqueParticipants = Array.from(new Set(allParticipants))
+
+      const conversation = await this.chatService.getOrCreateConversation(uniqueParticipants, name)
       res.status(200).json({ success: true, data: conversation })
     } catch (err) {
       next(err)

@@ -47,7 +47,10 @@ export function useConversation(conversationId: string, userId: string | undefin
 
     const handleNewMessage = (message: Message) => {
       if (message.conversationId === conversationId) {
-        setMessages((prev) => [...prev, message])
+        setMessages((prev) => {
+          if (prev.some((m) => m._id === message._id)) return prev;
+          return [...prev, message];
+        })
       }
     }
 
@@ -79,7 +82,10 @@ export function useConversation(conversationId: string, userId: string | undefin
         if (data.success && data.data) {
           // Optimistically we could add it before API responds, 
           // but for now let's just append the real one returned.
-          setMessages((prev) => [...prev, data.data])
+          setMessages((prev) => {
+            if (prev.some(m => m._id === data.data._id)) return prev;
+            return [...prev, data.data]
+          })
         }
       } catch (err) {
         console.error("Failed to send message", err)

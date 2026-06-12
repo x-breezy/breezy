@@ -6,15 +6,19 @@ import { getIO } from "../config/websocket"
 export class ChatService {
   // ── Conversations ──────────────────────────────────────────
 
-  async getOrCreateConversation(userIdA: string, userIdB: string): Promise<Conversation> {
-    const participants = [userIdA, userIdB].sort() // ordre stable
+  async getOrCreateConversation(participantIds: string[], name?: string): Promise<Conversation> {
+    const participants = [...participantIds].sort() // ordre stable
     const existing = await ConversationModel.findOne({
-      participantIds: { $all: participants, $size: 2 },
+      participantIds: { $all: participants, $size: participants.length },
     }).exec()
     if (existing) return existing as unknown as Conversation
 
+    const isGroup = participants.length > 2 || !!name
+
     return ConversationModel.create({
       participantIds: participants,
+      isGroup,
+      name: name || null,
     }) as unknown as Promise<Conversation>
   }
 
@@ -59,9 +63,9 @@ export class ChatService {
       }).exec(),
     ])
 
-    // Emit real-time notification to the recipient
-    const recipientId = conversation?.participantIds.find((id) => id !== senderId)
-    if (recipientId) {
+    // Emit real-time notification to all participants
+    const recipientIds = conversation?.participantIds || []
+    for (const recipientId of recipientIds) {
       try {
         getIO().to(recipientId).emit("message:new", message)
       } catch (err) {

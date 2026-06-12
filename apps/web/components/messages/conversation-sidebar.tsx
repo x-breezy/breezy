@@ -21,6 +21,8 @@ import {
 export interface ConversationMeta {
   _id: string
   participantIds: string[]
+  isGroup?: boolean
+  name?: string
   lastMessage?: string
   lastMessageAt?: string
 }
@@ -52,6 +54,11 @@ function SidebarItem({
   const setUser = useUserCache((state) => state.setUser)
 
   React.useEffect(() => {
+    if (conv.isGroup) {
+      setUsername(conv.name || "Groupe")
+      return
+    }
+
     if (otherUserId === "Unknown" || !currentUserId) return
     
     // If we already have it in cache, just use it
@@ -105,7 +112,7 @@ function SidebarItem({
     }
 
     fetchDetails()
-  }, [otherUserId, currentUserId, cachedUser, setUser])
+  }, [otherUserId, currentUserId, cachedUser, setUser, conv.isGroup, conv.name])
 
   return (
     <div className="group relative">
@@ -188,21 +195,32 @@ export function ConversationSidebar({ conversations, currentUserId, activeId, on
     e.preventDefault()
     if (!username.trim() || !currentUserId) return
 
+    const usernamesToFetch = username.split(",").map(u => u.trim()).filter(Boolean)
+    if (usernamesToFetch.length === 0) return
+
     setLoading(true)
     try {
       const AUTH_URL = process.env.NEXT_PUBLIC_AUTH_API_URL || "http://localhost:4000"
-      const authRes = await fetch(`${AUTH_URL}/users/by-username/${username.trim()}`, {
-        headers: { "x-user-id": currentUserId, "x-roles": "user" }
-      })
-      const authData = await authRes.json()
+      
+      const recipientIds: string[] = []
+      for (const uname of usernamesToFetch) {
+        const authRes = await fetch(`${AUTH_URL}/users/by-username/${uname}`, {
+          headers: { "x-user-id": currentUserId, "x-roles": "user" }
+        })
+        const authData = await authRes.json()
 
-      if (!authData.success || !authData.data) {
-        alert("User not found")
-        setLoading(false)
-        return
+        if (!authData.success || !authData.data) {
+          alert(`User not found: ${uname}`)
+          setLoading(false)
+          return
+        }
+        recipientIds.push(authData.data.id)
       }
 
-      const recipientId = authData.data.id
+      const conversationData: any = { recipientIds }
+      if (usernamesToFetch.length > 1) {
+        conversationData.name = usernamesToFetch.join(", ")
+      }
 
       const API_URL = process.env.NEXT_PUBLIC_MESSAGE_API_URL || "http://localhost:4030"
       const res = await fetch(`${API_URL}/conversations`, {
@@ -212,7 +230,7 @@ export function ConversationSidebar({ conversations, currentUserId, activeId, on
           "x-user-id": currentUserId,
           "x-roles": "user",
         },
-        body: JSON.stringify({ recipientId }),
+        body: JSON.stringify(conversationData),
       })
       const data = await res.json()
       
@@ -250,12 +268,12 @@ export function ConversationSidebar({ conversations, currentUserId, activeId, on
             <DialogHeader>
               <DialogTitle>New Conversation</DialogTitle>
               <DialogDescription>
-                Enter the username of the person you want to chat with.
+                Enter one or multiple usernames separated by commas.
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4 pt-4">
               <Input
-                placeholder="Username..."
+                placeholder="user1, user2..."
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 autoFocus
