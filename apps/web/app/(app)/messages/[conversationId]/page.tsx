@@ -389,10 +389,15 @@ export default function ConversationPage({
                 senderName = parts[0] || parts[1] || senderName
               }
 
+              let displayContent = msg.content
+              if (msg.isSystem && msg.content.startsWith("added_users:")) {
+                displayContent = "a ajouté de nouveau(x) membre(s)"
+              }
+
               return (
               <MessageBubble
                 key={msg._id}
-                content={msg.content}
+                content={displayContent}
                 createdAt={msg.createdAt}
                 isOwn={msg.senderId === currentUserId}
                 isConsecutive={isConsecutive}
