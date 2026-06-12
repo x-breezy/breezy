@@ -11,6 +11,7 @@ import Link from "next/link"
 import { useUserCache } from "@/hooks/use-user-cache"
 import { useSocket } from "@/hooks/use-socket"
 import { Button } from "@/components/ui/button"
+import { TagInput } from "@/components/ui/tag-input"
 import { Input } from "@/components/ui/input"
 import {
   Dialog,
@@ -47,7 +48,7 @@ export default function ConversationPage({
   const router = useRouter()
 
   const [addMemberOpen, setAddMemberOpen] = useState(false)
-  const [newMemberUsername, setNewMemberUsername] = useState("")
+  const [newMemberUsernames, setNewMemberUsernames] = useState<string[]>([])
   const [addingMember, setAddingMember] = useState(false)
   const [participantIds, setParticipantIds] = useState<string[]>([])
 
@@ -214,9 +215,9 @@ export default function ConversationPage({
 
   const handleAddMemberSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!newMemberUsername.trim() || !currentUserId) return
+    if (newMemberUsernames.length === 0 || !currentUserId) return
 
-    const usernamesToFetch = newMemberUsername.split(",").map(u => u.trim()).filter(Boolean)
+    const usernamesToFetch = newMemberUsernames
     if (usernamesToFetch.length === 0) return
 
     setAddingMember(true)
@@ -254,7 +255,7 @@ export default function ConversationPage({
         const data = await res.json()
         if (data.success) {
           setAddMemberOpen(false)
-          setNewMemberUsername("")
+          setNewMemberUsernames([])
           router.refresh()
         } else {
           alert(data.message || "Failed to add member")
@@ -277,7 +278,7 @@ export default function ConversationPage({
         
         if (data.success && data.data) {
           setAddMemberOpen(false)
-          setNewMemberUsername("")
+          setNewMemberUsernames([])
           router.push(`/messages/${data.data._id}`)
           router.refresh()
         } else {
@@ -346,20 +347,20 @@ export default function ConversationPage({
               <DialogTitle>Add Member(s)</DialogTitle>
               <DialogDescription>
                 {isGroupConv 
-                  ? "Enter one or multiple usernames separated by commas to add to this group."
-                  : "Enter one or multiple usernames separated by commas to create a new group conversation."}
+                  ? "Tapez le nom d'utilisateur et appuyez sur Entrée pour l'ajouter au groupe."
+                  : "Tapez le nom d'utilisateur et appuyez sur Entrée pour créer un nouveau groupe."}
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleAddMemberSubmit} className="space-y-4 pt-4">
-              <Input
-                placeholder="username1, username2..."
-                value={newMemberUsername}
-                onChange={(e) => setNewMemberUsername(e.target.value)}
-                autoFocus
+              <TagInput
+                placeholder="Tapez un username et Entrée..."
+                tags={newMemberUsernames}
+                setTags={setNewMemberUsernames}
+                disabled={addingMember}
               />
               <DialogFooter>
                 <DialogClose render={<Button type="button" variant="outline">Cancel</Button>} />
-                <Button type="submit" disabled={!newMemberUsername.trim() || addingMember}>
+                <Button type="submit" disabled={newMemberUsernames.length === 0 || addingMember}>
                   {addingMember ? "Adding..." : "Add"}
                 </Button>
               </DialogFooter>
@@ -382,11 +383,12 @@ export default function ConversationPage({
           <div className='flex flex-col'>
             {messages.map((msg, index) => {
               const prevMsg = index > 0 ? messages[index - 1] : null
-              const isConsecutive = prevMsg !== null && prevMsg.senderId === msg.senderId
+              const isConsecutive = prevMsg && prevMsg.senderId === msg.senderId
               
               let senderName = msg.senderId === currentUserId ? "Vous" : "Quelqu'un"
-              if (msg.senderId !== currentUserId && cachedUsers[msg.senderId]) {
-                const parts = cachedUsers[msg.senderId].displayName.split(" @")
+              const senderCache = cachedUsers[msg.senderId]
+              if (msg.senderId !== currentUserId && senderCache) {
+                const parts = senderCache.displayName.split(" @")
                 senderName = parts[0] || parts[1] || senderName
               }
 

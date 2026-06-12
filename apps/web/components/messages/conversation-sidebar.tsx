@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation"
 import { IconPlus, IconTrash } from "@tabler/icons-react"
 import { useUserCache } from "@/hooks/use-user-cache"
 import { Button } from "@/components/ui/button"
+import { TagInput } from "@/components/ui/tag-input"
 import { Input } from "@/components/ui/input"
 import {
   Dialog,
@@ -163,7 +164,7 @@ function SidebarItem({
 export function ConversationSidebar({ conversations, currentUserId, activeId, onConversationCreated, onConversationDeleted, className = "" }: SidebarProps) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
-  const [username, setUsername] = useState("")
+  const [usernames, setUsernames] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
 
   const totalUnreadCount = conversations.reduce((acc, conv) => acc + (conv.unreadCount || 0), 0)
@@ -207,9 +208,9 @@ export function ConversationSidebar({ conversations, currentUserId, activeId, on
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!username.trim() || !currentUserId) return
+    if (usernames.length === 0 || !currentUserId) return
 
-    const usernamesToFetch = username.split(",").map(u => u.trim()).filter(Boolean)
+    const usernamesToFetch = usernames
     if (usernamesToFetch.length === 0) return
 
     setLoading(true)
@@ -250,7 +251,7 @@ export function ConversationSidebar({ conversations, currentUserId, activeId, on
       
       if (data.success && data.data) {
         setOpen(false)
-        setUsername("")
+        setUsernames([])
         if (onConversationCreated) {
           onConversationCreated(data.data)
         }
@@ -289,19 +290,19 @@ export function ConversationSidebar({ conversations, currentUserId, activeId, on
             <DialogHeader>
               <DialogTitle>New Conversation</DialogTitle>
               <DialogDescription>
-                Enter one or multiple usernames separated by commas.
+                Tapez le nom d'utilisateur et appuyez sur Entrée.
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4 pt-4">
-              <Input
-                placeholder="user1, user2..."
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                autoFocus
+              <TagInput
+                placeholder="Tapez un username et Entrée..."
+                tags={usernames}
+                setTags={setUsernames}
+                disabled={loading}
               />
               <DialogFooter>
                 <DialogClose render={<Button type="button" variant="outline">Cancel</Button>} />
-                <Button type="submit" disabled={!username.trim() || loading}>
+                <Button type="submit" disabled={usernames.length === 0 || loading}>
                   {loading ? "Starting..." : "Start Chat"}
                 </Button>
               </DialogFooter>
