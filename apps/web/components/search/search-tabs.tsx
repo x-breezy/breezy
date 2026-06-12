@@ -23,11 +23,7 @@ export function SearchTabs() {
   }
 
   return (
-    <Tabs
-      value={activeTab}
-      onValueChange={setTab}
-      className='fixed top-15 right-0 z-0 w-full bg-background lg:left-64 lg:max-w-[calc(100%-256px)]'
-    >
+    <Tabs value={activeTab} onValueChange={setTab} className='sticky top-15 z-10 bg-background'>
       <TabsList variant='line' className='w-full'>
         {TABS.map((t) => (
           <TabsTrigger key={t.key} value={t.key} className='flex-1'>

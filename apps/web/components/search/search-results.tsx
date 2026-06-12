@@ -36,7 +36,7 @@ export function SearchResults({ q }: SearchResultsProps) {
   } = useSearchResults(q, tab)
 
   return (
-    <div className='mt-[30px]'>
+    <div>
       <ul className='mx-auto w-full max-w-4xl py-2 [&>li:last-child_.person-card]:border-b-0 [&>li:last-child_article]:border-b-0'>
         {loading && (
           <li className='flex justify-center py-12'>

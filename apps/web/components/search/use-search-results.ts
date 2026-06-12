@@ -48,18 +48,20 @@ export function useSearchResults(q: string, tab: Tab): UseSearchResultsReturn {
     const [error, setError] = useState<string | null>(null)
 
     const fetchPosts = useCallback(
-        async (query: string) => {
+        async (query: string, signal: AbortSignal) => {
             if (postsCache && postsCache.fetchedQ === query) return
             setLoading(true)
             setError(null)
             try {
                 const postsRes: PaginatedResult<SearchPost> = await searchPosts(query)
+                if (signal.aborted) return
                 const authorIds = [...new Set(postsRes.data.map((p) => p.authorId))]
                 const postIds = postsRes.data.map((p) => p._id)
                 const [profiles, likedIds] = await Promise.all([
                     fetchProfilesByIds(authorIds),
                     getLikedPostIds(postIds).catch(() => [] as string[]),
                 ])
+                if (signal.aborted) return
                 setPostsCache({
                     posts: postsRes.data,
                     profiles,
@@ -68,38 +70,41 @@ export function useSearchResults(q: string, tab: Tab): UseSearchResultsReturn {
                     fetchedQ: query,
                 })
             } catch (err: unknown) {
+                if (signal.aborted) return
                 const msg = err instanceof Error ? err.message : "Erreur lors de la recherche"
                 setError(msg)
                 setPostsCache({ posts: [], profiles: [], likedIds: new Set(), total: 0, fetchedQ: query })
             } finally {
-                setLoading(false)
+                if (!signal.aborted) setLoading(false)
             }
         },
         [postsCache]
     )
 
     const fetchPeople = useCallback(
-        async (query: string) => {
+        async (query: string, signal: AbortSignal) => {
             if (peopleCache && peopleCache.fetchedQ === query) return
             setLoading(true)
             setError(null)
             try {
                 const profilesRes = await searchProfiles(query)
+                if (signal.aborted) return
                 const people = profilesToPeople(profilesRes.profiles)
                 setPeopleCache({ people, total: profilesRes.total, fetchedQ: query })
             } catch (err: unknown) {
+                if (signal.aborted) return
                 const msg = err instanceof Error ? err.message : "Erreur lors de la recherche"
                 setError(msg)
                 setPeopleCache({ people: [], total: 0, fetchedQ: query })
             } finally {
-                setLoading(false)
+                if (!signal.aborted) setLoading(false)
             }
         },
         [peopleCache]
     )
 
     const fetchMedia = useCallback(
-        async (query: string) => {
+        async (query: string, signal: AbortSignal) => {
             if (mediaCache && mediaCache.fetchedQ === query) return
             if (postsCache && postsCache.fetchedQ === query) {
                 const media = collectMedia(postsCache.posts)
@@ -110,14 +115,16 @@ export function useSearchResults(q: string, tab: Tab): UseSearchResultsReturn {
             setError(null)
             try {
                 const postsRes = await searchPosts(query)
+                if (signal.aborted) return
                 const media = collectMedia(postsRes.data)
                 setMediaCache({ media, total: media.length, fetchedQ: query })
             } catch (err: unknown) {
+                if (signal.aborted) return
                 const msg = err instanceof Error ? err.message : "Erreur lors de la recherche"
                 setError(msg)
                 setMediaCache({ media: [], total: 0, fetchedQ: query })
             } finally {
-                setLoading(false)
+                if (!signal.aborted) setLoading(false)
             }
         },
         [mediaCache, postsCache]
@@ -125,9 +132,11 @@ export function useSearchResults(q: string, tab: Tab): UseSearchResultsReturn {
 
     useEffect(() => {
         if (!q) return
-        if (tab === "posts") fetchPosts(q)
-        else if (tab === "people") fetchPeople(q)
-        else if (tab === "media") fetchMedia(q)
+        const controller = new AbortController()
+        if (tab === "posts") fetchPosts(q, controller.signal)
+        else if (tab === "people") fetchPeople(q, controller.signal)
+        else if (tab === "media") fetchMedia(q, controller.signal)
+        return () => controller.abort()
     }, [q, tab, fetchPosts, fetchPeople, fetchMedia])
 
     const profileMap = useMemo(() => {
