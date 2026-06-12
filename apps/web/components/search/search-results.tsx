@@ -9,6 +9,8 @@ import {
   searchPosts,
   searchProfiles,
   fetchProfilesByIds,
+  getLikedPostIds,
+  toggleLike,
   type SearchPost,
   type SearchProfile,
 } from "@/lib/api/search"
@@ -29,6 +31,7 @@ interface TabCache {
 interface PostsCache extends TabCache {
   posts: SearchPost[]
   profiles: SearchProfile[]
+  likedIds: Set<string>
   total: number
 }
 
@@ -60,12 +63,22 @@ export function SearchResults({ q }: SearchResultsProps) {
       try {
         const postsRes = await searchPosts(query)
         const authorIds = [...new Set(postsRes.data.map((p) => p.authorId))]
-        const profiles = await fetchProfilesByIds(authorIds)
-        setPostsCache({ posts: postsRes.data, profiles, total: postsRes.total, fetchedQ: query })
+        const postIds = postsRes.data.map((p) => p._id)
+        const [profiles, likedIds] = await Promise.all([
+          fetchProfilesByIds(authorIds),
+          getLikedPostIds(postIds).catch(() => [] as string[]),
+        ])
+        setPostsCache({
+          posts: postsRes.data,
+          profiles,
+          likedIds: new Set(likedIds),
+          total: postsRes.total,
+          fetchedQ: query,
+        })
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : "Erreur lors de la recherche"
         setError(msg)
-        setPostsCache({ posts: [], profiles: [], total: 0, fetchedQ: query })
+        setPostsCache({ posts: [], profiles: [], likedIds: new Set(), total: 0, fetchedQ: query })
       } finally {
         setLoading(false)
       }
@@ -131,9 +144,39 @@ export function SearchResults({ q }: SearchResultsProps) {
     return new Map(postsCache.profiles.map((p) => [p.profileId, p]))
   }, [postsCache])
 
+  const handleLike = useCallback(async (postId: string, liked: boolean): Promise<number | void> => {
+    try {
+      const { likesCount } = await toggleLike(postId, liked)
+      setPostsCache((prev) => {
+        if (!prev) return prev
+        const newLikedIds = new Set(prev.likedIds)
+        if (liked) newLikedIds.add(postId)
+        else newLikedIds.delete(postId)
+        return {
+          ...prev,
+          likedIds: newLikedIds,
+          posts: prev.posts.map((p) => (p._id === postId ? { ...p, likesCount } : p)),
+        }
+      })
+      return likesCount
+    } catch (err: unknown) {
+      const status = (err as { response?: { status?: number } })?.response?.status
+      if (status === 409 || status === 404) {
+        // Already liked / already unliked — sync UI back to current cache state
+        setPostsCache((prev) => {
+          if (!prev) return prev
+          const post = prev.posts.find((p) => p._id === postId)
+          return post ? { ...prev } : prev
+        })
+        return
+      }
+      throw err
+    }
+  }, [])
+
   return (
     <div className='mt-[30px]'>
-      <ul className='mx-auto w-fit py-2'>
+      <ul className='mx-auto w-full max-w-4xl py-2 [&>li:last-child_.person-card]:border-b-0 [&>li:last-child_article]:border-b-0'>
         {loading && (
           <li className='flex justify-center py-12'>
             <IconLoader2 size={24} className='animate-spin text-muted-foreground' />
@@ -144,7 +187,7 @@ export function SearchResults({ q }: SearchResultsProps) {
           <li className='px-4 py-8 text-center text-sm text-destructive'>{error}</li>
         )}
 
-        {!loading && !error && tab === "posts" && renderPosts(postsCache, profileMap)}
+        {!loading && !error && tab === "posts" && renderPosts(postsCache, profileMap, handleLike)}
         {!loading && !error && tab === "people" && renderPeople(peopleCache)}
         {!loading && !error && tab === "media" && renderMedia(mediaCache)}
       </ul>
@@ -152,7 +195,11 @@ export function SearchResults({ q }: SearchResultsProps) {
   )
 }
 
-function renderPosts(cache: PostsCache | null, profileMap: Map<string, SearchProfile>) {
+function renderPosts(
+  cache: PostsCache | null,
+  profileMap: Map<string, SearchProfile>,
+  onLike: (postId: string, liked: boolean) => Promise<number | void>
+) {
   if (!cache || cache.posts.length === 0) {
     return <EmptyState label='Aucun post trouvé' />
   }
@@ -162,17 +209,17 @@ function renderPosts(cache: PostsCache | null, profileMap: Map<string, SearchPro
     const name = displayName ?? profile?.username ?? "Utilisateur"
     return (
       <li key={post._id} className='w-full'>
-        <Link href={`/posts/${post._id}`} className='block'>
-          <HomePost
-            id={post._id}
-            name={name}
-            username={profile?.username ?? ""}
-            content={post.content}
-            createdAt={timeAgo(post.createdAt)}
-            initialLikes={post.likesCount}
-            initialComments={post.commentsCount}
-          />
-        </Link>
+        <HomePost
+          id={post._id}
+          name={name}
+          username={profile?.username ?? ""}
+          content={post.content}
+          createdAt={timeAgo(post.createdAt)}
+          initialLikes={post.likesCount}
+          initialComments={post.commentsCount}
+          initialLiked={cache.likedIds.has(post._id)}
+          onLike={onLike}
+        />
       </li>
     )
   })
@@ -183,13 +230,15 @@ function renderPeople(cache: PeopleCache | null) {
     return <EmptyState label='Aucun utilisateur trouvé' />
   }
   return cache.people.map((item) => (
-    <li key={item.id}>
-      <Link href={`/profile/${item.id}`} className='block'>
+    <li key={item.id} className='w-full'>
+      <Link href={`/profile/${item.id}`}>
         <PersonCard
           id={item.id}
           displayName={item.displayName}
           username={item.username}
           avatarUrl={item.avatarUrl}
+          bio={item.bio}
+          followersCount={item.followersCount}
           onClick={() => {}}
         />
       </Link>

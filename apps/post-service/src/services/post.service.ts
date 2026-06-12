@@ -68,7 +68,7 @@ export class PostService {
     return deleted !== null
   }
 
-  async search(q: string, page: number, limit: number): Promise<PaginatedResponse<Post>> {
+  async search(q: string, page: number, limit: number, authorIds?: string[]): Promise<PaginatedResponse<Post>> {
     const skip = (page - 1) * limit
     const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
     const tagRegex = new RegExp(`^${escaped}$`, "i")
@@ -93,10 +93,19 @@ export class PostService {
       .limit(limit)
       .exec()
 
+    // Posts from matching authors (people search cross-join)
+    const authorDocs =
+      authorIds && authorIds.length > 0
+        ? await PostModel.find({ authorId: { $in: authorIds } })
+          .sort({ createdAt: -1 })
+          .limit(limit)
+          .exec()
+        : []
+
     // Merge and deduplicate while preserving priority order
     const seen = new Set<string>()
     const merged: Post[] = []
-    for (const doc of [...tagDocs, ...textDocs, ...regexDocs]) {
+    for (const doc of [...tagDocs, ...textDocs, ...regexDocs, ...authorDocs]) {
       const id = doc._id.toString()
       if (seen.has(id)) continue
       seen.add(id)
@@ -104,14 +113,18 @@ export class PostService {
     }
 
     // Count distinct matching documents (avoid $text in $or which MongoDB rejects)
-    const [tagCount, textCount, regexCount] = await Promise.all([
+    const countPromises: Promise<number>[] = [
       PostModel.countDocuments({ tags: tagRegex }).exec(),
       PostModel.countDocuments({ $text: { $search: `"${q}"` } }).exec(),
       PostModel.countDocuments({ content: contentRegex }).exec(),
-    ])
+    ]
+    if (authorIds && authorIds.length > 0) {
+      countPromises.push(PostModel.countDocuments({ authorId: { $in: authorIds } }).exec())
+    }
+    const counts = await Promise.all(countPromises)
 
     // Approximate total (upper bound); exact dedup would need another fetch
-    const total = Math.max(tagCount, textCount, regexCount)
+    const total = Math.max(...counts)
     if (total === 0 && merged.length === 0) {
       return { data: [], total: 0, page, limit }
     }

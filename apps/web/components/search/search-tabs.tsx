@@ -26,7 +26,7 @@ export function SearchTabs() {
     <Tabs
       value={activeTab}
       onValueChange={setTab}
-      className='fixed top-15 z-10 w-full bg-background lg:w-[calc(100%-256px)]'
+      className='fixed top-15 right-0 z-0 w-full bg-background lg:left-64 lg:max-w-[calc(100%-256px)]'
     >
       <TabsList variant='line' className='w-full'>
         {TABS.map((t) => (

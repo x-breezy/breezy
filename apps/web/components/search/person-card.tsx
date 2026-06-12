@@ -1,28 +1,69 @@
+"use client"
+
+import { useState, useCallback } from "react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Button } from "@/components/ui/button"
+import { followProfile, unfollowProfile } from "@/lib/api/search"
 
 export interface PersonCardProps {
   id: string
   displayName: string | null
   username: string
   avatarUrl: string | null
+  bio?: string | null
+  followersCount?: number
   onClick: () => void
 }
 
-export function PersonCard({ displayName, username, avatarUrl, onClick }: PersonCardProps) {
+export function PersonCard({
+  id,
+  displayName,
+  username,
+  avatarUrl,
+  bio,
+  onClick,
+}: PersonCardProps) {
   const initials = (displayName ?? username ?? "?")[0]?.toUpperCase()
+  const [isFollowing, setIsFollowing] = useState(false)
+
+  const handleFollow = useCallback(
+    async (e: React.MouseEvent) => {
+      e.stopPropagation()
+      e.preventDefault()
+      const next = !isFollowing
+      setIsFollowing(next)
+      try {
+        if (next) await followProfile(id)
+        else await unfollowProfile(id)
+      } catch {
+        setIsFollowing((prev) => !prev)
+      }
+    },
+    [isFollowing]
+  )
+
   return (
-    <li
+    <div
       onClick={onClick}
-      className='flex cursor-pointer items-center gap-3 px-4 py-3 transition-colors hover:bg-muted/50'
+      className='person-card flex w-full items-center gap-2.5 border-b border-border bg-background p-3.5 text-left transition-colors select-none active:bg-accent/50'
     >
-      <Avatar>
+      <Avatar className='size-11 shrink-0'>
         <AvatarImage src={avatarUrl ?? undefined} />
         <AvatarFallback>{initials}</AvatarFallback>
       </Avatar>
-      <div className='flex flex-col'>
-        {displayName && <span className='text-sm font-medium'>{displayName}</span>}
-        {username && <span className='text-sm text-muted-foreground'>@{username}</span>}
+      <div className='min-w-0 flex-1'>
+        <p className='truncate text-sm font-semibold'>{displayName ?? username}</p>
+        {username && <p className='truncate text-xs text-muted-foreground'>@{username}</p>}
+        {bio && <p className='mt-0.5 truncate text-xs text-muted-foreground'>{bio}</p>}
       </div>
-    </li>
+      <Button
+        size='sm'
+        variant={isFollowing ? "outline" : "default"}
+        className='shrink-0'
+        onClick={handleFollow}
+      >
+        {isFollowing ? "Following" : "Follow"}
+      </Button>
+    </div>
   )
 }

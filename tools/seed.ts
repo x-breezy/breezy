@@ -86,8 +86,7 @@ const USERS = [
 const POSTS_BY_USER: Record<string, { content: string; tags: string[] }[]> = {
     alice_dev: [
         {
-            content:
-                "Just shipped a new feature using TypeScript generics — the type safety is incredible! 🚀",
+            content: "Just shipped a new feature using TypeScript generics — the type safety is incredible! 🚀",
             tags: ["TypeScript", "WebDev", "Frontend"],
         },
         {
@@ -95,21 +94,43 @@ const POSTS_BY_USER: Record<string, { content: string; tags: string[] }[]> = {
             tags: ["TailwindCSS", "React", "Frontend"],
         },
         {
-            content:
-                "NextJS 15 server actions are a game changer for form handling. No more boilerplate!",
+            content: "NextJS 15 server actions are a game changer for form handling. No more boilerplate!",
             tags: ["NextJS", "React", "WebDev"],
         },
+        {
+            content: "Migrating from Jest to Vitest was the best decision we made this quarter. Test suite runs 3x faster.",
+            tags: ["Testing", "Vitest", "JavaScript"],
+        },
+        {
+            content: "Understanding React Server Components (RSC) finally clicked for me today. The mental model shift is real.",
+            tags: ["React", "Performance", "Frontend"],
+        },
+        {
+            content: "GraphQL vs REST in 2024: REST with OpenAPI types is often more than enough for most projects.",
+            tags: ["API", "Backend", "Architecture"],
+        }
     ],
     bob_design: [
         {
-            content:
-                "Design tip: consistent spacing is more important than perfect colors. Start with an 8px grid.",
+            content: "Design tip: consistent spacing is more important than perfect colors. Start with an 8px grid.",
             tags: ["UXDesign", "Frontend", "Design"],
         },
         {
             content: "Figma variables just made design tokens so much easier to manage across themes.",
             tags: ["UXDesign", "Design", "Figma"],
         },
+        {
+            content: "Accessibility (a11y) is not an afterthought. Stop using <div> for buttons. Semantic HTML matters.",
+            tags: ["Accessibility", "Frontend", "Design"],
+        },
+        {
+            content: "Framer Motion makes complex animations trivial. Delightful micro-interactions improve retention.",
+            tags: ["Animation", "React", "UX"],
+        },
+        {
+            content: "Dark mode shouldn't just be pure black. Use deeply saturated grays to reduce eye strain.",
+            tags: ["UI", "Design", "DarkTheme"],
+        }
     ],
     carol_ops: [
         {
@@ -117,25 +138,47 @@ const POSTS_BY_USER: Record<string, { content: string; tags: string[] }[]> = {
             tags: ["DevOps", "Kubernetes", "OpenSource"],
         },
         {
-            content:
-                "Just automated our entire CI/CD pipeline with GitHub Actions. Deploy time went from 20min to 4min.",
-            tags: ["DevOps", "OpenSource", "BreezyUpdate"],
+            content: "Just automated our entire CI/CD pipeline with GitHub Actions. Deploy time went from 20min to 4min.",
+            tags: ["DevOps", "OpenSource", "CI/CD"],
         },
         {
             content: "Docker multi-stage builds cut our image size by 70%. Always worth the extra step.",
             tags: ["DevOps", "Docker", "WebDev"],
         },
+        {
+            content: "Terraform state management best practices: always use remote state with locking enabled.",
+            tags: ["Terraform", "Infrastructure", "Cloud"],
+        },
+        {
+            content: "Prometheus + Grafana = ❤️. Visibility into your cluster is not optional.",
+            tags: ["Monitoring", "SRE", "Kubernetes"],
+        },
+        {
+            content: "Stop putting hardcoded secrets in your Dockerfiles. Use external secret managers.",
+            tags: ["Security", "DevOps", "BestPractices"],
+        }
     ],
     dave_mobile: [
         {
-            content:
-                "React Native 0.74 — the new architecture is finally stable. Migration guide incoming!",
+            content: "React Native 0.74 — the new architecture is finally stable. Migration guide incoming!",
             tags: ["React", "Mobile", "Frontend"],
         },
         {
             content: "Flutter vs React Native in 2024: both are great, but the ecosystem wins for RN.",
             tags: ["Mobile", "React", "Frontend"],
         },
+        {
+            content: "Offline-first architecture is hard, but WatermelonDB makes local sync so much cleaner.",
+            tags: ["Mobile", "Architecture", "Database"],
+        },
+        {
+            content: "Optimizing iOS app size: removing unused assets and tweaking ProGuard/R8 saved us 15MB.",
+            tags: ["iOS", "Android", "Performance"],
+        },
+        {
+            content: "Handling deep links cross-platform is still a nightmare. Expo Router is getting us closer to a unified solution.",
+            tags: ["Expo", "Navigation", "React"],
+        }
     ],
     emma_data: [
         {
@@ -143,10 +186,25 @@ const POSTS_BY_USER: Record<string, { content: string; tags: string[] }[]> = {
             tags: ["DevOps", "OpenSource", "Python"],
         },
         {
-            content:
-                "Polars vs Pandas benchmark: Polars is 10x faster on large datasets. Time to migrate.",
-            tags: ["Python", "OpenSource", "WebDev"],
+            content: "Polars vs Pandas benchmark: Polars is 10x faster on large datasets. Time to migrate.",
+            tags: ["Python", "DataEngineering", "Performance"],
         },
+        {
+            content: "dbt has completely revolutionized our data warehouse workflow. Version control for analytics!",
+            tags: ["Analytics", "dbt", "SQL"],
+        },
+        {
+            content: "Airflow DAGs can get messy fast. Keep your tasks modular and decouple the logic from the orchestrator.",
+            tags: ["Airflow", "DataOps", "Architecture"],
+        },
+        {
+            content: "Vector databases are the new hotness for LLMs, but a standard Postgres with pgvector is often enough.",
+            tags: ["Database", "AI", "PostgreSQL"],
+        },
+        {
+            content: "Data quality should be checked at the ingestion layer, not downstream. Fail fast.",
+            tags: ["DataQuality", "ETL", "BestPractices"],
+        }
     ],
 }
 
@@ -255,11 +313,41 @@ async function seedLikesAndComments(
     postIdsByUser: Record<string, string[]>
 ): Promise<void> {
     const COMMENTS_BY_USER: Record<string, string[]> = {
-        alice_dev: ["Great post!", "Really insightful, thanks!"],
-        bob_design: ["Love this perspective 🔥", "Totally agree!"],
-        carol_ops: ["This saved my day.", "Bookmarked!"],
-        dave_mobile: ["Useful as always 👍", "Been waiting for this."],
-        emma_data: ["Nice write-up!", "Would love a follow-up post on this."],
+        alice_dev: [
+            "Great post!",
+            "Really insightful, thanks!",
+            "Have you tried doing this with Next.js?",
+            "I ran into a similar issue last week.",
+            "This code is super clean."
+        ],
+        bob_design: [
+            "Love this perspective 🔥",
+            "Totally agree!",
+            "The contrast ratio here is spot on.",
+            "Could use a bit more whitespace, but solid concept.",
+            "Saving this to my inspiration board."
+        ],
+        carol_ops: [
+            "This saved my day.",
+            "Bookmarked!",
+            "How does this scale in production?",
+            "Don't forget to configure the memory limits on this.",
+            "Solid pipeline."
+        ],
+        dave_mobile: [
+            "Useful as always 👍",
+            "Been waiting for this.",
+            "Does this work on Android as well?",
+            "Performance on older devices might be tricky with this approach.",
+            "Awesome update."
+        ],
+        emma_data: [
+            "Nice write-up!",
+            "Would love a follow-up post on this.",
+            "What's the query execution time looking like?",
+            "This approach makes ETL so much easier.",
+            "Spot on analysis."
+        ],
     }
 
     const allPosts: { postId: string; ownerUsername: string }[] = []

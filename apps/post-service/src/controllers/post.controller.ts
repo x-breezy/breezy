@@ -72,7 +72,9 @@ export class PostController {
       }
       const page = Math.max(1, parseInt(req.query.page as string) || 1)
       const limit = Math.min(50, Math.max(1, parseInt(req.query.limit as string) || 20))
-      const result = await this.service.search(q, page, limit)
+      const rawAuthorIds = typeof req.query.authorIds === "string" ? req.query.authorIds : ""
+      const authorIds = rawAuthorIds ? rawAuthorIds.split(",").filter(Boolean) : undefined
+      const result = await this.service.search(q, page, limit, authorIds)
       res.json({ success: true, data: result, message: "Search results retrieved successfully" })
     } catch (err) {
       next(err)

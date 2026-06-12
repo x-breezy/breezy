@@ -9,9 +9,12 @@ import { PERMISSIONS } from "../constants/permissions"
 import { PostModel } from "../models/post.model"
 import { createLikeRouter } from "./like.route"
 import { createCommentRouter } from "./comment.route"
+import { LikeController } from "../controllers/like.controller"
+import { LikeService } from "../services/like.service"
 
 export function createPostRouter(
-  controller: PostController = new PostController(new PostService())
+  controller: PostController = new PostController(new PostService()),
+  likeController: LikeController = new LikeController(new LikeService())
 ) {
   const router = Router()
 
@@ -20,6 +23,7 @@ export function createPostRouter(
   router.get("/feed", identity, controller.getFeed)
   router.get("/search", controller.search)
   router.get("/trending-tags", controller.trendingTags)
+  router.get("/liked-by-me", identity, likeController.getMyLikes)
   router.get(
     "/users/:userId",
     identity,

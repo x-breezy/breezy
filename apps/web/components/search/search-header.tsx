@@ -33,7 +33,7 @@ export function SearchHeader() {
   }
 
   return (
-    <PageHeader className='py-2'>
+    <PageHeader className='bg-background py-2'>
       <div className='flex items-center'>
         <InputGroup className='h-11 rounded-full px-2 text-base'>
           <InputGroupAddon align='inline-start'>
