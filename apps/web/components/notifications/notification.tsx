@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import type { Notification } from "@/types/notification"
 import type { ActorInfo, NotificationView } from "@/lib/notifications/group"
-import { followUserAction } from "@/app/(app)/profiles/actions"
+import { followUserAction } from "@/app/(app)/profile/follow-action"
 import { ProfileAvatar } from "../profile/profile-avatar"
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost"

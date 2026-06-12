@@ -9,7 +9,7 @@ interface SettingsHeaderProps {
 
 export function SettingsHeader({ onClose }: SettingsHeaderProps) {
   return (
-    <PageHeader className='bg-background'>
+    <PageHeader className='w-full bg-background'>
       <PageHeaderContent
         left={
           <button

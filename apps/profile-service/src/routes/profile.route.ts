@@ -10,6 +10,7 @@ import {
   updateProfileSchema,
   followSchema,
   profileIdParamSchema,
+  usernameParamSchema,
 } from "../schema/profile.schema"
 
 function createProfileRouter() {
@@ -20,11 +21,25 @@ function createProfileRouter() {
 
   // Protected
   router.get(
+    "/by-username/:username",
+    identity,
+    requirePermission(PERMISSIONS.PROFILE_READ),
+    validate(usernameParamSchema, "params"),
+    profileController.getProfileByUsername
+  )
+  router.get(
     "/:profileId",
     identity,
     requirePermission(PERMISSIONS.PROFILE_READ),
     validate(profileIdParamSchema, "params"),
     profileController.getProfile
+  )
+  router.get(
+    "/:profileId/is-following",
+    identity,
+    requirePermission(PERMISSIONS.PROFILE_READ),
+    validate(profileIdParamSchema, "params"),
+    profileController.isFollowing
   )
   router.get(
     "/:profileId/followers",

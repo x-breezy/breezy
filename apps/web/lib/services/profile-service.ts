@@ -16,6 +16,23 @@ export function updateProfile(
   return serverClient.patch(`/api/profiles/`, payloadWithId, { headers: authHeader })
 }
 
+export function getProfileByUsername(username: string, authHeader: Record<string, string>) {
+  return serverClient.get<{ success: boolean; data: Profile }>(`/api/profiles/by-username/${username}`, {
+    headers: authHeader,
+  })
+}
+
+export function getIsFollowing(profileId: string, authHeader: Record<string, string>) {
+  return serverClient.get<{ success: boolean; data: { isFollowing: boolean } }>(
+    `/api/profiles/${profileId}/is-following`,
+    { headers: authHeader }
+  )
+}
+
 export function followUser(targetId: string, authHeader: Record<string, string>) {
-  return serverClient.post(`/api/profiles/follow`, { targetId }, { headers: authHeader })
+  return serverClient.post(`/api/profiles/follow`, { followingId: targetId }, { headers: authHeader })
+}
+
+export function unfollowUser(targetId: string, authHeader: Record<string, string>) {
+  return serverClient.post(`/api/profiles/unfollow`, { followingId: targetId }, { headers: authHeader })
 }
