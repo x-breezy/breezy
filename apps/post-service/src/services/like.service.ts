@@ -23,7 +23,9 @@ export class LikeService {
   }
 
   async getLikedPostIds(userId: string, postIds: string[]): Promise<string[]> {
-    const docs = await LikeModel.find({ userId, postId: { $in: postIds } }).select("postId").exec()
+    const docs = await LikeModel.find({ userId, postId: { $in: postIds } })
+      .select("postId")
+      .exec()
     return docs.map((d) => d.postId)
   }
 

@@ -9,8 +9,7 @@ interface ProfileStoreState {
 
 export const useProfileStore = create<ProfileStoreState>((set) => ({
   profiles: {},
-  set: (username, profile) =>
-    set((s) => ({ profiles: { ...s.profiles, [username]: profile } })),
+  set: (username, profile) => set((s) => ({ profiles: { ...s.profiles, [username]: profile } })),
   update: (username, patch) =>
     set((s) => {
       const existing = s.profiles[username]

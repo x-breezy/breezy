@@ -1,3 +1,4 @@
+import React from "react"
 import { render } from "@react-email/render"
 import { VerificationEmail } from "./templates/verification-email"
 import { OTPEmail } from "./templates/otp-email"

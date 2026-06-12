@@ -139,7 +139,7 @@ export function NotificationCard({ view, highlight, className }: CardProps) {
       onClick={handleCardClick}
       onKeyDown={(e) => e.key === "Enter" && handleCardClick()}
       className={cn(
-        "flex cursor-pointer gap-3 rounded-lg py-2 hover:bg-muted",
+        "flex cursor-pointer gap-3 rounded-lg px-0 py-2 hover:bg-muted md:px-2",
         highlight && "bg-muted/30",
         className
       )}

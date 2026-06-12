@@ -7,7 +7,11 @@ interface UserState {
   profile: Profile | null
   initialized: boolean
   following: Record<string, boolean>
-  initialize: (profile: Profile | null, user: User | null) => void
+  initialize: (
+    profile: Profile | null,
+    user: User | null,
+    following?: Record<string, boolean>
+  ) => void
   setProfile: (profile: Profile) => void
   setUser: (user: User) => void
   setRelation: (profileId: string, isFollowing: boolean) => void
@@ -19,7 +23,8 @@ export const useUserStore = create<UserState>((set) => ({
   profile: null,
   initialized: false,
   following: {},
-  initialize: (profile, user) => set({ profile, user, initialized: true }),
+  initialize: (profile, user, following) =>
+    set({ profile, user, initialized: true, following: following ?? {} }),
   setProfile: (profile) => set({ profile }),
   setUser: (user) => set({ user }),
   setRelation: (profileId, isFollowing) =>

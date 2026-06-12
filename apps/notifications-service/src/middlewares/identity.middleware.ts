@@ -17,9 +17,9 @@ function parseCookies(header: string | undefined): Record<string, string> {
 
 export function identity(req: Request, res: Response, next: NextFunction): void {
   const authHeader = req.headers["authorization"]
-  const token =
-    authHeader?.startsWith("Bearer ") ? authHeader.slice(7)
-    : parseCookies(req.headers["cookie"])[COOKIE_NAME] ?? null
+  const token = authHeader?.startsWith("Bearer ")
+    ? authHeader.slice(7)
+    : (parseCookies(req.headers["cookie"])[COOKIE_NAME] ?? null)
 
   if (!token) {
     res.status(401).json({ success: false, error: "Unauthorized" })

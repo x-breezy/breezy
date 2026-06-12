@@ -194,9 +194,7 @@ describe("GET /images/:id/meta", () => {
       exec: jest.fn().mockResolvedValue(MOCK_DOC),
     })
 
-    const res = await request(app)
-      .get("/images/abc/meta")
-      .set("Authorization", "Bearer fake-token")
+    const res = await request(app).get("/images/abc/meta").set("Authorization", "Bearer fake-token")
 
     expect(res.status).toBe(200)
     expect(res.body).toMatchObject({
@@ -236,9 +234,7 @@ describe("DELETE /images/:id", () => {
       exec: jest.fn().mockResolvedValue({ id: "abc" }),
     })
 
-    const res = await request(app)
-      .delete("/images/abc")
-      .set("Authorization", "Bearer fake-token")
+    const res = await request(app).delete("/images/abc").set("Authorization", "Bearer fake-token")
 
     expect(res.status).toBe(200)
     expect(res.body).toEqual({ success: true, message: "Image deleted successfully" })
@@ -250,9 +246,7 @@ describe("DELETE /images/:id", () => {
     })
 
     mockVerifyJwt.mockReturnValueOnce({ sub: "user-2", role: "user" })
-    const res = await request(app)
-      .delete("/images/abc")
-      .set("Authorization", "Bearer fake-token")
+    const res = await request(app).delete("/images/abc").set("Authorization", "Bearer fake-token")
 
     expect(res.status).toBe(403)
     expect(res.body.success).toBe(false)
@@ -267,9 +261,7 @@ describe("DELETE /images/:id", () => {
     })
 
     mockVerifyJwt.mockReturnValueOnce({ sub: "user-2", role: "moderator" })
-    const res = await request(app)
-      .delete("/images/abc")
-      .set("Authorization", "Bearer fake-token")
+    const res = await request(app).delete("/images/abc").set("Authorization", "Bearer fake-token")
 
     expect(res.status).toBe(200)
     expect(res.body.success).toBe(true)
@@ -284,9 +276,7 @@ describe("DELETE /images/:id", () => {
     })
 
     mockVerifyJwt.mockReturnValueOnce({ sub: "user-2", role: "admin" })
-    const res = await request(app)
-      .delete("/images/abc")
-      .set("Authorization", "Bearer fake-token")
+    const res = await request(app).delete("/images/abc").set("Authorization", "Bearer fake-token")
 
     expect(res.status).toBe(200)
     expect(res.body.success).toBe(true)
@@ -313,9 +303,7 @@ describe("DELETE /images/:id", () => {
       exec: jest.fn().mockResolvedValue(null), // service returns false
     })
 
-    const res = await request(app)
-      .delete("/images/abc")
-      .set("Authorization", "Bearer fake-token")
+    const res = await request(app).delete("/images/abc").set("Authorization", "Bearer fake-token")
 
     expect(res.status).toBe(404)
     expect(res.body.success).toBe(false)
@@ -352,9 +340,7 @@ describe("image controller error handling", () => {
       exec: jest.fn().mockRejectedValue(new Error("db error")),
     })
 
-    const res = await request(app)
-      .get("/images/abc")
-      .set("Authorization", "Bearer fake-token")
+    const res = await request(app).get("/images/abc").set("Authorization", "Bearer fake-token")
 
     expect(res.status).toBe(500)
   })
@@ -364,9 +350,7 @@ describe("image controller error handling", () => {
       exec: jest.fn().mockRejectedValue(new Error("db error")),
     })
 
-    const res = await request(app)
-      .get("/images/abc/meta")
-      .set("Authorization", "Bearer fake-token")
+    const res = await request(app).get("/images/abc/meta").set("Authorization", "Bearer fake-token")
 
     expect(res.status).toBe(500)
   })
@@ -379,9 +363,7 @@ describe("image controller error handling", () => {
       exec: jest.fn().mockRejectedValue(new Error("db error")),
     })
 
-    const res = await request(app)
-      .delete("/images/abc")
-      .set("Authorization", "Bearer fake-token")
+    const res = await request(app).delete("/images/abc").set("Authorization", "Bearer fake-token")
 
     expect(res.status).toBe(500)
   })

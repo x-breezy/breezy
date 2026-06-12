@@ -15,6 +15,9 @@ import {
   type PeopleCache,
   type MediaCache,
 } from "./use-search-results"
+import { startTransition } from "react"
+import { followUserAction } from "@/app/(app)/profile/follow-action"
+import { useUserStore } from "@/stores/user-store"
 
 interface SearchResultsProps {
   q: string
@@ -23,6 +26,8 @@ interface SearchResultsProps {
 export function SearchResults({ q }: SearchResultsProps) {
   const searchParams = useSearchParams()
   const tab = parseTab(searchParams.get("tab"))
+
+  const following = useUserStore((s) => s.following)
 
   const {
     postsCache,
@@ -37,7 +42,7 @@ export function SearchResults({ q }: SearchResultsProps) {
 
   return (
     <div>
-      <ul className='mx-auto w-full max-w-4xl py-2 [&>li:last-child_.person-card]:border-b-0 [&>li:last-child_article]:border-b-0'>
+      <ul className='container-center w-full py-2 [&>li:last-child_.person-card]:border-b-0 [&>li:last-child_article]:border-b-0'>
         {loading && (
           <li className='flex justify-center py-12'>
             <IconLoader2 size={24} className='animate-spin text-muted-foreground' />
@@ -49,7 +54,10 @@ export function SearchResults({ q }: SearchResultsProps) {
         )}
 
         {!loading && !error && tab === "posts" && renderPosts(postsCache, profileMap, handleLike)}
-        {!loading && !error && tab === "people" && renderPeople(peopleCache, handleFollow)}
+        {!loading &&
+          !error &&
+          tab === "people" &&
+          renderPeople(peopleCache, handleFollow, following)}
         {!loading && !error && tab === "media" && renderMedia(mediaCache)}
       </ul>
     </div>
@@ -88,14 +96,15 @@ function renderPosts(
 
 function renderPeople(
   cache: PeopleCache | null,
-  onFollow: (id: string, follow: boolean) => Promise<void>
+  onFollow: (id: string, follow: boolean) => Promise<void>,
+  following: Record<string, boolean>
 ) {
   if (!cache || cache.people.length === 0) {
     return <EmptyState label='Aucun utilisateur trouvé' />
   }
   return cache.people.map((item) => (
     <li key={item.id} className='w-full'>
-      <Link href={`/profile/${item.id}`}>
+      <Link href={`/profile/${item.username}`}>
         <PersonCard
           id={item.id}
           displayName={item.displayName}
@@ -103,7 +112,7 @@ function renderPeople(
           avatarUrl={item.avatarUrl}
           bio={item.bio}
           followersCount={item.followersCount}
-          onClick={() => {}}
+          initialFollowing={following[item.id] ?? false}
           onFollow={onFollow}
         />
       </Link>

@@ -17,9 +17,19 @@ export function updateProfile(
 }
 
 export function getProfileByUsername(username: string, authHeader: Record<string, string>) {
-  return serverClient.get<{ success: boolean; data: Profile }>(`/api/profiles/by-username/${username}`, {
-    headers: authHeader,
-  })
+  return serverClient.get<{ success: boolean; data: Profile }>(
+    `/api/profiles/by-username/${username}`,
+    {
+      headers: authHeader,
+    }
+  )
+}
+
+export function getFollowing(profileId: string, authHeader: Record<string, string>) {
+  return serverClient.get<{ success: boolean; data: { following: string[]; count: number } }>(
+    `/api/profiles/${profileId}/following?limit=100`,
+    { headers: authHeader }
+  )
 }
 
 export function getIsFollowing(profileId: string, authHeader: Record<string, string>) {
@@ -30,9 +40,17 @@ export function getIsFollowing(profileId: string, authHeader: Record<string, str
 }
 
 export function followUser(targetId: string, authHeader: Record<string, string>) {
-  return serverClient.post(`/api/profiles/follow`, { followingId: targetId }, { headers: authHeader })
+  return serverClient.post(
+    `/api/profiles/follow`,
+    { followingId: targetId },
+    { headers: authHeader }
+  )
 }
 
 export function unfollowUser(targetId: string, authHeader: Record<string, string>) {
-  return serverClient.post(`/api/profiles/unfollow`, { followingId: targetId }, { headers: authHeader })
+  return serverClient.post(
+    `/api/profiles/unfollow`,
+    { followingId: targetId },
+    { headers: authHeader }
+  )
 }

@@ -16,10 +16,7 @@ async function proxyRequest(req: NextRequest): Promise<NextResponse> {
     headers.set("Authorization", `Bearer ${token}`)
   }
 
-  const body =
-    req.method !== "GET" && req.method !== "HEAD"
-      ? await req.arrayBuffer()
-      : undefined
+  const body = req.method !== "GET" && req.method !== "HEAD" ? await req.arrayBuffer() : undefined
 
   try {
     const upstream = await fetch(target, {
@@ -37,10 +34,7 @@ async function proxyRequest(req: NextRequest): Promise<NextResponse> {
       headers: responseHeaders,
     })
   } catch {
-    return NextResponse.json(
-      { success: false, error: "Service unavailable" },
-      { status: 503 }
-    )
+    return NextResponse.json({ success: false, error: "Service unavailable" }, { status: 503 })
   }
 }
 

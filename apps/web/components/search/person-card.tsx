@@ -11,7 +11,7 @@ export interface PersonCardProps {
   avatarUrl: string | null
   bio?: string | null
   followersCount?: number
-  onClick: () => void
+  initialFollowing?: boolean
   onFollow?: (id: string, follow: boolean) => Promise<void>
 }
 
@@ -21,11 +21,11 @@ export function PersonCard({
   username,
   avatarUrl,
   bio,
-  onClick,
+  initialFollowing,
   onFollow,
 }: PersonCardProps) {
   const initials = (displayName ?? username ?? "?")[0]?.toUpperCase()
-  const [isFollowing, setIsFollowing] = useState(false)
+  const [isFollowing, setIsFollowing] = useState(initialFollowing ?? false)
 
   const handleFollow = useCallback(
     async (e: React.MouseEvent) => {
@@ -44,10 +44,7 @@ export function PersonCard({
   )
 
   return (
-    <div
-      onClick={onClick}
-      className='person-card flex w-full items-center gap-2.5 border-b border-border bg-background p-3.5 text-left transition-colors select-none active:bg-accent/50'
-    >
+    <div className='person-card flex w-full items-center gap-2.5 border-b border-border bg-background p-3.5 text-left transition-colors select-none active:bg-accent/50'>
       <Avatar className='size-11 shrink-0'>
         <AvatarImage src={avatarUrl ?? undefined} />
         <AvatarFallback>{initials}</AvatarFallback>

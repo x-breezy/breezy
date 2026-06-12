@@ -26,7 +26,7 @@ export function ProfileSection({ className, profile, role, isOwn }: ProfileSecti
           role={role || UserRole.User}
         />
         <ProfileStats followers={profile.followersCount} following={profile.followingCount} />
-        <ProfileActions profile={profile} isOwn={isOwn} />
+        <ProfileActions profile={profile} isOwn={isOwn} className='justify-center' />
         <ProfileBio className='mt-2 w-full'>{profile.bio}</ProfileBio>
       </div>
 

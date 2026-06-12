@@ -2,7 +2,7 @@
 
 import { cn } from "@/lib/utils"
 import { ProfileEditDialog } from "./edit/profile-edit-dialog"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { Button } from "../ui/button"
 import {
   IconMessageCircle,
@@ -12,7 +12,6 @@ import {
 } from "@tabler/icons-react"
 import type { Profile } from "@/types/profile"
 import { followUserAction, unfollowUserAction } from "@/app/(app)/profile/follow-action"
-import { getIsFollowingAction } from "@/app/(app)/profile/[username]/actions"
 import { useProfileStore } from "@/stores/profile-store"
 import { useUserStore } from "@/stores/user-store"
 
@@ -29,13 +28,7 @@ export function ProfileActions({ className, profile, isOwn }: ProfileActionsProp
   const following = useUserStore((s) => s.following)
   const setRelation = useUserStore((s) => s.setRelation)
 
-  const relationKnown = profile ? profile.profileId in following : false
   const followed = profile ? (following[profile.profileId] ?? false) : false
-
-  useEffect(() => {
-    if (isOwn || !profile || relationKnown) return
-    getIsFollowingAction(profile.profileId).then((val) => setRelation(profile.profileId, val))
-  }, [profile?.profileId, isOwn, relationKnown])
 
   const handleFollow = async () => {
     if (!profile || pending) return
@@ -60,7 +53,7 @@ export function ProfileActions({ className, profile, isOwn }: ProfileActionsProp
   const handleMessage = () => {}
 
   return (
-    <div className={cn(className, "flex gap-3")}>
+    <div className={cn(className, "inline-flex w-full gap-3")}>
       {profile && (
         <ProfileEditDialog open={open} onClose={() => setOpen(false)} profile={profile} />
       )}

@@ -18,10 +18,7 @@ const packageDefinition = protoLoader.loadSync(PROTO_PATH, {
 const protoDescriptor = grpc.loadPackageDefinition(packageDefinition) as any
 const ProfileData = protoDescriptor.profile.data.ProfileData
 
-const client = new ProfileData(
-  "host.docker.internal:50051",
-  grpc.credentials.createInsecure()
-)
+const client = new ProfileData("host.docker.internal:50051", grpc.credentials.createInsecure())
 
 export interface ActorProfile {
   username: string
