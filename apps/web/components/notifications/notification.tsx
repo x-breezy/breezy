@@ -1,42 +1,25 @@
 "use client"
 
-import { IconDots } from "@tabler/icons-react"
+import { useState, useTransition } from "react"
+import { useRouter } from "next/navigation"
+import { IconHeartFilled, IconUserPlus, IconAt, IconLoader2 } from "@tabler/icons-react"
 import { Button } from "@/components/ui/button"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { cn } from "@/lib/utils"
 import type { Notification } from "@/types/notification"
-import { useNotificationStore } from "@/stores/notification-store"
+import type { ActorInfo, NotificationView } from "@/lib/notifications/group"
+import { followUserAction } from "@/app/(app)/profiles/actions"
+import { ProfileAvatar } from "../profile/profile-avatar"
 
-function getActorId(notification: Notification): string {
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost"
+
+export function getActorId(notification: Notification): string {
   return notification.payload.actorId ?? notification.payload.followerId ?? ""
 }
 
-function getNotificationMessage(notification: Notification): string {
-  switch (notification.type) {
-    case "follow":
-      return "started following you"
-    case "like":
-      return "liked your post"
-    case "mention":
-      return "mentioned you in a post"
-  }
-}
-
-function getTypeColor(notification: Notification): string {
-  switch (notification.type) {
-    case "follow":
-      return "bg-sky-600"
-    case "like":
-      return "bg-violet-600"
-    case "mention":
-      return "bg-rose-500"
-  }
-}
-
-function formatRelativeTime(dateStr: string): string {
+export function formatRelativeTime(dateStr: string): string {
   const now = Date.now()
   const date = new Date(dateStr).getTime()
   const diffSec = Math.floor((now - date) / 1000)
-
   if (diffSec < 60) return "now"
   const diffMin = Math.floor(diffSec / 60)
   if (diffMin < 60) return `${diffMin}m`
@@ -47,46 +30,152 @@ function formatRelativeTime(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString()
 }
 
-interface Props {
-  notification: Notification
-  wasNew: boolean
+export const notificationTypeMeta = {
+  like: { Icon: IconHeartFilled, badge: "bg-rose-500", stroke: 0 },
+  follow: { Icon: IconUserPlus, badge: "bg-sky-500", stroke: 2.4 },
+  mention: { Icon: IconAt, badge: "bg-violet-500", stroke: 2.3 },
+} as const
+
+function actorAvatarUrl(actor: ActorInfo): string {
+  return actor.avatarId
+    ? `${API_URL}/api/media/images/${actor.avatarId}`
+    : `https://api.dicebear.com/10.x/glyphs/svg?seed=${actor.id}`
 }
 
-export function NotificationItem({ notification, wasNew }: Props) {
-  const remove = useNotificationStore((s) => s.remove)
-  const actorId = getActorId(notification)
-  const message = getNotificationMessage(notification)
-  const time = formatRelativeTime(notification.createdAt)
-  const color = getTypeColor(notification)
-  const avatarUrl = `https://api.dicebear.com/10.x/glyphs/svg?seed=${actorId}`
+function NotificationText({ view }: { view: NotificationView }) {
+  const uname = (actor: ActorInfo) => <span className='font-semibold'>{actor.username}</span>
+
+  if (view.kind === "follow") {
+    return (
+      <>
+        {uname(view.actor)}
+        <span className='text-foreground'> started following you.</span>
+      </>
+    )
+  }
+
+  if (view.kind === "mention") {
+    return (
+      <>
+        {uname(view.actor)}
+        <span className='text-foreground'> mentioned you in a post.</span>
+      </>
+    )
+  }
+
+  const { actors } = view
+  const rest = actors.length - 2
+
+  if (actors.length === 1) {
+    return (
+      <>
+        {uname(actors[0]!)}
+        <span className='text-foreground'> liked your post.</span>
+      </>
+    )
+  }
+  if (actors.length === 2) {
+    return (
+      <>
+        {uname(actors[0]!)}
+        <span className='text-foreground'> and </span>
+        {uname(actors[1]!)}
+        <span className='text-foreground'> liked your post.</span>
+      </>
+    )
+  }
+  return (
+    <>
+      {uname(actors[0]!)}
+      <span className='text-foreground'>, </span>
+      {uname(actors[1]!)}
+      <span className='text-foreground'> and {rest} more liked your post.</span>
+    </>
+  )
+}
+
+interface CardProps {
+  view: NotificationView
+  onDismiss: () => void
+  highlight?: boolean
+  className?: string
+}
+
+export function NotificationCard({ view, highlight, className }: CardProps) {
+  const router = useRouter()
+  const [followed, setFollowed] = useState(false)
+  const [isPending, startTransition] = useTransition()
+
+  const primaryActor =
+    view.kind === "like" ? (view.actors[0] ?? { id: "", username: "", avatarId: null }) : view.actor
+  const { Icon, badge, stroke } = notificationTypeMeta[view.kind]
+
+  function handleCardClick() {
+    if (view.kind === "follow") {
+      router.push(`/${view.actor.username}`)
+    } else {
+      router.push(`/posts/${view.postId}`)
+    }
+  }
+
+  function handleFollowBack(e: React.MouseEvent) {
+    e.stopPropagation()
+    startTransition(async () => {
+      try {
+        await followUserAction(view.kind === "follow" ? view.actor.id : "")
+        setFollowed(true)
+      } catch {
+        // no-op
+      }
+    })
+  }
+
+  const time = formatRelativeTime(view.createdAt)
 
   return (
-    <li className={`container-center flex gap-3 border-b px-4 py-4 ${wasNew ? "bg-muted/30" : ""}`}>
-      <Avatar>
-        <AvatarImage src={avatarUrl} alt={actorId} />
-        <AvatarFallback className={color}>{actorId.charAt(0).toUpperCase()}</AvatarFallback>
-      </Avatar>
-      <div className='w-full flex-1'>
-        <div className='flex items-center justify-between gap-2'>
-          <p className='text-sm'>
-            {wasNew && (
-              <span className='mr-1.5 inline-block size-2 rounded-full bg-primary align-middle' />
-            )}
-            <span className='font-semibold'>@{actorId}</span>
-            <span className='text-muted-foreground'> &middot; {time}</span>
-          </p>
-          <Button
-            variant='ghost'
-            size='icon-sm'
-            aria-label='Delete notification'
-            className='shrink-0 text-muted-foreground'
-            onClick={() => remove(notification._id)}
-          >
-            <IconDots size={16} />
-          </Button>
-        </div>
-        <p className='mt-0.5 text-sm text-muted-foreground'>{message}</p>
+    <div
+      role='button'
+      tabIndex={0}
+      onClick={handleCardClick}
+      onKeyDown={(e) => e.key === "Enter" && handleCardClick()}
+      className={cn(
+        "flex cursor-pointer gap-3 rounded-lg py-2 hover:bg-muted",
+        highlight && "bg-muted/30",
+        className
+      )}
+    >
+      <div className='relative shrink-0'>
+        <ProfileAvatar src={actorAvatarUrl(primaryActor)} alt={primaryActor.username} size='2xs' />
+        <span
+          className={cn(
+            "absolute -right-0.5 -bottom-0.5 flex size-5 items-center justify-center rounded-full text-white ring-2 ring-background",
+            badge
+          )}
+        >
+          <Icon size={13} stroke={stroke} />
+        </span>
       </div>
-    </li>
+
+      <div className='flex w-full flex-1 items-center justify-between gap-2'>
+        <p className='text-sm leading-snug'>
+          {highlight && (
+            <span className='mr-1.5 inline-block size-2 rounded-full bg-primary align-middle' />
+          )}
+          <NotificationText view={view} />
+          <span className='ml-1 text-xs text-muted-foreground'> {time}</span>
+        </p>
+        {view.kind === "follow" && (
+          <Button
+            className='min-w-24 px-4'
+            disabled={followed || isPending}
+            variant={followed ? "secondary" : "default"}
+            onClick={handleFollowBack}
+          >
+            {isPending && <IconLoader2 className='animate-spin' stroke={2.3} />}
+            {!isPending && (followed ? "Following" : "Follow")}
+          </Button>
+        )}
+      </div>
+    </div>
   )
 }

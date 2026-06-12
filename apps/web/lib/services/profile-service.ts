@@ -2,7 +2,9 @@ import serverClient from "@/lib/api/server-client"
 import { Profile } from "@/types/profile"
 
 export function getProfile(profileId: string, authHeader: Record<string, string>) {
-  return serverClient.get(`/api/profiles/${profileId}`, { headers: authHeader })
+  return serverClient.get<{ success: boolean; data: Profile }>(`/api/profiles/${profileId}`, {
+    headers: authHeader,
+  })
 }
 
 export function updateProfile(
@@ -12,4 +14,8 @@ export function updateProfile(
 ) {
   const payloadWithId = { ...payload, profileId }
   return serverClient.patch(`/api/profiles/`, payloadWithId, { headers: authHeader })
+}
+
+export function followUser(targetId: string, authHeader: Record<string, string>) {
+  return serverClient.post(`/api/profiles/follow`, { targetId }, { headers: authHeader })
 }

@@ -18,6 +18,8 @@
   "dependencies": {
     "@breezy/emails": "*",
     "@breezy/logger": "*",
+    "@grpc/grpc-js": "^1.14.4",
+    "@grpc/proto-loader": "^0.8.1",
     "amqplib": "^0.10.4",
     "express": "^4.21.2",
     "jsonwebtoken": "^9.0.3",

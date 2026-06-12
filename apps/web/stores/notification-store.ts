@@ -9,6 +9,7 @@ interface NotificationState {
   limit: number
   unreadCount: number
   loading: boolean
+  lastNew: Notification | null
   error: string | null
 
   list: (options?: { page?: number; limit?: number; unreadOnly?: boolean }) => Promise<void>
@@ -26,6 +27,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
   limit: 20,
   unreadCount: 0,
   loading: false,
+  lastNew: null,
   error: null,
 
   list: async (options) => {
@@ -52,9 +54,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
     try {
       await actions.markNotificationRead(id)
       set((state) => ({
-        notifications: state.notifications.map((n) =>
-          n._id === id ? { ...n, read: true } : n
-        ),
+        notifications: state.notifications.map((n) => (n._id === id ? { ...n, read: true } : n)),
         unreadCount: Math.max(0, state.unreadCount - 1),
       }))
     } catch {
@@ -82,8 +82,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
         return {
           notifications: state.notifications.filter((n) => n._id !== id),
           total: state.total - 1,
-          unreadCount:
-            state.unreadCount - (removed?.read ? 0 : 1),
+          unreadCount: state.unreadCount - (removed?.read ? 0 : 1),
         }
       })
     } catch {
@@ -96,6 +95,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
       notifications: [notification, ...state.notifications],
       total: state.total + 1,
       unreadCount: state.unreadCount + (notification.read ? 0 : 1),
+      lastNew: notification,
     }))
   },
 
