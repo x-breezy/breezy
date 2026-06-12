@@ -275,8 +275,7 @@ describe("PATCH /users/:id/password", () => {
 
       const res = await request(app)
         .get("/users/search?q=alice")
-        .set("x-user-id", USER_ID)
-        .set("x-roles", "user")
+        .set("Authorization", "Bearer fake-token")
 
       expect(res.status).toBe(200)
       expect(res.body).toMatchObject({
@@ -289,8 +288,7 @@ describe("PATCH /users/:id/password", () => {
     it("returns 400 when q is missing", async () => {
       const res = await request(app)
         .get("/users/search")
-        .set("x-user-id", USER_ID)
-        .set("x-roles", "user")
+        .set("Authorization", "Bearer fake-token")
 
       expect(res.status).toBe(400)
       expect(res.body.success).toBe(false)
@@ -300,8 +298,7 @@ describe("PATCH /users/:id/password", () => {
     it("returns 400 when q is empty string", async () => {
       const res = await request(app)
         .get("/users/search?q=")
-        .set("x-user-id", USER_ID)
-        .set("x-roles", "user")
+        .set("Authorization", "Bearer fake-token")
 
       expect(res.status).toBe(400)
       expect(res.body.success).toBe(false)
@@ -317,8 +314,7 @@ describe("PATCH /users/:id/password", () => {
 
       const res = await request(app)
         .get("/users/search?q=test")
-        .set("x-user-id", USER_ID)
-        .set("x-roles", "user")
+        .set("Authorization", "Bearer fake-token")
 
       expect(res.status).toBe(200)
       expect(res.body.data).toHaveProperty("total")

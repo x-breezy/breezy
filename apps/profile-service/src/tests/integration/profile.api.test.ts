@@ -317,8 +317,7 @@ describe("POST /profiles/unfollow", () => {
 
       const res = await request(app)
         .get("/profiles/search?q=john")
-        .set("x-user-id", PROFILE_UUID)
-        .set("x-roles", "user")
+        .set("Authorization", "Bearer fake-token")
 
       expect(res.status).toBe(200)
       expect(res.body).toMatchObject({
@@ -330,8 +329,7 @@ describe("POST /profiles/unfollow", () => {
     it("returns 400 when q is missing", async () => {
       const res = await request(app)
         .get("/profiles/search")
-        .set("x-user-id", PROFILE_UUID)
-        .set("x-roles", "user")
+        .set("Authorization", "Bearer fake-token")
 
       expect(res.status).toBe(400)
       expect(res.body.success).toBe(false)
@@ -340,8 +338,7 @@ describe("POST /profiles/unfollow", () => {
     it("returns 400 when q is empty string", async () => {
       const res = await request(app)
         .get("/profiles/search?q=")
-        .set("x-user-id", PROFILE_UUID)
-        .set("x-roles", "user")
+        .set("Authorization", "Bearer fake-token")
 
       expect(res.status).toBe(400)
       expect(res.body.success).toBe(false)
@@ -357,8 +354,7 @@ describe("POST /profiles/unfollow", () => {
 
       const res = await request(app)
         .get("/profiles/search?q=test")
-        .set("x-user-id", PROFILE_UUID)
-        .set("x-roles", "user")
+        .set("Authorization", "Bearer fake-token")
 
       expect(res.status).toBe(200)
       expect(res.body.data).toHaveProperty("total")
