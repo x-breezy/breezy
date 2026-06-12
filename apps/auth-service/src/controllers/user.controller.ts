@@ -55,6 +55,19 @@ class UserController {
     }
   }
 
+  getMe = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const user = await this.userService.getUser(req.user!.id)
+      if (!user) {
+        res.status(404).json({ success: false, message: "User not found" })
+        return
+      }
+      res.status(200).json({ success: true, data: user })
+    } catch (error) {
+      next(error)
+    }
+  }
+
   getUserByUsername = async (
     req: Request<{ username: string }>,
     res: Response,
@@ -143,7 +156,8 @@ class UserController {
       }
       const page = Math.max(1, parseInt(req.query.page as string) || 1)
       const limit = Math.min(50, Math.max(1, parseInt(req.query.limit as string) || 20))
-      const result = await this.userService.searchByUsername(q, page, limit)
+      const excludeUserId = req.user?.id
+      const result = await this.userService.searchByUsername(q, page, limit, excludeUserId)
       res.status(200).json({
         success: true,
         data: { users: result.users, total: result.count, page, limit },

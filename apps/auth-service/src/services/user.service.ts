@@ -72,15 +72,23 @@ class UserService {
   async searchByUsername(
     q: string,
     page: number = 1,
-    limit: number = 20
+    limit: number = 20,
+    excludeUserId?: string
   ): Promise<{ count: number; users: Pick<SafeUser, "id" | "username">[] }> {
     const offset = (page - 1) * limit
+    
+    const whereClause: any = {
+      username: { [Op.iLike]: `%${q}%` },
+      isBanned: false,
+      isSuspended: false,
+    }
+    
+    if (excludeUserId) {
+      whereClause.id = { [Op.ne]: excludeUserId }
+    }
+
     const { count, rows } = await User.findAndCountAll({
-      where: {
-        username: { [Op.iLike]: `%${q}%` },
-        isBanned: false,
-        isSuspended: false,
-      },
+      where: whereClause,
       attributes: ["id", "username"],
       limit,
       offset,
