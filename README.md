@@ -20,12 +20,12 @@ and then: `npm run dev`
 ## API Gateway
 
 The API Gateway is the single entry point for all client requests. It handles authentication,
-routing, and response aggregation. It also enforces permissions based on user roles.
+routing, and response aggregation. It also enforces permissions based on user role.
 
 It add to the request:
 
 - `userId`: the ID of the authenticated user, if any.
-- `roles`: the roles assigned to the authenticated user, if any.
+- `role`: the role assigned to the authenticated user, if any.
 
 ## Permissions
 
@@ -157,3 +157,5 @@ docker exec breezy-filebeat rm -rf /usr/share/filebeat/data/registry docker rest
 # Compter les logs indexés
 
 curl http://localhost:9200/breezy-logs-\*/\_count
+
+pensé a mettre une erreur si on créer un user avec un username de 2 caractères, min 3

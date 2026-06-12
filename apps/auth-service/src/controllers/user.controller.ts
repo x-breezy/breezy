@@ -30,7 +30,7 @@ class UserController {
       const user = await this.userService.addUser(req.body)
 
       // Create profile via gRPC
-      await this.profileClient.createProfile(user.id, user.username)
+      await this.profileClient.createProfile(user.id, user.username, user.role)
 
       res.status(201).json({ success: true, message: "User created successfully", data: user })
     } catch (error) {
@@ -134,6 +134,26 @@ class UserController {
       next(error)
     }
   }
+  search = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const q = (req.query.q as string | undefined)?.trim() ?? ""
+      if (!q) {
+        res.status(400).json({ success: false, message: "Query parameter 'q' is required" })
+        return
+      }
+      const page = Math.max(1, parseInt(req.query.page as string) || 1)
+      const limit = Math.min(50, Math.max(1, parseInt(req.query.limit as string) || 20))
+      const result = await this.userService.searchByUsername(q, page, limit)
+      res.status(200).json({
+        success: true,
+        data: { users: result.users, total: result.count, page, limit },
+        message: "Search results retrieved successfully",
+      })
+    } catch (error) {
+      next(error)
+    }
+  }
+
 }
 
 export default UserController

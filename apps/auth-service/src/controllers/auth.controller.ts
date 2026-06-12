@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express"
 import UserService from "../services/user.service"
 import AuthService from "../services/auth.service"
-import { signPendingToken, verifyPendingToken, verifyToken } from "../utils/jwt.util"
+import { signPendingToken, verifyPendingToken, verifyToken, getJwks } from "../utils/jwt.util"
 import { publish } from "../clients/rabbitmq"
 import { GrpcProfileClient } from "../clients/profile.client"
 import type {
@@ -62,7 +62,7 @@ class AuthController {
 
       const { accessToken, refreshToken } = await this.authService.issueTokenPair({
         sub: user.id,
-        roles: user.roles,
+        role: user.role,
       })
       res.status(200).json({ success: true, data: { token: accessToken, refreshToken, user } })
     } catch (error) {
@@ -91,7 +91,7 @@ class AuthController {
 
       const user = await this.userService.addUser(req.body)
 
-      await this.profileClient.createProfile(user.id, user.username)
+      await this.profileClient.createProfile(user.id, user.username, user.role)
 
       const { token, verifyUrl } = await this.authService.createEmailVerificationToken(user.id)
       void publish("auth.email_verification", {
@@ -104,7 +104,7 @@ class AuthController {
 
       const { accessToken, refreshToken } = await this.authService.issueTokenPair({
         sub: user.id,
-        roles: user.roles,
+        role: user.role,
       })
       res.status(201).json({ success: true, data: { token: accessToken, refreshToken, user } })
     } catch (error) {
@@ -112,7 +112,7 @@ class AuthController {
     }
   }
 
-  validate = (req: Request, res: Response): void => {
+  validate = async (req: Request, res: Response): Promise<void> => {
     const authHeader = req.headers["authorization"]
     const token = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null
 
@@ -123,8 +123,21 @@ class AuthController {
 
     try {
       const payload = verifyToken(token)
+      const user = await this.userService.getUser(payload.sub)
+
+      if (user?.isBanned) {
+        res.status(403).json({ success: false, message: "User is banned", code: "USER_BANNED" })
+        return
+      }
+      if (user?.isSuspended) {
+        res
+          .status(403)
+          .json({ success: false, message: "User is suspended", code: "USER_SUSPENDED" })
+        return
+      }
+
       res.set("X-User-Id", payload.sub)
-      res.set("X-Roles", payload.roles.join(","))
+      res.set("X-Role", payload.role)
       res.status(200).json({ success: true })
     } catch {
       res.status(401).json({ success: false, message: "Invalid or expired token" })
@@ -271,7 +284,7 @@ class AuthController {
 
       const { accessToken, refreshToken } = await this.authService.issueTokenPair({
         sub: user.id,
-        roles: user.roles,
+        role: user.role,
       })
       res.status(200).json({ success: true, data: { token: accessToken, refreshToken, user } })
     } catch (error) {
@@ -369,6 +382,10 @@ class AuthController {
     } catch (error) {
       next(error)
     }
+  }
+
+  jwks = (_req: Request, res: Response): void => {
+    res.json(getJwks())
   }
 }
 

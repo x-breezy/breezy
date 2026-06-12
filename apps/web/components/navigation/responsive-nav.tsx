@@ -26,7 +26,7 @@ export function ResponsiveNav() {
   const pathname = usePathname()
   const profile = useUserStore((s) => s.profile)
   const ProfileNavIcon = makeProfileIcon(profile?.avatarId ?? null)
-  const isProfileActive = pathname === "/profile"
+  const isProfileActive = pathname === "/my-profile"
 
   const isConversationPage = pathname.startsWith("/messages/")
 
@@ -46,7 +46,7 @@ export function ResponsiveNav() {
           />
         ))}
         <NavItem
-          href='/profile'
+          href='/my-profile'
           icon={ProfileNavIcon}
           label='Profile'
           isActive={isProfileActive}
@@ -73,7 +73,7 @@ export function ResponsiveNav() {
             />
           ))}
           <NavItem
-            href='/profile'
+            href='/my-profile'
             icon={ProfileNavIcon}
             label='Profile'
             isActive={isProfileActive}

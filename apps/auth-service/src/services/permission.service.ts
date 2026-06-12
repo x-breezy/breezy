@@ -3,22 +3,21 @@ import type { Permission } from "../constants/permissions"
 import { ROLE_PERMISSIONS, VISITOR_PERMISSIONS } from "../constants/rbac"
 
 /**
- * Resolve the effective permission set for a set of roles.
+ * Resolve the effective permission set for a set of role.
  *
  * - Deduplicated union of every role's permissions.
- * - Empty roles (or only unknown roles) -> visitor permission set.
+ * - Empty role (or only unknown role) -> visitor permission set.
  *
  * Pure function, no DB. The resulting list is what gets embedded in the JWT later,
- * alongside the roles, under a token shaped like: { sub: userId, roles, permissions }.
+ * alongside the role, under a token shaped like: { sub: userId, role, permissions }.
  */
-export function getPermissions(roles: Role[]): Permission[] {
+export function getPermissions(role?: Role): Permission[] {
   const granted = new Set<Permission>()
+  if (!role) return [...VISITOR_PERMISSIONS]
 
-  for (const role of roles) {
-    const perms = ROLE_PERMISSIONS[role]
-    if (perms) {
-      for (const p of perms) granted.add(p)
-    }
+  const perms = ROLE_PERMISSIONS[role]
+  if (perms) {
+    for (const p of perms) granted.add(p)
   }
 
   if (granted.size === 0) {
@@ -28,7 +27,7 @@ export function getPermissions(roles: Role[]): Permission[] {
   return [...granted]
 }
 
-export function hasPermission(roles: Role[], permission: Permission): boolean {
-  const perms = getPermissions(roles)
+export function hasPermission(role: Role, permission: Permission): boolean {
+  const perms = getPermissions(role)
   return perms.includes(permission)
 }

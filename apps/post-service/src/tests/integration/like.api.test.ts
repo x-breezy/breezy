@@ -1,4 +1,5 @@
 import request from "supertest"
+import { verifyJwt } from "../../utils/jwt"
 import { createApp } from "../../app"
 import { PostModel } from "../../models/post.model"
 import { LikeModel } from "../../models/like.model"
@@ -21,6 +22,9 @@ jest.mock("../../models/like.model", () => ({
   },
 }))
 
+jest.mock("../../utils/jwt")
+const mockVerifyJwt = verifyJwt as jest.MockedFunction<typeof verifyJwt>
+
 const mockedPost = PostModel as jest.Mocked<typeof PostModel>
 const mockedLike = LikeModel as jest.Mocked<typeof LikeModel>
 const app = createApp()
@@ -33,6 +37,7 @@ beforeEach(() => {
   ;(mockedPost.findByIdAndUpdate as jest.Mock).mockReturnValue({
     exec: jest.fn().mockResolvedValue({ likesCount: 0 }),
   })
+  mockVerifyJwt.mockReturnValue({ sub: USER1_UUID, role: "user" })
 })
 
 // ─── POST /posts/:id/likes ───────────────────────────────────────────────────
@@ -49,8 +54,7 @@ describe("POST /posts/:id/likes", () => {
 
     const res = await request(app)
       .post(`/posts/${POST_ID}/likes`)
-      .set("x-user-id", USER1_UUID)
-      .set("x-roles", "user")
+      .set("Authorization", "Bearer fake-token")
 
     expect(res.status).toBe(201)
     expect(res.body).toEqual({
@@ -75,8 +79,7 @@ describe("POST /posts/:id/likes", () => {
 
     const res = await request(app)
       .post(`/posts/${POST_ID}/likes`)
-      .set("x-user-id", USER1_UUID)
-      .set("x-roles", "user")
+      .set("Authorization", "Bearer fake-token")
 
     expect(res.status).toBe(409)
     expect(res.body.success).toBe(false)
@@ -89,8 +92,7 @@ describe("POST /posts/:id/likes", () => {
 
     const res = await request(app)
       .post(`/posts/${POST_ID}/likes`)
-      .set("x-user-id", USER1_UUID)
-      .set("x-roles", "user")
+      .set("Authorization", "Bearer fake-token")
 
     expect(res.status).toBe(404)
     expect(res.body.success).toBe(false)
@@ -119,8 +121,7 @@ describe("DELETE /posts/:id/likes", () => {
 
     const res = await request(app)
       .delete(`/posts/${POST_ID}/likes`)
-      .set("x-user-id", USER1_UUID)
-      .set("x-roles", "user")
+      .set("Authorization", "Bearer fake-token")
 
     expect(res.status).toBe(200)
     expect(res.body).toEqual({
@@ -142,8 +143,7 @@ describe("DELETE /posts/:id/likes", () => {
 
     const res = await request(app)
       .delete(`/posts/${POST_ID}/likes`)
-      .set("x-user-id", USER1_UUID)
-      .set("x-roles", "user")
+      .set("Authorization", "Bearer fake-token")
 
     expect(res.status).toBe(404)
     expect(res.body.success).toBe(false)
@@ -170,8 +170,7 @@ describe("like controller error handling", () => {
 
     const res = await request(app)
       .post(`/posts/${POST_ID}/likes`)
-      .set("x-user-id", USER1_UUID)
-      .set("x-roles", "user")
+      .set("Authorization", "Bearer fake-token")
 
     expect(res.status).toBe(500)
     expect(res.body).toEqual({ success: false, error: "Internal server error" })
@@ -184,8 +183,7 @@ describe("like controller error handling", () => {
 
     const res = await request(app)
       .delete(`/posts/${POST_ID}/likes`)
-      .set("x-user-id", USER1_UUID)
-      .set("x-roles", "user")
+      .set("Authorization", "Bearer fake-token")
 
     expect(res.status).toBe(500)
   })

@@ -1,4 +1,5 @@
 import request from "supertest"
+import { verifyJwt } from "../../utils/jwt"
 import { Readable } from "node:stream"
 import { createApp } from "../../app"
 import { VideoModel } from "../../models/video.model"
@@ -14,6 +15,9 @@ jest.mock("../../models/video.model", () => ({
 }))
 
 jest.mock("../../services/storage.service")
+
+jest.mock("../../utils/jwt")
+const mockVerifyJwt = verifyJwt as jest.MockedFunction<typeof verifyJwt>
 
 const mockedModel = VideoModel as jest.Mocked<typeof VideoModel>
 const MockedStorage = StorageService as jest.MockedClass<typeof StorageService>
@@ -50,6 +54,7 @@ beforeEach(() => {
   storageInstance.findById = jest.fn().mockResolvedValue(MOCK_GRIDFS_FILE)
   storageInstance.openDownload = jest.fn().mockReturnValue(Readable.from(VIDEO_BYTES))
   storageInstance.delete = jest.fn().mockResolvedValue(true)
+  mockVerifyJwt.mockReturnValue({ sub: "user-1", role: "user" })
 })
 
 // ─── POST /videos ───────────────────────────────────────────────────────────
@@ -62,8 +67,7 @@ describe("POST /videos", () => {
       .post("/videos")
       .set("content-type", "video/mp4")
       .set("x-filename", "clip.mp4")
-      .set("x-user-id", "user-1")
-      .set("x-roles", "user")
+      .set("Authorization", "Bearer fake-token")
       .send(VIDEO_BYTES)
 
     expect(res.status).toBe(201)
@@ -77,8 +81,7 @@ describe("POST /videos", () => {
     const res = await request(app)
       .post("/videos")
       .set("content-type", "")
-      .set("x-user-id", "user-1")
-      .set("x-roles", "user")
+      .set("Authorization", "Bearer fake-token")
       .send(VIDEO_BYTES)
 
     expect(res.status).toBe(400)
@@ -105,8 +108,7 @@ describe("GET /videos/:id (stream)", () => {
 
     const res = await request(app)
       .get(`/videos/${META_ID}`)
-      .set("x-user-id", "user-1")
-      .set("x-roles", "user")
+      .set("Authorization", "Bearer fake-token")
       .responseType("blob")
 
     expect(res.status).toBe(200)
@@ -128,8 +130,7 @@ describe("GET /videos/:id (stream)", () => {
     const res = await request(app)
       .get(`/videos/${META_ID}`)
       .set("Range", "bytes=0-3")
-      .set("x-user-id", "user-1")
-      .set("x-roles", "user")
+      .set("Authorization", "Bearer fake-token")
       .responseType("blob")
 
     expect(res.status).toBe(206)
@@ -144,8 +145,7 @@ describe("GET /videos/:id (stream)", () => {
     const res = await request(app)
       .get(`/videos/${META_ID}`)
       .set("Range", `bytes=${VIDEO_BYTES.length + 100}-`)
-      .set("x-user-id", "user-1")
-      .set("x-roles", "user")
+      .set("Authorization", "Bearer fake-token")
 
     expect(res.status).toBe(416)
     expect(res.headers["content-range"]).toMatch(/\*\//)
@@ -158,8 +158,7 @@ describe("GET /videos/:id (stream)", () => {
 
     const res = await request(app)
       .get(`/videos/${META_ID}`)
-      .set("x-user-id", "user-1")
-      .set("x-roles", "user")
+      .set("Authorization", "Bearer fake-token")
 
     expect(res.status).toBe(404)
     expect(res.body.success).toBe(false)
@@ -173,8 +172,7 @@ describe("GET /videos/:id (stream)", () => {
 
     const res = await request(app)
       .get(`/videos/${META_ID}`)
-      .set("x-user-id", "user-1")
-      .set("x-roles", "user")
+      .set("Authorization", "Bearer fake-token")
 
     expect(res.status).toBe(404)
     expect(res.body.success).toBe(false)
@@ -196,8 +194,7 @@ describe("GET /videos/:id/meta", () => {
 
     const res = await request(app)
       .get(`/videos/${META_ID}/meta`)
-      .set("x-user-id", "user-1")
-      .set("x-roles", "user")
+      .set("Authorization", "Bearer fake-token")
 
     expect(res.status).toBe(200)
     expect(res.body).toMatchObject({
@@ -213,8 +210,7 @@ describe("GET /videos/:id/meta", () => {
 
     const res = await request(app)
       .get(`/videos/${META_ID}/meta`)
-      .set("x-user-id", "user-1")
-      .set("x-roles", "user")
+      .set("Authorization", "Bearer fake-token")
 
     expect(res.status).toBe(404)
     expect(res.body.success).toBe(false)
@@ -239,8 +235,7 @@ describe("DELETE /videos/:id", () => {
 
     const res = await request(app)
       .delete(`/videos/${META_ID}`)
-      .set("x-user-id", "user-1")
-      .set("x-roles", "user")
+      .set("Authorization", "Bearer fake-token")
 
     expect(res.status).toBe(200)
     expect(res.body).toEqual({ success: true, message: "Video deleted successfully" })
@@ -252,10 +247,10 @@ describe("DELETE /videos/:id", () => {
       exec: jest.fn().mockResolvedValue(MOCK_META), // ownerId: "user-1"
     })
 
+    mockVerifyJwt.mockReturnValueOnce({ sub: "user-2", role: "user" })
     const res = await request(app)
       .delete(`/videos/${META_ID}`)
-      .set("x-user-id", "user-2")
-      .set("x-roles", "user")
+      .set("Authorization", "Bearer fake-token")
 
     expect(res.status).toBe(403)
     expect(res.body.success).toBe(false)
@@ -269,10 +264,10 @@ describe("DELETE /videos/:id", () => {
       exec: jest.fn().mockResolvedValue(MOCK_META),
     })
 
+    mockVerifyJwt.mockReturnValueOnce({ sub: "user-2", role: "moderator" })
     const res = await request(app)
       .delete(`/videos/${META_ID}`)
-      .set("x-user-id", "user-2")
-      .set("x-roles", "moderator")
+      .set("Authorization", "Bearer fake-token")
 
     expect(res.status).toBe(200)
     expect(res.body.success).toBe(true)
@@ -286,10 +281,10 @@ describe("DELETE /videos/:id", () => {
       exec: jest.fn().mockResolvedValue(MOCK_META),
     })
 
+    mockVerifyJwt.mockReturnValueOnce({ sub: "user-2", role: "admin" })
     const res = await request(app)
       .delete(`/videos/${META_ID}`)
-      .set("x-user-id", "user-2")
-      .set("x-roles", "admin")
+      .set("Authorization", "Bearer fake-token")
 
     expect(res.status).toBe(200)
     expect(res.body.success).toBe(true)
@@ -302,8 +297,7 @@ describe("DELETE /videos/:id", () => {
 
     const res = await request(app)
       .delete(`/videos/${META_ID}`)
-      .set("x-user-id", "user-1")
-      .set("x-roles", "user")
+      .set("Authorization", "Bearer fake-token")
 
     expect(res.status).toBe(404)
     expect(res.body.success).toBe(false)
@@ -317,8 +311,7 @@ describe("DELETE /videos/:id", () => {
 
     const res = await request(app)
       .delete(`/videos/${META_ID}`)
-      .set("x-user-id", "user-1")
-      .set("x-roles", "user")
+      .set("Authorization", "Bearer fake-token")
 
     expect(res.status).toBe(404)
     expect(res.body.success).toBe(false)
@@ -344,8 +337,7 @@ describe("video controller error handling", () => {
       .post("/videos")
       .set("content-type", "video/mp4")
       .set("x-filename", "clip.mp4")
-      .set("x-user-id", "user-1")
-      .set("x-roles", "user")
+      .set("Authorization", "Bearer fake-token")
       .send(VIDEO_BYTES)
 
     expect(res.status).toBe(500)
@@ -358,8 +350,7 @@ describe("video controller error handling", () => {
 
     const res = await request(app)
       .get(`/videos/${META_ID}`)
-      .set("x-user-id", "user-1")
-      .set("x-roles", "user")
+      .set("Authorization", "Bearer fake-token")
 
     expect(res.status).toBe(500)
   })
@@ -371,8 +362,7 @@ describe("video controller error handling", () => {
 
     const res = await request(app)
       .get(`/videos/${META_ID}/meta`)
-      .set("x-user-id", "user-1")
-      .set("x-roles", "user")
+      .set("Authorization", "Bearer fake-token")
 
     expect(res.status).toBe(500)
   })
@@ -384,8 +374,7 @@ describe("video controller error handling", () => {
 
     const res = await request(app)
       .delete(`/videos/${META_ID}`)
-      .set("x-user-id", "user-1")
-      .set("x-roles", "user")
+      .set("Authorization", "Bearer fake-token")
 
     expect(res.status).toBe(500)
   })

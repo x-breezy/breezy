@@ -1,25 +1,27 @@
 import type { Request, Response, NextFunction } from "express"
+import { verifyToken } from "../utils/jwt.util"
 import { getPermissions } from "../services/permission.service"
 import type { Role } from "../constants/roles"
 
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-
 export function identity(req: Request, res: Response, next: NextFunction): void {
-  const userId = req.headers["x-user-id"]
-  const roles = req.headers["x-roles"]
+  const authHeader = req.headers["authorization"]
+  const token = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null
 
-  if (!userId || !UUID_RE.test(String(userId))) {
+  if (!token) {
     res.status(401).json({ success: false, error: "Unauthorized" })
     return
   }
 
-  const parsedRoles = (typeof roles === "string" ? roles.split(",") : []) as Role[]
-
-  req.user = {
-    id: String(userId),
-    roles: parsedRoles,
-    permissions: getPermissions(parsedRoles),
+  try {
+    const payload = verifyToken(token)
+    const parsedRole = payload.role as Role | undefined
+    req.user = {
+      id: payload.sub,
+      role: parsedRole as Role,
+      permissions: getPermissions(parsedRole),
+    }
+    next()
+  } catch {
+    res.status(401).json({ success: false, error: "Unauthorized" })
   }
-
-  next()
 }

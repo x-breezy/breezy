@@ -22,6 +22,11 @@ export class LikeService {
     return { alreadyLiked: false, nb: post.likesCount }
   }
 
+  async getLikedPostIds(userId: string, postIds: string[]): Promise<string[]> {
+    const docs = await LikeModel.find({ userId, postId: { $in: postIds } }).select("postId").exec()
+    return docs.map((d) => d.postId)
+  }
+
   async unlike(postId: string, userId: string): Promise<{ wasLiked: boolean; nb: number }> {
     const deleted = await LikeModel.findOneAndDelete({ postId, userId }).exec()
     if (!deleted) return { wasLiked: false, nb: 0 }

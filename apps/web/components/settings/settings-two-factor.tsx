@@ -11,12 +11,12 @@ import {
   twoFactorEnableAction,
   twoFactorDisableAction,
 } from "@/app/(app)/settings/actions"
+import { IconShieldLockFilled } from "@tabler/icons-react"
+import { useUserStore } from "@/stores/user-store"
 
-interface SettingsTwoFactorProps {
-  enabled: boolean
-}
+export function SettingsTwoFactor() {
+  const enabled = useUserStore((s) => s.user)?.twoFactorEnabled
 
-export function SettingsTwoFactor({ enabled }: SettingsTwoFactorProps) {
   const [sendState, sendAction, sendPending] = useActionState(twoFactorSendCodeAction, null)
   const [enableState, enableAction, enablePending] = useActionState(twoFactorEnableAction, null)
   const [disableState, disableAction, disablePending] = useActionState(twoFactorDisableAction, null)
@@ -26,7 +26,10 @@ export function SettingsTwoFactor({ enabled }: SettingsTwoFactorProps) {
     return (
       <div className='rounded-2xl border border-border bg-background p-4'>
         <div className='mb-3'>
-          <p className='text-sm font-semibold'>Two-factor authentication</p>
+          <div className='flex items-center gap-2'>
+            <IconShieldLockFilled className='h-5 w-5 shrink-0 text-muted-foreground' />
+            <p className='text-sm font-semibold'>Two-factor authentication</p>
+          </div>
           <p className='mt-0.5 text-xs text-muted-foreground'>
             2FA is currently enabled on your account.
           </p>
@@ -50,7 +53,10 @@ export function SettingsTwoFactor({ enabled }: SettingsTwoFactorProps) {
   return (
     <div className='rounded-2xl border border-border bg-background p-4'>
       <div className='mb-3'>
-        <p className='text-sm font-semibold'>Two-factor authentication</p>
+        <div className='flex items-center gap-2'>
+          <IconShieldLockFilled className='h-5 w-5 shrink-0 text-muted-foreground' />
+          <p className='text-sm font-semibold'>Two-factor authentication</p>
+        </div>
         <p className='mt-0.5 text-xs text-muted-foreground'>
           Add an extra layer of security to your account.
         </p>

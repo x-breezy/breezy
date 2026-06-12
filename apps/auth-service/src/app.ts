@@ -7,6 +7,7 @@ import { createLogger, httpLogger } from "@breezy/logger"
 import { createUserRouter } from "./routes/user.route"
 import { createReportRouter } from "./routes/report.route"
 import { swaggerSpec } from "./config/swagger"
+import { getJwks } from "./utils/jwt.util"
 
 const logger = createLogger({ service: "auth-service" })
 
@@ -20,6 +21,10 @@ export function createApp(): Express {
 
   app.get("/", (_req, res) => {
     res.json({ status: "ok" })
+  })
+
+  app.get("/.well-known/jwks.json", (_req, res) => {
+    res.json(getJwks())
   })
 
   app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec))

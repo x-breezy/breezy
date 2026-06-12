@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils"
-import { ProfileBadges, type UserRole } from "./profile-badge"
+import { ProfileBadges } from "./profile-badge"
+import { UserRole } from "@/lib/auth/role"
 
 interface ProfileInfoProps {
   name: string
@@ -8,7 +9,7 @@ interface ProfileInfoProps {
   className?: string
 }
 
-export function ProfileInfo({ name, username, role = "user", className }: ProfileInfoProps) {
+export function ProfileInfo({ name, username, role = UserRole.User, className }: ProfileInfoProps) {
   return (
     <div className={cn("flex flex-col items-center gap-1", className)}>
       <div className='flex items-center gap-2'>

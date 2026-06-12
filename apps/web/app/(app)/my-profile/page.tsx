@@ -3,7 +3,7 @@
 import { ProfileHeader } from "@/components/profile/profile-header"
 import { ProfileSection, ProfilePostsSection } from "@/components/profile"
 import { useUserStore } from "@/stores/user-store"
-import type { UserRole } from "@/components/profile/profile-badge"
+import { UserRole } from "@/lib/auth/role"
 
 const MOCK_POSTS = [
   {
@@ -21,30 +21,15 @@ const MOCK_POSTS = [
 
 export default function ProfilePage() {
   const profile = useUserStore((s) => s.profile)
-
-  const name =
-    [profile?.firstName, profile?.lastName].filter(Boolean).join(" ") || profile?.username || ""
-  const username = profile?.username ?? ""
-  const avatar = profile?.avatarId ?? ""
-  const role = "user" as UserRole
-  const followers = profile?.followersCount ?? 0
-  const following = profile?.followingCount ?? 0
-  const bio = profile?.bio ?? ""
+  const user = useUserStore((s) => s.user)
+  const role = user?.role as UserRole
 
   return (
     <div>
       <ProfileHeader />
 
       <main className='md:px-4 md:py-6'>
-        <ProfileSection
-          avatar={avatar}
-          name={name}
-          username={username}
-          role={role}
-          followers={followers}
-          following={following}
-          bio={bio}
-        />
+        {profile ? <ProfileSection profile={profile} role={role} /> : null}
 
         <ProfilePostsSection posts={MOCK_POSTS} className='mt-8' />
       </main>

@@ -23,5 +23,7 @@ const postSchema = new Schema<Post>(
 
 postSchema.index({ createdAt: -1 })
 postSchema.index({ authorId: 1, createdAt: -1 })
+postSchema.index({ content: "text", tags: "text" })
+postSchema.index({ tags: 1 })
 
 export const PostModel = model("Post", postSchema)

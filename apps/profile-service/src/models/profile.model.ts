@@ -6,6 +6,7 @@ export interface ProfileAttributes {
   firstName: string | null
   lastName: string | null
   bio: string | null
+  role: string
   avatarId: string | null
   followersCount: number
   followingCount: number
@@ -19,6 +20,7 @@ export type CreateProfileInput = Optional<
   | "firstName"
   | "lastName"
   | "bio"
+  | "role"
   | "username"
   | "avatarId"
   | "followersCount"
@@ -34,10 +36,10 @@ export type UpdateProfileInput = Partial<
 
 export class Profile
   extends Model<ProfileAttributes, CreateProfileInput>
-  implements ProfileAttributes
-{
+  implements ProfileAttributes {
   declare profileId: string
   declare username: string
+  declare role: string
   declare firstName: string | null
   declare lastName: string | null
   declare bio: string | null
@@ -58,8 +60,14 @@ export function initProfileModel(sequelize: Sequelize): void {
         field: "profile_id",
       },
       username: {
+        type: DataTypes.STRING(100),
+        allowNull: true,
+        defaultValue: null,
+      },
+      role: {
         type: DataTypes.STRING(50),
         allowNull: false,
+        defaultValue: "user",
       },
       firstName: {
         type: DataTypes.STRING(100),

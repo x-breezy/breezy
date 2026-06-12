@@ -1,4 +1,5 @@
 import request from "supertest"
+import { verifyJwt } from "../../utils/jwt"
 import { createApp } from "../../app"
 import { PostModel } from "../../models/post.model"
 
@@ -9,8 +10,12 @@ jest.mock("../../models/post.model", () => ({
     findByIdAndDelete: jest.fn(),
     find: jest.fn(),
     countDocuments: jest.fn(),
+    aggregate: jest.fn(),
   },
 }))
+
+jest.mock("../../utils/jwt")
+const mockVerifyJwt = verifyJwt as jest.MockedFunction<typeof verifyJwt>
 
 // No USER_SERVICE_URL in test env -> HttpFollowGraph.getFollowing returns null -> global feed.
 // Personalized filtering is covered by unit tests (injected fake FollowGraphPort).
@@ -24,6 +29,7 @@ const USER2_UUID = "22222222-2222-2222-2222-222222222222"
 const NOW = new Date("2026-01-01T00:00:00.000Z")
 
 const MOCK_POST = {
+  _id: { toString: () => "abc" },
   id: "abc",
   content: "Hello world",
   authorId: USER1_UUID,
@@ -40,12 +46,23 @@ function mockFindPaginated(docs: unknown[], total: number) {
     limit: jest.fn().mockReturnThis(),
     exec: jest.fn().mockResolvedValue(docs),
   }
-  ;(mockedModel.find as jest.Mock).mockReturnValue(mockQuery)
-  ;(mockedModel.countDocuments as jest.Mock).mockResolvedValue(total)
+    ; (mockedModel.find as jest.Mock).mockReturnValue(mockQuery)
+    ; (mockedModel.countDocuments as jest.Mock).mockResolvedValue(total)
+}
+
+function mockSearchPaginated(docs: unknown[], total: number) {
+  const mockQuery = {
+    sort: jest.fn().mockReturnThis(),
+    limit: jest.fn().mockReturnThis(),
+    exec: jest.fn().mockResolvedValue(docs),
+  }
+    ; (mockedModel.find as jest.Mock).mockReturnValue(mockQuery)
+    ; (mockedModel.countDocuments as jest.Mock).mockReturnValue({ exec: jest.fn().mockResolvedValue(total) })
 }
 
 beforeEach(() => {
   jest.clearAllMocks()
+  mockVerifyJwt.mockReturnValue({ sub: USER1_UUID, role: "user" })
 })
 
 // ─── Health ────────────────────────────────────────────────────────────────
@@ -70,13 +87,12 @@ describe("GET /docs.json", () => {
 
 describe("POST /posts", () => {
   it("creates a post and returns it in ApiResponse", async () => {
-    ;(mockedModel.create as jest.Mock).mockResolvedValue(MOCK_POST)
+    ; (mockedModel.create as jest.Mock).mockResolvedValue(MOCK_POST)
 
     const res = await request(app)
       .post("/posts")
       .set("Content-Type", "application/json")
-      .set("x-user-id", USER1_UUID)
-      .set("x-roles", "user")
+      .set("Authorization", "Bearer fake-token")
       .send({ content: "Hello world", tags: ["tag1"], media: [{ id: "media1", type: "image" }] })
 
     expect(res.status).toBe(201)
@@ -111,8 +127,7 @@ describe("POST /posts", () => {
     const res = await request(app)
       .post("/posts")
       .set("Content-Type", "application/json")
-      .set("x-user-id", USER1_UUID)
-      .set("x-roles", "user")
+      .set("Authorization", "Bearer fake-token")
       .send({ content: "" })
 
     expect(res.status).toBe(400)
@@ -124,8 +139,7 @@ describe("POST /posts", () => {
     const res = await request(app)
       .post("/posts")
       .set("Content-Type", "application/json")
-      .set("x-user-id", USER1_UUID)
-      .set("x-roles", "user")
+      .set("Authorization", "Bearer fake-token")
       .send({})
 
     expect(res.status).toBe(400)
@@ -133,7 +147,7 @@ describe("POST /posts", () => {
   })
 
   it("defaults tags and media to empty arrays", async () => {
-    ;(mockedModel.create as jest.Mock).mockResolvedValue({
+    ; (mockedModel.create as jest.Mock).mockResolvedValue({
       ...MOCK_POST,
       tags: [],
       media: [],
@@ -142,8 +156,7 @@ describe("POST /posts", () => {
     await request(app)
       .post("/posts")
       .set("Content-Type", "application/json")
-      .set("x-user-id", USER1_UUID)
-      .set("x-roles", "user")
+      .set("Authorization", "Bearer fake-token")
       .send({ content: "Just text" })
 
     expect(mockedModel.create).toHaveBeenCalledWith(
@@ -156,14 +169,13 @@ describe("POST /posts", () => {
 
 describe("GET /posts/:id", () => {
   it("returns a post by id", async () => {
-    ;(mockedModel.findById as jest.Mock).mockReturnValue({
+    ; (mockedModel.findById as jest.Mock).mockReturnValue({
       exec: jest.fn().mockResolvedValue(MOCK_POST),
     })
 
     const res = await request(app)
       .get("/posts/abc")
-      .set("x-user-id", USER1_UUID)
-      .set("x-roles", "user")
+      .set("Authorization", "Bearer fake-token")
 
     expect(res.status).toBe(200)
     expect(res.body).toMatchObject({
@@ -173,14 +185,13 @@ describe("GET /posts/:id", () => {
   })
 
   it("returns 404 for unknown id", async () => {
-    ;(mockedModel.findById as jest.Mock).mockReturnValue({
+    ; (mockedModel.findById as jest.Mock).mockReturnValue({
       exec: jest.fn().mockResolvedValue(null),
     })
 
     const res = await request(app)
       .get("/posts/notfound")
-      .set("x-user-id", USER1_UUID)
-      .set("x-roles", "user")
+      .set("Authorization", "Bearer fake-token")
 
     expect(res.status).toBe(404)
     expect(res.body.success).toBe(false)
@@ -200,8 +211,7 @@ describe("GET /posts/feed", () => {
 
     const res = await request(app)
       .get("/posts/feed")
-      .set("x-user-id", USER1_UUID)
-      .set("x-roles", "user")
+      .set("Authorization", "Bearer fake-token")
 
     expect(res.status).toBe(200)
     expect(res.body).toMatchObject({
@@ -220,8 +230,7 @@ describe("GET /posts/feed", () => {
 
     const res = await request(app)
       .get("/posts/feed?page=3&limit=5")
-      .set("x-user-id", USER1_UUID)
-      .set("x-roles", "user")
+      .set("Authorization", "Bearer fake-token")
 
     expect(res.status).toBe(200)
     expect(res.body.data).toMatchObject({ page: 3, limit: 5, total: 100 })
@@ -232,8 +241,7 @@ describe("GET /posts/feed", () => {
 
     const res = await request(app)
       .get("/posts/feed")
-      .set("x-user-id", USER1_UUID)
-      .set("x-roles", "user")
+      .set("Authorization", "Bearer fake-token")
 
     // If routed to /:id, findById would be called (not find) and data would not have total
     expect(res.status).toBe(200)
@@ -243,7 +251,7 @@ describe("GET /posts/feed", () => {
   it("uses global filter when user-service unavailable (no USER_SERVICE_URL)", async () => {
     mockFindPaginated([MOCK_POST], 1)
 
-    await request(app).get("/posts/feed").set("x-user-id", USER1_UUID).set("x-roles", "user")
+    await request(app).get("/posts/feed").set("Authorization", "Bearer fake-token")
 
     expect(mockedModel.find).toHaveBeenCalledWith({})
   })
@@ -262,8 +270,7 @@ describe("GET /posts/users/:userId", () => {
 
     const res = await request(app)
       .get(`/posts/users/${USER1_UUID}`)
-      .set("x-user-id", USER1_UUID)
-      .set("x-roles", "user")
+      .set("Authorization", "Bearer fake-token")
 
     expect(res.status).toBe(200)
     expect(res.body).toMatchObject({
@@ -283,8 +290,7 @@ describe("GET /posts/users/:userId", () => {
 
     const res = await request(app)
       .get(`/posts/users/${USER1_UUID}`)
-      .set("x-user-id", USER1_UUID)
-      .set("x-roles", "user")
+      .set("Authorization", "Bearer fake-token")
 
     expect(res.status).toBe(200)
     expect(res.body.data).toMatchObject({ data: [], total: 0 })
@@ -293,8 +299,7 @@ describe("GET /posts/users/:userId", () => {
   it("returns 403 when user accesses another user's posts", async () => {
     const res = await request(app)
       .get(`/posts/users/${USER2_UUID}`)
-      .set("x-user-id", USER1_UUID)
-      .set("x-roles", "user")
+      .set("Authorization", "Bearer fake-token")
 
     expect(res.status).toBe(403)
     expect(res.body.success).toBe(false)
@@ -303,10 +308,10 @@ describe("GET /posts/users/:userId", () => {
   it("allows moderator to access any user's posts", async () => {
     mockFindPaginated([MOCK_POST], 1)
 
+    mockVerifyJwt.mockReturnValueOnce({ sub: USER1_UUID, role: "moderator" })
     const res = await request(app)
       .get(`/posts/users/${USER2_UUID}`)
-      .set("x-user-id", USER1_UUID)
-      .set("x-roles", "moderator")
+      .set("Authorization", "Bearer fake-token")
 
     expect(res.status).toBe(200)
     expect(res.body.success).toBe(true)
@@ -315,10 +320,10 @@ describe("GET /posts/users/:userId", () => {
   it("allows admin to access any user's posts", async () => {
     mockFindPaginated([MOCK_POST], 1)
 
+    mockVerifyJwt.mockReturnValueOnce({ sub: USER1_UUID, role: "admin" })
     const res = await request(app)
       .get(`/posts/users/${USER2_UUID}`)
-      .set("x-user-id", USER1_UUID)
-      .set("x-roles", "admin")
+      .set("Authorization", "Bearer fake-token")
 
     expect(res.status).toBe(200)
     expect(res.body.success).toBe(true)
@@ -334,96 +339,92 @@ describe("GET /posts/users/:userId", () => {
 
 describe("DELETE /posts/:id", () => {
   it("allows owner to delete own post", async () => {
-    ;(mockedModel.findById as jest.Mock).mockReturnValue({
+    ; (mockedModel.findById as jest.Mock).mockReturnValue({
       exec: jest.fn().mockResolvedValue({ authorId: USER1_UUID }),
     })
-    ;(mockedModel.findByIdAndDelete as jest.Mock).mockReturnValue({
-      exec: jest.fn().mockResolvedValue({ id: "abc" }),
-    })
+      ; (mockedModel.findByIdAndDelete as jest.Mock).mockReturnValue({
+        exec: jest.fn().mockResolvedValue({ id: "abc" }),
+      })
 
     const res = await request(app)
       .delete("/posts/abc")
-      .set("x-user-id", USER1_UUID)
-      .set("x-roles", "user")
+      .set("Authorization", "Bearer fake-token")
 
     expect(res.status).toBe(200)
     expect(res.body).toMatchObject({ success: true, message: "Post deleted successfully" })
   })
 
   it("returns 404 when post not found", async () => {
-    ;(mockedModel.findById as jest.Mock).mockReturnValue({
+    ; (mockedModel.findById as jest.Mock).mockReturnValue({
       exec: jest.fn().mockResolvedValue(null),
     })
 
     const res = await request(app)
       .delete("/posts/notfound")
-      .set("x-user-id", USER1_UUID)
-      .set("x-roles", "user")
+      .set("Authorization", "Bearer fake-token")
 
     expect(res.status).toBe(404)
     expect(res.body.success).toBe(false)
   })
 
   it("returns 403 when non-owner user tries to delete", async () => {
-    ;(mockedModel.findById as jest.Mock).mockReturnValue({
+    ; (mockedModel.findById as jest.Mock).mockReturnValue({
       exec: jest.fn().mockResolvedValue({ authorId: USER2_UUID }),
     })
 
     const res = await request(app)
       .delete("/posts/abc")
-      .set("x-user-id", USER1_UUID)
-      .set("x-roles", "user")
+      .set("Authorization", "Bearer fake-token")
 
     expect(res.status).toBe(403)
     expect(res.body.success).toBe(false)
   })
 
   it("allows moderator to delete any post", async () => {
-    ;(mockedModel.findById as jest.Mock).mockReturnValue({
+    ; (mockedModel.findById as jest.Mock).mockReturnValue({
       exec: jest.fn().mockResolvedValue({ authorId: USER2_UUID }),
     })
-    ;(mockedModel.findByIdAndDelete as jest.Mock).mockReturnValue({
-      exec: jest.fn().mockResolvedValue({ id: "abc" }),
-    })
+      ; (mockedModel.findByIdAndDelete as jest.Mock).mockReturnValue({
+        exec: jest.fn().mockResolvedValue({ id: "abc" }),
+      })
 
+    mockVerifyJwt.mockReturnValueOnce({ sub: USER1_UUID, role: "moderator" })
     const res = await request(app)
       .delete("/posts/abc")
-      .set("x-user-id", USER1_UUID)
-      .set("x-roles", "moderator")
+      .set("Authorization", "Bearer fake-token")
 
     expect(res.status).toBe(200)
     expect(res.body.success).toBe(true)
   })
 
   it("allows admin to delete any post", async () => {
-    ;(mockedModel.findById as jest.Mock).mockReturnValue({
+    ; (mockedModel.findById as jest.Mock).mockReturnValue({
       exec: jest.fn().mockResolvedValue({ authorId: USER2_UUID }),
     })
-    ;(mockedModel.findByIdAndDelete as jest.Mock).mockReturnValue({
-      exec: jest.fn().mockResolvedValue({ id: "abc" }),
-    })
+      ; (mockedModel.findByIdAndDelete as jest.Mock).mockReturnValue({
+        exec: jest.fn().mockResolvedValue({ id: "abc" }),
+      })
 
+    mockVerifyJwt.mockReturnValueOnce({ sub: USER1_UUID, role: "admin" })
     const res = await request(app)
       .delete("/posts/abc")
-      .set("x-user-id", USER1_UUID)
-      .set("x-roles", "admin")
+      .set("Authorization", "Bearer fake-token")
 
     expect(res.status).toBe(200)
     expect(res.body.success).toBe(true)
   })
 
   it("returns 404 when post is deleted between ownership check and deletion", async () => {
-    ;(mockedModel.findById as jest.Mock).mockReturnValue({
+    ; (mockedModel.findById as jest.Mock).mockReturnValue({
       exec: jest.fn().mockResolvedValue({ authorId: USER1_UUID }),
     })
-    ;(mockedModel.findByIdAndDelete as jest.Mock).mockReturnValue({
-      exec: jest.fn().mockResolvedValue(null),
-    })
+      ; (mockedModel.findByIdAndDelete as jest.Mock).mockReturnValue({
+        exec: jest.fn().mockResolvedValue(null),
+      })
 
     const res = await request(app)
       .delete("/posts/abc")
-      .set("x-user-id", USER1_UUID)
-      .set("x-roles", "user")
+      .set("Authorization", "Bearer fake-token")
 
     expect(res.status).toBe(404)
     expect(res.body.success).toBe(false)
@@ -439,16 +440,15 @@ describe("DELETE /posts/:id", () => {
 
 describe("global error handler", () => {
   beforeEach(() => {
-    jest.spyOn(console, "error").mockImplementation(() => {})
+    jest.spyOn(console, "error").mockImplementation(() => { })
   })
 
   it("returns 500 when PostModel.create throws", async () => {
-    ;(mockedModel.create as jest.Mock).mockRejectedValue(new Error("db error"))
+    ; (mockedModel.create as jest.Mock).mockRejectedValue(new Error("db error"))
 
     const res = await request(app)
       .post("/posts")
-      .set("x-user-id", USER1_UUID)
-      .set("x-roles", "user")
+      .set("Authorization", "Bearer fake-token")
       .send({ content: "Hello" })
 
     expect(res.status).toBe(500)
@@ -456,65 +456,160 @@ describe("global error handler", () => {
   })
 
   it("returns 500 when PostModel.findById throws on GET /:id", async () => {
-    ;(mockedModel.findById as jest.Mock).mockReturnValue({
+    ; (mockedModel.findById as jest.Mock).mockReturnValue({
       exec: jest.fn().mockRejectedValue(new Error("db error")),
     })
 
     const res = await request(app)
       .get("/posts/abc")
-      .set("x-user-id", USER1_UUID)
-      .set("x-roles", "user")
+      .set("Authorization", "Bearer fake-token")
 
     expect(res.status).toBe(500)
   })
 
   it("returns 500 when PostModel.find throws on GET /feed", async () => {
-    ;(mockedModel.find as jest.Mock).mockReturnValue({
+    ; (mockedModel.find as jest.Mock).mockReturnValue({
       sort: jest.fn().mockReturnThis(),
       skip: jest.fn().mockReturnThis(),
       limit: jest.fn().mockReturnThis(),
       exec: jest.fn().mockRejectedValue(new Error("db error")),
     })
-    ;(mockedModel.countDocuments as jest.Mock).mockResolvedValue(0)
+      ; (mockedModel.countDocuments as jest.Mock).mockResolvedValue(0)
 
     const res = await request(app)
       .get("/posts/feed")
-      .set("x-user-id", USER1_UUID)
-      .set("x-roles", "user")
+      .set("Authorization", "Bearer fake-token")
 
     expect(res.status).toBe(500)
   })
 
   it("returns 500 when PostModel.find throws on GET /users/:userId", async () => {
-    ;(mockedModel.find as jest.Mock).mockReturnValue({
+    ; (mockedModel.find as jest.Mock).mockReturnValue({
       sort: jest.fn().mockReturnThis(),
       skip: jest.fn().mockReturnThis(),
       limit: jest.fn().mockReturnThis(),
       exec: jest.fn().mockRejectedValue(new Error("db error")),
     })
-    ;(mockedModel.countDocuments as jest.Mock).mockResolvedValue(0)
+      ; (mockedModel.countDocuments as jest.Mock).mockResolvedValue(0)
 
     const res = await request(app)
       .get(`/posts/users/${USER1_UUID}`)
-      .set("x-user-id", USER1_UUID)
-      .set("x-roles", "user")
+      .set("Authorization", "Bearer fake-token")
 
     expect(res.status).toBe(500)
   })
 
   it("returns 500 when PostModel.findByIdAndDelete throws on DELETE /:id", async () => {
-    ;(mockedModel.findById as jest.Mock).mockReturnValue({
+    ; (mockedModel.findById as jest.Mock).mockReturnValue({
       exec: jest.fn().mockResolvedValue({ authorId: USER1_UUID }),
     })
-    ;(mockedModel.findByIdAndDelete as jest.Mock).mockReturnValue({
-      exec: jest.fn().mockRejectedValue(new Error("db error")),
-    })
+      ; (mockedModel.findByIdAndDelete as jest.Mock).mockReturnValue({
+        exec: jest.fn().mockRejectedValue(new Error("db error")),
+      })
 
     const res = await request(app)
       .delete("/posts/abc")
-      .set("x-user-id", USER1_UUID)
-      .set("x-roles", "user")
+      .set("Authorization", "Bearer fake-token")
 
     expect(res.status).toBe(500)
+  })
+
+  // ─── GET /posts/search ───────────────────────────────────────────────────────
+
+  describe("GET /posts/search", () => {
+    it("returns paginated posts matching query", async () => {
+      mockSearchPaginated([MOCK_POST], 1)
+
+      const res = await request(app)
+        .get("/posts/search?q=hello")
+        .set("Authorization", "Bearer fake-token")
+
+
+      expect(res.status).toBe(200)
+      expect(res.body).toMatchObject({
+        success: true,
+        data: expect.objectContaining({ total: 1, page: 1 }),
+      })
+    })
+
+    it("returns 400 when q is missing", async () => {
+      const res = await request(app)
+        .get("/posts/search")
+        .set("Authorization", "Bearer fake-token")
+
+
+      expect(res.status).toBe(400)
+      expect(res.body.success).toBe(false)
+    })
+
+    it("returns 400 when q is empty string", async () => {
+      const res = await request(app)
+        .get("/posts/search?q=")
+        .set("Authorization", "Bearer fake-token")
+
+
+      expect(res.status).toBe(400)
+      expect(res.body.success).toBe(false)
+    })
+
+    it("returns 401 without auth", async () => {
+      const res = await request(app).get("/posts/search?q=hello")
+      expect(res.status).toBe(401)
+    })
+
+    it("is not caught by the /:id route", async () => {
+      mockSearchPaginated([], 0)
+
+      const res = await request(app)
+        .get("/posts/search?q=test")
+        .set("Authorization", "Bearer fake-token")
+
+
+      expect(res.status).toBe(200)
+      expect(res.body.data).toHaveProperty("total")
+    })
+  })
+
+  // ─── GET /posts/trending-tags ────────────────────────────────────────────────
+
+  describe("GET /posts/trending-tags", () => {
+    let dateSpy: jest.SpyInstance
+    beforeEach(() => { dateSpy = jest.spyOn(Date, "now").mockReturnValue(0) })
+    afterEach(() => { dateSpy.mockRestore() })
+
+    it("returns list of tags with counts", async () => {
+      const mockTags = [
+        { tag: "TypeScript", count: 42 },
+        { tag: "React", count: 30 },
+      ]
+        ; (mockedModel.aggregate as jest.Mock).mockResolvedValue(mockTags)
+
+      const res = await request(app)
+        .get("/posts/trending-tags")
+        .set("Authorization", "Bearer fake-token")
+
+      expect(res.status).toBe(200)
+      expect(res.body).toMatchObject({
+        success: true,
+        data: expect.arrayContaining([expect.objectContaining({ tag: "TypeScript", count: 42 })]),
+      })
+    })
+
+    it("respects ?limit query param", async () => {
+      dateSpy.mockReturnValue(10 * 60 * 1000)
+        ; (mockedModel.aggregate as jest.Mock).mockResolvedValue([])
+
+      const res = await request(app)
+        .get("/posts/trending-tags?limit=5")
+        .set("Authorization", "Bearer fake-token")
+
+      expect(res.status).toBe(200)
+      expect(mockedModel.aggregate).toHaveBeenCalledWith(expect.arrayContaining([{ $limit: 5 }]))
+    })
+
+    it("returns 401 without auth", async () => {
+      const res = await request(app).get("/posts/trending-tags")
+      expect(res.status).toBe(401)
+    })
   })
 })

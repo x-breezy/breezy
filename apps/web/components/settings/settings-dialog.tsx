@@ -21,7 +21,7 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
           <DialogOverlay />
           <DialogPrimitive.Popup className='fixed inset-0 z-120 flex flex-col bg-background outline-none'>
             <SettingsHeader onClose={onClose} />
-            <SettingsScreen name='Grod' username='grod_le_goat' />
+            <SettingsScreen />
           </DialogPrimitive.Popup>
         </DialogPortal>
       </Dialog>
@@ -36,7 +36,7 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
       >
         <SettingsHeader onClose={onClose} />
         <div className='overflow-y-auto'>
-          <SettingsScreen name='Grod' username='grod_le_goat' />
+          <SettingsScreen />
         </div>
       </DialogContent>
     </Dialog>

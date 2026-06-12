@@ -5,14 +5,7 @@ import { ACCESS_COOKIE, REFRESH_COOKIE } from "@/lib/auth/auth-cookies"
 const API_URL = process.env.API_URL ?? "http://localhost"
 
 const MAX_AGE = 60 * 60 * 24 * 7
-const AUTH_PATHS = [
-  "/sign-in",
-  "/sign-up",
-  "/verify-email",
-  "/forgot-password",
-  "/reset-password",
-  "/two-factor",
-]
+const AUTH_PATHS = ["/sign-in", "/sign-up", "/verify-email", "/forgot-password", "/reset-password"]
 
 async function validateToken(token: string): Promise<boolean> {
   try {
@@ -45,7 +38,13 @@ async function refreshTokens(
 }
 
 function setSession(res: NextResponse, token: string, refreshToken: string) {
-  const opts = { path: "/", maxAge: MAX_AGE, sameSite: "lax" as const, httpOnly: false }
+  const opts = {
+    path: "/",
+    maxAge: MAX_AGE,
+    sameSite: "lax" as const,
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+  }
   res.cookies.set(ACCESS_COOKIE, token, opts)
   res.cookies.set(REFRESH_COOKIE, refreshToken, opts)
 }

@@ -1,18 +1,20 @@
 import { Request, Response, NextFunction } from "express"
+import { verifyJwt } from "../utils/jwt"
 
 export function identity(req: Request, res: Response, next: NextFunction) {
-  const userId = req.headers["x-user-id"]
-  const roles = req.headers["x-roles"]
+  const authHeader = req.headers["authorization"]
+  const token = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null
 
-  if (!userId) {
+  if (!token) {
     res.status(401).json({ success: false, error: "Unauthorized" })
     return
   }
 
-  req.user = {
-    id: String(userId),
-    roles: typeof roles === "string" ? roles.split(",") : [],
+  try {
+    const { sub, role } = verifyJwt(token)
+    req.user = { id: sub, role }
+    next()
+  } catch {
+    res.status(401).json({ success: false, error: "Unauthorized" })
   }
-
-  next()
 }

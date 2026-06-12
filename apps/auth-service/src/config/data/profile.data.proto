@@ -29,6 +29,7 @@ message getFollowingResponse {
 message createProfileRequest {
   string profileId = 1;
   string username = 2;
+  string role = 3;
 }
 
 message createProfileResponse {
