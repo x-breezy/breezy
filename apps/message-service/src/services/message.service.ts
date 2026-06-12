@@ -137,6 +137,47 @@ export class ChatService {
     return conversation as unknown as Conversation | null
   }
 
+  async addMembers(conversationId: string, userId: string, memberIds: string[]): Promise<Conversation | null> {
+    const conversation = await ConversationModel.findOne({
+      _id: conversationId,
+      participantIds: userId,
+      isGroup: true,
+    }).exec()
+
+    if (!conversation) return null
+
+    // Filter out members that are already in the group
+    const newMembers = memberIds.filter(id => !conversation.participantIds.includes(id))
+    if (newMembers.length === 0) return conversation as unknown as Conversation
+
+    const updatedParticipantIds = [...conversation.participantIds, ...newMembers]
+    
+    const updated = await ConversationModel.findByIdAndUpdate(
+      conversationId,
+      { participantIds: updatedParticipantIds },
+      { new: true }
+    ).exec()
+
+    if (updated) {
+      const sysMsg = await MessageModel.create({
+        conversationId,
+        senderId: userId,
+        content: `added_users:${newMembers.join(',')}`,
+        isSystem: true
+      })
+
+      // Broadcast update and system message to all participants (old and new)
+      for (const recipientId of updated.participantIds) {
+        try {
+          getIO().to(recipientId).emit("conversation:updated", updated)
+          getIO().to(recipientId).emit("message:new", sysMsg)
+        } catch (err) {}
+      }
+    }
+
+    return updated as unknown as Conversation | null
+  }
+
   // ── Messages ───────────────────────────────────────────────
 
   async sendMessage(conversationId: string, senderId: string, content: string): Promise<Message> {

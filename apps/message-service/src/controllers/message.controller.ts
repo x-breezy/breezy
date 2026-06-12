@@ -157,6 +157,28 @@ class ChatController {
       next(err)
     }
   }
+
+  // POST /conversations/:conversationId/members
+  addMembers = async (
+    req: Request<{ conversationId: string }>,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const updated = await this.chatService.addMembers(
+        req.params.conversationId,
+        req.user!.id,
+        req.body.memberIds
+      )
+      if (!updated) {
+        res.status(404).json({ success: false, message: "Group conversation not found or you don't have access" })
+        return
+      }
+      res.status(200).json({ success: true, data: updated })
+    } catch (err) {
+      next(err)
+    }
+  }
 }
 
 export default ChatController

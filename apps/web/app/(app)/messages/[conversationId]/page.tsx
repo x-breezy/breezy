@@ -5,11 +5,23 @@ import { useConversation } from "@/hooks/use-conversation"
 import { MessageBubble } from "@/components/messages/message-bubble"
 import { ChatInput } from "@/components/messages/chat-input"
 import { useCurrentUser } from "@/hooks/use-current-user"
-import { IconLoader2, IconArrowLeft } from "@tabler/icons-react"
+import { IconLoader2, IconArrowLeft, IconUserPlus } from "@tabler/icons-react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { useUserCache } from "@/hooks/use-user-cache"
 import { useSocket } from "@/hooks/use-socket"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogTrigger,
+  DialogClose
+} from "@/components/ui/dialog"
 
 export default function ConversationPage({
   params,
@@ -32,6 +44,12 @@ export default function ConversationPage({
   const cachedUsers = useUserCache((state) => state.users)
   const setUser = useUserCache((state) => state.setUser)
   const { socket } = useSocket(currentUserId)
+  const router = useRouter()
+
+  const [addMemberOpen, setAddMemberOpen] = useState(false)
+  const [newMemberUsername, setNewMemberUsername] = useState("")
+  const [addingMember, setAddingMember] = useState(false)
+  const [participantIds, setParticipantIds] = useState<string[]>([])
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -56,6 +74,7 @@ export default function ConversationPage({
         if (convData.success && convData.data) {
           const conv = convData.data.find((c: any) => c._id === conversationId)
           if (conv) {
+            setParticipantIds(conv.participantIds || [])
             if (conv.isGroup) {
               isGroup = true;
               groupName = conv.name || "Groupe";
@@ -192,6 +211,86 @@ export default function ConversationPage({
     }
   }
 
+  const handleAddMemberSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!newMemberUsername.trim() || !currentUserId) return
+
+    const usernamesToFetch = newMemberUsername.split(",").map(u => u.trim()).filter(Boolean)
+    if (usernamesToFetch.length === 0) return
+
+    setAddingMember(true)
+    try {
+      const AUTH_URL = process.env.NEXT_PUBLIC_AUTH_API_URL || "http://localhost:4000"
+      
+      const newMemberIds: string[] = []
+      for (const uname of usernamesToFetch) {
+        const authRes = await fetch(`${AUTH_URL}/users/by-username/${uname}`, {
+          headers: { "x-user-id": currentUserId, "x-roles": "user" }
+        })
+        const authData = await authRes.json()
+
+        if (!authData.success || !authData.data) {
+          alert(`User not found: ${uname}`)
+          setAddingMember(false)
+          return
+        }
+        newMemberIds.push(authData.data.id)
+      }
+
+      const API_URL = process.env.NEXT_PUBLIC_MESSAGE_API_URL || "http://localhost:4030"
+      
+      if (isGroupConv) {
+        // Add to existing group
+        const res = await fetch(`${API_URL}/conversations/${conversationId}/members`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-user-id": currentUserId,
+            "x-roles": "user",
+          },
+          body: JSON.stringify({ memberIds: newMemberIds }),
+        })
+        const data = await res.json()
+        if (data.success) {
+          setAddMemberOpen(false)
+          setNewMemberUsername("")
+          router.refresh()
+        } else {
+          alert(data.message || "Failed to add member")
+        }
+      } else {
+        // Create new group
+        const existingMembers = participantIds.filter(id => id !== currentUserId)
+        const allRecipientIds = [...existingMembers, ...newMemberIds]
+        
+        const res = await fetch(`${API_URL}/conversations`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-user-id": currentUserId,
+            "x-roles": "user",
+          },
+          body: JSON.stringify({ recipientIds: allRecipientIds }),
+        })
+        const data = await res.json()
+        
+        if (data.success && data.data) {
+          setAddMemberOpen(false)
+          setNewMemberUsername("")
+          router.push(`/messages/${data.data._id}`)
+          router.refresh()
+        } else {
+          alert(data.message || "Failed to create new group")
+        }
+      }
+    } catch (err) {
+      console.error(err)
+      alert("Failed to add member(s)")
+    } finally {
+      setAddingMember(false)
+    }
+  }
+
   return (
     <div className='flex h-full flex-col bg-white dark:bg-gray-950'>
       {/* Header */}
@@ -234,6 +333,38 @@ export default function ConversationPage({
             </p>
           </div>
         </div>
+        
+        <Dialog open={addMemberOpen} onOpenChange={setAddMemberOpen}>
+          <DialogTrigger render={
+            <Button variant="ghost" size="icon" className="rounded-full" title="Add member">
+              <IconUserPlus size={20} />
+            </Button>
+          } />
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Add Member(s)</DialogTitle>
+              <DialogDescription>
+                {isGroupConv 
+                  ? "Enter one or multiple usernames separated by commas to add to this group."
+                  : "Enter one or multiple usernames separated by commas to create a new group conversation."}
+              </DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handleAddMemberSubmit} className="space-y-4 pt-4">
+              <Input
+                placeholder="username1, username2..."
+                value={newMemberUsername}
+                onChange={(e) => setNewMemberUsername(e.target.value)}
+                autoFocus
+              />
+              <DialogFooter>
+                <DialogClose render={<Button type="button" variant="outline">Cancel</Button>} />
+                <Button type="submit" disabled={!newMemberUsername.trim() || addingMember}>
+                  {addingMember ? "Adding..." : "Add"}
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
       </header>
 
       {/* Messages Area */}

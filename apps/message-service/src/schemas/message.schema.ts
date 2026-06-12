@@ -23,3 +23,8 @@ export const renameConversationSchema = z.object({
   name: z.string().min(1).max(100),
 })
 export type RenameConversationDTO = z.infer<typeof renameConversationSchema>
+
+export const addMembersSchema = z.object({
+  memberIds: z.array(z.string().uuid({ message: "Each memberId must be a valid UUID" })).min(1),
+})
+export type AddMembersDTO = z.infer<typeof addMembersSchema>
