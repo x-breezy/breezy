@@ -16,17 +16,30 @@ export interface SearchPost {
     createdAt: string
 }
 
-export interface SearchUser {
-    id: string
-    username: string
-}
-
 export interface SearchProfile {
     profileId: string
     username: string | null
     firstName: string | null
     lastName: string | null
     avatarUrl: string | null
+}
+
+interface RawProfile {
+    profileId: string
+    username: string | null
+    firstName: string | null
+    lastName: string | null
+    avatarId: string | null
+}
+
+function normalizeProfile(p: RawProfile): SearchProfile {
+    return {
+        profileId: p.profileId,
+        username: p.username,
+        firstName: p.firstName,
+        lastName: p.lastName,
+        avatarUrl: p.avatarId,
+    }
 }
 
 export interface TrendingTag {
@@ -50,42 +63,20 @@ export async function searchPosts(
     return data.data as PaginatedResult<SearchPost>
 }
 
-export async function searchUsers(
-    q: string,
-    page = 1,
-    limit = 20
-): Promise<{ users: SearchUser[]; total: number; page: number; limit: number }> {
-    const { data } = await apiClient.get("/api/users/search", { params: { q, page, limit } })
-    return data.data as { users: SearchUser[]; total: number; page: number; limit: number }
-}
-
 export async function searchProfiles(
     q: string,
     page = 1,
     limit = 20
 ): Promise<{ profiles: SearchProfile[]; total: number; page: number; limit: number }> {
     const { data } = await apiClient.get("/api/profiles/search", { params: { q, page, limit } })
-    return data.data as { profiles: SearchProfile[]; total: number; page: number; limit: number }
+    const raw = data.data as { profiles: RawProfile[]; total: number; page: number; limit: number }
+    return { ...raw, profiles: raw.profiles.map(normalizeProfile) }
 }
 
 export async function fetchProfilesByIds(ids: string[]): Promise<SearchProfile[]> {
     if (ids.length === 0) return []
     const { data } = await apiClient.get("/api/profiles/batch", { params: { ids: ids.join(",") } })
-    return (
-        data.data as Array<{
-            profileId: string
-            username: string | null
-            firstName: string | null
-            lastName: string | null
-            avatarId: string | null
-        }>
-    ).map((p) => ({
-        profileId: p.profileId,
-        username: p.username,
-        firstName: p.firstName,
-        lastName: p.lastName,
-        avatarUrl: p.avatarId,
-    }))
+    return (data.data as RawProfile[]).map(normalizeProfile)
 }
 
 export async function getTrendingTags(limit = 10): Promise<TrendingTag[]> {

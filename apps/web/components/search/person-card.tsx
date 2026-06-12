@@ -3,7 +3,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 export interface PersonCardProps {
   id: string
   displayName: string | null
-  username: string | undefined
+  username: string
   avatarUrl: string | null
   onClick: () => void
 }

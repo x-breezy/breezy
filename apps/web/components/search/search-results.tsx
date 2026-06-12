@@ -7,17 +7,16 @@ import { IconLoader2 } from "@tabler/icons-react"
 import HomePost from "@/components/home/home-post"
 import {
   searchPosts,
-  searchUsers,
   searchProfiles,
   fetchProfilesByIds,
   type SearchPost,
   type SearchProfile,
 } from "@/lib/api/search"
-import { parseTab, type Tab } from "./types"
+import { parseTab } from "./types"
 import { timeAgo } from "@/lib/utils"
 import { PersonCard } from "./person-card"
 import { MediaGrid } from "./media-grid"
-import { mergeByProfileId, collectMedia, type MergedPerson } from "./search-utils"
+import { profilesToPeople, collectMedia, type MergedPerson } from "./search-utils"
 
 interface SearchResultsProps {
   q: string
@@ -80,12 +79,9 @@ export function SearchResults({ q }: SearchResultsProps) {
       setLoading(true)
       setError(null)
       try {
-        const [usersRes, profilesRes] = await Promise.all([
-          searchUsers(query),
-          searchProfiles(query),
-        ])
-        const merged = mergeByProfileId(usersRes.users, profilesRes.profiles)
-        setPeopleCache({ people: merged, total: profilesRes.total, fetchedQ: query })
+        const profilesRes = await searchProfiles(query)
+        const people = profilesToPeople(profilesRes.profiles)
+        setPeopleCache({ people, total: profilesRes.total, fetchedQ: query })
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : "Erreur lors de la recherche"
         setError(msg)
@@ -100,6 +96,12 @@ export function SearchResults({ q }: SearchResultsProps) {
   const fetchMedia = useCallback(
     async (query: string) => {
       if (mediaCache && mediaCache.fetchedQ === query) return
+      // Reuse posts cache when the query matches to avoid a redundant request
+      if (postsCache && postsCache.fetchedQ === query) {
+        const media = collectMedia(postsCache.posts)
+        setMediaCache({ media, total: media.length, fetchedQ: query })
+        return
+      }
       setLoading(true)
       setError(null)
       try {
@@ -114,7 +116,7 @@ export function SearchResults({ q }: SearchResultsProps) {
         setLoading(false)
       }
     },
-    [mediaCache]
+    [mediaCache, postsCache]
   )
 
   useEffect(() => {
