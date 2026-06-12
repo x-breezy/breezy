@@ -28,7 +28,7 @@ export default function MessagesLayout({ children }: { children: React.ReactNode
       .then((data) => {
         if (data.success && data.data) {
           setConversations(data.data.map((c: any) => 
-            c._id === conversationId ? { ...c, hasUnread: false } : c
+            c._id === conversationId ? { ...c, hasUnread: false, unreadCount: 0 } : c
           ))
         }
       })
@@ -48,7 +48,10 @@ export default function MessagesLayout({ children }: { children: React.ReactNode
             ...existingConv,
             lastMessage: message.content,
             lastMessageAt: message.createdAt || new Date().toISOString(),
-            hasUnread: existingConv.hasUnread || (message.conversationId !== conversationId && message.senderId !== currentUserId)
+            hasUnread: existingConv.hasUnread || (message.conversationId !== conversationId && message.senderId !== currentUserId),
+            unreadCount: message.conversationId === conversationId 
+              ? 0 
+              : (message.senderId !== currentUserId ? (existingConv.unreadCount || 0) + 1 : 0)
           }
           const filtered = prev.filter(c => c._id !== message.conversationId)
           return [updatedConv, ...filtered]
@@ -62,7 +65,7 @@ export default function MessagesLayout({ children }: { children: React.ReactNode
             .then(data => {
               if (data.success && data.data) {
                 setConversations(data.data.map((c: any) => 
-                  c._id === conversationId ? { ...c, hasUnread: false } : c
+                  c._id === conversationId ? { ...c, hasUnread: false, unreadCount: 0 } : c
                 ))
               }
             }).catch(console.error)
@@ -88,7 +91,7 @@ export default function MessagesLayout({ children }: { children: React.ReactNode
   useEffect(() => {
     if (conversationId) {
       setConversations(prev => prev.map(c => 
-        c._id === conversationId && c.hasUnread ? { ...c, hasUnread: false } : c
+        c._id === conversationId && c.hasUnread ? { ...c, hasUnread: false, unreadCount: 0 } : c
       ))
     }
   }, [conversationId])

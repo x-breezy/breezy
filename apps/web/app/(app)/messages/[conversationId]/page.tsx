@@ -104,9 +104,10 @@ export default function ConversationPage({
       }
 
       // Check cache first
-      if (cachedUsers[resolvedId]) {
-        setUsername(cachedUsers[resolvedId].displayName)
-        if (cachedUsers[resolvedId].avatarUrl) setAvatarUrl(cachedUsers[resolvedId].avatarUrl)
+      const cached = cachedUsers[resolvedId]
+      if (cached) {
+        setUsername(cached.displayName)
+        if (cached.avatarUrl) setAvatarUrl(cached.avatarUrl)
         return
       }
 

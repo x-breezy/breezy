@@ -46,7 +46,7 @@ export class ChatService {
           senderId: { $ne: userId },
           readAt: null
         }).exec()
-        return { ...conv, hasUnread: unreadCount > 0 }
+        return { ...conv, hasUnread: unreadCount > 0, unreadCount }
       })
     )
     

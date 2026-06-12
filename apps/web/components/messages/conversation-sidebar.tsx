@@ -26,6 +26,7 @@ export interface ConversationMeta {
   lastMessage?: string
   lastMessageAt?: string
   hasUnread?: boolean
+  unreadCount?: number
 }
 
 interface SidebarProps {
@@ -165,6 +166,8 @@ export function ConversationSidebar({ conversations, currentUserId, activeId, on
   const [username, setUsername] = useState("")
   const [loading, setLoading] = useState(false)
 
+  const totalUnreadCount = conversations.reduce((acc, conv) => acc + (conv.unreadCount || 0), 0)
+
   const handleDeleteConversation = async (e: React.MouseEvent, conv: ConversationMeta) => {
     e.preventDefault()
     e.stopPropagation()
@@ -268,7 +271,14 @@ export function ConversationSidebar({ conversations, currentUserId, activeId, on
   return (
     <aside className={`w-full md:w-80 border-r border-border bg-background/50 backdrop-blur-md flex-col h-full ${className}`}>
       <div className="p-4 border-b border-border flex items-center justify-between">
-        <h2 className="text-xl font-bold tracking-tight">Messages</h2>
+        <div className="flex items-center gap-2">
+          <h2 className="text-xl font-bold tracking-tight">Messages</h2>
+          {totalUnreadCount > 0 && (
+            <span className="bg-red-500 text-white text-xs font-bold px-2 rounded-full h-5 min-w-[1.25rem] flex items-center justify-center">
+              {totalUnreadCount}
+            </span>
+          )}
+        </div>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger render={
             <Button size="icon" variant="ghost" className="rounded-full" title="New conversation">
