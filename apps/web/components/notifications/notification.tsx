@@ -1,16 +1,21 @@
 "use client"
 
-import { useState, useTransition } from "react"
+import { useTransition } from "react"
 import { useRouter } from "next/navigation"
-import { IconHeartFilled, IconUserPlus, IconAt, IconLoader2 } from "@tabler/icons-react"
+import {
+  IconHeartFilled,
+  IconUserPlus,
+  IconAt,
+  IconMessage,
+  IconLoader2,
+} from "@tabler/icons-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import type { Notification } from "@/types/notification"
 import type { ActorInfo, NotificationView } from "@/lib/notifications/group"
 import { followUserAction } from "@/app/(app)/profile/follow-action"
+import { useUserStore } from "@/stores/user-store"
 import { ProfileAvatar } from "../profile/profile-avatar"
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost"
 
 export function getActorId(notification: Notification): string {
   return notification.payload.actorId ?? notification.payload.followerId ?? ""
@@ -34,12 +39,11 @@ export const notificationTypeMeta = {
   like: { Icon: IconHeartFilled, badge: "bg-rose-500", stroke: 0 },
   follow: { Icon: IconUserPlus, badge: "bg-sky-500", stroke: 2.4 },
   mention: { Icon: IconAt, badge: "bg-violet-500", stroke: 2.3 },
+  comment: { Icon: IconMessage, badge: "bg-amber-500", stroke: 2.3 },
 } as const
 
 function actorAvatarUrl(actor: ActorInfo): string {
-  return actor.avatarId
-    ? `${API_URL}/api/media/images/${actor.avatarId}`
-    : `https://api.dicebear.com/10.x/glyphs/svg?seed=${actor.id}`
+  return actor.avatarId ?? `https://api.dicebear.com/10.x/glyphs/svg?seed=${actor.id}`
 }
 
 function NotificationText({ view }: { view: NotificationView }) {
@@ -59,6 +63,15 @@ function NotificationText({ view }: { view: NotificationView }) {
       <>
         {uname(view.actor)}
         <span className='text-foreground'> mentioned you in a post.</span>
+      </>
+    )
+  }
+
+  if (view.kind === "comment") {
+    return (
+      <>
+        {uname(view.actor)}
+        <span className='text-foreground'> commented on your post.</span>
       </>
     )
   }
@@ -103,7 +116,9 @@ interface CardProps {
 
 export function NotificationCard({ view, highlight, className }: CardProps) {
   const router = useRouter()
-  const [followed, setFollowed] = useState(false)
+  const actorId = view.kind === "follow" ? view.actor.id : ""
+  const followed = useUserStore((s) => s.following[actorId] ?? false)
+  const setRelation = useUserStore((s) => s.setRelation)
   const [isPending, startTransition] = useTransition()
 
   const primaryActor =
@@ -112,7 +127,7 @@ export function NotificationCard({ view, highlight, className }: CardProps) {
 
   function handleCardClick() {
     if (view.kind === "follow") {
-      router.push(`/${view.actor.username}`)
+      router.push(`/profile/${view.actor.username}`)
     } else {
       router.push(`/posts/${view.postId}`)
     }
@@ -122,8 +137,8 @@ export function NotificationCard({ view, highlight, className }: CardProps) {
     e.stopPropagation()
     startTransition(async () => {
       try {
-        await followUserAction(view.kind === "follow" ? view.actor.id : "")
-        setFollowed(true)
+        await followUserAction(actorId)
+        setRelation(actorId, true)
       } catch {
         // no-op
       }
@@ -139,7 +154,7 @@ export function NotificationCard({ view, highlight, className }: CardProps) {
       onClick={handleCardClick}
       onKeyDown={(e) => e.key === "Enter" && handleCardClick()}
       className={cn(
-        "flex cursor-pointer gap-3 rounded-lg px-0 py-2 hover:bg-muted md:px-2",
+        "flex cursor-pointer gap-3 rounded-lg px-2 py-2 hover:bg-muted",
         highlight && "bg-muted/30",
         className
       )}

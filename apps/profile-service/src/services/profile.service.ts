@@ -50,7 +50,13 @@ class ProfileService {
         transaction: t,
       })
     })
-    publish("profile.followed", { followerId, followingId })
+    const follower = await Profile.findOne({ where: { profileId: followerId } })
+    publish("social.follow", {
+      followerId,
+      followingId,
+      username: follower?.username,
+      avatarId: follower?.avatarId ?? undefined,
+    })
   }
 
   async unfollow(followerId: string, followingId: string): Promise<boolean> {

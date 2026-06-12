@@ -18,18 +18,18 @@ const packageDefinition = protoLoader.loadSync(PROTO_PATH, {
 const protoDescriptor = grpc.loadPackageDefinition(packageDefinition) as any
 const ProfileData = protoDescriptor.profile.data.ProfileData
 
-const client = new ProfileData("host.docker.internal:50051", grpc.credentials.createInsecure())
+const GRPC_URL = process.env.PROFILE_SERVICE_GRPC_URL ?? "localhost:50051"
+const client = new ProfileData(GRPC_URL, grpc.credentials.createInsecure())
 
 export interface ActorProfile {
   username: string
   avatarId: string
-  firstName: string
-  lastName: string
 }
 
 export function getActorProfile(actorId: string): Promise<ActorProfile | null> {
+  const deadline = new Date(Date.now() + 2000)
   return new Promise((resolve) => {
-    client.getProfile({ profileId: actorId }, (err: Error | null, res: ActorProfile) => {
+    client.getProfile({ profileId: actorId }, { deadline }, (err: Error | null, res: ActorProfile) => {
       if (err) {
         resolve(null)
         return

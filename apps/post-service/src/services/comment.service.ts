@@ -1,10 +1,13 @@
 import { CommentModel } from "../models/comment.model"
 import { PostModel } from "../models/post.model"
+import { publish } from "../clients/rabbitmq"
+import { getActorProfile } from "../clients/grpc.client"
 import type { CreateCommentDTO } from "../schemas/comment.schema"
 import type { Comment, NestedComment } from "../types/comment"
 import type { PaginatedResponse } from "../types/api"
 
 const NEST_DEPTH = 3
+const MENTION_RE = /@([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/gi
 
 export class CommentService {
   async createComment(
@@ -25,6 +28,43 @@ export class CommentService {
       { new: true }
     ).exec()
     if (!post) throw Object.assign(new Error("Post not found"), { code: "POST_NOT_FOUND" })
+
+    const commentId = String(comment._id)
+
+    const needsNotification =
+      post.authorId !== authorId ||
+      [
+        ...new Set([...dto.content.matchAll(MENTION_RE)].map((m) => m[1]!.toLowerCase())),
+      ].filter((id) => id !== authorId).length > 0
+
+    const profile = needsNotification ? await getActorProfile(authorId) : null
+
+    if (post.authorId !== authorId) {
+      publish("content.comment", {
+        actorId: authorId,
+        targetUserId: post.authorId,
+        postId,
+        commentId,
+        username: profile?.username,
+        avatarId: profile?.avatarId,
+      })
+    }
+
+    const mentionedIds = [
+      ...new Set([...dto.content.matchAll(MENTION_RE)].map((m) => m[1]!.toLowerCase())),
+    ].filter((id) => id !== authorId)
+
+    for (const targetUserId of mentionedIds) {
+      publish("content.mention", {
+        actorId: authorId,
+        targetUserId,
+        postId,
+        commentId,
+        username: profile?.username,
+        avatarId: profile?.avatarId,
+      })
+    }
+
     return { comment: comment as Comment, commentsCount: post.commentsCount }
   }
 

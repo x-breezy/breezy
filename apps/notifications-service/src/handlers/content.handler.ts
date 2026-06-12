@@ -1,29 +1,24 @@
 import NotificationService from "../services/notification.service"
-import { getActorProfile } from "../config/grpc.client"
-import type { ContentLikeEvent, ContentMentionEvent } from "../types/events"
+import type { ContentLikeEvent, ContentMentionEvent, ContentCommentEvent } from "../types/events"
 
 const notificationService = new NotificationService()
 
 export async function handleLike(payload: unknown): Promise<void> {
   const event = payload as ContentLikeEvent
-  const profile = await getActorProfile(event.actorId)
   await notificationService.create({
     userId: event.targetUserId,
     type: "like",
     payload: {
       actorId: event.actorId,
       postId: event.postId,
-      username: profile?.username,
-      avatarId: profile?.avatarId,
-      firstName: profile?.firstName,
-      lastName: profile?.lastName,
+      username: event.username,
+      avatarId: event.avatarId,
     },
   })
 }
 
 export async function handleMention(payload: unknown): Promise<void> {
   const event = payload as ContentMentionEvent
-  const profile = await getActorProfile(event.actorId)
   await notificationService.create({
     userId: event.targetUserId,
     type: "mention",
@@ -31,10 +26,23 @@ export async function handleMention(payload: unknown): Promise<void> {
       actorId: event.actorId,
       postId: event.postId,
       commentId: event.commentId,
-      username: profile?.username,
-      avatarId: profile?.avatarId,
-      firstName: profile?.firstName,
-      lastName: profile?.lastName,
+      username: event.username,
+      avatarId: event.avatarId,
+    },
+  })
+}
+
+export async function handleComment(payload: unknown): Promise<void> {
+  const event = payload as ContentCommentEvent
+  await notificationService.create({
+    userId: event.targetUserId,
+    type: "comment",
+    payload: {
+      actorId: event.actorId,
+      postId: event.postId,
+      commentId: event.commentId,
+      username: event.username,
+      avatarId: event.avatarId,
     },
   })
 }

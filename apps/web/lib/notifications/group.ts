@@ -17,6 +17,14 @@ export type NotificationView =
       createdAt: string
     }
   | {
+      kind: "comment"
+      ids: string[]
+      actor: ActorInfo
+      postId: string
+      read: boolean
+      createdAt: string
+    }
+  | {
       kind: "like"
       ids: string[]
       postId: string
@@ -80,6 +88,15 @@ export function groupNotifications(list: Notification[]): NotificationView[] {
     } else if (n.type === "mention") {
       views.push({
         kind: "mention",
+        ids: [n._id],
+        actor: toActorInfo(n.payload),
+        postId: n.payload.postId ?? "",
+        read: n.read,
+        createdAt: n.createdAt,
+      })
+    } else if (n.type === "comment") {
+      views.push({
+        kind: "comment",
         ids: [n._id],
         actor: toActorInfo(n.payload),
         postId: n.payload.postId ?? "",
