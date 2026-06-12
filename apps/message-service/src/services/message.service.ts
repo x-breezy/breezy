@@ -23,9 +23,23 @@ export class ChatService {
   }
 
   async getConversations(userId: string): Promise<Conversation[]> {
-    return ConversationModel.find({ participantIds: userId })
+    const conversations = await ConversationModel.find({ participantIds: userId })
       .sort({ lastMessageAt: -1 })
-      .exec() as unknown as Promise<Conversation[]>
+      .lean()
+      .exec() as any[]
+      
+    const withUnread = await Promise.all(
+      conversations.map(async (conv) => {
+        const unreadCount = await MessageModel.countDocuments({
+          conversationId: conv._id.toString(),
+          senderId: { $ne: userId },
+          readAt: null
+        }).exec()
+        return { ...conv, hasUnread: unreadCount > 0 }
+      })
+    )
+    
+    return withUnread as unknown as Promise<Conversation[]>
   }
 
   async deleteConversation(conversationId: string, userId: string): Promise<boolean> {

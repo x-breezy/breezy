@@ -25,6 +25,7 @@ export interface ConversationMeta {
   name?: string
   lastMessage?: string
   lastMessageAt?: string
+  hasUnread?: boolean
 }
 
 interface SidebarProps {
@@ -125,16 +126,21 @@ function SidebarItem({
         }`}
       >
         <div className="flex justify-between items-baseline mb-1">
-          <div className={`font-semibold text-sm truncate ${isActive ? "text-foreground" : "text-foreground"}`}>
+          <div className={`font-semibold text-sm truncate pr-2 ${isActive ? "text-foreground" : "text-foreground"}`}>
             {username ? username : (
               <div className="h-4 w-24 bg-foreground/10 animate-pulse rounded"></div>
             )}
           </div>
-          {conv.lastMessageAt && (
-            <span className="text-xs opacity-70">
-              {new Date(conv.lastMessageAt).toLocaleDateString()}
-            </span>
-          )}
+          <div className="flex items-center gap-2 shrink-0">
+            {conv.hasUnread && !isActive && (
+              <span className="h-2 w-2 rounded-full bg-blue-500 inline-block"></span>
+            )}
+            {conv.lastMessageAt && (
+              <span className="text-xs opacity-70">
+                {new Date(conv.lastMessageAt).toLocaleDateString()}
+              </span>
+            )}
+          </div>
         </div>
         {conv.lastMessage && (
           <p className="text-xs opacity-70 truncate">

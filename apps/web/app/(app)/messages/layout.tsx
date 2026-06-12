@@ -45,7 +45,8 @@ export default function MessagesLayout({ children }: { children: React.ReactNode
           const updatedConv = {
             ...existingConv,
             lastMessage: message.content,
-            lastMessageAt: message.createdAt || new Date().toISOString()
+            lastMessageAt: message.createdAt || new Date().toISOString(),
+            hasUnread: message.conversationId !== conversationId && message.senderId !== currentUserId
           }
           const filtered = prev.filter(c => c._id !== message.conversationId)
           return [updatedConv, ...filtered]
@@ -68,7 +69,15 @@ export default function MessagesLayout({ children }: { children: React.ReactNode
     return () => {
       socket.off("message:new", handleNewMessage)
     }
-  }, [socket, currentUserId])
+  }, [socket, currentUserId, conversationId])
+
+  useEffect(() => {
+    if (conversationId) {
+      setConversations(prev => prev.map(c => 
+        c._id === conversationId && c.hasUnread ? { ...c, hasUnread: false } : c
+      ))
+    }
+  }, [conversationId])
 
   if (!currentUserId) return null;
 

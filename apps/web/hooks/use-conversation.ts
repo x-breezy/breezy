@@ -61,6 +61,29 @@ export function useConversation(conversationId: string, userId: string | undefin
     }
   }, [socket, isConnected, conversationId])
 
+  // Mark as read when viewing or receiving new messages
+  useEffect(() => {
+    if (!conversationId || !userId || messages.length === 0) return
+
+    const API_URL = process.env.NEXT_PUBLIC_MESSAGE_API_URL || "http://localhost:4030"
+    
+    const markRead = async () => {
+      try {
+        await fetch(`${API_URL}/conversations/${conversationId}/read`, {
+          method: "PATCH",
+          headers: {
+            "x-user-id": userId,
+            "x-roles": "user",
+          },
+        })
+      } catch (err) {
+        console.error("Failed to mark as read", err)
+      }
+    }
+    
+    markRead()
+  }, [conversationId, userId, messages])
+
   const sendMessage = useCallback(
     async (content: string) => {
       if (!conversationId || !userId) return
