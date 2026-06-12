@@ -184,6 +184,40 @@ class ProfileController {
       next(err)
     }
   }
+
+  batchGet = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const raw = (req.query.ids as string | undefined) ?? ""
+      const ids = raw
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean)
+      const profiles = await this.profileService.getProfilesByIds(ids)
+      res.status(200).json({ success: true, data: profiles })
+    } catch (err) {
+      next(err)
+    }
+  }
+
+  search = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const q = (req.query.q as string | undefined)?.trim() ?? ""
+      if (!q) {
+        res.status(400).json({ success: false, message: "Query parameter 'q' is required" })
+        return
+      }
+      const page = Math.max(1, parseInt(req.query.page as string) || 1)
+      const limit = Math.min(50, Math.max(1, parseInt(req.query.limit as string) || 20))
+      const result = await this.profileService.search(q, page, limit)
+      res.status(200).json({
+        success: true,
+        data: { profiles: result.profiles, total: result.count, page, limit },
+        message: "Search results retrieved successfully",
+      })
+    } catch (err) {
+      next(err)
+    }
+  }
 }
 
 export default ProfileController

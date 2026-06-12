@@ -10,7 +10,8 @@
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,md}\"",
     "check-types": "turbo run check-types",
     "generate:openapi": "tsx tools/generate-openapi.ts",
-    "test:api": "tsx tools/test-api.ts"
+    "test:api": "tsx tools/test-api.ts",
+    "seed": "tsx tools/seed.ts"
   },
   "devDependencies": {
     "@breezy/eslint-config": "*",

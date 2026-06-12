@@ -1,29 +1,52 @@
-import { ListItem, ListItemLabel, ListItemMeta } from "@/components/ui/list"
+"use client"
 
-const TAGS = [
-  { tag: "WebDev", posts: "12.4k" },
-  { tag: "TypeScript", posts: "9.8k" },
-  { tag: "OpenSource", posts: "8.1k" },
-  { tag: "BreezyUpdate", posts: "7.3k" },
-  { tag: "TailwindCSS", posts: "6.5k" },
-  { tag: "NextJS", posts: "5.9k" },
-  { tag: "React", posts: "5.4k" },
-  { tag: "UXDesign", posts: "4.7k" },
-  { tag: "Frontend", posts: "3.9k" },
-  { tag: "DevOps", posts: "3.2k" },
-]
+import { useEffect, useState } from "react"
+import Link from "next/link"
+import { getTrendingTags, type TrendingTag } from "@/lib/api/search"
+import { IconTrendingUp } from "@tabler/icons-react"
+
+function formatCount(n: number): string {
+  if (n >= 1000) return `${(n / 1000).toFixed(1)}k`
+  return String(n)
+}
 
 export function TagList() {
+  const [tags, setTags] = useState<TrendingTag[]>([])
+
+  useEffect(() => {
+    getTrendingTags(10)
+      .then(setTags)
+      .catch((err: unknown) => console.error("Failed to fetch trending tags", err))
+  }, [])
+
+  if (tags.length === 0) return null
+
   return (
-    <ul className='py-3'>
-      {TAGS.map((item) => (
-        <li key={item.tag}>
-          <ListItem>
-            <ListItemLabel>#{item.tag}</ListItemLabel>
-            <ListItemMeta>{item.posts} posts</ListItemMeta>
-          </ListItem>
-        </li>
-      ))}
-    </ul>
+    <div className='m-auto mt-[30px] flex max-w-4xl flex-col gap-4 px-4 py-4'>
+      <div className='flex items-center justify-between gap-2'>
+        <p className='font-semibold'>Tendances en ce moment</p>
+        <IconTrendingUp stroke={2} />
+      </div>
+      <ul className='flex flex-col gap-0'>
+        {tags.map((item, i) => (
+          <li key={item.tag} className='rounded-md p-2 transition-colors hover:bg-muted/50'>
+            <Link
+              href={`/search?q=${encodeURIComponent(item.tag)}`}
+              className='group flex items-center gap-4'
+            >
+              <span className='text-md w-4 shrink-0 font-medium text-muted-foreground'>
+                {i + 1}
+              </span>
+              <div className='flex w-full flex-row items-center justify-between gap-1'>
+                <span className='text-sm font-semibold'>{item.tag}</span>
+                <span className='shrink-0 text-xs text-muted-foreground'>
+                  {formatCount(item.count)} posts
+                </span>
+              </div>
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </div>
   )
 }

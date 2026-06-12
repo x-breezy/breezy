@@ -1,3 +1,4 @@
+import { Op } from "sequelize"
 import { Profile, CreateProfileInput, UpdateProfileInput } from "../models/profile.model"
 import { Follow } from "../models/follow.model"
 import { publish } from "../clients/rabbitmq"
@@ -107,6 +108,28 @@ class ProfileService {
     ])
     const following = relations.map((f) => f.get("followingId") as string)
     return { count, following }
+  }
+
+  async getProfilesByIds(ids: string[]): Promise<Profile[]> {
+    if (ids.length === 0) return []
+    return Profile.findAll({ where: { profileId: ids } })
+  }
+
+  async search(
+    q: string,
+    page: number = 1,
+    limit: number = 20
+  ): Promise<{ count: number; profiles: Profile[] }> {
+    const offset = (page - 1) * limit
+    const where = {
+      [Op.or]: [
+        { username: { [Op.iLike]: `%${q}%` } },
+        { firstName: { [Op.iLike]: `%${q}%` } },
+        { lastName: { [Op.iLike]: `%${q}%` } },
+      ],
+    }
+    const { count, rows } = await Profile.findAndCountAll({ where, limit, offset })
+    return { count, profiles: rows }
   }
 }
 

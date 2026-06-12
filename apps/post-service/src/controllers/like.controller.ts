@@ -3,7 +3,22 @@ import { LikeService } from "../services/like.service"
 import { PostModel } from "../models/post.model"
 
 export class LikeController {
-  constructor(private service = new LikeService()) {}
+  constructor(private service = new LikeService()) { }
+
+  getMyLikes = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const raw = typeof req.query.postIds === "string" ? req.query.postIds : ""
+      const postIds = raw ? raw.split(",").filter(Boolean) : []
+      if (postIds.length === 0) {
+        res.json({ success: true, data: [] })
+        return
+      }
+      const liked = await this.service.getLikedPostIds(req.user!.id, postIds)
+      res.json({ success: true, data: liked })
+    } catch (err) {
+      next(err)
+    }
+  }
 
   like = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {

@@ -19,7 +19,10 @@ function createProfileRouter() {
   const profileService = new ProfileService()
   const profileController = new ProfileController(profileService)
 
-  // Protected
+  router.get("/search", identity, profileController.search)
+  router.get("/batch", profileController.batchGet)
+
+  // Protected — static routes BEFORE /:profileId to avoid param-route swallowing
   router.get(
     "/by-username/:username",
     identity,

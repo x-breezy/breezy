@@ -36,8 +36,7 @@ export type UpdateProfileInput = Partial<
 
 export class Profile
   extends Model<ProfileAttributes, CreateProfileInput>
-  implements ProfileAttributes
-{
+  implements ProfileAttributes {
   declare profileId: string
   declare username: string
   declare role: string
@@ -61,8 +60,9 @@ export function initProfileModel(sequelize: Sequelize): void {
         field: "profile_id",
       },
       username: {
-        type: DataTypes.STRING(50),
-        allowNull: false,
+        type: DataTypes.STRING(100),
+        allowNull: true,
+        defaultValue: null,
       },
       role: {
         type: DataTypes.STRING(50),
