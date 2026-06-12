@@ -1,178 +1,39 @@
 "use client"
 
-import { useEffect, useMemo, useState, useCallback } from "react"
 import { useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { IconLoader2 } from "@tabler/icons-react"
 import HomePost from "@/components/home/home-post"
-import {
-  searchPosts,
-  searchProfiles,
-  fetchProfilesByIds,
-  getLikedPostIds,
-  toggleLike,
-  type SearchPost,
-  type SearchProfile,
-} from "@/lib/api/search"
+import type { SearchProfile } from "@/lib/api/profiles"
 import { parseTab } from "./types"
 import { timeAgo } from "@/lib/utils"
 import { PersonCard } from "./person-card"
 import { MediaGrid } from "./media-grid"
-import { profilesToPeople, collectMedia, type MergedPerson } from "./search-utils"
+import {
+  useSearchResults,
+  type PostsCache,
+  type PeopleCache,
+  type MediaCache,
+} from "./use-search-results"
 
 interface SearchResultsProps {
   q: string
-}
-
-interface TabCache {
-  fetchedQ: string
-}
-
-interface PostsCache extends TabCache {
-  posts: SearchPost[]
-  profiles: SearchProfile[]
-  likedIds: Set<string>
-  total: number
-}
-
-interface PeopleCache extends TabCache {
-  people: MergedPerson[]
-  total: number
-}
-
-interface MediaCache extends TabCache {
-  media: { id: string; type: "image" | "video" }[]
-  total: number
 }
 
 export function SearchResults({ q }: SearchResultsProps) {
   const searchParams = useSearchParams()
   const tab = parseTab(searchParams.get("tab"))
 
-  const [postsCache, setPostsCache] = useState<PostsCache | null>(null)
-  const [peopleCache, setPeopleCache] = useState<PeopleCache | null>(null)
-  const [mediaCache, setMediaCache] = useState<MediaCache | null>(null)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-
-  const fetchPosts = useCallback(
-    async (query: string) => {
-      if (postsCache && postsCache.fetchedQ === query) return
-      setLoading(true)
-      setError(null)
-      try {
-        const postsRes = await searchPosts(query)
-        const authorIds = [...new Set(postsRes.data.map((p) => p.authorId))]
-        const postIds = postsRes.data.map((p) => p._id)
-        const [profiles, likedIds] = await Promise.all([
-          fetchProfilesByIds(authorIds),
-          getLikedPostIds(postIds).catch(() => [] as string[]),
-        ])
-        setPostsCache({
-          posts: postsRes.data,
-          profiles,
-          likedIds: new Set(likedIds),
-          total: postsRes.total,
-          fetchedQ: query,
-        })
-      } catch (err: unknown) {
-        const msg = err instanceof Error ? err.message : "Erreur lors de la recherche"
-        setError(msg)
-        setPostsCache({ posts: [], profiles: [], likedIds: new Set(), total: 0, fetchedQ: query })
-      } finally {
-        setLoading(false)
-      }
-    },
-    [postsCache]
-  )
-
-  const fetchPeople = useCallback(
-    async (query: string) => {
-      if (peopleCache && peopleCache.fetchedQ === query) return
-      setLoading(true)
-      setError(null)
-      try {
-        const profilesRes = await searchProfiles(query)
-        const people = profilesToPeople(profilesRes.profiles)
-        setPeopleCache({ people, total: profilesRes.total, fetchedQ: query })
-      } catch (err: unknown) {
-        const msg = err instanceof Error ? err.message : "Erreur lors de la recherche"
-        setError(msg)
-        setPeopleCache({ people: [], total: 0, fetchedQ: query })
-      } finally {
-        setLoading(false)
-      }
-    },
-    [peopleCache]
-  )
-
-  const fetchMedia = useCallback(
-    async (query: string) => {
-      if (mediaCache && mediaCache.fetchedQ === query) return
-      // Reuse posts cache when the query matches to avoid a redundant request
-      if (postsCache && postsCache.fetchedQ === query) {
-        const media = collectMedia(postsCache.posts)
-        setMediaCache({ media, total: media.length, fetchedQ: query })
-        return
-      }
-      setLoading(true)
-      setError(null)
-      try {
-        const postsRes = await searchPosts(query)
-        const media = collectMedia(postsRes.data)
-        setMediaCache({ media, total: media.length, fetchedQ: query })
-      } catch (err: unknown) {
-        const msg = err instanceof Error ? err.message : "Erreur lors de la recherche"
-        setError(msg)
-        setMediaCache({ media: [], total: 0, fetchedQ: query })
-      } finally {
-        setLoading(false)
-      }
-    },
-    [mediaCache, postsCache]
-  )
-
-  useEffect(() => {
-    if (!q) return
-    if (tab === "posts") fetchPosts(q)
-    else if (tab === "people") fetchPeople(q)
-    else if (tab === "media") fetchMedia(q)
-  }, [q, tab, fetchPosts, fetchPeople, fetchMedia])
-
-  const profileMap = useMemo(() => {
-    if (!postsCache) return new Map<string, SearchProfile>()
-    return new Map(postsCache.profiles.map((p) => [p.profileId, p]))
-  }, [postsCache])
-
-  const handleLike = useCallback(async (postId: string, liked: boolean): Promise<number | void> => {
-    try {
-      const { likesCount } = await toggleLike(postId, liked)
-      setPostsCache((prev) => {
-        if (!prev) return prev
-        const newLikedIds = new Set(prev.likedIds)
-        if (liked) newLikedIds.add(postId)
-        else newLikedIds.delete(postId)
-        return {
-          ...prev,
-          likedIds: newLikedIds,
-          posts: prev.posts.map((p) => (p._id === postId ? { ...p, likesCount } : p)),
-        }
-      })
-      return likesCount
-    } catch (err: unknown) {
-      const status = (err as { response?: { status?: number } })?.response?.status
-      if (status === 409 || status === 404) {
-        // Already liked / already unliked — sync UI back to current cache state
-        setPostsCache((prev) => {
-          if (!prev) return prev
-          const post = prev.posts.find((p) => p._id === postId)
-          return post ? { ...prev } : prev
-        })
-        return
-      }
-      throw err
-    }
-  }, [])
+  const {
+    postsCache,
+    peopleCache,
+    mediaCache,
+    profileMap,
+    loading,
+    error,
+    handleLike,
+    handleFollow,
+  } = useSearchResults(q, tab)
 
   return (
     <div className='mt-[30px]'>
@@ -188,7 +49,7 @@ export function SearchResults({ q }: SearchResultsProps) {
         )}
 
         {!loading && !error && tab === "posts" && renderPosts(postsCache, profileMap, handleLike)}
-        {!loading && !error && tab === "people" && renderPeople(peopleCache)}
+        {!loading && !error && tab === "people" && renderPeople(peopleCache, handleFollow)}
         {!loading && !error && tab === "media" && renderMedia(mediaCache)}
       </ul>
     </div>
@@ -225,7 +86,10 @@ function renderPosts(
   })
 }
 
-function renderPeople(cache: PeopleCache | null) {
+function renderPeople(
+  cache: PeopleCache | null,
+  onFollow: (id: string, follow: boolean) => Promise<void>
+) {
   if (!cache || cache.people.length === 0) {
     return <EmptyState label='Aucun utilisateur trouvé' />
   }
@@ -240,6 +104,7 @@ function renderPeople(cache: PeopleCache | null) {
           bio={item.bio}
           followersCount={item.followersCount}
           onClick={() => {}}
+          onFollow={onFollow}
         />
       </Link>
     </li>

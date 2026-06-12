@@ -3,7 +3,6 @@
 import { useState, useCallback } from "react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
-import { followProfile, unfollowProfile } from "@/lib/api/search"
 
 export interface PersonCardProps {
   id: string
@@ -13,6 +12,7 @@ export interface PersonCardProps {
   bio?: string | null
   followersCount?: number
   onClick: () => void
+  onFollow?: (id: string, follow: boolean) => Promise<void>
 }
 
 export function PersonCard({
@@ -22,6 +22,7 @@ export function PersonCard({
   avatarUrl,
   bio,
   onClick,
+  onFollow,
 }: PersonCardProps) {
   const initials = (displayName ?? username ?? "?")[0]?.toUpperCase()
   const [isFollowing, setIsFollowing] = useState(false)
@@ -30,16 +31,16 @@ export function PersonCard({
     async (e: React.MouseEvent) => {
       e.stopPropagation()
       e.preventDefault()
+      if (!onFollow) return
       const next = !isFollowing
       setIsFollowing(next)
       try {
-        if (next) await followProfile(id)
-        else await unfollowProfile(id)
+        await onFollow(id, next)
       } catch {
         setIsFollowing((prev) => !prev)
       }
     },
-    [isFollowing]
+    [id, isFollowing, onFollow]
   )
 
   return (

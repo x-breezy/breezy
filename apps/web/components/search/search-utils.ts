@@ -1,4 +1,5 @@
-import type { SearchProfile, SearchPost, SearchPostMedia } from "@/lib/api/search"
+import type { SearchPost, SearchPostMedia } from "@/lib/api/posts"
+import type { SearchProfile } from "@/lib/api/profiles"
 
 export interface MergedPerson {
     id: string

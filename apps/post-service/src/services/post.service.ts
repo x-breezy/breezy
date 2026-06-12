@@ -73,6 +73,7 @@ export class PostService {
     const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
     const tagRegex = new RegExp(`^${escaped}$`, "i")
     const contentRegex = new RegExp(escaped, "i")
+    const safeQ = q.replace(/"/g, '\\"')
 
     // Fetch: exact tag match first, then text-score ranked, then regex fallback
     const tagDocs = await PostModel.find({ tags: tagRegex })
@@ -81,7 +82,7 @@ export class PostService {
       .exec()
 
     const textDocs = await PostModel.find(
-      { $text: { $search: `"${q}"` } },
+      { $text: { $search: `"${safeQ}"` } },
       { score: { $meta: "textScore" } }
     )
       .sort({ score: { $meta: "textScore" } })
@@ -115,7 +116,7 @@ export class PostService {
     // Count distinct matching documents (avoid $text in $or which MongoDB rejects)
     const countPromises: Promise<number>[] = [
       PostModel.countDocuments({ tags: tagRegex }).exec(),
-      PostModel.countDocuments({ $text: { $search: `"${q}"` } }).exec(),
+      PostModel.countDocuments({ $text: { $search: `"${safeQ}"` } }).exec(),
       PostModel.countDocuments({ content: contentRegex }).exec(),
     ]
     if (authorIds && authorIds.length > 0) {
