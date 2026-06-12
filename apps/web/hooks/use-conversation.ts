@@ -6,6 +6,7 @@ export interface Message {
   conversationId: string
   senderId: string
   content: string
+  isSystem?: boolean
   readAt: string | null
   createdAt: string
   updatedAt: string

@@ -251,14 +251,23 @@ export default function ConversationPage({
             {messages.map((msg, index) => {
               const prevMsg = index > 0 ? messages[index - 1] : null
               const isConsecutive = prevMsg !== null && prevMsg.senderId === msg.senderId
+              
+              let senderName = msg.senderId === currentUserId ? "Vous" : "Quelqu'un"
+              if (msg.senderId !== currentUserId && cachedUsers[msg.senderId]) {
+                const parts = cachedUsers[msg.senderId].displayName.split(" @")
+                senderName = parts[0] || parts[1] || senderName
+              }
+
               return (
               <MessageBubble
                 key={msg._id}
                 content={msg.content}
                 createdAt={msg.createdAt}
                 isOwn={msg.senderId === currentUserId}
-                  isConsecutive={isConsecutive}
-                  avatarUrl={avatarUrl}
+                isConsecutive={isConsecutive}
+                avatarUrl={avatarUrl}
+                isSystem={msg.isSystem}
+                senderName={senderName}
               />
               )
             })}

@@ -70,9 +70,24 @@ export class ChatService {
           MessageModel.deleteMany({ conversationId }).exec()
         ])
       } else {
-        await ConversationModel.findByIdAndUpdate(conversationId, {
+        const conversationUpdated = await ConversationModel.findByIdAndUpdate(conversationId, {
           participantIds: remainingParticipants
-        }).exec()
+        }, { new: true }).exec()
+
+        if (conversationUpdated) {
+          const sysMsg = await MessageModel.create({
+            conversationId,
+            senderId: userId,
+            content: "a quitté le groupe",
+            isSystem: true
+          })
+          
+          for (const recipientId of remainingParticipants) {
+            try {
+              getIO().to(recipientId).emit("message:new", sysMsg)
+            } catch (err) {}
+          }
+        }
       }
     } else {
       const newDeletedBy = [...new Set([...(conversation.deletedBy || []), userId])]
@@ -102,11 +117,19 @@ export class ChatService {
     ).exec()
 
     if (conversation) {
-      // Broadcast update to participants
+      const sysMsg = await MessageModel.create({
+        conversationId,
+        senderId: userId,
+        content: `a renommé le groupe en "${name}"`,
+        isSystem: true
+      })
+
+      // Broadcast update and system message to participants
       const recipientIds = conversation.participantIds || []
       for (const recipientId of recipientIds) {
         try {
           getIO().to(recipientId).emit("conversation:updated", conversation)
+          getIO().to(recipientId).emit("message:new", sysMsg)
         } catch (err) {}
       }
     }

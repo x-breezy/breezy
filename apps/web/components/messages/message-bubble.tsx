@@ -8,9 +8,22 @@ interface MessageBubbleProps {
   isOwn: boolean
   isConsecutive?: boolean
   avatarUrl?: string
+  isSystem?: boolean
+  senderName?: string
 }
 
-export function MessageBubble({ content, createdAt, isOwn, isConsecutive, avatarUrl }: MessageBubbleProps) {
+export function MessageBubble({ content, createdAt, isOwn, isConsecutive, avatarUrl, isSystem, senderName }: MessageBubbleProps) {
+  if (isSystem) {
+    return (
+      <div className="flex w-full justify-center my-3 animate-in fade-in duration-300">
+        <div className="bg-gray-100 dark:bg-gray-800/50 px-3 py-1 rounded-full text-xs text-gray-500 flex items-center gap-1">
+          <span className="font-medium text-gray-700 dark:text-gray-300">{senderName || "Quelqu'un"}</span>
+          <span>{content}</span>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div
       className={`flex w-full ${isConsecutive ? "mb-1" : "mb-4"} ${isOwn ? "justify-end" : "justify-start"} animate-in slide-in-from-bottom-2 fade-in duration-300 gap-2`}
