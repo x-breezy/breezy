@@ -29,6 +29,7 @@ const USER2_UUID = "22222222-2222-2222-2222-222222222222"
 const NOW = new Date("2026-01-01T00:00:00.000Z")
 
 const MOCK_POST = {
+  _id: { toString: () => "abc" },
   id: "abc",
   content: "Hello world",
   authorId: USER1_UUID,
@@ -47,6 +48,16 @@ function mockFindPaginated(docs: unknown[], total: number) {
   }
     ; (mockedModel.find as jest.Mock).mockReturnValue(mockQuery)
     ; (mockedModel.countDocuments as jest.Mock).mockResolvedValue(total)
+}
+
+function mockSearchPaginated(docs: unknown[], total: number) {
+  const mockQuery = {
+    sort: jest.fn().mockReturnThis(),
+    limit: jest.fn().mockReturnThis(),
+    exec: jest.fn().mockResolvedValue(docs),
+  }
+    ; (mockedModel.find as jest.Mock).mockReturnValue(mockQuery)
+    ; (mockedModel.countDocuments as jest.Mock).mockReturnValue({ exec: jest.fn().mockResolvedValue(total) })
 }
 
 beforeEach(() => {
@@ -507,7 +518,7 @@ describe("global error handler", () => {
 
   describe("GET /posts/search", () => {
     it("returns paginated posts matching query", async () => {
-      mockFindPaginated([MOCK_POST], 1)
+      mockSearchPaginated([MOCK_POST], 1)
 
       const res = await request(app)
         .get("/posts/search?q=hello")
@@ -547,7 +558,7 @@ describe("global error handler", () => {
     })
 
     it("is not caught by the /:id route", async () => {
-      mockFindPaginated([], 0)
+      mockSearchPaginated([], 0)
 
       const res = await request(app)
         .get("/posts/search?q=test")
@@ -562,6 +573,10 @@ describe("global error handler", () => {
   // ─── GET /posts/trending-tags ────────────────────────────────────────────────
 
   describe("GET /posts/trending-tags", () => {
+    let dateSpy: jest.SpyInstance
+    beforeEach(() => { dateSpy = jest.spyOn(Date, "now").mockReturnValue(0) })
+    afterEach(() => { dateSpy.mockRestore() })
+
     it("returns list of tags with counts", async () => {
       const mockTags = [
         { tag: "TypeScript", count: 42 },
@@ -581,7 +596,8 @@ describe("global error handler", () => {
     })
 
     it("respects ?limit query param", async () => {
-      ; (mockedModel.aggregate as jest.Mock).mockResolvedValue([])
+      dateSpy.mockReturnValue(10 * 60 * 1000)
+        ; (mockedModel.aggregate as jest.Mock).mockResolvedValue([])
 
       const res = await request(app)
         .get("/posts/trending-tags?limit=5")

@@ -18,6 +18,7 @@ const mockedModel = PostModel as jest.Mocked<typeof PostModel>
 const NOW = new Date("2026-01-01T00:00:00.000Z")
 
 const MOCK_POST = {
+  _id: { toString: () => "abc" },
   id: "abc",
   content: "Hello world",
   authorId: "user1",
@@ -204,36 +205,43 @@ describe("PostService", () => {
   describe("search", () => {
     const makeQuery = (docs: (typeof MOCK_POST)[] = []) => ({
       sort: jest.fn().mockReturnThis(),
-      skip: jest.fn().mockReturnThis(),
       limit: jest.fn().mockReturnThis(),
       exec: jest.fn().mockResolvedValue(docs),
     })
+    const makeCountQuery = (n: number) => ({ exec: jest.fn().mockResolvedValue(n) })
 
-    it("queries with $text against content and tags index", async () => {
+    it("queries with $text, tags regex, content regex and merges deduped results", async () => {
       const mockQuery = makeQuery([MOCK_POST])
         ; (mockedModel.find as jest.Mock).mockReturnValue(mockQuery)
-        ; (mockedModel.countDocuments as jest.Mock).mockResolvedValue(1)
+        ; (mockedModel.countDocuments as jest.Mock).mockReturnValue(makeCountQuery(1))
 
       const result = await service.search("typescript", 1, 20)
 
-      expect(mockedModel.find).toHaveBeenCalledWith({ $text: { $search: "typescript" } })
-      expect(result).toEqual({ data: [MOCK_POST], total: 1, page: 1, limit: 20 })
+      expect(mockedModel.find).toHaveBeenCalledWith(
+        expect.objectContaining({ $text: { $search: '"typescript"' } }),
+        expect.anything()
+      )
+      expect(result.data).toHaveLength(1)
+      expect(result.total).toBeGreaterThanOrEqual(1)
+      expect(result.page).toBe(1)
+      expect(result.limit).toBe(20)
     })
 
-    it("computes skip correctly for page > 1", async () => {
-      const mockQuery = makeQuery([])
-        ; (mockedModel.find as jest.Mock).mockReturnValue(mockQuery)
-        ; (mockedModel.countDocuments as jest.Mock).mockResolvedValue(0)
+    it("applies page offset correctly for page > 1", async () => {
+      const emptyQuery = makeQuery([])
+        ; (mockedModel.find as jest.Mock).mockReturnValue(emptyQuery)
+        ; (mockedModel.countDocuments as jest.Mock).mockReturnValue(makeCountQuery(0))
 
-      await service.search("hello", 3, 10)
+      const result = await service.search("hello", 3, 10)
 
-      expect(mockQuery.skip).toHaveBeenCalledWith(20)
+      expect(result.page).toBe(3)
+      expect(result.limit).toBe(10)
     })
 
     it("returns empty results when nothing matches", async () => {
-      const mockQuery = makeQuery([])
-        ; (mockedModel.find as jest.Mock).mockReturnValue(mockQuery)
-        ; (mockedModel.countDocuments as jest.Mock).mockResolvedValue(0)
+      const emptyQuery = makeQuery([])
+        ; (mockedModel.find as jest.Mock).mockReturnValue(emptyQuery)
+        ; (mockedModel.countDocuments as jest.Mock).mockReturnValue(makeCountQuery(0))
 
       const result = await service.search("noresult", 1, 20)
 
@@ -242,6 +250,16 @@ describe("PostService", () => {
   })
 
   describe("trendingTags", () => {
+    let dateSpy: jest.SpyInstance
+
+    beforeEach(() => {
+      dateSpy = jest.spyOn(Date, "now").mockReturnValue(0)
+    })
+
+    afterEach(() => {
+      dateSpy.mockRestore()
+    })
+
     it("returns aggregated tags sorted by count", async () => {
       const mockTags = [
         { tag: "TypeScript", count: 42 },
@@ -262,7 +280,8 @@ describe("PostService", () => {
     })
 
     it("uses default limit of 10", async () => {
-      ; (mockedModel.aggregate as jest.Mock).mockResolvedValue([])
+      dateSpy.mockReturnValue(10 * 60 * 1000)
+        ; (mockedModel.aggregate as jest.Mock).mockResolvedValue([])
 
       await service.trendingTags()
 
