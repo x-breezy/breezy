@@ -51,7 +51,7 @@ export function ProfileSection({ className, profile, role, isOwn }: ProfileSecti
           <ProfileBio>{profile.bio}</ProfileBio>
         </div>
       </div>
-      <div className='md: container-center mx-auto mt-4 flex'>
+      <div className='container-center mx-auto mt-4 hidden md:flex'>
         <ProfileActions profile={profile} isOwn={isOwn} />
       </div>
     </section>

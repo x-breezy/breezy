@@ -60,7 +60,7 @@ export function ProfileActions({ className, profile, isOwn }: ProfileActionsProp
   const handleMessage = () => {}
 
   return (
-    <div className={cn(className, "flex w-full gap-3")}>
+    <div className={cn(className, "flex gap-3")}>
       {profile && (
         <ProfileEditDialog open={open} onClose={() => setOpen(false)} profile={profile} />
       )}
