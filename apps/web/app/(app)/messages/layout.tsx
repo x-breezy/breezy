@@ -27,7 +27,9 @@ export default function MessagesLayout({ children }: { children: React.ReactNode
       .then((res) => res.json())
       .then((data) => {
         if (data.success && data.data) {
-          setConversations(data.data)
+          setConversations(data.data.map((c: any) => 
+            c._id === conversationId ? { ...c, hasUnread: false } : c
+          ))
         }
       })
       .catch(console.error)
@@ -46,7 +48,7 @@ export default function MessagesLayout({ children }: { children: React.ReactNode
             ...existingConv,
             lastMessage: message.content,
             lastMessageAt: message.createdAt || new Date().toISOString(),
-            hasUnread: message.conversationId !== conversationId && message.senderId !== currentUserId
+            hasUnread: existingConv.hasUnread || (message.conversationId !== conversationId && message.senderId !== currentUserId)
           }
           const filtered = prev.filter(c => c._id !== message.conversationId)
           return [updatedConv, ...filtered]
@@ -58,7 +60,11 @@ export default function MessagesLayout({ children }: { children: React.ReactNode
           })
             .then(r => r.json())
             .then(data => {
-              if (data.success && data.data) setConversations(data.data)
+              if (data.success && data.data) {
+                setConversations(data.data.map((c: any) => 
+                  c._id === conversationId ? { ...c, hasUnread: false } : c
+                ))
+              }
             }).catch(console.error)
           return prev
         }
@@ -89,11 +95,7 @@ export default function MessagesLayout({ children }: { children: React.ReactNode
 
   const sortedConversations = React.useMemo(() => {
     return [...conversations].sort((a, b) => {
-      // Pin unread conversations to the top
-      if (a.hasUnread && !b.hasUnread) return -1;
-      if (!a.hasUnread && b.hasUnread) return 1;
-      
-      // Then sort by last message date descending
+      // Sort by last message date descending
       const dateA = a.lastMessageAt ? new Date(a.lastMessageAt).getTime() : 0;
       const dateB = b.lastMessageAt ? new Date(b.lastMessageAt).getTime() : 0;
       return dateB - dateA;
