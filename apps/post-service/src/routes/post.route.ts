@@ -9,15 +9,21 @@ import { PERMISSIONS } from "../constants/permissions"
 import { PostModel } from "../models/post.model"
 import { createLikeRouter } from "./like.route"
 import { createCommentRouter } from "./comment.route"
+import { LikeController } from "../controllers/like.controller"
+import { LikeService } from "../services/like.service"
 
 export function createPostRouter(
-  controller: PostController = new PostController(new PostService())
+  controller: PostController = new PostController(new PostService()),
+  likeController: LikeController = new LikeController(new LikeService())
 ) {
   const router = Router()
 
   // Static routes BEFORE /:id to avoid param-route swallowing
   router.post("/", identity, validate(createPostSchema), controller.create)
   router.get("/feed", identity, controller.getFeed)
+  router.get("/search", identity, controller.search)
+  router.get("/trending-tags", identity, controller.trendingTags)
+  router.get("/liked-by-me", identity, likeController.getMyLikes)
   router.get(
     "/users/:userId",
     identity,

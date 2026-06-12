@@ -157,3 +157,5 @@ docker exec breezy-filebeat rm -rf /usr/share/filebeat/data/registry docker rest
 # Compter les logs indexés
 
 curl http://localhost:9200/breezy-logs-\*/\_count
+
+pensé a mettre une erreur si on créer un user avec un username de 2 caractères, min 3
