@@ -46,7 +46,7 @@ function SidebarItem({
   conv: ConversationMeta
   currentUserId: string | undefined
   activeId?: string
-  onDelete: (e: React.MouseEvent, conversationId: string) => void
+  onDelete: (e: React.MouseEvent, conv: ConversationMeta) => void
 }) {
   const otherUserId = conv.participantIds.find((id) => id !== currentUserId) || "Unknown"
   const isActive = conv._id === activeId
@@ -149,7 +149,7 @@ function SidebarItem({
         )}
       </Link>
       <button
-        onClick={(e) => onDelete(e, conv._id)}
+        onClick={(e) => onDelete(e, conv)}
         className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-red-500 opacity-0 group-hover:opacity-100 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-full transition-all"
         title="Supprimer la conversation"
       >
@@ -165,12 +165,17 @@ export function ConversationSidebar({ conversations, currentUserId, activeId, on
   const [username, setUsername] = useState("")
   const [loading, setLoading] = useState(false)
 
-  const handleDeleteConversation = async (e: React.MouseEvent, conversationId: string) => {
+  const handleDeleteConversation = async (e: React.MouseEvent, conv: ConversationMeta) => {
     e.preventDefault()
     e.stopPropagation()
     
-    if (!window.confirm("Êtes-vous sûr de vouloir supprimer cette conversation ?")) return
+    const confirmMessage = conv.isGroup 
+      ? "Êtes-vous sûr de vouloir quitter ce groupe ?" 
+      : "Êtes-vous sûr de vouloir supprimer cette conversation ?"
+      
+    if (!window.confirm(confirmMessage)) return
 
+    const conversationId = conv._id
     const API_URL = process.env.NEXT_PUBLIC_MESSAGE_API_URL || "http://localhost:4030"
     try {
       const res = await fetch(`${API_URL}/conversations/${conversationId}`, {

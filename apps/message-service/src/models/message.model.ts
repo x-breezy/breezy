@@ -17,6 +17,7 @@ export interface Conversation {
   name: string | null
   lastMessage: string | null
   lastMessageAt: Date | null
+  deletedBy: string[]
   createdAt: Date
   updatedAt: Date
 }
@@ -40,6 +41,7 @@ const conversationSchema = new Schema<Conversation>(
     name: { type: String, default: null },
     lastMessage: { type: String, default: null },
     lastMessageAt: { type: Date, default: null },
+    deletedBy: { type: [String], default: [] },
   },
   { timestamps: true, collection: "conversations" }
 )

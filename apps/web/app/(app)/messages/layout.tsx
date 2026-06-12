@@ -65,9 +65,17 @@ export default function MessagesLayout({ children }: { children: React.ReactNode
       })
     }
 
+    const handleConversationUpdated = (updatedConv: any) => {
+      setConversations(prev => prev.map(c => 
+        c._id === updatedConv._id ? { ...c, name: updatedConv.name, isGroup: updatedConv.isGroup } : c
+      ))
+    }
+
     socket.on("message:new", handleNewMessage)
+    socket.on("conversation:updated", handleConversationUpdated)
     return () => {
       socket.off("message:new", handleNewMessage)
+      socket.off("conversation:updated", handleConversationUpdated)
     }
   }, [socket, currentUserId, conversationId])
 
@@ -79,6 +87,19 @@ export default function MessagesLayout({ children }: { children: React.ReactNode
     }
   }, [conversationId])
 
+  const sortedConversations = React.useMemo(() => {
+    return [...conversations].sort((a, b) => {
+      // Pin unread conversations to the top
+      if (a.hasUnread && !b.hasUnread) return -1;
+      if (!a.hasUnread && b.hasUnread) return 1;
+      
+      // Then sort by last message date descending
+      const dateA = a.lastMessageAt ? new Date(a.lastMessageAt).getTime() : 0;
+      const dateB = b.lastMessageAt ? new Date(b.lastMessageAt).getTime() : 0;
+      return dateB - dateA;
+    });
+  }, [conversations]);
+
   if (!currentUserId) return null;
 
   return (
@@ -86,7 +107,7 @@ export default function MessagesLayout({ children }: { children: React.ReactNode
       <ConversationSidebar
         className={conversationId ? "hidden md:flex" : "flex"}
         activeId={conversationId}
-        conversations={conversations}
+        conversations={sortedConversations}
         currentUserId={currentUserId}
         onConversationCreated={(newConv) => {
           setConversations(prev => {

@@ -11,7 +11,14 @@ export class ChatService {
     const existing = await ConversationModel.findOne({
       participantIds: { $all: participants, $size: participants.length },
     }).exec()
-    if (existing) return existing as unknown as Conversation
+    
+    if (existing) {
+      if (existing.deletedBy && existing.deletedBy.length > 0) {
+        await ConversationModel.findByIdAndUpdate(existing._id, { deletedBy: [] }).exec()
+        existing.deletedBy = []
+      }
+      return existing as unknown as Conversation
+    }
 
     const isGroup = participants.length > 2 || !!name
 
@@ -19,11 +26,15 @@ export class ChatService {
       participantIds: participants,
       isGroup,
       name: name || null,
+      deletedBy: [],
     }) as unknown as Promise<Conversation>
   }
 
   async getConversations(userId: string): Promise<Conversation[]> {
-    const conversations = await ConversationModel.find({ participantIds: userId })
+    const conversations = await ConversationModel.find({ 
+      participantIds: userId,
+      deletedBy: { $ne: userId }
+    })
       .sort({ lastMessageAt: -1 })
       .lean()
       .exec() as any[]
@@ -50,20 +61,57 @@ export class ChatService {
     
     if (!conversation) return false
     
-    const remainingParticipants = conversation.participantIds.filter((id) => id !== userId)
-
-    if (remainingParticipants.length === 0) {
-      await Promise.all([
-        ConversationModel.findByIdAndDelete(conversationId).exec(),
-        MessageModel.deleteMany({ conversationId }).exec()
-      ])
+    if (conversation.isGroup) {
+      const remainingParticipants = conversation.participantIds.filter((id) => id !== userId)
+      
+      if (remainingParticipants.length === 0) {
+        await Promise.all([
+          ConversationModel.findByIdAndDelete(conversationId).exec(),
+          MessageModel.deleteMany({ conversationId }).exec()
+        ])
+      } else {
+        await ConversationModel.findByIdAndUpdate(conversationId, {
+          participantIds: remainingParticipants
+        }).exec()
+      }
     } else {
-      await ConversationModel.findByIdAndUpdate(conversationId, {
-        participantIds: remainingParticipants
-      }).exec()
+      const newDeletedBy = [...new Set([...(conversation.deletedBy || []), userId])]
+
+      if (newDeletedBy.length >= conversation.participantIds.length) {
+        // Everyone has soft-deleted it, we can safely hard-delete
+        await Promise.all([
+          ConversationModel.findByIdAndDelete(conversationId).exec(),
+          MessageModel.deleteMany({ conversationId }).exec()
+        ])
+      } else {
+        // Soft-delete for this user
+        await ConversationModel.findByIdAndUpdate(conversationId, {
+          deletedBy: newDeletedBy
+        }).exec()
+      }
     }
     
     return true
+  }
+
+  async renameConversation(conversationId: string, userId: string, name: string): Promise<Conversation | null> {
+    const conversation = await ConversationModel.findOneAndUpdate(
+      { _id: conversationId, participantIds: userId, isGroup: true },
+      { name },
+      { new: true }
+    ).exec()
+
+    if (conversation) {
+      // Broadcast update to participants
+      const recipientIds = conversation.participantIds || []
+      for (const recipientId of recipientIds) {
+        try {
+          getIO().to(recipientId).emit("conversation:updated", conversation)
+        } catch (err) {}
+      }
+    }
+
+    return conversation as unknown as Conversation | null
   }
 
   // ── Messages ───────────────────────────────────────────────
@@ -74,6 +122,7 @@ export class ChatService {
       ConversationModel.findByIdAndUpdate(conversationId, {
         lastMessage: content,
         lastMessageAt: new Date(),
+        deletedBy: [],
       }).exec(),
     ])
 

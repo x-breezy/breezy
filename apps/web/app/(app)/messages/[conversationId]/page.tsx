@@ -9,6 +9,7 @@ import { IconLoader2, IconArrowLeft } from "@tabler/icons-react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { useUserCache } from "@/hooks/use-user-cache"
+import { useSocket } from "@/hooks/use-socket"
 
 export default function ConversationPage({
   params,
@@ -25,8 +26,12 @@ export default function ConversationPage({
   const bottomRef = useRef<HTMLDivElement>(null)
   const [avatarUrl, setAvatarUrl] = useState<string | undefined>(undefined)
   const [username, setUsername] = useState<string | null>(null)
+  const [isGroupConv, setIsGroupConv] = useState(false)
+  const [isEditingName, setIsEditingName] = useState(false)
+  const [editNameValue, setEditNameValue] = useState("")
   const cachedUsers = useUserCache((state) => state.users)
   const setUser = useUserCache((state) => state.setUser)
+  const { socket } = useSocket(currentUserId)
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -65,6 +70,8 @@ export default function ConversationPage({
 
       if (isGroup) {
         setUsername(groupName)
+        setIsGroupConv(true)
+        setEditNameValue(groupName || "")
         return
       }
 
@@ -136,6 +143,55 @@ export default function ConversationPage({
     fetchOtherUser()
   }, [messages, currentUserId, conversationId, cachedUsers, setUser])
 
+  useEffect(() => {
+    if (!socket) return
+
+    const handleConversationUpdated = (updatedConv: any) => {
+      if (updatedConv._id === conversationId) {
+        setUsername(updatedConv.name || "Groupe")
+        setEditNameValue(updatedConv.name || "")
+        setIsGroupConv(updatedConv.isGroup)
+      }
+    }
+
+    socket.on("conversation:updated", handleConversationUpdated)
+    return () => {
+      socket.off("conversation:updated", handleConversationUpdated)
+    }
+  }, [socket, conversationId])
+
+  const handleRenameSubmit = async () => {
+    if (!editNameValue.trim() || editNameValue === username) {
+      setIsEditingName(false)
+      return
+    }
+
+    try {
+      const MESSAGE_API_URL = process.env.NEXT_PUBLIC_MESSAGE_API_URL || "http://localhost:4030"
+      const res = await fetch(`${MESSAGE_API_URL}/conversations/${conversationId}/name`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          "x-user-id": currentUserId!,
+          "x-roles": "user",
+        },
+        body: JSON.stringify({ name: editNameValue.trim() }),
+      })
+      const data = await res.json()
+      if (data.success && data.data) {
+        setUsername(data.data.name)
+      } else {
+        setEditNameValue(username || "")
+        alert(data.message || "Failed to rename conversation")
+      }
+    } catch (err) {
+      console.error(err)
+      setEditNameValue(username || "")
+    } finally {
+      setIsEditingName(false)
+    }
+  }
+
   return (
     <div className='flex h-full flex-col bg-white dark:bg-gray-950'>
       {/* Header */}
@@ -146,8 +202,25 @@ export default function ConversationPage({
           </Link>
           <div>
             <div className='text-lg font-bold truncate max-w-[200px] md:max-w-[300px]'>
-              {username ? username : (
+              {username === null ? (
                 <div className="h-6 w-32 bg-foreground/10 animate-pulse rounded mt-1 mb-1"></div>
+              ) : isEditingName ? (
+                <input
+                  autoFocus
+                  className="bg-transparent border-b border-foreground focus:outline-none w-full"
+                  value={editNameValue}
+                  onChange={(e) => setEditNameValue(e.target.value)}
+                  onBlur={handleRenameSubmit}
+                  onKeyDown={(e) => e.key === "Enter" && handleRenameSubmit()}
+                />
+              ) : (
+                <span 
+                  className={isGroupConv ? "cursor-pointer hover:underline decoration-dashed decoration-gray-400 underline-offset-4" : ""}
+                  onClick={() => isGroupConv && setIsEditingName(true)}
+                  title={isGroupConv ? "Click to rename group" : ""}
+                >
+                  {username}
+                </span>
               )}
             </div>
             <p className='text-xs text-gray-500'>
