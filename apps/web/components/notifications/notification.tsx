@@ -13,9 +13,10 @@ import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import type { Notification } from "@/types/notification"
 import type { ActorInfo, NotificationView } from "@/lib/notifications/group"
-import { followUserAction } from "@/app/(app)/profile/follow-action"
+import { followUserAction, unfollowUserAction } from "@/app/(app)/profile/follow-action"
 import { useUserStore } from "@/stores/user-store"
 import { ProfileAvatar } from "../profile/profile-avatar"
+import { UnfollowDialog } from "@/components/shared/unfollow-dialog"
 
 export function getActorId(notification: Notification): string {
   return notification.payload.actorId ?? notification.payload.followerId ?? ""
@@ -145,6 +146,17 @@ export function NotificationCard({ view, highlight, className }: CardProps) {
     })
   }
 
+  function handleUnfollow() {
+    startTransition(async () => {
+      try {
+        await unfollowUserAction(actorId)
+        setRelation(actorId, false)
+      } catch {
+        // no-op
+      }
+    })
+  }
+
   const time = formatRelativeTime(view.createdAt)
 
   return (
@@ -179,17 +191,22 @@ export function NotificationCard({ view, highlight, className }: CardProps) {
           <NotificationText view={view} />
           <span className='ml-1 text-xs text-muted-foreground'> {time}</span>
         </p>
-        {view.kind === "follow" && (
-          <Button
-            className='min-w-24 px-4'
-            disabled={followed || isPending}
-            variant={followed ? "secondary" : "default"}
-            onClick={handleFollowBack}
-          >
-            {isPending && <IconLoader2 className='animate-spin' stroke={2.3} />}
-            {!isPending && (followed ? "Following" : "Follow")}
-          </Button>
-        )}
+        {view.kind === "follow" &&
+          (followed ? (
+            <UnfollowDialog
+              username={view.actor.username}
+              onConfirm={handleUnfollow}
+              trigger={
+                <Button className='min-w-24' variant='secondary' disabled={isPending}>
+                  {isPending ? <IconLoader2 className='animate-spin' stroke={2.3} /> : "Following"}
+                </Button>
+              }
+            />
+          ) : (
+            <Button className='min-w-24' disabled={isPending} onClick={handleFollowBack}>
+              {isPending ? <IconLoader2 className='animate-spin' stroke={2.3} /> : "Follow"}
+            </Button>
+          ))}
       </div>
     </div>
   )

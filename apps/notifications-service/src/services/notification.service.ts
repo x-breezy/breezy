@@ -19,6 +19,15 @@ class NotificationService {
     sseService.push(input.userId, notification.toJSON())
   }
 
+  async createDeduped(
+    input: CreateNotificationInput,
+    dedupeFilter: Record<string, unknown>
+  ): Promise<void> {
+    await NotificationModel.deleteOne({ userId: input.userId, type: input.type, ...dedupeFilter })
+    const notification = await NotificationModel.create(input)
+    sseService.push(input.userId, notification.toJSON())
+  }
+
   async list(
     userId: string,
     options: ListOptions

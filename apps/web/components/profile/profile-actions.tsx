@@ -5,15 +5,17 @@ import { ProfileEditDialog } from "./edit/profile-edit-dialog"
 import { useState } from "react"
 import { Button } from "../ui/button"
 import {
+  IconLoader2,
   IconMessageCircle,
   IconPencilFilled,
-  IconUserCheck,
   IconUserPlus,
+  IconUserX,
 } from "@tabler/icons-react"
 import type { Profile } from "@/types/profile"
 import { followUserAction, unfollowUserAction } from "@/app/(app)/profile/follow-action"
 import { useProfileStore } from "@/stores/profile-store"
 import { useUserStore } from "@/stores/user-store"
+import { UnfollowDialog } from "../shared/unfollow-dialog"
 
 interface ProfileActionsProps {
   className?: string
@@ -52,6 +54,8 @@ export function ProfileActions({ className, profile, isOwn }: ProfileActionsProp
 
   const handleMessage = () => {}
 
+  if (!profile) return null
+
   return (
     <div className={cn(className, "inline-flex w-full gap-3")}>
       {profile && (
@@ -71,16 +75,39 @@ export function ProfileActions({ className, profile, isOwn }: ProfileActionsProp
       )}
       {!isOwn && (
         <>
-          <Button
-            variant={followed ? "secondary" : "default"}
-            className='w-full max-w-40 font-semibold'
-            size='lg'
-            disabled={pending}
-            onClick={handleFollow}
-          >
-            {followed ? <IconUserCheck stroke={2.3} /> : <IconUserPlus stroke={2.3} />}
-            {followed ? "Following" : "Follow"}
-          </Button>
+          {followed && (
+            <UnfollowDialog
+              username={profile.username}
+              onConfirm={handleFollow}
+              trigger={
+                <Button
+                  className='w-full max-w-40 font-semibold'
+                  size='lg'
+                  variant='secondary'
+                  disabled={pending}
+                >
+                  {pending ? (
+                    <IconLoader2 className='animate-spin' stroke={2.3} />
+                  ) : (
+                    <>
+                      <IconUserX stroke={2.3} /> Following
+                    </>
+                  )}
+                </Button>
+              }
+            />
+          )}
+          {!followed && (
+            <Button
+              variant='default'
+              className='w-full max-w-40 font-semibold'
+              size='lg'
+              disabled={pending}
+              onClick={handleFollow}
+            >
+              <IconUserPlus stroke={2.3} /> Follow
+            </Button>
+          )}
           <Button
             variant='secondary'
             className='w-full max-w-40 font-semibold'

@@ -15,8 +15,6 @@ import {
   type PeopleCache,
   type MediaCache,
 } from "./use-search-results"
-import { startTransition } from "react"
-import { followUserAction } from "@/app/(app)/profile/follow-action"
 import { useUserStore } from "@/stores/user-store"
 
 interface SearchResultsProps {

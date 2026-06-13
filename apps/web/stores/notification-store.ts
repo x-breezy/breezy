@@ -91,12 +91,34 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
   },
 
   prepend: (notification) => {
-    set((state) => ({
-      notifications: [notification, ...state.notifications],
-      total: state.total + 1,
-      unreadCount: state.unreadCount + (notification.read ? 0 : 1),
-      lastNew: notification,
-    }))
+    set((state) => {
+      const actorId = notification.payload?.actorId ?? notification.payload?.followerId
+      const isDuplicateFollow =
+        notification.type === "follow" &&
+        !!actorId &&
+        state.notifications.some(
+          (n) => n.type === "follow" && (n.payload.actorId ?? n.payload.followerId) === actorId
+        )
+
+      if (isDuplicateFollow) {
+        const replaced = state.notifications.find(
+          (n) => n.type === "follow" && (n.payload.actorId ?? n.payload.followerId) === actorId
+        )!
+        return {
+          notifications: [notification, ...state.notifications.filter((n) => n !== replaced)],
+          total: state.total,
+          unreadCount: state.unreadCount + (replaced.read && !notification.read ? 1 : 0),
+          lastNew: state.lastNew,
+        }
+      }
+
+      return {
+        notifications: [notification, ...state.notifications],
+        total: state.total + 1,
+        unreadCount: state.unreadCount + (notification.read ? 0 : 1),
+        lastNew: notification,
+      }
+    })
   },
 
   clear: () =>

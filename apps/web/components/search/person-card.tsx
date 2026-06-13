@@ -56,7 +56,7 @@ export function PersonCard({
       </div>
       <Button
         size='sm'
-        variant={isFollowing ? "outline" : "default"}
+        variant={isFollowing ? "secondary" : "default"}
         className='shrink-0'
         onClick={handleFollow}
       >

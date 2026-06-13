@@ -51,7 +51,10 @@ export function groupNotifications(list: Notification[]): NotificationView[] {
     createdAt: string
   }
 
+  type FollowGroup = { ids: string[]; actor: ActorInfo; read: boolean; createdAt: string }
+
   const likesByPost = new Map<string, LikeGroup>()
+  const followsByActor = new Map<string, FollowGroup>()
   const views: NotificationView[] = []
 
   for (const n of list) {
@@ -78,13 +81,19 @@ export function groupNotifications(list: Notification[]): NotificationView[] {
         if (n.createdAt > existing.createdAt) existing.createdAt = n.createdAt
       }
     } else if (n.type === "follow") {
-      views.push({
-        kind: "follow",
-        ids: [n._id],
-        actor: toActorInfo(n.payload),
-        read: n.read,
-        createdAt: n.createdAt,
-      })
+      const actor = toActorInfo(n.payload)
+      if (!actor.id) continue
+      const existing = followsByActor.get(actor.id)
+      if (!existing) {
+        followsByActor.set(actor.id, { ids: [n._id], actor, read: n.read, createdAt: n.createdAt })
+      } else {
+        existing.ids.push(n._id)
+        if (!n.read) existing.read = false
+        if (n.createdAt > existing.createdAt) {
+          existing.createdAt = n.createdAt
+          existing.actor = actor
+        }
+      }
     } else if (n.type === "mention") {
       views.push({
         kind: "mention",
@@ -104,6 +113,10 @@ export function groupNotifications(list: Notification[]): NotificationView[] {
         createdAt: n.createdAt,
       })
     }
+  }
+
+  for (const data of followsByActor.values()) {
+    views.push({ kind: "follow", ids: data.ids, actor: data.actor, read: data.read, createdAt: data.createdAt })
   }
 
   for (const [postId, data] of likesByPost) {
