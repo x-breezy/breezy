@@ -116,7 +116,13 @@ export function groupNotifications(list: Notification[]): NotificationView[] {
   }
 
   for (const data of followsByActor.values()) {
-    views.push({ kind: "follow", ids: data.ids, actor: data.actor, read: data.read, createdAt: data.createdAt })
+    views.push({
+      kind: "follow",
+      ids: data.ids,
+      actor: data.actor,
+      read: data.read,
+      createdAt: data.createdAt,
+    })
   }
 
   for (const [postId, data] of likesByPost) {

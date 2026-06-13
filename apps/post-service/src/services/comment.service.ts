@@ -33,9 +33,9 @@ export class CommentService {
 
     const needsNotification =
       post.authorId !== authorId ||
-      [
-        ...new Set([...dto.content.matchAll(MENTION_RE)].map((m) => m[1]!.toLowerCase())),
-      ].filter((id) => id !== authorId).length > 0
+      [...new Set([...dto.content.matchAll(MENTION_RE)].map((m) => m[1]!.toLowerCase()))].filter(
+        (id) => id !== authorId
+      ).length > 0
 
     const profile = needsNotification ? await getActorProfile(authorId) : null
 

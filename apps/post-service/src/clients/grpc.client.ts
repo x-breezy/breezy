@@ -29,12 +29,16 @@ export interface ActorProfile {
 export function getActorProfile(actorId: string): Promise<ActorProfile | null> {
   const deadline = new Date(Date.now() + 2000)
   return new Promise((resolve) => {
-    client.getProfile({ profileId: actorId }, { deadline }, (err: Error | null, res: ActorProfile) => {
-      if (err) {
-        resolve(null)
-        return
+    client.getProfile(
+      { profileId: actorId },
+      { deadline },
+      (err: Error | null, res: ActorProfile) => {
+        if (err) {
+          resolve(null)
+          return
+        }
+        resolve(res)
       }
-      resolve(res)
-    })
+    )
   })
 }
