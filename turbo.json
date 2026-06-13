@@ -17,7 +17,9 @@
     "SMTP_FROM",
     "JWT_SECRET",
     "JWT_EXPIRES_IN",
-    "REFRESH_TOKEN_TTL_MS"
+    "REFRESH_TOKEN_TTL_MS",
+    "GOOGLE_CLIENT_ID",
+    "GOOGLE_CLIENT_SECRET"
   ],
   "tasks": {
     "build": {

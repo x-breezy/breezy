@@ -41,6 +41,9 @@ const profileDataHandler = {
         profileId: call.request.profileId,
         username: call.request.username,
         role: call.request.role,
+        firstName: call.request.firstName || null,
+        lastName: call.request.lastName || null,
+        avatarId: call.request.avatarUrl || null,
       })
       cb(null, { profileId: result.profileId })
     } catch (err) {

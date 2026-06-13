@@ -2,7 +2,9 @@
 
 import { redirect } from "next/navigation"
 import { isAxiosError } from "axios"
+import { cookies } from "next/headers"
 import { verifyEmail, resendVerificationEmail } from "@/lib/services/auth-service"
+import { ACCESS_COOKIE } from "@/lib/auth/auth-cookies"
 
 interface ActionState {
   error: string | null
@@ -25,7 +27,8 @@ export async function verifyEmailAction(
     return { error: "Could not reach the server.", success: false }
   }
 
-  redirect("/sign-in")
+  const cookieStore = await cookies()
+  redirect(cookieStore.get(ACCESS_COOKIE)?.value ? "/" : "/sign-in")
 }
 
 export async function resendVerificationAction(

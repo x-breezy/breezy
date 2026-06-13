@@ -17,7 +17,6 @@ export async function resetPasswordAction(
 
   try {
     await resetPassword(token, password)
-    return { error: null, success: true }
   } catch {
     return { error: "Could not reach the server.", success: false }
   }

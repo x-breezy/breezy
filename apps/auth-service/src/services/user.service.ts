@@ -59,6 +59,8 @@ class UserService {
     const pipeline = redis.multi()
     for (const hash of hashes) {
       pipeline.del(`refresh:${hash}`)
+      pipeline.del(`consumed:${hash}`)
+      pipeline.del(`grace:${hash}`)
     }
     pipeline.del(`session:${userId}`)
     await pipeline.exec()
@@ -90,6 +92,11 @@ class UserService {
     const user = await User.findByPk(id, { attributes: ["id", "passwordHash"] })
     if (!user) {
       throw Object.assign(new Error("User not found"), { code: "USER_NOT_FOUND" })
+    }
+    if (!user.passwordHash) {
+      throw Object.assign(new Error("Account uses Google sign-in, no password set"), {
+        code: "NO_PASSWORD",
+      })
     }
 
     const valid = await verifyPassword(currentPassword, user.passwordHash)
