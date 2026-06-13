@@ -28,7 +28,7 @@ export type CreateUserInput = Omit<
   | "updatedAt"
 >
 
-/** User without the password hash — safe to serialize to clients/tokens. */
+/** User without the password hash, safe to serialize to clients/tokens. */
 export type SafeUser = Omit<UserAttributes, "passwordHash">
 
 export class User extends Model<UserAttributes, CreateUserInput> implements UserAttributes {

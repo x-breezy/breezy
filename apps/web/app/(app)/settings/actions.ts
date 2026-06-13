@@ -39,8 +39,8 @@ interface ActionState {
 export async function sendVerificationEmailAction(): Promise<ActionState> {
   try {
     const authHeader = await getServerAuthHeader()
-    const { data: user } = await getMe(authHeader)
-    await resendVerificationEmail(user.email)
+    const meRes = await getMe(authHeader)
+    await resendVerificationEmail(meRes.data.data.email)
   } catch (err) {
     if (isAxiosError(err)) {
       const d = err.response?.data as { message?: string; code?: string }

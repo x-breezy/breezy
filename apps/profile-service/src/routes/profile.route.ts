@@ -10,6 +10,7 @@ import {
   updateProfileSchema,
   followSchema,
   profileIdParamSchema,
+  usernameParamSchema,
 } from "../schema/profile.schema"
 
 function createProfileRouter() {
@@ -21,13 +22,27 @@ function createProfileRouter() {
   router.get("/search", identity, profileController.search)
   router.get("/batch", profileController.batchGet)
 
-  // Protected — static routes BEFORE /:profileId to avoid param-route swallowing
+  // Protected, static routes BEFORE /:profileId to avoid param-route swallowing
+  router.get(
+    "/by-username/:username",
+    identity,
+    requirePermission(PERMISSIONS.PROFILE_READ),
+    validate(usernameParamSchema, "params"),
+    profileController.getProfileByUsername
+  )
   router.get(
     "/:profileId",
     identity,
     requirePermission(PERMISSIONS.PROFILE_READ),
     validate(profileIdParamSchema, "params"),
     profileController.getProfile
+  )
+  router.get(
+    "/:profileId/is-following",
+    identity,
+    requirePermission(PERMISSIONS.PROFILE_READ),
+    validate(profileIdParamSchema, "params"),
+    profileController.isFollowing
   )
   router.get(
     "/:profileId/followers",

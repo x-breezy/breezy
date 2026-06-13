@@ -19,12 +19,24 @@ class NotificationService {
     sseService.push(input.userId, notification.toJSON())
   }
 
+  async createDeduped(
+    input: CreateNotificationInput,
+    dedupeFilter: Record<string, unknown>
+  ): Promise<void> {
+    await NotificationModel.deleteOne({ userId: input.userId, type: input.type, ...dedupeFilter })
+    const notification = await NotificationModel.create(input)
+    sseService.push(input.userId, notification.toJSON())
+  }
+
   async list(
     userId: string,
     options: ListOptions
   ): Promise<{ data: object[]; total: number; page: number; limit: number }> {
     const filter: Record<string, unknown> = { userId }
     if (options.read !== undefined) filter.read = options.read === true
+    const oneMonthAgo = new Date()
+    oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1)
+    filter.createdAt = { $gte: oneMonthAgo }
 
     const skip = (options.page - 1) * options.limit
     const [data, total] = await Promise.all([

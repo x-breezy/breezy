@@ -24,6 +24,10 @@ export const profileIdParamSchema = z.object({
   profileId: z.string().uuid(),
 })
 
+export const usernameParamSchema = z.object({
+  username: z.string().max(100),
+})
+
 export type CreateProfileDTO = z.infer<typeof createProfileSchema>
 export type UpdateProfileDTO = z.infer<typeof updateProfileSchema>
 export type FollowDTO = z.infer<typeof followSchema>

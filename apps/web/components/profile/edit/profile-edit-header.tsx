@@ -11,7 +11,7 @@ interface ProfileEditHeaderProps {
 
 export function ProfileEditHeader({ onClose }: ProfileEditHeaderProps) {
   return (
-    <PageHeader className='bg-background'>
+    <PageHeader className='w-full bg-background'>
       <PageHeaderContent
         left={
           <button

@@ -6,11 +6,12 @@ interface ProfileAvatarProps {
   src?: string
   alt?: string
   fallback?: string
-  size?: "xs" | "sm" | "md" | "lg" | "xl" | "2xl"
+  size?: "xs" | "sm" | "md" | "lg" | "xl" | "2xl" | "2xs"
   className?: string
 }
 
 const sizeClasses = {
+  "2xs": "size-11",
   xs: "size-16",
   sm: "size-20",
   md: "size-24",
@@ -20,6 +21,7 @@ const sizeClasses = {
 }
 
 const iconSizeClasses = {
+  "2xs": "size-5",
   xs: "size-8",
   sm: "size-10",
   md: "size-12",

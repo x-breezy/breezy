@@ -36,7 +36,8 @@ export type UpdateProfileInput = Partial<
 
 export class Profile
   extends Model<ProfileAttributes, CreateProfileInput>
-  implements ProfileAttributes {
+  implements ProfileAttributes
+{
   declare profileId: string
   declare username: string
   declare role: string

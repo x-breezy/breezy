@@ -18,7 +18,7 @@ export default function SettingsScreen() {
   }
 
   return (
-    <div className='mx-auto flex w-full max-w-4xl flex-col bg-background p-4 font-sans select-none'>
+    <div className='container-center flex w-full flex-col bg-background p-4 font-sans select-none'>
       <div className='mt-2 flex w-full flex-col gap-3.5'>
         <SettingsLanguageSelect value={language} onChange={setLanguage} />
 

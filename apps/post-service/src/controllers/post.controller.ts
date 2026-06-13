@@ -2,7 +2,7 @@ import type { Request, Response, NextFunction } from "express"
 import { PostService } from "../services/post.service"
 
 export class PostController {
-  constructor(private service = new PostService()) { }
+  constructor(private service = new PostService()) {}
 
   create = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {

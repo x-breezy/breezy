@@ -62,7 +62,7 @@ function HomePost({
     <article
       aria-label={`Post by ${name}`}
       onClick={href ? handleArticleClick : undefined}
-      className={`mx-auto flex w-full max-w-4xl gap-2.5 border-b border-border bg-background p-3.5 text-left transition-colors select-none active:bg-accent/50${href ? "cursor-pointer" : ""}`}
+      className={`container-center flex w-full gap-2.5 border-b border-border bg-background p-3.5 text-left transition-colors select-none active:bg-accent/50${href ? "cursor-pointer" : ""}`}
     >
       <PostAvatar name={name} />
 

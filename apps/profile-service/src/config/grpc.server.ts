@@ -47,6 +47,24 @@ const profileDataHandler = {
       cb(err as Error, null)
     }
   },
+
+  async getProfile(call: any, cb: any) {
+    try {
+      const result = await svc.getProfile(call.request.profileId)
+      if (!result) {
+        cb({ code: grpc.status.NOT_FOUND, message: "Profile not found" }, null)
+        return
+      }
+      cb(null, {
+        username: result.username,
+        avatarId: result.avatarId ?? "",
+        firstName: result.firstName ?? "",
+        lastName: result.lastName ?? "",
+      })
+    } catch (err) {
+      cb(err as Error, null)
+    }
+  },
 }
 
 export function startGrpcServer(port = 50051): void {

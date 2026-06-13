@@ -41,7 +41,7 @@ export function createPostRouter(
     controller.delete
   )
 
-  // Sub-resources — mergeParams in child routers gives them access to :postId
+  // Sub-resources, mergeParams in child routers gives them access to :postId
   router.use("/:postId/likes", createLikeRouter())
   router.use("/:postId/comments", createCommentRouter())
 
@@ -116,7 +116,7 @@ export function createPostRouter(
  *       Returns posts from users the authenticated viewer follows, sorted newest first, paginated.
  *       The viewer's own posts are always included. Follow graph is resolved server-side from
  *       user-service (GET /users/:id/following). Falls back to a global chronological feed when
- *       user-service is unavailable — the endpoint never errors due to follow-graph failures.
+ *       user-service is unavailable, the endpoint never errors due to follow-graph failures.
  *     tags: [Posts]
  *     parameters:
  *       - in: query

@@ -36,7 +36,7 @@ describe("ProfileService", () => {
   describe("createProfile", () => {
     it("should create a profile", async () => {
       const input = { profileId: "profile-1", displayName: "Profile 1", bio: "Hello" }
-        ; (mockedProfile.findOrCreate as jest.Mock).mockResolvedValue([input, true])
+      ;(mockedProfile.findOrCreate as jest.Mock).mockResolvedValue([input, true])
 
       const result = await service.createProfile(input as never)
 
@@ -51,7 +51,7 @@ describe("ProfileService", () => {
   describe("getProfile", () => {
     it("should return a profile", async () => {
       const profile = { profileId: "profile-1" }
-        ; (mockedProfile.findOne as jest.Mock).mockResolvedValue(profile)
+      ;(mockedProfile.findOne as jest.Mock).mockResolvedValue(profile)
 
       const result = await service.getProfile("profile-1")
 
@@ -60,7 +60,7 @@ describe("ProfileService", () => {
     })
 
     it("should return null if profile not found", async () => {
-      ; (mockedProfile.findOne as jest.Mock).mockResolvedValue(null)
+      ;(mockedProfile.findOne as jest.Mock).mockResolvedValue(null)
       const result = await service.getProfile("non-existent")
       expect(result).toBeNull()
     })
@@ -70,7 +70,7 @@ describe("ProfileService", () => {
     it("should update and return profile", async () => {
       const updateMock = jest.fn().mockResolvedValue({ profileId: "profile-1", bio: "Updated" })
       const profileDoc = { profileId: "profile-1", update: updateMock }
-        ; (mockedProfile.findOne as jest.Mock).mockResolvedValue(profileDoc)
+      ;(mockedProfile.findOne as jest.Mock).mockResolvedValue(profileDoc)
 
       const result = await service.updateProfile("profile-1", { bio: "Updated" })
 
@@ -80,7 +80,7 @@ describe("ProfileService", () => {
     })
 
     it("should return null if profile not found", async () => {
-      ; (mockedProfile.findOne as jest.Mock).mockResolvedValue(null)
+      ;(mockedProfile.findOne as jest.Mock).mockResolvedValue(null)
       const result = await service.updateProfile("missing", { bio: "Updated" })
       expect(result).toBeNull()
     })
@@ -90,7 +90,7 @@ describe("ProfileService", () => {
     it("should destroy profile and return true", async () => {
       const destroyMock = jest.fn().mockResolvedValue(true)
       const profileDoc = { profileId: "profile-1", destroy: destroyMock }
-        ; (mockedProfile.findOne as jest.Mock).mockResolvedValue(profileDoc)
+      ;(mockedProfile.findOne as jest.Mock).mockResolvedValue(profileDoc)
 
       const result = await service.deleteProfile("profile-1")
 
@@ -100,7 +100,7 @@ describe("ProfileService", () => {
     })
 
     it("should return false if profile not found", async () => {
-      ; (mockedProfile.findOne as jest.Mock).mockResolvedValue(null)
+      ;(mockedProfile.findOne as jest.Mock).mockResolvedValue(null)
       const result = await service.deleteProfile("missing")
       expect(result).toBe(false)
     })
@@ -108,9 +108,9 @@ describe("ProfileService", () => {
 
   describe("follow", () => {
     it("should create follow and increment counts", async () => {
-      ; (mockedFollow.create as jest.Mock).mockResolvedValue({})
-        ; (mockedProfile.increment as jest.Mock).mockResolvedValue({})
-        ; (mockedProfile.sequelize!.transaction as jest.Mock).mockImplementation((cb) => cb({}))
+      ;(mockedFollow.create as jest.Mock).mockResolvedValue({})
+      ;(mockedProfile.increment as jest.Mock).mockResolvedValue({})
+      ;(mockedProfile.sequelize!.transaction as jest.Mock).mockImplementation((cb) => cb({}))
 
       await service.follow("follower-1", "following-1")
 
@@ -133,9 +133,9 @@ describe("ProfileService", () => {
     it("should destroy follow and decrement counts", async () => {
       const destroyMock = jest.fn().mockResolvedValue(true)
       const followDoc = { destroy: destroyMock }
-        ; (mockedFollow.findOne as jest.Mock).mockResolvedValue(followDoc)
-        ; (mockedProfile.decrement as jest.Mock).mockResolvedValue({})
-        ; (mockedProfile.sequelize!.transaction as jest.Mock).mockImplementation((cb) => cb({}))
+      ;(mockedFollow.findOne as jest.Mock).mockResolvedValue(followDoc)
+      ;(mockedProfile.decrement as jest.Mock).mockResolvedValue({})
+      ;(mockedProfile.sequelize!.transaction as jest.Mock).mockImplementation((cb) => cb({}))
 
       const result = await service.unfollow("follower-1", "following-1")
 
@@ -156,8 +156,8 @@ describe("ProfileService", () => {
     })
 
     it("should return false if follow not found", async () => {
-      ; (mockedFollow.findOne as jest.Mock).mockResolvedValue(null)
-        ; (mockedProfile.sequelize!.transaction as jest.Mock).mockImplementation((cb) => cb({}))
+      ;(mockedFollow.findOne as jest.Mock).mockResolvedValue(null)
+      ;(mockedProfile.sequelize!.transaction as jest.Mock).mockImplementation((cb) => cb({}))
       const result = await service.unfollow("follower-1", "following-1")
       expect(result).toBe(false)
     })
@@ -168,11 +168,11 @@ describe("ProfileService", () => {
       const makeFollow = (followerId: string) => ({
         get: (key: string) => (key === "followerId" ? followerId : undefined),
       })
-        ; (mockedFollow.findAll as jest.Mock).mockResolvedValue([
-          makeFollow("follower-1"),
-          makeFollow("follower-2"),
-        ])
-        ; (mockedFollow.count as jest.Mock).mockResolvedValue(2)
+      ;(mockedFollow.findAll as jest.Mock).mockResolvedValue([
+        makeFollow("follower-1"),
+        makeFollow("follower-2"),
+      ])
+      ;(mockedFollow.count as jest.Mock).mockResolvedValue(2)
 
       const result = await service.getFollowers("profile-1")
 
@@ -184,8 +184,8 @@ describe("ProfileService", () => {
     })
 
     it("should return empty list when no followers", async () => {
-      ; (mockedFollow.findAll as jest.Mock).mockResolvedValue([])
-        ; (mockedFollow.count as jest.Mock).mockResolvedValue(0)
+      ;(mockedFollow.findAll as jest.Mock).mockResolvedValue([])
+      ;(mockedFollow.count as jest.Mock).mockResolvedValue(0)
 
       const result = await service.getFollowers("profile-1")
 
@@ -198,8 +198,8 @@ describe("ProfileService", () => {
       const makeFollow = (followingId: string) => ({
         get: (key: string) => (key === "followingId" ? followingId : undefined),
       })
-        ; (mockedFollow.findAll as jest.Mock).mockResolvedValue([makeFollow("following-1")])
-        ; (mockedFollow.count as jest.Mock).mockResolvedValue(1)
+      ;(mockedFollow.findAll as jest.Mock).mockResolvedValue([makeFollow("following-1")])
+      ;(mockedFollow.count as jest.Mock).mockResolvedValue(1)
 
       const result = await service.getFollowing("profile-1")
 
@@ -211,8 +211,8 @@ describe("ProfileService", () => {
     })
 
     it("should return empty list when following no one", async () => {
-      ; (mockedFollow.findAll as jest.Mock).mockResolvedValue([])
-        ; (mockedFollow.count as jest.Mock).mockResolvedValue(0)
+      ;(mockedFollow.findAll as jest.Mock).mockResolvedValue([])
+      ;(mockedFollow.count as jest.Mock).mockResolvedValue(0)
 
       const result = await service.getFollowing("profile-1")
 
@@ -222,7 +222,7 @@ describe("ProfileService", () => {
 
   describe("search", () => {
     it("returns matching profiles with count", async () => {
-      ; (mockedProfile.findAndCountAll as jest.Mock).mockResolvedValue({
+      ;(mockedProfile.findAndCountAll as jest.Mock).mockResolvedValue({
         count: 1,
         rows: [{ profileId: "profile-1", firstName: "John", lastName: "Doe" }],
       })
@@ -237,7 +237,7 @@ describe("ProfileService", () => {
     })
 
     it("computes offset correctly for page > 1", async () => {
-      ; (mockedProfile.findAndCountAll as jest.Mock).mockResolvedValue({ count: 0, rows: [] })
+      ;(mockedProfile.findAndCountAll as jest.Mock).mockResolvedValue({ count: 0, rows: [] })
 
       await service.search("jane", 3, 10)
 
@@ -247,7 +247,7 @@ describe("ProfileService", () => {
     })
 
     it("returns empty result when no match", async () => {
-      ; (mockedProfile.findAndCountAll as jest.Mock).mockResolvedValue({ count: 0, rows: [] })
+      ;(mockedProfile.findAndCountAll as jest.Mock).mockResolvedValue({ count: 0, rows: [] })
 
       const result = await service.search("noresult", 1, 20)
 

@@ -6,6 +6,7 @@ service ProfileData {
   rpc getFollowers(getFollowersRequest) returns (getFollowersResponse);
   rpc getFollowing(getFollowingRequest) returns (getFollowingResponse);
   rpc createProfile(createProfileRequest) returns (createProfileResponse);
+  rpc getProfile(getProfileRequest) returns (getProfileResponse);
 }
 
 message getFollowersRequest {
@@ -34,4 +35,15 @@ message createProfileRequest {
 
 message createProfileResponse {
   string profileId = 1;
+}
+
+message getProfileRequest {
+  string profileId = 1;
+}
+
+message getProfileResponse {
+  string username  = 1;
+  string avatarId  = 2;
+  string firstName = 3;
+  string lastName  = 4;
 }

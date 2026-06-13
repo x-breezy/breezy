@@ -4,7 +4,7 @@ let sequelize: Sequelize | null = null
 
 /** Return the active Sequelize instance. Throws if connect() has not run yet. */
 export function getSequelize(): Sequelize {
-  if (!sequelize) throw new Error("Database not initialized — call connect() first")
+  if (!sequelize) throw new Error("Database not initialized, call connect() first")
   return sequelize
 }
 
