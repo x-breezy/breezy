@@ -41,6 +41,6 @@ yarn-error.log*
 sonar-project.properties
 .env.sonar
 
-# Local dev override (full containerization — not for everyone)
+# Local dev override (full containerization, not for everyone)
 docker-compose.override.yml
 Dockerfile.dev

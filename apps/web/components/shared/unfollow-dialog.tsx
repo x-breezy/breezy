@@ -9,7 +9,7 @@ import { IconUserX } from "@tabler/icons-react"
 interface UnfollowDialogProps {
   username: string
   onConfirm: () => void
-  trigger: React.ReactElement
+  trigger: React.ReactElement<{ onClick?: React.MouseEventHandler }>
 }
 
 export function UnfollowDialog({ username, onConfirm, trigger }: UnfollowDialogProps) {

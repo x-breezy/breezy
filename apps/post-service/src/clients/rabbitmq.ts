@@ -14,7 +14,7 @@ export async function connectRabbitMQ(): Promise<void> {
     await channel.assertExchange(EXCHANGE, "topic", { durable: true })
     logger.info("Connected to RabbitMQ")
   } catch (err) {
-    logger.warn({ err }, "Failed to connect to RabbitMQ — notifications disabled")
+    logger.warn({ err }, "Failed to connect to RabbitMQ, notifications disabled")
   }
 }
 

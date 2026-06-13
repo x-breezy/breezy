@@ -1,6 +1,6 @@
 #!/usr/bin/env tsx
 /**
- * Seed script — populates auth, profile and post services with sample data.
+ * Seed script, populates auth, profile and post services with sample data.
  * Run: npx tsx tools/seed.ts
  * Requires the stack to be running (docker compose up -d).
  */
@@ -63,7 +63,7 @@ const USERS = [
     password: "Seed1234!",
     firstName: "Carol",
     lastName: "Bernard",
-    bio: "DevOps — Kubernetes all day",
+    bio: "DevOps, Kubernetes all day",
   },
   {
     username: "dave_mobile",
@@ -87,7 +87,7 @@ const POSTS_BY_USER: Record<string, { content: string; tags: string[] }[]> = {
   alice_dev: [
     {
       content:
-        "Just shipped a new feature using TypeScript generics — the type safety is incredible! 🚀",
+        "Just shipped a new feature using TypeScript generics, the type safety is incredible! 🚀",
       tags: ["TypeScript", "WebDev", "Frontend"],
     },
     {
@@ -172,7 +172,7 @@ const POSTS_BY_USER: Record<string, { content: string; tags: string[] }[]> = {
   dave_mobile: [
     {
       content:
-        "React Native 0.74 — the new architecture is finally stable. Migration guide incoming!",
+        "React Native 0.74, the new architecture is finally stable. Migration guide incoming!",
       tags: ["React", "Mobile", "Frontend"],
     },
     {
@@ -233,7 +233,7 @@ async function createOrSignIn(user: (typeof USERS)[0]): Promise<{ token: string;
   })
 
   if (signIn.status === 200 && signIn.data.data?.token) {
-    console.log(`  ↩  ${user.username} already exists — signed in`)
+    console.log(`  ↩  ${user.username} already exists, signed in`)
     return { token: signIn.data.data.token, userId: signIn.data.data.user?.id ?? "" }
   }
 
@@ -269,7 +269,7 @@ async function ensureProfile(
     },
   })
   if (res.status !== 201 && res.status !== 200) {
-    console.warn(`  ⚠  profile for ${user.username} — ${res.status}`)
+    console.warn(`  ⚠  profile for ${user.username}, ${res.status}`)
     return
   }
   console.log(`  ✓  profile for ${user.username} created`)
@@ -284,7 +284,7 @@ async function createPosts(token: string, username: string): Promise<string[]> {
       console.log(`  ✓  post [${post.tags.join(", ")}]`)
       ids.push(res.data.data._id)
     } else {
-      console.warn(`  ⚠  post failed — ${res.status}`)
+      console.warn(`  ⚠  post failed, ${res.status}`)
     }
     await sleep(300)
   }
@@ -321,7 +321,7 @@ async function seedFollows(
     } else if (res.status === 409) {
       console.log(`  ↩  ${follower} → ${target} already follows`)
     } else {
-      console.warn(`  ⚠  follow ${follower}→${target} — ${res.status}`)
+      console.warn(`  ⚠  follow ${follower}→${target}, ${res.status}`)
     }
     await sleep(400)
   }
@@ -389,7 +389,7 @@ async function seedLikesAndComments(
       } else if (likeRes.status === 409) {
         console.log(`  ↩  ${session.username} already liked ${postId.slice(-6)}`)
       } else {
-        console.warn(`  ⚠  like failed — ${likeRes.status}`)
+        console.warn(`  ⚠  like failed, ${likeRes.status}`)
       }
       await sleep(500)
 
@@ -403,7 +403,7 @@ async function seedLikesAndComments(
         } else if (commentRes.status === 409) {
           console.log(`  ↩  ${session.username} already commented ${postId.slice(-6)}`)
         } else {
-          console.warn(`  ⚠  comment failed — ${commentRes.status}`)
+          console.warn(`  ⚠  comment failed, ${commentRes.status}`)
         }
         commentIdx++
         await sleep(500)
@@ -413,7 +413,7 @@ async function seedLikesAndComments(
 }
 
 async function main() {
-  console.log(`\n🌱 Breezy seed — targeting ${BASE_URL}\n`)
+  console.log(`\n🌱 Breezy seed, targeting ${BASE_URL}\n`)
 
   const sessions: { token: string; userId: string; username: string }[] = []
 

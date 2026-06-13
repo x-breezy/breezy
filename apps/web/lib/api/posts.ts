@@ -29,7 +29,7 @@ export async function searchPosts(
   page = 1,
   limit = 20
 ): Promise<PaginatedResult<SearchPost>> {
-  // Resolve matching author IDs first — post-service needs them to include
+  // Resolve matching author IDs first, post-service needs them to include
   // author-based results. Sequential by design; profiles API is fast.
   const profilesRes = await apiClient
     .get("/api/profiles/search", { params: { q, page: 1, limit: 20 } })

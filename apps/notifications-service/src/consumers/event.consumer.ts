@@ -18,7 +18,7 @@ const HANDLERS: Record<string, (payload: unknown) => Promise<void>> = {
 export async function handleEvent(routingKey: string, payload: unknown): Promise<void> {
   const handler = HANDLERS[routingKey]
   if (!handler) {
-    logger.warn({ routingKey }, "No handler for routing key — skipping")
+    logger.warn({ routingKey }, "No handler for routing key, skipping")
     return
   }
   await handler(payload)
