@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { HomeHeader } from "@/components/home/home-header"
-import HomePost from "@/components/home/home-post"
+import HomePost from "@/components/post/post"
 
 export default function HomePage() {
   const [feed, setFeed] = useState("For you")

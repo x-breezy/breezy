@@ -2,12 +2,14 @@
 
 import { memo, useState, useCallback } from "react"
 import { useRouter } from "next/navigation"
-import { PostAvatar, PostMeta, PostMenu, PostContent, PostActions } from "../post"
+import { PostMeta, PostMenu, PostContent, PostActions } from "."
+import { ProfileAvatar } from "../profile"
 
 interface HomePostProps {
   id: string
   name: string
   username: string
+  avatarUrl?: string
   content: string
   createdAt: string
   initialLikes?: number
@@ -17,10 +19,11 @@ interface HomePostProps {
   onLike?: (postId: string, newLiked: boolean) => Promise<number | void>
 }
 
-function HomePost({
+function Post({
   id,
   name,
   username,
+  avatarUrl,
   content,
   createdAt,
   initialLikes = 0,
@@ -62,11 +65,11 @@ function HomePost({
     <article
       aria-label={`Post by ${name}`}
       onClick={href ? handleArticleClick : undefined}
-      className={`container-center flex w-full gap-2.5 border-b border-border bg-background p-3.5 text-left transition-colors select-none active:bg-accent/50${href ? "cursor-pointer" : ""}`}
+      className={`flex w-full items-start gap-2.5 border-b border-border bg-background p-3.5 text-left transition-colors select-none active:bg-accent/50${href ? "cursor-pointer" : ""}`}
     >
-      <PostAvatar name={name} />
+      <ProfileAvatar src={avatarUrl} alt={name} size='2xs' />
 
-      <div className='flex-1'>
+      <div className='min-w-0 flex-1'>
         <div className='mb-0.5 flex items-center justify-between'>
           <PostMeta name={name} username={username} createdAt={createdAt} />
           <PostMenu />
@@ -84,4 +87,4 @@ function HomePost({
   )
 }
 
-export default memo(HomePost)
+export default memo(Post)

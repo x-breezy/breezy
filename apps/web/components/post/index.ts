@@ -1,4 +1,3 @@
-export { PostAvatar } from "./post-avatar"
 export { PostMeta } from "./post-meta"
 export { PostMenu } from "./post-menu"
 export { PostContent } from "./post-content"

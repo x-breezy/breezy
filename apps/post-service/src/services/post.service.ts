@@ -108,7 +108,9 @@ export class PostService {
     // Posts from matching authors (people search cross-join)
     const authorDocs =
       authorIds && authorIds.length > 0
-        ? await PostModel.find({ authorId: { $in: authorIds, ...(viewerId ? { $ne: viewerId } : {}) } })
+        ? await PostModel.find({
+            authorId: { $in: authorIds, ...(viewerId ? { $ne: viewerId } : {}) },
+          })
             .sort({ createdAt: -1 })
             .limit(limit)
             .exec()
@@ -131,7 +133,11 @@ export class PostService {
       PostModel.countDocuments({ content: contentRegex, ...exclude }).exec(),
     ]
     if (authorIds && authorIds.length > 0) {
-      countPromises.push(PostModel.countDocuments({ authorId: { $in: authorIds, ...(viewerId ? { $ne: viewerId } : {}) } }).exec())
+      countPromises.push(
+        PostModel.countDocuments({
+          authorId: { $in: authorIds, ...(viewerId ? { $ne: viewerId } : {}) },
+        }).exec()
+      )
     }
     const counts = await Promise.all(countPromises)
 

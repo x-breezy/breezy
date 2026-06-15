@@ -3,7 +3,7 @@
 import { useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { IconLoader2 } from "@tabler/icons-react"
-import HomePost from "@/components/home/home-post"
+import HomePost from "@/components/post/post"
 import type { SearchProfile } from "@/lib/actions/profiles"
 import { parseTab } from "./types"
 import { timeAgo } from "@/lib/utils"
@@ -78,6 +78,7 @@ function renderPosts(
       <li key={post._id} className='w-full'>
         <HomePost
           id={post._id}
+          avatarUrl={profile?.avatarUrl || undefined}
           name={name}
           username={profile?.username ?? ""}
           content={post.content}
