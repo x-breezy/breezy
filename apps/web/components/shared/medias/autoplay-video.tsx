@@ -2,6 +2,7 @@
 
 import { cn } from "@/lib/utils"
 import { useRef, useState, useEffect, useCallback } from "react"
+import { Slider as SliderPrimitive } from "@base-ui/react/slider"
 import {
   IconPlayerPlayFilled,
   IconPlayerPauseFilled,
@@ -40,11 +41,12 @@ export function AutoplayVideo({
 }: AutoplayVideoProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
-  const timelineRef = useRef<HTMLDivElement>(null)
   const hideTimeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined)
   const showUntilPauseRef = useRef(false)
   const onPlaybackUpdateRef = useRef(onPlaybackUpdate)
   onPlaybackUpdateRef.current = onPlaybackUpdate
+  const lastTimeRef = useRef(-1)
+  const rafRef = useRef(0)
 
   const [isPlaying, setIsPlaying] = useState(false)
   const [isMuted, setIsMuted] = useState(true)
@@ -53,6 +55,7 @@ export function AutoplayVideo({
   const [showControls, setShowControls] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
   const [playbackRate, setPlaybackRate] = useState(1)
+  const [isDragging, setIsDragging] = useState(false)
 
   const cancelHide = useCallback(() => {
     if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current)
@@ -99,9 +102,7 @@ export function AutoplayVideo({
       cancelHide()
     }
     const onTimeUpdate = () => {
-      const ct = el.currentTime
-      setCurrentTime(ct)
-      onPlaybackUpdateRef.current?.({ currentTime: ct, duration: el.duration })
+      setCurrentTime(el.currentTime)
     }
     const onLoadedMetadata = () => {
       const d = el.duration
@@ -129,6 +130,22 @@ export function AutoplayVideo({
     return () => document.removeEventListener("click", handleClick)
   }, [showSettings])
 
+  useEffect(() => {
+    const el = videoRef.current
+    if (!el) return
+    const tick = () => {
+      rafRef.current = requestAnimationFrame(tick)
+      if (el.paused) return
+      const ct = el.currentTime
+      if (ct === lastTimeRef.current) return
+      lastTimeRef.current = ct
+      setCurrentTime(ct)
+      onPlaybackUpdateRef.current?.({ currentTime: ct, duration: el.duration })
+    }
+    rafRef.current = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(rafRef.current)
+  }, [])
+
   const togglePlay = useCallback(() => {
     const el = videoRef.current
     if (!el) return
@@ -143,19 +160,6 @@ export function AutoplayVideo({
     el.muted = !el.muted
     setIsMuted(el.muted)
   }, [])
-
-  const handleTimelineClick = useCallback(
-    (e: React.MouseEvent) => {
-      const el = videoRef.current
-      const tl = timelineRef.current
-      if (!el || !tl || !duration) return
-      const rect = tl.getBoundingClientRect()
-      const x = e.clientX - rect.left
-      const ratio = Math.max(0, Math.min(1, x / rect.width))
-      el.currentTime = ratio * duration
-    },
-    [duration]
-  )
 
   const handleSettingsClick = useCallback((e: React.MouseEvent) => {
     e.stopPropagation()
@@ -222,20 +226,26 @@ export function AutoplayVideo({
         )}
       >
         <div className='rounded-b-lg bg-gradient-to-t from-black/80 to-transparent px-2 pt-8 pb-1.5'>
-          <div
-            ref={timelineRef}
-            className='group relative mb-1.5 h-1 cursor-pointer rounded-full bg-white/30'
-            onClick={handleTimelineClick}
+          <SliderPrimitive.Root
+            min={0}
+            max={duration || 1}
+            step={0.01}
+            value={[currentTime]}
+            onValueChange={(v) => {
+              const el = videoRef.current
+              if (!el) return
+              el.currentTime = v
+              setCurrentTime(v)
+            }}
+            className='mb-1.5'
           >
-            <div
-              className='h-full rounded-full bg-white transition-[width] duration-100'
-              style={{ width: `${duration ? (currentTime / duration) * 100 : 0}%` }}
-            />
-            <div
-              className='absolute top-1/2 size-3 -translate-y-1/2 rounded-full bg-white opacity-0 transition-opacity group-hover:opacity-100'
-              style={{ left: `${duration ? (currentTime / duration) * 100 : 0}%` }}
-            />
-          </div>
+            <SliderPrimitive.Control className='group relative flex w-full touch-none items-center'>
+              <SliderPrimitive.Track className='relative h-1 w-full overflow-hidden rounded-full bg-white/30'>
+                <SliderPrimitive.Indicator className='h-full rounded-full bg-white' />
+              </SliderPrimitive.Track>
+              <SliderPrimitive.Thumb className='block size-3 rounded-full bg-white opacity-0 transition-opacity group-hover:opacity-100 data-dragging:opacity-100' />
+            </SliderPrimitive.Control>
+          </SliderPrimitive.Root>
 
           <div className='flex items-center gap-2 text-white'>
             <button
