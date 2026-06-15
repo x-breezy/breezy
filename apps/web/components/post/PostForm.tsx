@@ -92,7 +92,7 @@ export function PostForm({
     }
     const timer = setTimeout(async () => {
       try {
-        const res = await searchProfiles(mentionQuery, 1, 6)
+        const res = await searchProfiles(mentionQuery, 1, 5)
         setSuggestions(
           res.profiles.map((p) => ({
             profileId: p.profileId,
@@ -208,7 +208,7 @@ export function PostForm({
                 isComposing.current = false
                 handleInput()
               }}
-              className='min-h-[6rem] w-full text-xl leading-7 outline-none'
+              className='min-h-[6rem] w-full max-w-full text-xl leading-7 outline-none'
               autoFocus
             />
             {suggestions.length > 0 && popupPos && (
