@@ -32,8 +32,20 @@ class VideoService {
         title: headers.title,
         ownerId: headers.ownerId,
       })
-      // Convert to plain object to avoid leaking Mongoose internals
-      return doc.toObject() as Video
+      // Convert to plain object and map _id to id
+      const obj = doc.toObject()
+      const video: Video = {
+        id: obj._id?.toString() || String(obj._id),
+        gridFsId: obj.gridFsId,
+        originalName: obj.originalName,
+        mimeType: obj.mimeType,
+        size: obj.size,
+        title: obj.title,
+        ownerId: obj.ownerId,
+        createdAt: obj.createdAt,
+        updatedAt: obj.updatedAt,
+      }
+      return video
     } catch (err) {
       await this.storage.delete(gridFsId)
       throw err
@@ -41,7 +53,22 @@ class VideoService {
   }
 
   async getMeta(id: string): Promise<Video | null> {
-    return VideoModel.findById(id).lean().exec() as Promise<Video | null>
+    const doc = await VideoModel.findById(id).exec()
+    if (!doc) return null
+    // Convert to plain object and map _id to id
+    const obj = doc.toObject()
+    const video: Video = {
+      id: obj._id?.toString() || String(obj._id),
+      gridFsId: obj.gridFsId,
+      originalName: obj.originalName,
+      mimeType: obj.mimeType,
+      size: obj.size,
+      title: obj.title,
+      ownerId: obj.ownerId,
+      createdAt: obj.createdAt,
+      updatedAt: obj.updatedAt,
+    }
+    return video
   }
 
   async list(ownerId?: string): Promise<Video[]> {
