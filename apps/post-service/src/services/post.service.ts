@@ -21,7 +21,7 @@ function extractMentions(content: string, authorId: string): string[] {
 }
 
 export class PostService {
-  constructor(private follow: FollowGraphPort = new GrpcFollowGraph()) { }
+  constructor(private follow: FollowGraphPort = new GrpcFollowGraph()) {}
 
   async createPost(data: CreatePostDTO & { authorId: string }): Promise<Post> {
     const mentions = data.mentions ?? extractMentions(data.content, data.authorId)
@@ -70,7 +70,12 @@ export class PostService {
     return deleted !== null
   }
 
-  async search(q: string, page: number, limit: number, authorIds?: string[]): Promise<PaginatedResponse<Post>> {
+  async search(
+    q: string,
+    page: number,
+    limit: number,
+    authorIds?: string[]
+  ): Promise<PaginatedResponse<Post>> {
     const skip = (page - 1) * limit
     const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
     const tagRegex = new RegExp(`^${escaped}$`, "i")
@@ -100,9 +105,9 @@ export class PostService {
     const authorDocs =
       authorIds && authorIds.length > 0
         ? await PostModel.find({ authorId: { $in: authorIds } })
-          .sort({ createdAt: -1 })
-          .limit(limit)
-          .exec()
+            .sort({ createdAt: -1 })
+            .limit(limit)
+            .exec()
         : []
 
     // Merge and deduplicate while preserving priority order

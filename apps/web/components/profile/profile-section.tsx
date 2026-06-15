@@ -11,9 +11,10 @@ interface ProfileSectionProps {
   profile: Profile
   role?: UserRole
   className?: string
+  isOwn?: boolean
 }
 
-export function ProfileSection({ className, profile, role }: ProfileSectionProps) {
+export function ProfileSection({ className, profile, role, isOwn }: ProfileSectionProps) {
   return (
     <section className={cn("", className)}>
       {/* Mobile Layout */}
@@ -25,15 +26,14 @@ export function ProfileSection({ className, profile, role }: ProfileSectionProps
           role={role || UserRole.User}
         />
         <ProfileStats followers={profile.followersCount} following={profile.followingCount} />
-        <ProfileActions profile={profile} />
+        <ProfileActions profile={profile} isOwn={isOwn} className='justify-center' />
         <ProfileBio className='mt-2 w-full'>{profile.bio}</ProfileBio>
       </div>
 
       {/* Desktop Layout */}
-      <div className='hidden max-w-4xl md:mx-auto md:flex md:items-start md:justify-center md:gap-8'>
+      <div className='container-center hidden md:mx-auto md:flex md:items-start md:justify-center md:gap-8'>
         <div className='flex flex-col items-center gap-4'>
           <ProfileAvatar src={profile.avatarId || undefined} alt={profile.username} size='2xl' />
-          <ProfileActions profile={profile} />
         </div>
 
         <div className='flex flex-1 flex-col gap-4'>
@@ -50,6 +50,9 @@ export function ProfileSection({ className, profile, role }: ProfileSectionProps
           </div>
           <ProfileBio>{profile.bio}</ProfileBio>
         </div>
+      </div>
+      <div className='container-center mx-auto mt-4 hidden md:flex'>
+        <ProfileActions profile={profile} isOwn={isOwn} />
       </div>
     </section>
   )

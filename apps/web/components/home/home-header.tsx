@@ -12,6 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { useNotificationStore } from "@/stores/notification-store"
 
 const FEED_OPTIONS = ["For you", "Following", "Trending"]
 
@@ -22,6 +23,7 @@ interface HomeHeaderProps {
 
 export function HomeHeader({ feed, onFeedChange }: HomeHeaderProps) {
   const router = useRouter()
+  const unreadCount = useNotificationStore((s) => s.unreadCount)
 
   return (
     <PageHeader>
@@ -58,10 +60,15 @@ export function HomeHeader({ feed, onFeedChange }: HomeHeaderProps) {
             variant='ghost'
             size='icon-lg'
             aria-label='Notifications'
-            className='group'
+            className='group relative'
             onClick={() => router.push("/notifications")}
           >
             <IconBell className='size-6 group-hover:animate-(--animate-ring)' strokeWidth={1.75} />
+            {unreadCount > 0 && (
+              <span className='absolute -top-0.5 -right-0.5 flex size-4 items-center justify-center rounded-full bg-primary text-[9px] font-bold text-primary-foreground ring-2 ring-background'>
+                {unreadCount > 9 ? "9+" : unreadCount}
+              </span>
+            )}
           </Button>
         }
       />

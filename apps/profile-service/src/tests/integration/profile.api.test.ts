@@ -64,7 +64,7 @@ beforeEach(() => {
 // ─── GET /profiles/:profileId ────────────────────────────────────────────────────────
 describe("GET /profiles/:profileId", () => {
   it("returns a profile by profileId", async () => {
-    ; (mockedProfile.findOne as jest.Mock).mockResolvedValue(MOCK_PROFILE)
+    ;(mockedProfile.findOne as jest.Mock).mockResolvedValue(MOCK_PROFILE)
 
     const res = await request(app)
       .get(`/profiles/${PROFILE_UUID}`)
@@ -81,7 +81,7 @@ describe("GET /profiles/:profileId", () => {
   })
 
   it("returns 404 for an unknown profileId", async () => {
-    ; (mockedProfile.findOne as jest.Mock).mockResolvedValue(null)
+    ;(mockedProfile.findOne as jest.Mock).mockResolvedValue(null)
 
     const res = await request(app)
       .get(`/profiles/${PROFILE_UUID}`)
@@ -103,8 +103,8 @@ describe("GET /profiles/:profileId/followers", () => {
     const makeFollow = (followerId: string) => ({
       get: (k: string) => (k === "followerId" ? followerId : undefined),
     })
-      ; (mockedFollow.findAll as jest.Mock).mockResolvedValue([makeFollow(FOLLOWER_UUID)])
-      ; (mockedFollow.count as jest.Mock).mockResolvedValue(1)
+    ;(mockedFollow.findAll as jest.Mock).mockResolvedValue([makeFollow(FOLLOWER_UUID)])
+    ;(mockedFollow.count as jest.Mock).mockResolvedValue(1)
 
     const res = await request(app)
       .get(`/profiles/${PROFILE_UUID}/followers`)
@@ -124,8 +124,8 @@ describe("GET /profiles/:profileId/following", () => {
     const makeFollow = (followingId: string) => ({
       get: (k: string) => (k === "followingId" ? followingId : undefined),
     })
-      ; (mockedFollow.findAll as jest.Mock).mockResolvedValue([makeFollow(FOLLOWING_UUID)])
-      ; (mockedFollow.count as jest.Mock).mockResolvedValue(1)
+    ;(mockedFollow.findAll as jest.Mock).mockResolvedValue([makeFollow(FOLLOWING_UUID)])
+    ;(mockedFollow.count as jest.Mock).mockResolvedValue(1)
 
     const res = await request(app)
       .get(`/profiles/${PROFILE_UUID}/following`)
@@ -142,7 +142,7 @@ describe("GET /profiles/:profileId/following", () => {
 // ─── POST /profiles ───────────────────────────────────────────────────────────────
 describe("POST /profiles", () => {
   it("creates a profile and returns 201", async () => {
-    ; (mockedProfile.findOrCreate as jest.Mock).mockResolvedValue([MOCK_PROFILE, true])
+    ;(mockedProfile.findOrCreate as jest.Mock).mockResolvedValue([MOCK_PROFILE, true])
 
     const res = await request(app)
       .post("/profiles")
@@ -178,10 +178,10 @@ describe("PATCH /profiles", () => {
       toJSON: () => ({ ...MOCK_PROFILE.toJSON(), bio: "Updated bio" }),
     }
 
-      ; (mockedProfile.findOne as jest.Mock).mockResolvedValue({
-        ...MOCK_PROFILE,
-        update: jest.fn().mockResolvedValue(updatedDoc),
-      })
+    ;(mockedProfile.findOne as jest.Mock).mockResolvedValue({
+      ...MOCK_PROFILE,
+      update: jest.fn().mockResolvedValue(updatedDoc),
+    })
 
     const res = await request(app)
       .patch("/profiles")
@@ -194,7 +194,7 @@ describe("PATCH /profiles", () => {
   })
 
   it("returns 404 for an unknown profileId", async () => {
-    ; (mockedProfile.findOne as jest.Mock).mockResolvedValue(null)
+    ;(mockedProfile.findOne as jest.Mock).mockResolvedValue(null)
 
     const res = await request(app)
       .patch("/profiles")
@@ -215,24 +215,20 @@ describe("PATCH /profiles", () => {
 // ─── DELETE /profiles ─────────────────────────────────────────────────────────────
 describe("DELETE /profiles", () => {
   it("deletes an existing profile and returns 204", async () => {
-    ; (mockedProfile.findOne as jest.Mock).mockResolvedValue({
+    ;(mockedProfile.findOne as jest.Mock).mockResolvedValue({
       ...MOCK_PROFILE,
       destroy: jest.fn().mockResolvedValue(undefined),
     })
 
-    const res = await request(app)
-      .delete("/profiles")
-      .set("Authorization", "Bearer fake-token")
+    const res = await request(app).delete("/profiles").set("Authorization", "Bearer fake-token")
 
     expect(res.status).toBe(204)
   })
 
   it("returns 404 when profile not found", async () => {
-    ; (mockedProfile.findOne as jest.Mock).mockResolvedValue(null)
+    ;(mockedProfile.findOne as jest.Mock).mockResolvedValue(null)
 
-    const res = await request(app)
-      .delete("/profiles")
-      .set("Authorization", "Bearer fake-token")
+    const res = await request(app).delete("/profiles").set("Authorization", "Bearer fake-token")
 
     expect(res.status).toBe(404)
     expect(res.body.message).toBe("Profile not found")
@@ -247,11 +243,11 @@ describe("DELETE /profiles", () => {
 // ─── POST /profiles/follow ────────────────────────────────────────────────────────
 describe("POST /profiles/follow", () => {
   it("creates a follow relationship", async () => {
-    ; (mockedFollow.create as jest.Mock).mockResolvedValue({})
-      ; (mockedProfile.increment as jest.Mock).mockResolvedValue({})
-      ; (mockedProfile.sequelize!.transaction as jest.Mock).mockImplementation(
-        (cb: (t: unknown) => unknown) => cb({})
-      )
+    ;(mockedFollow.create as jest.Mock).mockResolvedValue({})
+    ;(mockedProfile.increment as jest.Mock).mockResolvedValue({})
+    ;(mockedProfile.sequelize!.transaction as jest.Mock).mockImplementation(
+      (cb: (t: unknown) => unknown) => cb({})
+    )
 
     const res = await request(app)
       .post("/profiles/follow")
@@ -271,11 +267,11 @@ describe("POST /profiles/follow", () => {
 // ─── POST /profiles/unfollow ──────────────────────────────────────────────────────
 describe("POST /profiles/unfollow", () => {
   it("removes a follow relationship", async () => {
-    ; (mockedFollow.findOne as jest.Mock).mockResolvedValue({ destroy: jest.fn() })
-      ; (mockedProfile.decrement as jest.Mock).mockResolvedValue({})
-      ; (mockedProfile.sequelize!.transaction as jest.Mock).mockImplementation(
-        (cb: (t: unknown) => unknown) => cb({})
-      )
+    ;(mockedFollow.findOne as jest.Mock).mockResolvedValue({ destroy: jest.fn() })
+    ;(mockedProfile.decrement as jest.Mock).mockResolvedValue({})
+    ;(mockedProfile.sequelize!.transaction as jest.Mock).mockImplementation(
+      (cb: (t: unknown) => unknown) => cb({})
+    )
 
     const res = await request(app)
       .post("/profiles/unfollow")
@@ -287,10 +283,10 @@ describe("POST /profiles/unfollow", () => {
   })
 
   it("returns 404 if follow relationship does not exist", async () => {
-    ; (mockedFollow.findOne as jest.Mock).mockResolvedValue(null)
-      ; (mockedProfile.sequelize!.transaction as jest.Mock).mockImplementation(
-        (cb: (t: unknown) => unknown) => cb({})
-      )
+    ;(mockedFollow.findOne as jest.Mock).mockResolvedValue(null)
+    ;(mockedProfile.sequelize!.transaction as jest.Mock).mockImplementation(
+      (cb: (t: unknown) => unknown) => cb({})
+    )
 
     const res = await request(app)
       .post("/profiles/unfollow")
@@ -310,7 +306,7 @@ describe("POST /profiles/unfollow", () => {
 
   describe("GET /profiles/search", () => {
     it("returns matching profiles", async () => {
-      ; (mockedProfile.findAndCountAll as jest.Mock).mockResolvedValue({
+      ;(mockedProfile.findAndCountAll as jest.Mock).mockResolvedValue({
         count: 1,
         rows: [MOCK_PROFILE],
       })
@@ -350,7 +346,7 @@ describe("POST /profiles/unfollow", () => {
     })
 
     it("is not caught by the /:profileId route", async () => {
-      ; (mockedProfile.findAndCountAll as jest.Mock).mockResolvedValue({ count: 0, rows: [] })
+      ;(mockedProfile.findAndCountAll as jest.Mock).mockResolvedValue({ count: 0, rows: [] })
 
       const res = await request(app)
         .get("/profiles/search?q=test")

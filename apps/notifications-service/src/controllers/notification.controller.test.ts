@@ -71,10 +71,7 @@ describe("GET /notifications", () => {
   it("passes read=false filter", async () => {
     mockService.list.mockResolvedValue({ data: [], total: 0, page: 1, limit: 20 })
     await request(app).get("/notifications?read=false").set("Authorization", "Bearer fake-token")
-    expect(mockService.list).toHaveBeenCalledWith(
-      USER_ID,
-      expect.objectContaining({ read: false })
-    )
+    expect(mockService.list).toHaveBeenCalledWith(USER_ID, expect.objectContaining({ read: false }))
   })
 
   it("rejects limit > 100 with 400", async () => {

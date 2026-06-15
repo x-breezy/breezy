@@ -20,7 +20,7 @@ function mockRes(): Response & { written: string[] } {
   return res
 }
 
-// SseService is a singleton — use unique userIds to avoid cross-test leakage
+// SseService is a singleton, use unique userIds to avoid cross-test leakage
 let uid = 0
 const nextId = () => `user-${uid++}`
 

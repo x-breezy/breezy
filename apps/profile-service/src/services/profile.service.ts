@@ -16,6 +16,10 @@ class ProfileService {
     return Profile.findOne({ where: { profileId } })
   }
 
+  async getProfileByUsername(username: string): Promise<Profile | null> {
+    return Profile.findOne({ where: { username } })
+  }
+
   async updateProfile(profileId: string, input: UpdateProfileInput): Promise<Profile | null> {
     const profile = await Profile.findOne({ where: { profileId } })
     if (!profile) return null
@@ -27,6 +31,11 @@ class ProfileService {
     if (!profile) return false
     await profile.destroy() // soft-delete via paranoid
     return true
+  }
+
+  async isFollowing(followerId: string, followingId: string): Promise<boolean> {
+    const follow = await Follow.findOne({ where: { followerId, followingId } })
+    return follow !== null
   }
 
   async follow(followerId: string, followingId: string): Promise<void> {
@@ -41,7 +50,13 @@ class ProfileService {
         transaction: t,
       })
     })
-    publish("profile.followed", { followerId, followingId })
+    const follower = await Profile.findOne({ where: { profileId: followerId } })
+    publish("social.follow", {
+      followerId,
+      followingId,
+      username: follower?.username,
+      avatarId: follower?.avatarId ?? undefined,
+    })
   }
 
   async unfollow(followerId: string, followingId: string): Promise<boolean> {

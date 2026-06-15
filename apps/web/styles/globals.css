@@ -145,6 +145,11 @@
   html {
     @apply font-sans;
   }
+
+  .container-center {
+    max-width: var(--container-3xl);
+    margin: 0 auto;
+  }
 }
 
 @keyframes ring {

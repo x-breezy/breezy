@@ -3,7 +3,7 @@ import { LikeService } from "../services/like.service"
 import { PostModel } from "../models/post.model"
 
 export class LikeController {
-  constructor(private service = new LikeService()) { }
+  constructor(private service = new LikeService()) {}
 
   getMyLikes = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {

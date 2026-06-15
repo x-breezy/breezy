@@ -58,10 +58,7 @@ describe("POST /users", () => {
 
   it("rejects missing fields with 400 for admin", async () => {
     mockVerifyToken.mockReturnValueOnce({ sub: ADMIN_ID, role: "admin" as Role, jti: "x" })
-    const res = await request(app)
-      .post("/users")
-      .set("Authorization", "Bearer fake-token")
-      .send({})
+    const res = await request(app).post("/users").set("Authorization", "Bearer fake-token").send({})
     expect(res.status).toBe(400)
   })
 
@@ -286,9 +283,7 @@ describe("PATCH /users/:id/password", () => {
     })
 
     it("returns 400 when q is missing", async () => {
-      const res = await request(app)
-        .get("/users/search")
-        .set("Authorization", "Bearer fake-token")
+      const res = await request(app).get("/users/search").set("Authorization", "Bearer fake-token")
 
       expect(res.status).toBe(400)
       expect(res.body.success).toBe(false)

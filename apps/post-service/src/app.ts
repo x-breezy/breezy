@@ -25,7 +25,7 @@ export function createApp(): Express {
 
   app.use("/posts", createPostRouter())
 
-  // Global error handler — must be registered last and have exactly 4 params
+  // Global error handler, must be registered last and have exactly 4 params
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
     logger.error({ err }, "Unhandled error")

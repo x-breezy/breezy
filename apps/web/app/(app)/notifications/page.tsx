@@ -1,101 +1,98 @@
-import { IconDots } from "@tabler/icons-react"
-import { NotificationsHeader } from "@/components/notifications/NotificationsHeader"
-import { Button } from "@/components/ui/button"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+"use client"
 
-interface Notification {
-  id: string
-  handle: string
-  time: string
-  message: string
-  color: string
-  image?: string
+import { useEffect, useRef, useState } from "react"
+import { NotificationsHeader } from "@/components/notifications/notifications-header"
+import { NotificationCard } from "@/components/notifications/notification"
+import { useNotificationStore } from "@/stores/notification-store"
+import {
+  groupNotifications,
+  groupByTimeFrame,
+  type NotificationView,
+} from "@/lib/notifications/group"
+
+function viewKey(view: NotificationView): string {
+  if (view.kind === "like") return `like-${view.postId}`
+  return view.ids[0] as string
 }
 
-const NOTIFICATIONS: Notification[] = [
-  {
-    id: "1",
-    handle: "alexandre_t",
-    time: "2h",
-    message:
-      "A répondu à votre post : \"C'est exactement le problème que j'ai eu sur Safari hier, merci pour l'astuce !\"",
-    color: "bg-sky-600",
-    image: "https://api.dicebear.com/10.x/glyphs/svg?seed=alexandre",
-  },
-  {
-    id: "2",
-    handle: "sophie_ux",
-    time: "3h",
-    message:
-      'vous a mentionné dans une publication : "Tu devrais regarder ce thread @grod_le_goat, c\'est très pertinent."',
-    color: "bg-rose-500",
-    image: "https://api.dicebear.com/10.x/glyphs/svg?seed=sophie",
-  },
-  {
-    id: "3",
-    handle: "clara_dev et 12 autres personnes",
-    time: "2h",
-    message: "ont aimé votre post.",
-    color: "bg-violet-600",
-    image: "https://api.dicebear.com/10.x/glyphs/svg?seed=clara",
-  },
-  {
-    id: "4",
-    handle: "alexandre_t",
-    time: "2h",
-    message:
-      "A répondu à votre post : \"C'est exactement le problème que j'ai eu sur Safari hier, merci pour l'astuce !\"",
-    color: "bg-sky-600",
-    image: "https://api.dicebear.com/10.x/glyphs/svg?seed=alexandre",
-  },
-  {
-    id: "5",
-    handle: "alexandre_t",
-    time: "2h",
-    message:
-      "A répondu à votre post : \"C'est exactement le problème que j'ai eu sur Safari hier, merci pour l'astuce !\"",
-    color: "bg-sky-600",
-    image: "https://api.dicebear.com/10.x/glyphs/svg?seed=alexandre",
-  },
-  {
-    id: "6",
-    handle: "alexandre_t",
-    time: "5h",
-    message:
-      "A répondu à votre post : \"C'est exactement le problème que j'ai eu sur Safari hier, merci pour l'astuce !\"",
-    color: "bg-sky-600",
-    image: "https://api.dicebear.com/10.x/glyphs/svg?seed=alexandre",
-  },
-]
-
 export default function NotificationsPage() {
+  const notifications = useNotificationStore((s) => s.notifications)
+  const loading = useNotificationStore((s) => s.loading)
+  const error = useNotificationStore((s) => s.error)
+  const markAllRead = useNotificationStore((s) => s.markAllRead)
+  const remove = useNotificationStore((s) => s.remove)
+
+  const hasMarkedRef = useRef(false)
+  const [seenKeys, setSeenKeys] = useState<Set<string>>(new Set())
+
+  const views = groupNotifications(notifications)
+
+  useEffect(() => {
+    if (views.length > 0 && !hasMarkedRef.current) {
+      hasMarkedRef.current = true
+      setSeenKeys(new Set(views.filter((v) => !v.read).map(viewKey)))
+      markAllRead()
+    }
+  }, [views, markAllRead])
+
+  if (loading) {
+    return (
+      <div>
+        <NotificationsHeader />
+        <div className='flex items-center justify-center py-12 text-sm text-muted-foreground'>
+          Loading...
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div>
+        <NotificationsHeader />
+        <div className='flex items-center justify-center py-12 text-sm text-muted-foreground'>
+          {error}
+        </div>
+      </div>
+    )
+  }
+
+  if (views.length === 0) {
+    return (
+      <div>
+        <NotificationsHeader />
+        <div className='flex items-center justify-center py-12 text-sm text-muted-foreground'>
+          No notifications yet
+        </div>
+      </div>
+    )
+  }
+
+  const groups = groupByTimeFrame(views)
+
   return (
-    <div className='pt-15'>
+    <div>
       <NotificationsHeader />
-      <ul>
-        {NOTIFICATIONS.map((notif) => (
-          <li key={notif.id} className='flex gap-3 border-b px-4 py-4'>
-            <Avatar>
-              <AvatarImage src={notif.image} alt={notif.handle} />
-              <AvatarFallback>{notif.handle.charAt(0).toUpperCase()}</AvatarFallback>
-            </Avatar>
-            <div className='w-full flex-1'>
-              <div className='flex items-center justify-between gap-2'>
-                <p className='text-sm'>
-                  <span className='font-semibold'>@{notif.handle}</span>
-                  {notif.time && <span className='text-muted-foreground'> · {notif.time}</span>}
-                </p>
-                <Button
-                  variant='ghost'
-                  size='icon-sm'
-                  aria-label='Notification actions'
-                  className='shrink-0 text-muted-foreground'
-                >
-                  <IconDots size={16} />
-                </Button>
-              </div>
-              <p className='mt-0.5 text-sm text-muted-foreground'>{notif.message}</p>
+      <ul className='container-center px-6'>
+        {groups.map(({ label, views: groupViews }) => (
+          <li key={label}>
+            <div className='mb-2 border-b pb-1'>
+              <h2 className='text-xl font-bold'>{label}</h2>
             </div>
+            <ul>
+              {groupViews.map((view) => {
+                const key = viewKey(view)
+                return (
+                  <li key={key}>
+                    <NotificationCard
+                      view={view}
+                      onDismiss={() => view.ids.forEach(remove)}
+                      highlight={seenKeys.has(key)}
+                    />
+                  </li>
+                )
+              })}
+            </ul>
           </li>
         ))}
       </ul>

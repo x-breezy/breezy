@@ -7,7 +7,12 @@ interface PageHeaderProps {
 
 export function PageHeader({ children, className }: PageHeaderProps) {
   return (
-    <header className={cn("sticky top-0 z-100 bg-background/80 px-4 backdrop-blur-sm", className)}>
+    <header
+      className={cn(
+        "container-center sticky top-0 z-100 bg-background/80 px-4 backdrop-blur-sm",
+        className
+      )}
+    >
       {children}
     </header>
   )

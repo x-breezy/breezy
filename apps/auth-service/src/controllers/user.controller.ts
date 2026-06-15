@@ -149,7 +149,6 @@ class UserController {
       next(error)
     }
   }
-  
 }
 
 export default UserController

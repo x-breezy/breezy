@@ -41,6 +41,25 @@ class ProfileController {
     }
   }
 
+  getProfileByUsername = async (
+    req: Request<{ username: string }>,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const profile = await this.profileService.getProfileByUsername(req.params.username)
+      if (!profile) {
+        res.status(404).json({ success: false, message: "Profile not found" })
+        return
+      }
+      res
+        .status(200)
+        .json({ success: true, data: profile, message: "Profile retrieved successfully" })
+    } catch (err) {
+      next(err)
+    }
+  }
+
   updateProfile = async (
     req: Request<Record<string, never>, unknown, UpdateProfileDTO>,
     res: Response,
@@ -109,6 +128,20 @@ class ProfileController {
         return
       }
       res.status(200).json({ success: true, message: "Unfollowed successfully" })
+    } catch (err) {
+      next(err)
+    }
+  }
+
+  isFollowing = async (
+    req: Request<{ profileId: string }>,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const followerId = req.user!.id
+      const result = await this.profileService.isFollowing(followerId, req.params.profileId)
+      res.status(200).json({ success: true, data: { isFollowing: result } })
     } catch (err) {
       next(err)
     }
