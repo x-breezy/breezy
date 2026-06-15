@@ -3,7 +3,6 @@ import UserService from "../services/user.service"
 import AuthService from "../services/auth.service"
 import { signPendingToken, verifyPendingToken, verifyToken, getJwks } from "../utils/jwt.util"
 import { publish } from "../clients/rabbitmq"
-import { GrpcProfileClient } from "../clients/profile.client"
 import type {
   SignInDTO,
   SignUpDTO,
@@ -24,12 +23,10 @@ const APP_URL = process.env.APP_URL ?? "http://localhost:3000"
 class AuthController {
   private userService: UserService
   private authService: AuthService
-  private profileClient: GrpcProfileClient
 
   constructor(userService: UserService, authService: AuthService = new AuthService()) {
     this.userService = userService
     this.authService = authService
-    this.profileClient = new GrpcProfileClient()
   }
 
   signIn = async (
@@ -93,8 +90,6 @@ class AuthController {
       }
 
       const user = await this.userService.addUser(req.body)
-
-      await this.profileClient.createProfile(user.id, user.username, user.role)
 
       const { token, verifyUrl } = await this.authService.createEmailVerificationToken(user.id)
       void publish("auth.email_verification", {
@@ -461,11 +456,6 @@ class AuthController {
       )
 
       if (created) {
-        await this.profileClient.createProfile(user.id, user.username, user.role, {
-          firstName: googleClaims.firstName,
-          lastName: googleClaims.lastName,
-          avatarUrl: googleClaims.picture,
-        })
         if (!user.isEmailVerified) {
           const { token, verifyUrl } = await this.authService.createEmailVerificationToken(user.id)
           void publish("auth.email_verification", {

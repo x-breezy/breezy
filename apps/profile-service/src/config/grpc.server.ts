@@ -19,45 +19,55 @@ const svc = new ProfileService()
 const profileDataHandler = {
   async getFollowers(call: any, cb: any) {
     try {
+      if (!call.request?.profileId) {
+        cb({ code: grpc.status.INVALID_ARGUMENT, message: "Profile ID is required" }, null)
+        return
+      }
+
       const result = await svc.getFollowers(call.request.profileId)
       cb(null, { count: result.count, followers: result.followers })
     } catch (err) {
-      cb(err as Error, null)
+      const error = err as Error
+      console.error('Error in getFollowers:', error)
+      cb({
+        code: grpc.status.INTERNAL,
+        message: error.message || "Internal server error"
+      }, null)
     }
   },
 
   async getFollowing(call: any, cb: any) {
     try {
+      if (!call.request?.profileId) {
+        cb({ code: grpc.status.INVALID_ARGUMENT, message: "Profile ID is required" }, null)
+        return
+      }
+
       const result = await svc.getFollowing(call.request.profileId)
       cb(null, { count: result.count, following: result.following })
     } catch (err) {
-      cb(err as Error, null)
-    }
-  },
-
-  async createProfile(call: any, cb: any) {
-    try {
-      const result = await svc.createProfile({
-        profileId: call.request.profileId,
-        username: call.request.username,
-        role: call.request.role,
-        firstName: call.request.firstName || null,
-        lastName: call.request.lastName || null,
-        avatarId: call.request.avatarUrl || null,
-      })
-      cb(null, { profileId: result.profileId })
-    } catch (err) {
-      cb(err as Error, null)
+      const error = err as Error
+      console.error('Error in getFollowing:', error)
+      cb({
+        code: grpc.status.INTERNAL,
+        message: error.message || "Internal server error"
+      }, null)
     }
   },
 
   async getProfile(call: any, cb: any) {
     try {
+      if (!call.request?.profileId) {
+        cb({ code: grpc.status.INVALID_ARGUMENT, message: "Profile ID is required" }, null)
+        return
+      }
+
       const result = await svc.getProfile(call.request.profileId)
       if (!result) {
         cb({ code: grpc.status.NOT_FOUND, message: "Profile not found" }, null)
         return
       }
+
       cb(null, {
         username: result.username,
         avatarId: result.avatarId ?? "",
@@ -65,7 +75,12 @@ const profileDataHandler = {
         lastName: result.lastName ?? "",
       })
     } catch (err) {
-      cb(err as Error, null)
+      const error = err as Error
+      console.error('Error in getProfile:', error)
+      cb({
+        code: grpc.status.INTERNAL,
+        message: error.message || "Internal server error"
+      }, null)
     }
   },
 }

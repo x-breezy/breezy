@@ -8,6 +8,32 @@ export function getProfile(profileId: string, authHeader: Record<string, string>
   })
 }
 
+export function createProfile(
+  profileId: string,
+  payload: { username: string; firstName?: string | null; lastName?: string | null; bio?: string | null; avatarId?: string | null },
+  authHeader: Record<string, string>
+) {
+  // Validation des entrées
+  if (!profileId || !profileId.trim()) {
+    throw new Error("Profile ID is required")
+  }
+
+  if (!payload.username || !payload.username.trim()) {
+    throw new Error("Username is required")
+  }
+
+  if (payload.username.length > 50) {
+    throw new Error("Username must be less than 50 characters")
+  }
+
+  const payloadWithId = {
+    ...payload,
+    profileId: profileId.trim(),
+    username: payload.username.trim()
+  }
+  return serverClient.post(`/api/profiles/`, payloadWithId, { headers: authHeader })
+}
+
 export function updateProfile(
   profileId: string,
   payload: Partial<Profile>,
