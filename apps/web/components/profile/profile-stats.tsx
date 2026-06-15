@@ -20,7 +20,7 @@ function ProfileStat({ count, label }: ProfileStatProps) {
   return (
     <div className='flex items-baseline gap-1'>
       <span className='font-semibold'>{formatCount(count)}</span>
-      <span className='text-sm text-muted-foreground'>{label}</span>
+      <span className='text-sm'>{label}</span>
     </div>
   )
 }
@@ -33,7 +33,7 @@ interface ProfileStatsProps {
 
 export function ProfileStats({ followers, following, className }: ProfileStatsProps) {
   return (
-    <div className={cn("flex items-center gap-6", className)}>
+    <div className={cn("flex items-center gap-3 text-sm", className)}>
       <ProfileStat count={followers} label='followers' />
       <ProfileStat count={following} label='following' />
     </div>

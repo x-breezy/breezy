@@ -337,10 +337,7 @@ class AuthService {
   async findOrCreateGoogleUser(
     code: string,
     codeVerifier: string
-  ): Promise<
-    | { isNewUser: false; user: SafeUser }
-    | { isNewUser: true; pendingToken: string }
-  > {
+  ): Promise<{ isNewUser: false; user: SafeUser } | { isNewUser: true; pendingToken: string }> {
     const redirectUri =
       process.env.GOOGLE_REDIRECT_URI ?? "http://localhost/api/auth/google/callback"
     const client = new OAuth2Client(
@@ -364,14 +361,7 @@ class AuthService {
       throw Object.assign(new Error("Invalid Google payload"), { code: "GOOGLE_AUTH_FAILED" })
     }
 
-    const {
-      sub: googleId,
-      email,
-      email_verified,
-      given_name,
-      family_name,
-      picture,
-    } = payload
+    const { sub: googleId, email, email_verified, given_name, family_name, picture } = payload
 
     const byGoogleId = await User.findOne({ where: { googleId } })
     if (byGoogleId) return { isNewUser: false, user: byGoogleId.toJSON() }
@@ -379,16 +369,15 @@ class AuthService {
     const byEmail = await User.findOne({ where: { email } })
     if (byEmail) {
       if (!email_verified) {
-        throw Object.assign(
-          new Error("Cannot link unverified Google email to existing account"),
-          { code: "GOOGLE_EMAIL_UNVERIFIED" }
-        )
+        throw Object.assign(new Error("Cannot link unverified Google email to existing account"), {
+          code: "GOOGLE_EMAIL_UNVERIFIED",
+        })
       }
       await byEmail.update({ googleId })
       return { isNewUser: false, user: byEmail.toJSON() }
     }
 
-    // New user — don't create account yet, wait for username selection
+    // New user, don't create account yet, wait for username selection
     const pendingToken = signPendingGoogleToken({
       googleId,
       email,
@@ -403,7 +392,11 @@ class AuthService {
   async completeGoogleAuth(
     pendingToken: string,
     username: string
-  ): Promise<{ user: SafeUser; created: boolean; googleClaims: { firstName?: string; lastName?: string; picture?: string } }> {
+  ): Promise<{
+    user: SafeUser
+    created: boolean
+    googleClaims: { firstName?: string; lastName?: string; picture?: string }
+  }> {
     const claims = verifyPendingGoogleToken(pendingToken)
 
     const usernameTaken = (await User.count({ where: { username } })) > 0
@@ -411,7 +404,11 @@ class AuthService {
       throw Object.assign(new Error("Username already taken"), { code: "USERNAME_TAKEN" })
     }
 
-    const googleClaims = { firstName: claims.firstName, lastName: claims.lastName, picture: claims.picture }
+    const googleClaims = {
+      firstName: claims.firstName,
+      lastName: claims.lastName,
+      picture: claims.picture,
+    }
 
     // Double-submit guard: account may have been created by a previous attempt
     const existing = await User.findOne({ where: { googleId: claims.googleId } })

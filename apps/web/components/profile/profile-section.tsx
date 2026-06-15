@@ -23,7 +23,9 @@ export function ProfileSection({ className, profile, role, isOwn }: ProfileSecti
         <ProfileInfo
           name={profile?.firstName + " " + profile?.lastName || profile?.username}
           username={profile?.username}
+          userId={profile.profileId}
           role={role || UserRole.User}
+          isOwn={isOwn}
         />
         <ProfileStats followers={profile.followersCount} following={profile.followingCount} />
         <ProfileActions profile={profile} isOwn={isOwn} className='justify-center' />
@@ -32,18 +34,18 @@ export function ProfileSection({ className, profile, role, isOwn }: ProfileSecti
 
       {/* Desktop Layout */}
       <div className='container-center hidden md:mx-auto md:flex md:items-start md:justify-center md:gap-8'>
-        <div className='flex flex-col items-center gap-4'>
-          <ProfileAvatar src={profile.avatarId || undefined} alt={profile.username} size='2xl' />
-        </div>
+        <ProfileAvatar src={profile.avatarId || undefined} alt={profile.username} size='2xl' />
 
         <div className='flex flex-1 flex-col gap-4'>
           <div className='flex items-start justify-between'>
-            <div className='flex flex-col gap-1'>
+            <div className='flex flex-col gap-2'>
               <ProfileInfo
                 name={profile?.firstName + " " + profile?.lastName || profile?.username}
                 username={profile?.username}
+                userId={profile.profileId}
                 role={role}
                 className='items-start'
+                isOwn={isOwn}
               />
               <ProfileStats followers={profile.followersCount} following={profile.followingCount} />
             </div>
