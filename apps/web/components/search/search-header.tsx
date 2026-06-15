@@ -1,8 +1,9 @@
 "use client"
 
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { IconSearch, IconX } from "@tabler/icons-react"
+import { useDebounce } from "@/hooks/use-debounce"
 import {
   InputGroup,
   InputGroupAddon,
@@ -20,7 +21,23 @@ export function SearchHeader() {
   const inputRef = useRef<HTMLInputElement>(null)
   const urlQ = searchParams.get("q") ?? ""
 
+  const lastPushed = useRef("")
+  const debouncedValue = useDebounce(value, 300)
   const displayValue = focused ? value : urlQ
+
+  useEffect(() => {
+    const q = debouncedValue.trim()
+    if (focused && q !== lastPushed.current) {
+      lastPushed.current = q
+      const params = new URLSearchParams(searchParams.toString())
+      if (q) {
+        params.set("q", q)
+      } else {
+        params.delete("q")
+      }
+      router.push(`/search?${params.toString()}`)
+    }
+  }, [debouncedValue, focused, router, searchParams])
 
   function submit() {
     const q = value.trim()

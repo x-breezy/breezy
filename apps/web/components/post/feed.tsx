@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback } from "react"
+import { useCallback, useRef, useEffect } from "react"
 import { useFeed } from "./use-feed"
 import Post from "./post"
 import { toggleLike } from "@/lib/actions/posts"
@@ -9,6 +9,25 @@ import { Skeleton } from "@/components/ui/skeleton"
 
 export function Feed() {
   const { posts, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useFeed()
+
+  const sentinelRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const sentinel = sentinelRef.current
+    if (!sentinel) return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting && hasNextPage && !isFetchingNextPage) {
+          fetchNextPage()
+        }
+      },
+      { threshold: 0 }
+    )
+
+    observer.observe(sentinel)
+    return () => observer.disconnect()
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage])
 
   const handleLike = useCallback(async (postId: string, liked: boolean) => {
     const res = await toggleLike(postId, liked)
@@ -51,32 +70,30 @@ export function Feed() {
   }
 
   return (
-    <div>
-      {posts.map((post) => (
-        <Post
-          key={post._id}
-          id={post._id}
-          name={authorName(post)}
-          username={post.author?.username ?? post.authorId}
-          avatarUrl={post.author?.avatarUrl ?? undefined}
-          content={post.content}
-          media={post.media}
-          createdAt={timeAgo(post.createdAt)}
-          initialLikes={post.likesCount}
-          initialComments={post.commentsCount}
-          initialLiked={post.liked}
-          onLike={handleLike}
-        />
-      ))}
-      {hasNextPage && (
-        <button
-          onClick={() => fetchNextPage()}
-          disabled={isFetchingNextPage}
-          className='w-full py-3 text-sm text-muted-foreground transition-colors hover:text-foreground disabled:opacity-50'
-        >
-          {isFetchingNextPage ? "Loading..." : "Load more"}
-        </button>
-      )}
-    </div>
+    <ul className='space-y-1'>
+      <li>
+        {posts.map((post) => (
+          <Post
+            key={post._id}
+            id={post._id}
+            name={authorName(post)}
+            username={post.author?.username ?? post.authorId}
+            avatarUrl={post.author?.avatarUrl ?? undefined}
+            content={post.content}
+            media={post.media}
+            createdAt={timeAgo(post.createdAt)}
+            initialLikes={post.likesCount}
+            initialComments={post.commentsCount}
+            initialLiked={post.liked}
+            onLike={handleLike}
+          />
+        ))}
+        {hasNextPage && (
+          <div ref={sentinelRef} className='w-full py-3 text-center text-sm text-muted-foreground'>
+            {isFetchingNextPage ? "Loading..." : ""}
+          </div>
+        )}
+      </li>
+    </ul>
   )
 }

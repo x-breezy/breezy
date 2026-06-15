@@ -8,6 +8,7 @@ import type { SearchPostMedia } from "@/lib/actions/posts"
 import { MediaViewer } from "../shared/media-viewer"
 import { AutoplayVideo } from "../shared/autoplay-video"
 import { MediaImage } from "../shared/media-image"
+import { mediaUrl } from "@/lib/utils"
 
 interface HomePostProps {
   id: string
@@ -93,13 +94,13 @@ function Post({
                 item.type === "image" ? (
                   <MediaImage
                     key={item.id}
-                    src={`/api/media/images/${item.id}`}
+                    src={mediaUrl(`/api/media/images/${item.id}`)}
                     onClick={() => setViewerIndex(i)}
                   />
                 ) : (
                   <AutoplayVideo
                     key={item.id}
-                    src={`/api/media/videos/${item.id}`}
+                    src={mediaUrl(`/api/media/videos/${item.id}`)}
                     className='w-full max-w-75 cursor-pointer rounded-lg object-cover'
                     onClick={() => setViewerIndex(i)}
                   />

@@ -16,7 +16,7 @@ import { Dialog, DialogOverlay, DialogPortal } from "@/components/ui/dialog"
 import { IconDots, IconShare, IconFlag, IconUserOff } from "@tabler/icons-react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
-import apiClient from "@/lib/api/client"
+import { reportProfile } from "@/lib/actions/reports"
 
 interface ProfileInfoProps {
   name: string
@@ -52,7 +52,7 @@ export function ProfileInfo({
 
   async function handleReport() {
     if (!reason.trim()) return
-    await apiClient.post("/api/reports/", { targetId: userId, reason })
+    await reportProfile(userId, reason)
     setReportOpen(false)
     setReason("")
   }

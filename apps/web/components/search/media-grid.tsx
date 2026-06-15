@@ -5,6 +5,7 @@ import type { SearchPostMedia } from "@/lib/actions/posts"
 import { MediaViewer } from "@/components/shared/media-viewer"
 import { AutoplayVideo } from "@/components/shared/autoplay-video"
 import { MediaImage } from "@/components/shared/media-image"
+import { mediaUrl } from "@/lib/utils"
 
 interface MediaGridProps {
   items: SearchPostMedia[]
@@ -21,14 +22,14 @@ export function MediaGrid({ items }: MediaGridProps) {
             item.type === "image" ? (
               <MediaImage
                 key={item.id}
-                src={`/api/media/images/${item.id}`}
+                src={mediaUrl(`/api/media/images/${item.id}`)}
                 onClick={() => setViewerIndex(i)}
                 cover
               />
             ) : (
               <AutoplayVideo
                 key={item.id}
-                src={`/api/media/videos/${item.id}`}
+                src={mediaUrl(`/api/media/videos/${item.id}`)}
                 className='aspect-square w-full cursor-pointer rounded-lg object-cover'
                 onClick={() => setViewerIndex(i)}
               />

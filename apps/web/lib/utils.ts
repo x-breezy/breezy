@@ -5,6 +5,11 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+export function mediaUrl(path: string): string {
+  const base = process.env.NEXT_PUBLIC_API_URL ?? ""
+  return `${base}${path}`
+}
+
 export function timeAgo(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime()
   const s = Math.floor(diff / 1000)

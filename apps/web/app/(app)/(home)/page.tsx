@@ -10,7 +10,9 @@ export default function HomePage() {
   return (
     <div>
       <HomeHeader feed={feed} onFeedChange={setFeed} />
-      <Feed />
+      <div className='container-center w-full py-2'>
+        <Feed />
+      </div>
     </div>
   )
 }
