@@ -3,10 +3,10 @@
 import { useState } from "react"
 import { Dialog as DialogPrimitive } from "@base-ui/react/dialog"
 import { Dialog, DialogContent, DialogPortal } from "@/components/ui/dialog"
-import { PostHeader } from "@/components/post/PostHeader"
-import { PostForm } from "@/components/post/PostForm"
 import { useIsMobile } from "@/hooks/use-is-mobile"
-import { usePostCompose } from "@/components/post/use-post-compose"
+import { PostForm } from "./PostForm"
+import { PostHeader } from "./PostHeader"
+import { usePostCompose } from "./use-post-compose"
 
 const CLOSE_ANIMATION_DURATION = 100 // ms for dialog close animation
 
