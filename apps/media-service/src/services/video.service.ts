@@ -11,7 +11,7 @@ export interface VideoUploadHeaders {
 }
 
 class VideoService {
-  constructor(private readonly storage: StorageService = new StorageService("videos")) {}
+  constructor(private readonly storage: StorageService = new StorageService("videos")) { }
 
   async upload(source: Readable, headers: VideoUploadHeaders): Promise<Video> {
     const gridFsId = await this.storage.upload(source, {
@@ -24,7 +24,7 @@ class VideoService {
     const file = await this.storage.findById(gridFsId)
 
     try {
-      return await VideoModel.create({
+      const doc = await VideoModel.create({
         gridFsId,
         originalName: headers.filename,
         mimeType: headers.contentType,
@@ -32,6 +32,20 @@ class VideoService {
         title: headers.title,
         ownerId: headers.ownerId,
       })
+      // Convert to plain object and map _id to id
+      const obj = doc.toObject()
+      const video: Video = {
+        id: obj._id?.toString() || String(obj._id),
+        gridFsId: obj.gridFsId,
+        originalName: obj.originalName,
+        mimeType: obj.mimeType,
+        size: obj.size,
+        title: obj.title,
+        ownerId: obj.ownerId,
+        createdAt: obj.createdAt,
+        updatedAt: obj.updatedAt,
+      }
+      return video
     } catch (err) {
       await this.storage.delete(gridFsId)
       throw err
@@ -39,7 +53,22 @@ class VideoService {
   }
 
   async getMeta(id: string): Promise<Video | null> {
-    return VideoModel.findById(id).exec()
+    const doc = await VideoModel.findById(id).exec()
+    if (!doc) return null
+    // Convert to plain object and map _id to id
+    const obj = doc.toObject()
+    const video: Video = {
+      id: obj._id?.toString() || String(obj._id),
+      gridFsId: obj.gridFsId,
+      originalName: obj.originalName,
+      mimeType: obj.mimeType,
+      size: obj.size,
+      title: obj.title,
+      ownerId: obj.ownerId,
+      createdAt: obj.createdAt,
+      updatedAt: obj.updatedAt,
+    }
+    return video
   }
 
   async list(ownerId?: string): Promise<Video[]> {

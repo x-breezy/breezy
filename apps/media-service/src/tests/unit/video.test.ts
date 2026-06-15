@@ -32,11 +32,25 @@ describe("VideoService", () => {
     it("streams to GridFS then creates metadata doc", async () => {
       const source = Readable.from(Buffer.from("videobytes"))
       const gridFsId = "gridfs-abc"
-      const created = { id: "meta-abc", gridFsId, size: 10, mimeType: "video/mp4" }
+      const created = {
+        _id: { toString: () => "meta-abc" },
+        id: "meta-abc",
+        gridFsId,
+        size: 10,
+        mimeType: "video/mp4",
+        originalName: "clip.mp4",
+        toObject: () => ({
+          _id: { toString: () => "meta-abc" },
+          gridFsId,
+          size: 10,
+          mimeType: "video/mp4",
+          originalName: "clip.mp4",
+        }),
+      }
 
       storage.upload = jest.fn().mockResolvedValue(gridFsId)
       storage.findById = jest.fn().mockResolvedValue({ length: 10 } as any)
-      ;(mockedModel.create as jest.Mock).mockResolvedValue(created)
+        ; (mockedModel.create as jest.Mock).mockResolvedValue(created)
 
       const result = await service.upload(source, {
         filename: "clip.mp4",
@@ -56,13 +70,18 @@ describe("VideoService", () => {
           size: 10,
         })
       )
-      expect(result).toBe(created)
+      expect(result.id).toBe("meta-abc")
     })
 
     it("uses size 0 when GridFS file not found after upload", async () => {
       storage.upload = jest.fn().mockResolvedValue("gfs-id")
       storage.findById = jest.fn().mockResolvedValue(null)
-      ;(mockedModel.create as jest.Mock).mockResolvedValue({})
+      const created = {
+        _id: { toString: () => "meta-id" },
+        id: "meta-id",
+        toObject: () => ({ _id: { toString: () => "meta-id" } }),
+      }
+        ; (mockedModel.create as jest.Mock).mockResolvedValue(created)
 
       await service.upload(Readable.from(Buffer.from("v")), {
         filename: "x.mp4",
@@ -75,16 +94,25 @@ describe("VideoService", () => {
 
   describe("getMeta", () => {
     it("returns the document by id", async () => {
-      const doc = { id: "meta-abc", gridFsId: "gridfs-abc" }
-      ;(mockedModel.findById as jest.Mock).mockReturnValue({
-        exec: jest.fn().mockResolvedValue(doc),
-      })
+      const doc = {
+        _id: { toString: () => "meta-abc" },
+        id: "meta-abc",
+        gridFsId: "gridfs-abc",
+        toObject: () => ({
+          _id: { toString: () => "meta-abc" },
+          gridFsId: "gridfs-abc",
+        }),
+      }
+        ; (mockedModel.findById as jest.Mock).mockReturnValue({
+          exec: jest.fn().mockResolvedValue(doc),
+        })
 
-      expect(await service.getMeta("meta-abc")).toBe(doc)
+      const result = await service.getMeta("meta-abc")
+      expect(result?.id).toBe("meta-abc")
     })
 
     it("returns null for unknown id", async () => {
-      ;(mockedModel.findById as jest.Mock).mockReturnValue({
+      ; (mockedModel.findById as jest.Mock).mockReturnValue({
         exec: jest.fn().mockResolvedValue(null),
       })
 
@@ -95,9 +123,9 @@ describe("VideoService", () => {
   describe("list", () => {
     it("returns all videos when no filter", async () => {
       const docs = [{ id: "a" }, { id: "b" }]
-      ;(mockedModel.find as jest.Mock).mockReturnValue({
-        select: jest.fn().mockReturnValue({ exec: jest.fn().mockResolvedValue(docs) }),
-      })
+        ; (mockedModel.find as jest.Mock).mockReturnValue({
+          select: jest.fn().mockReturnValue({ exec: jest.fn().mockResolvedValue(docs) }),
+        })
 
       const result = await service.list()
       expect(mockedModel.find).toHaveBeenCalledWith({})
@@ -105,7 +133,7 @@ describe("VideoService", () => {
     })
 
     it("filters by ownerId when provided", async () => {
-      ;(mockedModel.find as jest.Mock).mockReturnValue({
+      ; (mockedModel.find as jest.Mock).mockReturnValue({
         select: jest.fn().mockReturnValue({ exec: jest.fn().mockResolvedValue([]) }),
       })
 
@@ -145,13 +173,13 @@ describe("VideoService", () => {
   describe("delete", () => {
     it("removes GridFS bytes and metadata doc", async () => {
       const meta = { id: "meta-abc", gridFsId: "gridfs-abc" }
-      ;(mockedModel.findById as jest.Mock).mockReturnValue({
-        exec: jest.fn().mockResolvedValue(meta),
-      })
+        ; (mockedModel.findById as jest.Mock).mockReturnValue({
+          exec: jest.fn().mockResolvedValue(meta),
+        })
       storage.delete = jest.fn().mockResolvedValue(true)
-      ;(mockedModel.findByIdAndDelete as jest.Mock).mockReturnValue({
-        exec: jest.fn().mockResolvedValue(meta),
-      })
+        ; (mockedModel.findByIdAndDelete as jest.Mock).mockReturnValue({
+          exec: jest.fn().mockResolvedValue(meta),
+        })
 
       expect(await service.delete("meta-abc")).toBe(true)
       expect(storage.delete).toHaveBeenCalledWith("gridfs-abc")
@@ -159,7 +187,7 @@ describe("VideoService", () => {
     })
 
     it("returns false when meta doc not found", async () => {
-      ;(mockedModel.findById as jest.Mock).mockReturnValue({
+      ; (mockedModel.findById as jest.Mock).mockReturnValue({
         exec: jest.fn().mockResolvedValue(null),
       })
 
