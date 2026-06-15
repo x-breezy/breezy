@@ -1,6 +1,7 @@
 "use client"
 
 import { useActionState, useEffect, useState } from "react"
+import { useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
 import { PasswordField, getStrength } from "../password-field"
 import { ConfirmPasswordField } from "../confirm-password-field"
@@ -18,6 +19,7 @@ export function AccountStep({ onSuccess }: { onSuccess: () => void }) {
   const [confirmPassword, setConfirmPassword] = useState("")
   const [localError, setLocalError] = useState<string | null>(null)
   const [state, action, isPending] = useActionState(signUpAction, null)
+  const t = useTranslations("auth")
 
   useEffect(() => {
     if (state?.success) onSuccess()
@@ -26,12 +28,12 @@ export function AccountStep({ onSuccess }: { onSuccess: () => void }) {
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     if (getStrength(password) < 3) {
       event.preventDefault()
-      setLocalError("Please choose a stronger password.")
+      setLocalError(t("weakPassword"))
       return
     }
     if (password !== confirmPassword) {
       event.preventDefault()
-      setLocalError("Passwords do not match.")
+      setLocalError(t("passwordsMismatch"))
       return
     }
     setLocalError(null)
@@ -45,7 +47,7 @@ export function AccountStep({ onSuccess }: { onSuccess: () => void }) {
         <FieldGroup>
           <OAuthButtons status='register' />
           <Field>
-            <Label htmlFor='username'>Username</Label>
+            <Label htmlFor='username'>{t("username")}</Label>
             <InputGroup>
               <InputGroupInput
                 id='username'
@@ -64,7 +66,7 @@ export function AccountStep({ onSuccess }: { onSuccess: () => void }) {
           </Field>
 
           <Field>
-            <Label htmlFor='email'>Email address</Label>
+            <Label htmlFor='email'>{t("emailAddress")}</Label>
             <InputGroup>
               <InputGroupInput
                 id='email'
@@ -99,7 +101,7 @@ export function AccountStep({ onSuccess }: { onSuccess: () => void }) {
           {error && <p className='text-sm text-destructive'>{error}</p>}
 
           <Button type='submit' size='lg' disabled={isPending}>
-            {isPending ? "Creating account…" : "Continue"}
+            {isPending ? t("creatingAccount") : t("continue")}
           </Button>
         </FieldGroup>
       </FieldSet>

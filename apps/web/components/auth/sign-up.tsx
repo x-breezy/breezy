@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
+import { useTranslations } from "next-intl"
 import { AuthHeader } from "./auth-header"
 import { AccountStep } from "./onboarding/account-step"
 import { PhotoStep } from "./onboarding/photo-step"
@@ -10,15 +11,14 @@ import { cn } from "@/lib/utils"
 
 type Step = 1 | 2 | 3
 
-const STEPS: { label: string }[] = [{ label: "Account" }, { label: "Profile" }, { label: "Done" }]
+function StepIndicator({ current, t }: { current: Step; t: any }) {
+  const STEPS: { label: string }[] = [
+    { label: t("stepAccount") },
+    { label: t("stepProfile") },
+    { label: t("stepDone") },
+  ]
 
-const STEP_META: Record<Step, { title: string; subtitle: string }> = {
-  1: { title: "Create an account", subtitle: "Sign up to get started" },
-  2: { title: "Set up your profile", subtitle: "Add a few details, you can update these later" },
-  3: { title: "You're all set!", subtitle: "Your account is ready" },
-}
 
-function StepIndicator({ current }: { current: Step }) {
   return (
     <div className='mb-8 flex items-center justify-center'>
       {STEPS.map((s, i) => {
@@ -77,6 +77,13 @@ function StepIndicator({ current }: { current: Step }) {
 }
 
 export default function SignUpScreen() {
+  const t = useTranslations("auth")
+  const STEP_META: Record<Step, { title: string; subtitle: string }> = {
+    1: { title: t("createAccount"), subtitle: t("signUpToGetStarted") },
+    2: { title: t("setUpProfile"), subtitle: t("addDetailsLater") },
+    3: { title: t("allSet"), subtitle: t("accountReady") },
+  }
+
   const [step, setStep] = useState<Step>(1)
   const [avatar, setAvatar] = useState<File | null>(null)
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
@@ -101,16 +108,16 @@ export default function SignUpScreen() {
     <div className='mx-auto flex w-full max-w-sm animate-in flex-col justify-center px-4 py-12 font-sans duration-300 select-none fade-in slide-in-from-bottom-4'>
       <AuthHeader title={title} subtitle={subtitle} />
 
-      <StepIndicator current={step} />
+      <StepIndicator current={step} t={t} />
 
       <div key={step} className='animate-in duration-200 fade-in slide-in-from-right-4'>
         {step === 1 && (
           <>
             <AccountStep onSuccess={() => setStep(2)} />
             <div className='mt-6 text-center text-sm font-medium text-muted-foreground'>
-              Already have an account?{" "}
+              {t("alreadyHaveAccount")}{" "}
               <Link href='/sign-in' className='font-semibold text-foreground underline'>
-                Sign in
+                {t("signIn")}
               </Link>
             </div>
           </>

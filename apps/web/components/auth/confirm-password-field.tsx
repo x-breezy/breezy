@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useTranslations } from "next-intl"
 import { Field } from "@/components/ui/field"
 import { Label } from "@/components/ui/label"
 import { InputGroup, InputGroupAddon, InputGroupInput } from "../ui/input-group"
@@ -15,10 +16,11 @@ interface ConfirmPasswordFieldProps {
 export function ConfirmPasswordField({ value, password, onChange }: ConfirmPasswordFieldProps) {
   const [visible, setVisible] = useState(false)
   const passwordsMatch = value.length > 0 && value === password
+  const t = useTranslations("auth")
 
   return (
     <Field>
-      <Label htmlFor='confirm-password'>Confirm password</Label>
+      <Label htmlFor='confirm-password'>{t("confirmPassword")}</Label>
       <InputGroup>
         <InputGroupInput
           id='confirm-password'
@@ -46,7 +48,7 @@ export function ConfirmPasswordField({ value, password, onChange }: ConfirmPassw
             passwordsMatch ? "text-green-500" : "text-destructive"
           }`}
         >
-          {passwordsMatch ? "Passwords match" : "Passwords do not match"}
+          {passwordsMatch ? t("passwordsMatch") : t("passwordsMismatch")}
         </p>
       )}
     </Field>

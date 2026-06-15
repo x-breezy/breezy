@@ -3,21 +3,31 @@
 import { Field } from "@/components/ui/field"
 import { Label } from "@/components/ui/label"
 import { useState } from "react"
+import { useTranslations } from "next-intl"
 import { IconCheck, IconCircleDashed, IconEye, IconEyeClosed, IconLock } from "@tabler/icons-react"
 import { InputGroup, InputGroupAddon, InputGroupInput } from "../ui/input-group"
 
-const criteria = [
-  { label: "At least 8 characters", test: (p: string) => p.length >= 8 },
-  { label: "One uppercase letter", test: (p: string) => /[A-Z]/.test(p) },
-  { label: "One number", test: (p: string) => /[0-9]/.test(p) },
-]
+export function getCriteria(t: any) {
+  return [
+    { label: t("ruleLength"), test: (p: string) => p.length >= 8 },
+    { label: t("ruleUppercase"), test: (p: string) => /[A-Z]/.test(p) },
+    { label: t("ruleNumber"), test: (p: string) => /[0-9]/.test(p) },
+  ]
+}
 
 export function getStrength(password: string): 0 | 1 | 2 | 3 {
-  const score = criteria.filter((c) => c.test(password)).length
+  const score = [
+    (p: string) => p.length >= 8,
+    (p: string) => /[A-Z]/.test(p),
+    (p: string) => /[0-9]/.test(p),
+  ].filter((testFn) => testFn(password)).length
   return score as 0 | 1 | 2 | 3
 }
 
-const strengthLabel = ["", "Weak", "Fair", "Strong"]
+export function getStrengthLabel(t: any) {
+  return ["", t("strengthWeak"), t("strengthFair"), t("strengthStrong")]
+}
+
 const strengthColor = ["", "bg-destructive", "bg-yellow-400", "bg-green-500"]
 const strengthTextColor = ["", "text-destructive", "text-yellow-500", "text-green-500"]
 
@@ -38,10 +48,13 @@ export function PasswordField({
 }: PasswordFieldProps) {
   const [visible, setVisible] = useState(false)
   const strength = getStrength(value)
+  const t = useTranslations("auth")
+  const criteriaList = getCriteria(t)
+  const labels = getStrengthLabel(t)
 
   return (
     <Field>
-      <Label htmlFor={id}>Password</Label>
+      <Label htmlFor={id}>{t("password")}</Label>
       <InputGroup>
         <InputGroupInput
           id={id}
@@ -77,10 +90,10 @@ export function PasswordField({
             ))}
           </div>
           <p className={`text-xs font-medium ${strengthTextColor[strength]}`}>
-            {strengthLabel[strength]}
+            {labels[strength]}
           </p>
           <ul className='flex flex-col gap-0.5'>
-            {criteria.map((c) => (
+            {criteriaList.map((c) => (
               <li
                 key={c.label}
                 className={`flex items-center gap-1.5 text-xs transition-colors ${

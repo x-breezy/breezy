@@ -7,6 +7,8 @@ import { QueryProvider } from "@/components/providers/query-provider"
 import { Toaster } from "@/components/ui/sonner"
 import { cn } from "@/lib/utils"
 import type { Theme } from "@/lib/theme"
+import { NextIntlClientProvider } from "next-intl"
+import { getLocale, getMessages } from "next-intl/server"
 
 // base font
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" })
@@ -55,21 +57,25 @@ export default async function RootLayout({
 }>) {
   const cookieStore = await cookies()
   const theme = (cookieStore.get("breezy-theme")?.value as Theme) ?? "system"
+  const locale = await getLocale()
+  const messages = await getMessages()
 
   return (
     <html
-      lang='en'
+      lang={locale}
       suppressHydrationWarning
       data-theme={theme}
       className={cn("antialiased", geistMono.variable, "font-sans", geist.variable, geom.variable)}
     >
       <body>
-        <QueryProvider>
-          <ThemeProvider defaultTheme={theme}>
-            {children}
-            <Toaster position='top-center' />
-          </ThemeProvider>
-        </QueryProvider>
+        <NextIntlClientProvider messages={messages}>
+          <QueryProvider>
+            <ThemeProvider defaultTheme={theme}>
+              {children}
+              <Toaster position='top-center' />
+            </ThemeProvider>
+          </QueryProvider>
+        </NextIntlClientProvider>
       </body>
     </html>
   )

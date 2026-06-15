@@ -2,6 +2,7 @@
 
 import { useRef } from "react"
 import Image from "next/image"
+import { useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
 import { Field, FieldGroup, FieldSet } from "@/components/ui/field"
 import { Label } from "@/components/ui/label"
@@ -31,6 +32,7 @@ export function PhotoStep({
   onSkip,
 }: ProfileStepProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const t = useTranslations("auth")
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -52,14 +54,14 @@ export function PhotoStep({
           ) : (
             <span className='flex h-full w-full flex-col items-center justify-center gap-1 text-muted-foreground'>
               <IconCamera size={24} />
-              <span className='text-[10px] font-medium'>Add photo</span>
+              <span className='text-[10px] font-medium'>{t("addPhoto")}</span>
             </span>
           )}
           <span className='absolute inset-0 flex items-center justify-center rounded-full bg-black/50 opacity-0 transition-opacity group-hover:opacity-100'>
             <IconUpload size={20} className='text-white' />
           </span>
         </button>
-        <p className='text-xs text-muted-foreground'>Optional</p>
+        <p className='text-xs text-muted-foreground'>{t("optional")}</p>
       </div>
 
       <input
@@ -74,7 +76,7 @@ export function PhotoStep({
         <FieldGroup>
           <div className='grid grid-cols-2 gap-3'>
             <Field>
-              <Label htmlFor='firstName'>First name</Label>
+              <Label htmlFor='firstName'>{t("firstName")}</Label>
               <Input
                 id='firstName'
                 type='text'
@@ -85,7 +87,7 @@ export function PhotoStep({
               />
             </Field>
             <Field>
-              <Label htmlFor='lastName'>Last name</Label>
+              <Label htmlFor='lastName'>{t("lastName")}</Label>
               <Input
                 id='lastName'
                 type='text'
@@ -98,7 +100,7 @@ export function PhotoStep({
           </div>
 
           <Field>
-            <Label htmlFor='bio'>Bio</Label>
+            <Label htmlFor='bio'>{t("bio")}</Label>
             <Textarea
               id='bio'
               placeholder='Tell people a little about yourself…'
@@ -113,14 +115,14 @@ export function PhotoStep({
 
       <div className='flex flex-col gap-3'>
         <Button size='lg' onClick={onNext}>
-          Continue
+          {t("continue")}
         </Button>
         <button
           type='button'
           onClick={onSkip}
           className='text-sm font-medium text-muted-foreground transition-colors hover:text-foreground'
         >
-          Skip for now
+          {t("skipForNow")}
         </button>
       </div>
     </div>
