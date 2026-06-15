@@ -82,6 +82,7 @@ function renderPosts(
           name={name}
           username={profile?.username ?? ""}
           content={post.content}
+          media={post.media}
           createdAt={timeAgo(post.createdAt)}
           initialLikes={post.likesCount}
           initialComments={post.commentsCount}

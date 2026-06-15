@@ -5,7 +5,7 @@ export interface MergedPerson {
   id: string
   username: string
   displayName: string | null
-  avatarUrl: string | null
+  avatarUrl: string | undefined
   bio: string | null
   followersCount: number
 }
@@ -17,7 +17,7 @@ export function profilesToPeople(profiles: SearchProfile[]): MergedPerson[] {
       id: p.profileId,
       username: p.username ?? "",
       displayName,
-      avatarUrl: p.avatarUrl,
+      avatarUrl: p.avatarUrl || undefined,
       bio: p.bio ?? null,
       followersCount: p.followersCount ?? 0,
     }
