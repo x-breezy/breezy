@@ -132,7 +132,8 @@ class ProfileService {
   async search(
     q: string,
     page: number = 1,
-    limit: number = 20
+    limit: number = 20,
+    viewerId?: string
   ): Promise<{ count: number; profiles: Profile[] }> {
     const offset = (page - 1) * limit
     const where = {
@@ -141,6 +142,7 @@ class ProfileService {
         { firstName: { [Op.iLike]: `%${q}%` } },
         { lastName: { [Op.iLike]: `%${q}%` } },
       ],
+      ...(viewerId ? { profileId: { [Op.ne]: viewerId } } : {}),
     }
     const { count, rows } = await Profile.findAndCountAll({ where, limit, offset })
     return { count, profiles: rows }

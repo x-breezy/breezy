@@ -46,7 +46,9 @@ export class PostService {
   async feed(viewerId: string, page: number, limit: number): Promise<PaginatedResponse<Post>> {
     const following = await this.follow.getFollowing(viewerId)
     const filter =
-      following === null ? {} : { authorId: { $in: [...new Set([viewerId, ...following])] } }
+      following === null
+        ? { authorId: { $ne: viewerId } }
+        : { authorId: { $in: [...new Set(following)], $ne: viewerId } }
     const skip = (page - 1) * limit
     const [data, total] = await Promise.all([
       PostModel.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).exec(),
@@ -74,29 +76,31 @@ export class PostService {
     q: string,
     page: number,
     limit: number,
-    authorIds?: string[]
+    authorIds?: string[],
+    viewerId?: string
   ): Promise<PaginatedResponse<Post>> {
     const skip = (page - 1) * limit
     const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
     const tagRegex = new RegExp(`^${escaped}$`, "i")
     const contentRegex = new RegExp(escaped, "i")
     const safeQ = q.replace(/"/g, '\\"')
+    const exclude = viewerId ? { authorId: { $ne: viewerId } } : {}
 
     // Fetch: exact tag match first, then text-score ranked, then regex fallback
-    const tagDocs = await PostModel.find({ tags: tagRegex })
+    const tagDocs = await PostModel.find({ tags: tagRegex, ...exclude })
       .sort({ createdAt: -1 })
       .limit(limit)
       .exec()
 
     const textDocs = await PostModel.find(
-      { $text: { $search: `"${safeQ}"` } },
+      { $text: { $search: `"${safeQ}"` }, ...exclude },
       { score: { $meta: "textScore" } }
     )
       .sort({ score: { $meta: "textScore" } })
       .limit(limit)
       .exec()
 
-    const regexDocs = await PostModel.find({ content: contentRegex })
+    const regexDocs = await PostModel.find({ content: contentRegex, ...exclude })
       .sort({ createdAt: -1 })
       .limit(limit)
       .exec()
@@ -104,7 +108,7 @@ export class PostService {
     // Posts from matching authors (people search cross-join)
     const authorDocs =
       authorIds && authorIds.length > 0
-        ? await PostModel.find({ authorId: { $in: authorIds } })
+        ? await PostModel.find({ authorId: { $in: authorIds, ...(viewerId ? { $ne: viewerId } : {}) } })
             .sort({ createdAt: -1 })
             .limit(limit)
             .exec()
@@ -122,12 +126,12 @@ export class PostService {
 
     // Count distinct matching documents (avoid $text in $or which MongoDB rejects)
     const countPromises: Promise<number>[] = [
-      PostModel.countDocuments({ tags: tagRegex }).exec(),
-      PostModel.countDocuments({ $text: { $search: `"${safeQ}"` } }).exec(),
-      PostModel.countDocuments({ content: contentRegex }).exec(),
+      PostModel.countDocuments({ tags: tagRegex, ...exclude }).exec(),
+      PostModel.countDocuments({ $text: { $search: `"${safeQ}"` }, ...exclude }).exec(),
+      PostModel.countDocuments({ content: contentRegex, ...exclude }).exec(),
     ]
     if (authorIds && authorIds.length > 0) {
-      countPromises.push(PostModel.countDocuments({ authorId: { $in: authorIds } }).exec())
+      countPromises.push(PostModel.countDocuments({ authorId: { $in: authorIds, ...(viewerId ? { $ne: viewerId } : {}) } }).exec())
     }
     const counts = await Promise.all(countPromises)
 
