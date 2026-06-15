@@ -39,17 +39,17 @@ export default function ProfilePage({ params }: { params: Promise<{ username: st
     })
   }, [username, isOwn])
 
-  const { posts, isLoading: postsLoading, fetchNextPage, hasNextPage } = useProfilePosts(
-    profile?.profileId ?? ""
-  )
+  const {
+    posts,
+    isLoading: postsLoading,
+    fetchNextPage,
+    hasNextPage,
+  } = useProfilePosts(profile?.profileId ?? "")
 
-  const handleLike = useCallback(
-    async (postId: string, liked: boolean) => {
-      const res = await toggleLike(postId, liked)
-      return res.likesCount
-    },
-    []
-  )
+  const handleLike = useCallback(async (postId: string, liked: boolean) => {
+    const res = await toggleLike(postId, liked)
+    return res.likesCount
+  }, [])
 
   const authorName =
     [profile?.firstName, profile?.lastName].filter(Boolean).join(" ") || profile?.username || ""
@@ -65,7 +65,7 @@ export default function ProfilePage({ params }: { params: Promise<{ username: st
       <main className='md:px-4 md:py-6'>
         <ProfileSection profile={profile} role={user?.role as UserRole} isOwn={isOwn} />
 
-        <section className='mt-8 container-center p-4 md:p-0'>
+        <section className='container-center mt-8 p-4 md:p-0'>
           {postsLoading ? (
             <div className='space-y-1'>
               {Array.from({ length: 3 }).map((_, i) => (
@@ -80,7 +80,7 @@ export default function ProfilePage({ params }: { params: Promise<{ username: st
               ))}
             </div>
           ) : posts.length === 0 ? (
-            <p className='text-sm text-muted-foreground text-center py-8'>No posts yet.</p>
+            <p className='py-8 text-center text-sm text-muted-foreground'>No posts yet.</p>
           ) : (
             <>
               {posts.map((post) => (
@@ -102,7 +102,7 @@ export default function ProfilePage({ params }: { params: Promise<{ username: st
               {hasNextPage && (
                 <button
                   onClick={() => fetchNextPage()}
-                  className='w-full py-3 text-sm text-muted-foreground hover:text-foreground transition-colors'
+                  className='w-full py-3 text-sm text-muted-foreground transition-colors hover:text-foreground'
                 >
                   Load more
                 </button>
