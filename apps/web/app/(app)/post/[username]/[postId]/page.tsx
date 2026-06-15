@@ -95,6 +95,7 @@ export default function PostPage({
           id={post._id}
           name={authorName}
           username={post.author?.username ?? post.authorId}
+          authorId={post.authorId}
           avatarUrl={post.author?.avatarId ?? undefined}
           content={post.content}
           media={post.media}

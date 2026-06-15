@@ -2,7 +2,8 @@
 
 import { memo, useState, useCallback } from "react"
 import { useRouter } from "next/navigation"
-import { PostMeta, PostMenu, PostContent, PostActions } from "."
+import { PostMeta, PostContent, PostActions } from "."
+import { PostMenu } from "./post-menu"
 import { ProfileAvatar } from "../profile"
 import type { SearchPostMedia } from "@/lib/actions/posts"
 import { MediaViewer } from "../shared/medias/media-viewer"
@@ -23,6 +24,7 @@ interface HomePostProps {
   initialLiked?: boolean
   href?: string
   onLike?: (postId: string, newLiked: boolean) => Promise<number | void>
+  authorId?: string
 }
 
 function Post({
@@ -38,6 +40,7 @@ function Post({
   initialLiked = false,
   href,
   onLike,
+  authorId,
 }: HomePostProps) {
   const router = useRouter()
   const [likes, setLikes] = useState(initialLikes)
@@ -81,7 +84,7 @@ function Post({
         <div className='min-w-0 flex-1'>
           <div className='mb-0.5 flex items-center justify-between'>
             <PostMeta name={name} username={username} createdAt={createdAt} />
-            <PostMenu />
+            <PostMenu postId={id} username={username} authorId={authorId ?? id} />
           </div>
 
           <PostContent content={content} />

@@ -89,6 +89,7 @@ export default function ProfilePage({ params }: { params: Promise<{ username: st
                   id={post._id}
                   name={authorName}
                   username={profile.username}
+                  authorId={post.authorId}
                   avatarUrl={profile.avatarId ?? undefined}
                   content={post.content}
                   media={post.media}

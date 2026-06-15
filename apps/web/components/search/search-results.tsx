@@ -81,6 +81,7 @@ function renderPosts(
           avatarUrl={profile?.avatarUrl || undefined}
           name={name}
           username={profile?.username ?? ""}
+          authorId={post.authorId}
           content={post.content}
           media={post.media}
           createdAt={timeAgo(post.createdAt)}

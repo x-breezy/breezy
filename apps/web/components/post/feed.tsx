@@ -78,6 +78,7 @@ export function Feed() {
             id={post._id}
             name={authorName(post)}
             username={post.author?.username ?? post.authorId}
+            authorId={post.authorId}
             avatarUrl={post.author?.avatarUrl ?? undefined}
             content={post.content}
             media={post.media}
