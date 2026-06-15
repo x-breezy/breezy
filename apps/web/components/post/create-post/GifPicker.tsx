@@ -46,12 +46,15 @@ export function GifPicker({ open, onClose, onSelect }: GifPickerProps) {
     if (!open) return
     setLoading(true)
     setError(null)
-    const timer = setTimeout(async () => {
-      const { results, error: err } = await fetchGifs(query)
-      setGifs(results)
-      setError(err ?? null)
-      setLoading(false)
-    }, query ? 400 : 0)
+    const timer = setTimeout(
+      async () => {
+        const { results, error: err } = await fetchGifs(query)
+        setGifs(results)
+        setError(err ?? null)
+        setLoading(false)
+      },
+      query ? 400 : 0
+    )
     return () => clearTimeout(timer)
   }, [query, open])
 
