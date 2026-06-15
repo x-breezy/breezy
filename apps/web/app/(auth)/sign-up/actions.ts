@@ -10,8 +10,8 @@ import {
   ACCESS_COOKIE,
   getUserId,
 } from "@/lib/auth/session"
-import { signUp } from "@/lib/services/auth-service"
-import { updateProfile } from "@/lib/services/profile-service"
+import { signUp, getMe } from "@/lib/services/auth-service"
+import { createProfile } from "@/lib/services/profile-service"
 import { uploadImage } from "@/lib/services/image-service"
 
 export interface ActionState {
@@ -87,7 +87,20 @@ export async function setupProfileAction(
   }
 
   try {
-    await updateProfile(userId, { firstName, lastName, bio, avatarId }, authHeader)
+    // Récupérer le username de l'utilisateur avec validation
+    const userRes = await getMe(authHeader)
+    if (!userRes?.data?.data?.username) {
+      return { error: "Invalid user data", success: false }
+    }
+
+    const username = userRes.data.data.username
+
+    // Valider les données avant création
+    if (!userId || !username) {
+      return { error: "Missing required user information", success: false }
+    }
+
+    await createProfile(userId, { username, firstName, lastName, bio, avatarId }, authHeader)
     revalidatePath("/", "layout")
   } catch (err) {
     if (isAxiosError(err))
