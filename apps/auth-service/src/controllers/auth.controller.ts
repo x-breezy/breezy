@@ -455,10 +455,17 @@ class AuthController {
   ): Promise<void> => {
     try {
       const { pendingToken, username } = req.body
-      const { user, created, googleClaims } = await this.authService.completeGoogleAuth(pendingToken, username)
+      const { user, created, googleClaims } = await this.authService.completeGoogleAuth(
+        pendingToken,
+        username
+      )
 
       if (created) {
-        await this.profileClient.createProfile(user.id, user.username, user.role, { firstName: googleClaims.firstName, lastName: googleClaims.lastName, avatarUrl: googleClaims.picture })
+        await this.profileClient.createProfile(user.id, user.username, user.role, {
+          firstName: googleClaims.firstName,
+          lastName: googleClaims.lastName,
+          avatarUrl: googleClaims.picture,
+        })
         if (!user.isEmailVerified) {
           const { token, verifyUrl } = await this.authService.createEmailVerificationToken(user.id)
           void publish("auth.email_verification", {

@@ -27,7 +27,11 @@ export function ProfileSection({ className, profile, role, isOwn }: ProfileSecti
           role={role || UserRole.User}
           isOwn={isOwn}
         />
-        <ProfileStats followers={profile.followersCount} following={profile.followingCount} />
+        <ProfileStats
+          profileId={profile.profileId}
+          followers={profile.followersCount}
+          following={profile.followingCount}
+        />
         <ProfileActions profile={profile} isOwn={isOwn} className='justify-center' />
         <ProfileBio className='mt-2 w-full'>{profile.bio}</ProfileBio>
       </div>
@@ -47,7 +51,11 @@ export function ProfileSection({ className, profile, role, isOwn }: ProfileSecti
                 className='items-start'
                 isOwn={isOwn}
               />
-              <ProfileStats followers={profile.followersCount} following={profile.followingCount} />
+              <ProfileStats
+                profileId={profile.profileId}
+                followers={profile.followersCount}
+                following={profile.followingCount}
+              />
             </div>
           </div>
           <ProfileBio>{profile.bio}</ProfileBio>

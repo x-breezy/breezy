@@ -7,7 +7,13 @@ const API_URL = process.env.API_URL ?? "http://localhost"
 const MAX_AGE = 60 * 60 * 24 * 7
 
 // Authenticated users are redirected away from these paths (unless server action)
-const AUTH_ONLY_PATHS = ["/sign-in", "/sign-up", "/forgot-password", "/two-factor", "/google-username"]
+const AUTH_ONLY_PATHS = [
+  "/sign-in",
+  "/sign-up",
+  "/forgot-password",
+  "/two-factor",
+  "/google-username",
+]
 
 // Always accessible regardless of auth state (token-based flows work for both auth states)
 const ALWAYS_ACCESSIBLE = ["/verify-email", "/reset-password"]
