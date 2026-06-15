@@ -2,9 +2,9 @@
 
 import { useState } from "react"
 import type { SearchPostMedia } from "@/lib/actions/posts"
-import { MediaViewer } from "@/components/shared/media-viewer"
-import { AutoplayVideo } from "@/components/shared/autoplay-video"
-import { MediaImage } from "@/components/shared/media-image"
+import { MediaViewer } from "@/components/shared/medias/media-viewer"
+import { AutoplayVideo } from "@/components/shared/medias/autoplay-video"
+import { MediaImage } from "@/components/shared/medias/media-image"
 import { mediaUrl } from "@/lib/utils"
 
 interface MediaGridProps {

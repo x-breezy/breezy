@@ -5,9 +5,9 @@ import { useRouter } from "next/navigation"
 import { PostMeta, PostMenu, PostContent, PostActions } from "."
 import { ProfileAvatar } from "../profile"
 import type { SearchPostMedia } from "@/lib/actions/posts"
-import { MediaViewer } from "../shared/media-viewer"
-import { AutoplayVideo } from "../shared/autoplay-video"
-import { MediaImage } from "../shared/media-image"
+import { MediaViewer } from "../shared/medias/media-viewer"
+import { AutoplayVideo } from "../shared/medias/autoplay-video"
+import { MediaImage } from "../shared/medias/media-image"
 import { mediaUrl } from "@/lib/utils"
 
 interface HomePostProps {

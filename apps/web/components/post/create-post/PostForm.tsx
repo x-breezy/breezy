@@ -1,6 +1,7 @@
 "use client"
 
 import { useRef, useState, useEffect } from "react"
+import { createPortal } from "react-dom"
 import { searchProfiles } from "@/lib/actions/profiles"
 import { buildPostHTML } from "@/lib/post-utils"
 import { PostBottomBar } from "./PostBottomBar"
@@ -123,11 +124,23 @@ export function PostForm({
     }
     const range = sel.getRangeAt(0)
     const caretRect = range.getBoundingClientRect()
-    const editorRect = editorRef.current.getBoundingClientRect()
-    setPopupPos({
-      top: caretRect.bottom - editorRect.top + 4,
-      left: Math.max(0, caretRect.left - editorRect.left),
-    })
+    const dialog = editorRef.current.closest('[role="dialog"]')
+    const dialogRect = dialog?.getBoundingClientRect()
+    const POPUP_WIDTH = 256
+    const POPUP_HEIGHT = 200
+
+    let top = caretRect.bottom + 4
+    let left = Math.max(0, caretRect.left)
+
+    if (dialogRect) {
+      if (top + POPUP_HEIGHT > dialogRect.bottom) {
+        top = caretRect.top - POPUP_HEIGHT - 4
+      }
+      top = Math.max(dialogRect.top + 4, Math.min(top, dialogRect.bottom - POPUP_HEIGHT))
+      left = Math.max(dialogRect.left, Math.min(left, dialogRect.right - POPUP_WIDTH))
+    }
+
+    setPopupPos({ top, left })
   }
 
   function handleInput() {
@@ -212,31 +225,34 @@ export function PostForm({
               className='h-full min-h-[6rem] w-full max-w-full text-xl leading-7 outline-none'
               autoFocus
             />
-            {suggestions.length > 0 && popupPos && (
-              <ul
-                className='absolute z-50 w-64 overflow-hidden rounded-xl border bg-popover shadow-lg'
-                style={{ top: popupPos.top, left: popupPos.left }}
-              >
-                {suggestions.map((s, i) => (
-                  <li
-                    key={s.profileId}
-                    onMouseDown={(e) => {
-                      e.preventDefault()
-                      applySuggestion(s)
-                    }}
-                    className={`flex cursor-pointer items-center gap-2 px-3 py-2 text-sm ${i === selectedIndex ? "bg-accent" : "hover:bg-accent/50"}`}
-                  >
-                    <ProfileAvatar size='2xs' src={s.avatarUrl ?? ""} className='size-7' />
-                    <div className='flex flex-col'>
-                      <span className='font-medium'>@{s.username}</span>
-                      {s.displayName !== s.username && (
-                        <span className='text-xs text-muted-foreground'>{s.displayName}</span>
-                      )}
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
+            {suggestions.length > 0 &&
+              popupPos &&
+              createPortal(
+                <ul
+                  className='fixed z-[130] w-64 overflow-hidden rounded-xl border bg-popover shadow-lg'
+                  style={{ top: popupPos.top, left: popupPos.left }}
+                >
+                  {suggestions.map((s, i) => (
+                    <li
+                      key={s.profileId}
+                      onMouseDown={(e) => {
+                        e.preventDefault()
+                        applySuggestion(s)
+                      }}
+                      className={`flex cursor-pointer items-center gap-2 px-3 py-2 text-sm ${i === selectedIndex ? "bg-accent" : "hover:bg-accent/50"}`}
+                    >
+                      <ProfileAvatar size='2xs' src={s.avatarUrl ?? ""} className='size-7' />
+                      <div className='flex flex-col'>
+                        <span className='font-medium'>@{s.username}</span>
+                        {s.displayName !== s.username && (
+                          <span className='text-xs text-muted-foreground'>{s.displayName}</span>
+                        )}
+                      </div>
+                    </li>
+                  ))}
+                </ul>,
+                document.body
+              )}
           </div>
         </div>
 
