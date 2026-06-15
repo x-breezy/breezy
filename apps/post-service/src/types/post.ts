@@ -16,6 +16,7 @@ export interface Post {
   content: string
   authorId: string
   tags: string[]
+  mentions: string[]
   media: MediaRef[]
 
   likesCount: number

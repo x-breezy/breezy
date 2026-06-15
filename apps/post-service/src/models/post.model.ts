@@ -6,6 +6,7 @@ const postSchema = new Schema<Post>(
     content: { type: String, required: true },
     authorId: { type: String, required: true },
     tags: { type: [String], default: [] },
+    mentions: { type: [String], default: [] },
     media: {
       type: [
         {

@@ -6,11 +6,12 @@ import { Dialog, DialogContent, DialogPortal } from "@/components/ui/dialog"
 import { PostHeader } from "@/components/post/PostHeader"
 import { PostForm } from "@/components/post/PostForm"
 import { useIsMobile } from "@/hooks/use-is-mobile"
+import { usePostCompose } from "@/components/post/use-post-compose"
 
 export function PostComposeDialog({ onDismiss }: { onDismiss: () => void }) {
-  const [content, setContent] = useState("")
   const [open, setOpen] = useState(true)
   const isMobile = useIsMobile()
+  const compose = usePostCompose()
 
   function handleClose() {
     if (isMobile) {
@@ -21,9 +22,18 @@ export function PostComposeDialog({ onDismiss }: { onDismiss: () => void }) {
     }
   }
 
-  function handlePost() {
-    if (!content.trim()) return
-    handleClose()
+  async function handlePost() {
+    const ok = await compose.submit()
+    if (ok) handleClose()
+  }
+
+  const formProps = {
+    content: compose.content,
+    setContent: compose.setContent,
+    mediaFiles: compose.mediaFiles,
+    onRemoveMedia: compose.removeMedia,
+    onAddMedia: compose.addMedia,
+    onMentionResolved: compose.resolveMention,
   }
 
   if (isMobile) {
@@ -31,8 +41,8 @@ export function PostComposeDialog({ onDismiss }: { onDismiss: () => void }) {
       <Dialog open={open} onOpenChange={(isOpen) => !isOpen && handleClose()}>
         <DialogPortal>
           <DialogPrimitive.Popup className='fixed inset-0 z-120 flex flex-col bg-background'>
-            <PostHeader onPost={handlePost} onClose={handleClose} />
-            <PostForm content={content} setContent={setContent} />
+            <PostHeader onPost={handlePost} onClose={handleClose} posting={compose.submitting} />
+            <PostForm {...formProps} />
           </DialogPrimitive.Popup>
         </DialogPortal>
       </Dialog>
@@ -43,10 +53,10 @@ export function PostComposeDialog({ onDismiss }: { onDismiss: () => void }) {
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && handleClose()}>
       <DialogContent
         showCloseButton={false}
-        className='z-120 flex max-h-[80vh] flex-col gap-0 overflow-hidden p-0 sm:top-4 sm:max-w-lg sm:rounded-[min(var(--radius-4xl),24px)]'
+        className='z-120 flex h-[60vh] flex-col gap-0 overflow-hidden p-0 sm:top-4 sm:max-w-lg sm:rounded-[min(var(--radius-4xl),24px)]'
       >
-        <PostHeader onPost={handlePost} onClose={handleClose} />
-        <PostForm content={content} setContent={setContent} />
+        <PostHeader onPost={handlePost} onClose={handleClose} posting={compose.submitting} />
+        <PostForm {...formProps} />
       </DialogContent>
     </Dialog>
   )

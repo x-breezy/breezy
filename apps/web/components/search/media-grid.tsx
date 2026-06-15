@@ -1,4 +1,4 @@
-import type { SearchPostMedia } from "@/lib/api/posts"
+import type { SearchPostMedia } from "@/lib/actions/posts"
 
 interface MediaGridProps {
   items: SearchPostMedia[]
