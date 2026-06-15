@@ -9,7 +9,7 @@ export function PageHeader({ children, className }: PageHeaderProps) {
   return (
     <header
       className={cn(
-        "container-center sticky top-0 z-100 bg-background/80 px-4 backdrop-blur-sm",
+        "container-center sticky top-0 z-40 bg-background/80 px-4 backdrop-blur-sm",
         className
       )}
     >
