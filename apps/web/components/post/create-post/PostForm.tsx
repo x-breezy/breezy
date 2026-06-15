@@ -12,6 +12,7 @@ interface MentionSuggestion {
   profileId: string
   username: string
   displayName: string
+  avatarUrl: string | null
 }
 
 function getCaretOffset(el: HTMLElement): number {
@@ -92,6 +93,7 @@ export function PostForm({
             profileId: p.profileId,
             username: p.username ?? "",
             displayName: [p.firstName, p.lastName].filter(Boolean).join(" ") || (p.username ?? ""),
+            avatarUrl: p.avatarUrl ?? null,
           }))
         )
         setSelectedIndex(0)
@@ -222,12 +224,15 @@ export function PostForm({
                       e.preventDefault()
                       applySuggestion(s)
                     }}
-                    className={`flex cursor-pointer flex-col px-3 py-2 text-sm ${i === selectedIndex ? "bg-accent" : "hover:bg-accent/50"}`}
+                    className={`flex cursor-pointer items-center gap-2 px-3 py-2 text-sm ${i === selectedIndex ? "bg-accent" : "hover:bg-accent/50"}`}
                   >
-                    <span className='font-medium'>@{s.username}</span>
-                    {s.displayName !== s.username && (
-                      <span className='text-xs text-muted-foreground'>{s.displayName}</span>
-                    )}
+                    <ProfileAvatar size='2xs' src={s.avatarUrl ?? ""} className='size-7' />
+                    <div className='flex flex-col'>
+                      <span className='font-medium'>@{s.username}</span>
+                      {s.displayName !== s.username && (
+                        <span className='text-xs text-muted-foreground'>{s.displayName}</span>
+                      )}
+                    </div>
                   </li>
                 ))}
               </ul>
