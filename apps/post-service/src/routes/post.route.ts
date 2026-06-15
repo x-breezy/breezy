@@ -2,7 +2,7 @@ import { Router } from "express"
 import { PostController } from "../controllers/post.controller"
 import { PostService } from "../services/post.service"
 import { identity } from "../middlewares/identity.middleware"
-import { requireSelfOrPermission, requireOwnership } from "../middlewares/roles.middleware"
+import { requireOwnership } from "../middlewares/roles.middleware"
 import { validate } from "../middlewares/validate.middleware"
 import { createPostSchema } from "../schemas/post.schema"
 import { PERMISSIONS } from "../constants/permissions"
@@ -24,12 +24,7 @@ export function createPostRouter(
   router.get("/search", identity, controller.search)
   router.get("/trending-tags", identity, controller.trendingTags)
   router.get("/liked-by-me", identity, likeController.getMyLikes)
-  router.get(
-    "/users/:userId",
-    identity,
-    requireSelfOrPermission("userId", PERMISSIONS.POST_READ_ANY),
-    controller.getUserPosts
-  )
+  router.get("/users/:userId", identity, controller.getUserPosts)
   router.get("/:id", identity, controller.getOne)
   router.delete(
     "/:id",

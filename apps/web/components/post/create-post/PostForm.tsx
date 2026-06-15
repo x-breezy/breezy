@@ -1,11 +1,12 @@
 "use client"
 
 import { useRef, useState, useEffect } from "react"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { searchProfiles } from "@/lib/actions/profiles"
 import { buildPostHTML } from "@/lib/post-utils"
 import { PostBottomBar } from "./PostBottomBar"
 import { MediaPreview, ResolvedMention } from "./use-post-compose"
+import { ProfileAvatar } from "@/components/profile"
+import { useUserStore } from "@/stores/user-store"
 
 interface MentionSuggestion {
   profileId: string
@@ -63,6 +64,7 @@ export function PostForm({
   const [mentionQuery, setMentionQuery] = useState<string | null>(null)
   const [selectedIndex, setSelectedIndex] = useState(0)
   const [popupPos, setPopupPos] = useState<{ top: number; left: number } | null>(null)
+  const profile = useUserStore((s) => s.profile)
 
   useEffect(() => {
     const el = editorRef.current
@@ -184,9 +186,7 @@ export function PostForm({
     <>
       <div className='flex max-h-[60vh] flex-1 flex-col gap-3 overflow-y-auto px-4 py-4'>
         <div className='flex h-full gap-3'>
-          <Avatar size='lg'>
-            <AvatarFallback className='bg-amber-700 text-white'>G</AvatarFallback>
-          </Avatar>
+          <ProfileAvatar size='2xs' src={profile?.avatarId ?? ""} />
 
           <div className='relative flex-1'>
             {!content && (

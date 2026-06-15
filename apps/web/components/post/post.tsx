@@ -5,9 +5,9 @@ import { useRouter } from "next/navigation"
 import { PostMeta, PostMenu, PostContent, PostActions } from "."
 import { ProfileAvatar } from "../profile"
 import type { SearchPostMedia } from "@/lib/actions/posts"
-import Image from "next/image"
 import { MediaViewer } from "../shared/media-viewer"
 import { AutoplayVideo } from "../shared/autoplay-video"
+import { MediaImage } from "../shared/media-image"
 
 interface HomePostProps {
   id: string
@@ -91,15 +91,9 @@ function Post({
             >
               {media.map((item, i) =>
                 item.type === "image" ? (
-                  <Image
+                  <MediaImage
                     key={item.id}
                     src={`/api/media/images/${item.id}`}
-                    alt=''
-                    width={300}
-                    height={300}
-                    unoptimized
-                    loading='lazy'
-                    className='w-full max-w-75 cursor-pointer rounded-lg object-cover'
                     onClick={() => setViewerIndex(i)}
                   />
                 ) : (

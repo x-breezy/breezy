@@ -1,10 +1,10 @@
 "use client"
 
 import { useState } from "react"
-import Image from "next/image"
 import type { SearchPostMedia } from "@/lib/actions/posts"
 import { MediaViewer } from "@/components/shared/media-viewer"
 import { AutoplayVideo } from "@/components/shared/autoplay-video"
+import { MediaImage } from "@/components/shared/media-image"
 
 interface MediaGridProps {
   items: SearchPostMedia[]
@@ -19,16 +19,11 @@ export function MediaGrid({ items }: MediaGridProps) {
         <div className='grid grid-cols-3 gap-1'>
           {items.map((item, i) =>
             item.type === "image" ? (
-              <Image
+              <MediaImage
                 key={item.id}
                 src={`/api/media/images/${item.id}`}
-                alt=''
-                width={200}
-                height={200}
-                unoptimized
-                loading='lazy'
-                className='aspect-square w-full cursor-pointer rounded-lg object-cover'
                 onClick={() => setViewerIndex(i)}
+                cover
               />
             ) : (
               <AutoplayVideo

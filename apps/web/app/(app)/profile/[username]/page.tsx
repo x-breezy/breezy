@@ -1,28 +1,19 @@
 "use client"
 
-import { use, useEffect, useState } from "react"
+import { use, useEffect, useState, useCallback } from "react"
 import { notFound } from "next/navigation"
 import { ProfileHeader } from "@/components/profile/profile-header"
-import { ProfileSection, ProfilePostsSection } from "@/components/profile"
+import { ProfileSection } from "@/components/profile"
 import { useUserStore } from "@/stores/user-store"
 import { useProfileStore } from "@/stores/profile-store"
 import { UserRole } from "@/lib/auth/role"
 import { AppLoader } from "@/components/layout/app-loader"
+import { Skeleton } from "@/components/ui/skeleton"
 import { getProfileByUsernameAction } from "./actions"
-
-const MOCK_POSTS = [
-  {
-    id: "1",
-    author: {
-      name: "Grod",
-      username: "grod_le_goat",
-      avatar: "/test/pp_test.png",
-    },
-    content:
-      "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since 1966, when designers at Letraset and James Mosley, the librarian at St Bride Printing Library, took a 1914 Cicero translation and scrambled it to make dummy text for Letraset's Body Type sheets.",
-    timestamp: "2h",
-  },
-]
+import { useProfilePosts } from "@/components/profile/use-profile-posts"
+import Post from "@/components/post/post"
+import { toggleLike } from "@/lib/actions/posts"
+import { timeAgo } from "@/lib/utils"
 
 export default function ProfilePage({ params }: { params: Promise<{ username: string }> }) {
   const { username } = use(params)
@@ -48,6 +39,21 @@ export default function ProfilePage({ params }: { params: Promise<{ username: st
     })
   }, [username, isOwn])
 
+  const { posts, isLoading: postsLoading, fetchNextPage, hasNextPage } = useProfilePosts(
+    profile?.profileId ?? ""
+  )
+
+  const handleLike = useCallback(
+    async (postId: string, liked: boolean) => {
+      const res = await toggleLike(postId, liked)
+      return res.likesCount
+    },
+    []
+  )
+
+  const authorName =
+    [profile?.firstName, profile?.lastName].filter(Boolean).join(" ") || profile?.username || ""
+
   if (loading) return <AppLoader />
   if (profileNotFound) notFound()
   if (!profile) return null
@@ -59,7 +65,51 @@ export default function ProfilePage({ params }: { params: Promise<{ username: st
       <main className='md:px-4 md:py-6'>
         <ProfileSection profile={profile} role={user?.role as UserRole} isOwn={isOwn} />
 
-        <ProfilePostsSection posts={MOCK_POSTS} className='mt-8' />
+        <section className='mt-8 container-center p-4 md:p-0'>
+          {postsLoading ? (
+            <div className='space-y-1'>
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className='flex gap-2.5 p-3.5'>
+                  <Skeleton className='size-11 shrink-0 rounded-full' />
+                  <div className='flex-1 space-y-2'>
+                    <Skeleton className='h-3 w-32' />
+                    <Skeleton className='h-3 w-full' />
+                    <Skeleton className='h-3 w-4/5' />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : posts.length === 0 ? (
+            <p className='text-sm text-muted-foreground text-center py-8'>No posts yet.</p>
+          ) : (
+            <>
+              {posts.map((post) => (
+                <Post
+                  key={post._id}
+                  id={post._id}
+                  name={authorName}
+                  username={profile.username}
+                  avatarUrl={profile.avatarId ?? undefined}
+                  content={post.content}
+                  media={post.media}
+                  createdAt={timeAgo(post.createdAt)}
+                  initialLikes={post.likesCount}
+                  initialComments={post.commentsCount}
+                  initialLiked={post.liked}
+                  onLike={handleLike}
+                />
+              ))}
+              {hasNextPage && (
+                <button
+                  onClick={() => fetchNextPage()}
+                  className='w-full py-3 text-sm text-muted-foreground hover:text-foreground transition-colors'
+                >
+                  Load more
+                </button>
+              )}
+            </>
+          )}
+        </section>
       </main>
     </div>
   )

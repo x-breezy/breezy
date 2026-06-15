@@ -43,7 +43,7 @@ export function PersonCard({
   )
 
   return (
-    <div className='person-card flex w-full items-center gap-2.5 bg-background p-3.5 text-left transition-colors select-none active:bg-accent/50'>
+    <div className='person-card flex w-full gap-2.5 bg-background p-3.5 text-left transition-colors select-none active:bg-accent/50'>
       <ProfileAvatar src={avatarUrl} alt={displayName ?? username ?? ""} size='2xs' />
       <div className='min-w-0 flex-1'>
         <p className='truncate text-sm font-semibold'>{displayName ?? username}</p>
