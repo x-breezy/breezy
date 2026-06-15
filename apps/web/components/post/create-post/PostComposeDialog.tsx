@@ -35,6 +35,7 @@ export function PostComposeDialog({ onDismiss }: { onDismiss: () => void }) {
     mediaFiles: compose.mediaFiles,
     onRemoveMedia: compose.removeMedia,
     onAddMedia: compose.addMedia,
+    onSelectGif: (file: File) => compose.addMedia([file]),
     onMentionResolved: compose.resolveMention,
   }
 

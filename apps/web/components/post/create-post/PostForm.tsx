@@ -46,6 +46,7 @@ export function PostForm({
   mediaFiles,
   onRemoveMedia,
   onAddMedia,
+  onSelectGif,
   onMentionResolved,
 }: {
   content: string
@@ -53,6 +54,7 @@ export function PostForm({
   mediaFiles: MediaPreview[]
   onRemoveMedia: (index: number) => void
   onAddMedia: (files: FileList) => void
+  onSelectGif: (file: File) => void
   onMentionResolved: (mention: ResolvedMention) => void
 }) {
   const editorRef = useRef<HTMLDivElement>(null)
@@ -256,7 +258,7 @@ export function PostForm({
       </div>
 
       <div className='shrink-0'>
-        <PostBottomBar onAddMedia={onAddMedia} />
+        <PostBottomBar onAddMedia={onAddMedia} onSelectGif={onSelectGif} />
       </div>
     </>
   )

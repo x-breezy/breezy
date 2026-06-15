@@ -1,12 +1,19 @@
 "use client"
 
-import { useRef } from "react"
+import { useRef, useState } from "react"
 import { IconPhoto, IconVideo } from "@tabler/icons-react"
 import { Button } from "@/components/ui/button"
+import { GifPicker } from "./GifPicker"
 
-export function PostBottomBar({ onAddMedia }: { onAddMedia: (files: FileList) => void }) {
+interface PostBottomBarProps {
+  onAddMedia: (files: FileList) => void
+  onSelectGif: (file: File) => void
+}
+
+export function PostBottomBar({ onAddMedia, onSelectGif }: PostBottomBarProps) {
   const imageRef = useRef<HTMLInputElement>(null)
   const videoRef = useRef<HTMLInputElement>(null)
+  const [gifOpen, setGifOpen] = useState(false)
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     if (e.target.files && e.target.files.length > 0) {
@@ -16,38 +23,58 @@ export function PostBottomBar({ onAddMedia }: { onAddMedia: (files: FileList) =>
   }
 
   return (
-    <div className='flex items-center gap-1 border-t px-2 py-2'>
-      <Button
-        variant='ghost'
-        size='icon-lg'
-        aria-label='Add photo'
-        onClick={() => imageRef.current?.click()}
-      >
-        <IconPhoto className='size-5 text-muted-foreground' strokeWidth={2} />
-      </Button>
-      <Button
-        variant='ghost'
-        size='icon-lg'
-        aria-label='Add video'
-        onClick={() => videoRef.current?.click()}
-      >
-        <IconVideo className='size-5 text-muted-foreground' strokeWidth={2} />
-      </Button>
-      <input
-        ref={imageRef}
-        type='file'
-        accept='image/*'
-        multiple
-        className='hidden'
-        onChange={handleChange}
+    <>
+      <div className='flex items-center gap-1 border-t px-2 py-2'>
+        <Button
+          variant='ghost'
+          size='icon-lg'
+          aria-label='Add photo'
+          onClick={() => imageRef.current?.click()}
+        >
+          <IconPhoto className='size-5 text-muted-foreground' strokeWidth={2} />
+        </Button>
+        <Button
+          variant='ghost'
+          size='icon-lg'
+          aria-label='Add video'
+          onClick={() => videoRef.current?.click()}
+        >
+          <IconVideo className='size-5 text-muted-foreground' strokeWidth={2} />
+        </Button>
+        <Button
+          variant='ghost'
+          size='icon-lg'
+          aria-label='Add GIF'
+          onClick={() => setGifOpen(true)}
+        >
+          <span className='text-xs font-bold text-muted-foreground'>GIF</span>
+        </Button>
+
+        <input
+          ref={imageRef}
+          type='file'
+          accept='image/*'
+          multiple
+          className='hidden'
+          onChange={handleChange}
+        />
+        <input
+          ref={videoRef}
+          type='file'
+          accept='video/*'
+          className='hidden'
+          onChange={handleChange}
+        />
+      </div>
+
+      <GifPicker
+        open={gifOpen}
+        onClose={() => setGifOpen(false)}
+        onSelect={(file) => {
+          onSelectGif(file)
+          setGifOpen(false)
+        }}
       />
-      <input
-        ref={videoRef}
-        type='file'
-        accept='video/*'
-        className='hidden'
-        onChange={handleChange}
-      />
-    </div>
+    </>
   )
 }
