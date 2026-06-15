@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import { useState, useCallback, useEffect } from "react"
 import { createPost } from "@/lib/actions/posts"
 import { uploadMediaAction } from "@/lib/actions/media"
 import type { SearchPostMedia } from "@/lib/actions/posts"
@@ -64,8 +64,8 @@ export function usePostCompose() {
         if (!content.trim()) return false
         setSubmitting(true)
         setError(null)
+        let uploadedMedia: SearchPostMedia[] = []
         try {
-            let uploadedMedia: SearchPostMedia[] = []
             if (mediaFiles.length > 0) {
                 uploadedMedia = await Promise.all(mediaFiles.map((m) => uploadMediaAction(m.file)))
             }
@@ -84,17 +84,30 @@ export function usePostCompose() {
                 media: uploadedMedia,
             })
 
+            // Cleanup object URLs after successful upload
+            mediaFiles.forEach((m) => URL.revokeObjectURL(m.previewUrl))
             setContent("")
             setMediaFiles([])
             setResolvedMentions([])
             return true
         } catch {
+            // Cleanup uploaded media on error, but keep previews for retry
+            uploadedMedia.forEach((m) => {
+                // TODO: Call delete media API if needed
+            })
             setError("Failed to post. Please try again.")
             return false
         } finally {
             setSubmitting(false)
         }
     }, [content, mediaFiles, resolvedMentions])
+
+    // Cleanup object URLs on unmount
+    useEffect(() => {
+        return () => {
+            mediaFiles.forEach((m) => URL.revokeObjectURL(m.previewUrl))
+        }
+    }, [])
 
     return {
         content,

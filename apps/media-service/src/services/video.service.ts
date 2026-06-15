@@ -11,7 +11,7 @@ export interface VideoUploadHeaders {
 }
 
 class VideoService {
-  constructor(private readonly storage: StorageService = new StorageService("videos")) {}
+  constructor(private readonly storage: StorageService = new StorageService("videos")) { }
 
   async upload(source: Readable, headers: VideoUploadHeaders): Promise<Video> {
     const gridFsId = await this.storage.upload(source, {
@@ -24,7 +24,7 @@ class VideoService {
     const file = await this.storage.findById(gridFsId)
 
     try {
-      return await VideoModel.create({
+      const doc = await VideoModel.create({
         gridFsId,
         originalName: headers.filename,
         mimeType: headers.contentType,
@@ -32,6 +32,8 @@ class VideoService {
         title: headers.title,
         ownerId: headers.ownerId,
       })
+      // Convert to plain object to avoid leaking Mongoose internals
+      return doc.toObject() as Video
     } catch (err) {
       await this.storage.delete(gridFsId)
       throw err
@@ -39,7 +41,7 @@ class VideoService {
   }
 
   async getMeta(id: string): Promise<Video | null> {
-    return VideoModel.findById(id).exec()
+    return VideoModel.findById(id).lean().exec() as Promise<Video | null>
   }
 
   async list(ownerId?: string): Promise<Video[]> {

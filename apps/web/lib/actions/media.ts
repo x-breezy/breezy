@@ -27,14 +27,9 @@ export async function uploadMediaAction(
   }
 
   const data = await res.json()
-  // Le backend retourne un document MongoDB brut, l'ID est dans _doc._id
-  const raw = data.data?._doc || data.data
-  const id = raw?._id || raw?.id || raw?.imageId || raw?.mediaId
-  console.log("[uploadMediaAction] Extracted id:", id)
+  const id = data.data?.id
   if (!id) {
     throw new Error("Upload failed: no id returned from server")
   }
-  const result: { id: string; type: "image" | "video" } = { id: String(id), type: isVideo ? "video" : "image" }
-  console.log("[uploadMediaAction] Returning:", result)
-  return result
+  return { id: String(id), type: isVideo ? "video" : "image" }
 }

@@ -39,17 +39,40 @@ function setCaretAt(el: HTMLElement, offset: number) {
   }
 }
 
-function buildHTML(text: string): string {
+function escapeHtml(text: string): string {
   return text
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
-    .replace(/(@[a-zA-Z0-9_À-ÿ]+)/g, (token) => {
-      return `<span class="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-sm font-medium text-primary hover:bg-primary/20 cursor-pointer">${token}</span>`
-    })
-    .replace(/(#[a-zA-Z0-9_À-ÿ]+)/g, (token) => {
-      return `<span class="inline-flex items-center rounded-full bg-secondary px-2 py-0.5 text-sm font-medium text-secondary-foreground hover:bg-secondary/80 cursor-pointer">${token}</span>`
-    })
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#x27;")
+}
+
+function buildHTML(text: string): string {
+  // Secure approach: split by mentions/tags, escape text, wrap mentions/tags in styled spans
+  const parts: string[] = []
+  let lastIndex = 0
+  const regex = /[@#][a-zA-Z0-9_À-ÿ]+/g
+  let match: RegExpExecArray | null
+
+  while ((match = regex.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push(escapeHtml(text.slice(lastIndex, match.index)))
+    }
+    const token = match[0]
+    const isMention = token.startsWith("@")
+    const styledSpan = isMention
+      ? `<span class="inline-flex items-center rounded-full bg-primary/10 px-1.5 py-0.5 text-sm font-medium text-primary">${escapeHtml(token)}</span>`
+      : `<span class="inline-flex items-center rounded-full bg-secondary px-1.5 py-0.5 text-sm font-medium text-secondary-foreground">${escapeHtml(token)}</span>`
+    parts.push(styledSpan)
+    lastIndex = regex.lastIndex
+  }
+
+  if (lastIndex < text.length) {
+    parts.push(escapeHtml(text.slice(lastIndex)))
+  }
+
+  return parts.join("")
 }
 
 export function PostForm({
@@ -90,9 +113,11 @@ export function PostForm({
       setSuggestions([])
       return
     }
+    const controller = new AbortController()
     const timer = setTimeout(async () => {
       try {
         const res = await searchProfiles(mentionQuery, 1, 5)
+        if (controller.signal.aborted) return
         setSuggestions(
           res.profiles.map((p) => ({
             profileId: p.profileId,
@@ -102,10 +127,15 @@ export function PostForm({
         )
         setSelectedIndex(0)
       } catch {
-        setSuggestions([])
+        if (!controller.signal.aborted) {
+          setSuggestions([])
+        }
       }
     }, 200)
-    return () => clearTimeout(timer)
+    return () => {
+      clearTimeout(timer)
+      controller.abort()
+    }
   }, [mentionQuery])
 
   function detectMentionQuery(text: string, cursorPos: number): string | null {
@@ -154,7 +184,9 @@ export function PostForm({
       }
       if (e.key === "Enter" || e.key === "Tab") {
         e.preventDefault()
-        applySuggestion(suggestions[selectedIndex]!)
+        if (suggestions[selectedIndex]) {
+          applySuggestion(suggestions[selectedIndex])
+        }
       }
       if (e.key === "Escape") {
         setSuggestions([])
@@ -184,7 +216,7 @@ export function PostForm({
   return (
     <>
       <div className='flex max-h-[60vh] flex-1 flex-col gap-3 overflow-y-auto px-4 py-4'>
-        <div className='flex gap-3'>
+        <div className='flex h-full gap-3'>
           <Avatar size='lg'>
             <AvatarFallback className='bg-amber-700 text-white'>G</AvatarFallback>
           </Avatar>
@@ -208,7 +240,7 @@ export function PostForm({
                 isComposing.current = false
                 handleInput()
               }}
-              className='min-h-[6rem] w-full max-w-full text-xl leading-7 outline-none'
+              className='h-full min-h-[6rem] w-full max-w-full text-xl leading-7 outline-none'
               autoFocus
             />
             {suggestions.length > 0 && popupPos && (

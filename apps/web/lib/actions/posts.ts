@@ -47,25 +47,14 @@ async function getAuthHeaders(): Promise<Record<string, string>> {
 
 export async function createPost(input: CreatePostInput): Promise<void> {
     const headers = await getAuthHeaders()
-    const url = `${GATEWAY_URL}/api/posts/`
-    console.log("[Server Action] Creating post at:", url)
-    console.log("[Server Action] Input:", input)
-
-    try {
-        const res = await fetch(url, {
-            method: "POST",
-            headers: { ...headers, "Content-Type": "application/json" },
-            body: JSON.stringify(input),
-        })
-        console.log("[Server Action] Response status:", res.status)
-        if (!res.ok) {
-            const text = await res.text()
-            console.error("[Server Action] Error response:", text)
-            throw new Error(`Failed to create post: ${res.status} - ${text}`)
-        }
-    } catch (e) {
-        console.error("[Server Action] Fetch error:", e)
-        throw e
+    const res = await fetch(`${GATEWAY_URL}/api/posts/`, {
+        method: "POST",
+        headers: { ...headers, "Content-Type": "application/json" },
+        body: JSON.stringify(input),
+    })
+    if (!res.ok) {
+        const text = await res.text()
+        throw new Error(`Failed to create post: ${res.status} - ${text}`)
     }
 }
 

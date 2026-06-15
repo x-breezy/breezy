@@ -8,6 +8,8 @@ import { PostForm } from "@/components/post/PostForm"
 import { useIsMobile } from "@/hooks/use-is-mobile"
 import { usePostCompose } from "@/components/post/use-post-compose"
 
+const CLOSE_ANIMATION_DURATION = 100 // ms for dialog close animation
+
 export function PostComposeDialog({ onDismiss }: { onDismiss: () => void }) {
   const [open, setOpen] = useState(true)
   const isMobile = useIsMobile()
@@ -18,7 +20,7 @@ export function PostComposeDialog({ onDismiss }: { onDismiss: () => void }) {
       onDismiss()
     } else {
       setOpen(false)
-      setTimeout(onDismiss, 100)
+      setTimeout(onDismiss, CLOSE_ANIMATION_DURATION)
     }
   }
 
@@ -40,7 +42,7 @@ export function PostComposeDialog({ onDismiss }: { onDismiss: () => void }) {
     return (
       <Dialog open={open} onOpenChange={(isOpen) => !isOpen && handleClose()}>
         <DialogPortal>
-          <DialogPrimitive.Popup className='fixed inset-0 z-120 flex flex-col bg-background'>
+          <DialogPrimitive.Popup className='fixed inset-0 z-50 flex flex-col bg-background'>
             <PostHeader onPost={handlePost} onClose={handleClose} posting={compose.submitting} />
             <PostForm {...formProps} />
           </DialogPrimitive.Popup>
@@ -53,7 +55,7 @@ export function PostComposeDialog({ onDismiss }: { onDismiss: () => void }) {
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && handleClose()}>
       <DialogContent
         showCloseButton={false}
-        className='z-120 flex h-[60vh] flex-col gap-0 overflow-hidden p-0 sm:top-4 sm:max-w-lg sm:rounded-[min(var(--radius-4xl),24px)]'
+        className='z-50 flex h-[60vh] flex-col gap-0 overflow-hidden p-0 sm:top-4 sm:max-w-lg sm:rounded-[min(var(--radius-4xl),24px)]'
       >
         <PostHeader onPost={handlePost} onClose={handleClose} posting={compose.submitting} />
         <PostForm {...formProps} />
