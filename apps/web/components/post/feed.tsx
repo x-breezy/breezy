@@ -86,6 +86,7 @@ export function Feed() {
             initialComments={post.commentsCount}
             initialLiked={post.liked}
             onLike={handleLike}
+            href={`/post/${post.author?.username ?? post.authorId}/${post._id}`}
           />
         ))}
         {hasNextPage && (

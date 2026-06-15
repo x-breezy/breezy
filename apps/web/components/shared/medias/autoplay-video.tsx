@@ -185,7 +185,7 @@ export function AutoplayVideo({
   return (
     <div
       ref={containerRef}
-      className={cn("relative overflow-hidden rounded-lg", className)}
+      className={cn("relative overflow-hidden rounded-lg select-none", className)}
       onMouseEnter={showWithTimeout}
       onMouseMove={showWithTimeout}
       onMouseLeave={() => {

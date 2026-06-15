@@ -97,6 +97,7 @@ export default function ProfilePage({ params }: { params: Promise<{ username: st
                   initialComments={post.commentsCount}
                   initialLiked={post.liked}
                   onLike={handleLike}
+                  href={`/post/${profile.username}/${post._id}`}
                 />
               ))}
               {hasNextPage && (

@@ -1,6 +1,10 @@
 import { PostModel } from "../models/post.model"
+import { LikeModel } from "../models/like.model"
+import { CommentService } from "./comment.service"
+import { getActorProfile } from "../clients/grpc.client"
 import type { CreatePostDTO } from "../schemas/post.schema"
 import type { Post } from "../types/post"
+import type { PostDetail, CommentWithAuthor } from "../types/post-detail"
 import type { PaginatedResponse } from "../types/api"
 import { GrpcFollowGraph, type FollowGraphPort } from "../clients/follow-graph"
 import { publish } from "../clients/rabbitmq"
@@ -21,7 +25,10 @@ function extractMentions(content: string, authorId: string): string[] {
 }
 
 export class PostService {
-  constructor(private follow: FollowGraphPort = new GrpcFollowGraph()) {}
+  constructor(
+    private follow: FollowGraphPort = new GrpcFollowGraph(),
+    private commentService = new CommentService()
+  ) {}
 
   async createPost(data: CreatePostDTO & { authorId: string }): Promise<Post> {
     const mentions = data.mentions ?? extractMentions(data.content, data.authorId)
@@ -41,6 +48,75 @@ export class PostService {
 
   async getPost(id: string): Promise<Post | null> {
     return PostModel.findById(id).exec() as Promise<Post | null>
+  }
+
+  async getPostDetail(postId: string, viewerId: string): Promise<PostDetail | null> {
+    const doc = await PostModel.findById(postId).exec()
+    if (!doc) return null
+    const post = doc.toJSON() as Record<string, unknown> & Post
+
+    const [likedDoc, commentsResult] = await Promise.all([
+      LikeModel.findOne({ postId, userId: viewerId }).exec(),
+      this.commentService.listComments(postId, null, 1, 50),
+    ])
+
+    const likedByMe = likedDoc !== null
+
+    const authorIds = new Set<string>([post.authorId])
+    const collectIds = (comments: CommentWithAuthor[]) => {
+      for (const c of comments) {
+        authorIds.add(c.authorId)
+        collectIds(c.replies)
+      }
+    }
+    collectIds(commentsResult.data as unknown as CommentWithAuthor[])
+
+    const profileEntries = await Promise.allSettled(
+      [...authorIds].map(async (id) => {
+        const profile = await getActorProfile(id)
+        return { id, profile }
+      })
+    )
+
+    const profiles = new Map<
+      string,
+      {
+        username: string
+        avatarId: string | null
+        firstName: string | null
+        lastName: string | null
+      } | null
+    >()
+    for (const entry of profileEntries) {
+      if (entry.status === "fulfilled" && entry.value.profile) {
+        profiles.set(entry.value.id, {
+          username: entry.value.profile.username,
+          avatarId: entry.value.profile.avatarId,
+          firstName: entry.value.profile.firstName,
+          lastName: entry.value.profile.lastName,
+        })
+      } else if (entry.status === "fulfilled") {
+        profiles.set(entry.value.id, null)
+      }
+    }
+
+    const attachAuthor = (comments: CommentWithAuthor[]): CommentWithAuthor[] =>
+      comments.map((c) => ({
+        ...c,
+        author: profiles.get(c.authorId) ?? null,
+        replies: attachAuthor(c.replies),
+      }))
+
+    const postAuthor = profiles.get(post.authorId) ?? null
+
+    return {
+      post: {
+        ...post,
+        author: postAuthor,
+      },
+      likedByMe,
+      comments: attachAuthor(commentsResult.data as unknown as CommentWithAuthor[]),
+    }
   }
 
   async feed(viewerId: string, page: number, limit: number): Promise<PaginatedResponse<Post>> {

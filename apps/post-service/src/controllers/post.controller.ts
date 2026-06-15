@@ -13,6 +13,19 @@ export class PostController {
     }
   }
 
+  getDetail = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const detail = await this.service.getPostDetail(req.params.id!, req.user!.id)
+      if (!detail) {
+        res.status(404).json({ success: false, error: "Not found", message: "Post not found" })
+        return
+      }
+      res.json({ success: true, data: detail, message: "Post detail retrieved successfully" })
+    } catch (err) {
+      next(err)
+    }
+  }
+
   getOne = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const post = await this.service.getPost(req.params.id!)

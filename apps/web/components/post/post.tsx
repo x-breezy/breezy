@@ -74,7 +74,7 @@ function Post({
       <article
         aria-label={`Post by ${name}`}
         onClick={href ? handleArticleClick : undefined}
-        className={`flex w-full items-start gap-2.5 bg-background p-3.5 text-left transition-colors select-none active:bg-accent/50${href ? "cursor-pointer" : ""}`}
+        className={`flex w-full items-start gap-2.5 rounded-lg bg-background p-3.5 text-left transition-colors ${href ? "cursor-pointer active:bg-accent/50" : ""}`}
       >
         <ProfileAvatar src={avatarUrl} alt={name} size='2xs' />
 
@@ -87,7 +87,7 @@ function Post({
           <PostContent content={content} />
           {media && media.length > 0 && (
             <div
-              className={`mt-2 grid gap-1 overflow-hidden rounded-lg${media.length === 1 ? "" : "grid-cols-2"}`}
+              className='mt-2 flex max-w-75 flex-col gap-2 rounded-lg'
               onClick={(e) => e.stopPropagation()}
             >
               {media.map((item, i) =>

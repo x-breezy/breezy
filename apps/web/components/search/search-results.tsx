@@ -3,7 +3,6 @@
 import { useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { IconLoader2 } from "@tabler/icons-react"
-import HomePost from "@/components/post/post"
 import type { SearchProfile } from "@/lib/actions/profiles"
 import { parseTab } from "./types"
 import { timeAgo } from "@/lib/utils"
@@ -16,6 +15,7 @@ import {
   type MediaCache,
 } from "./use-search-results"
 import { useUserStore } from "@/stores/user-store"
+import Post from "../post/post"
 
 interface SearchResultsProps {
   q: string
@@ -76,7 +76,7 @@ function renderPosts(
     const name = displayName ?? profile?.username ?? "Utilisateur"
     return (
       <li key={post._id} className='w-full'>
-        <HomePost
+        <Post
           id={post._id}
           avatarUrl={profile?.avatarUrl || undefined}
           name={name}
@@ -88,6 +88,7 @@ function renderPosts(
           initialComments={post.commentsCount}
           initialLiked={cache.likedIds.has(post._id)}
           onLike={onLike}
+          href={`/post/${profile?.username ?? post.authorId}/${post._id}`}
         />
       </li>
     )

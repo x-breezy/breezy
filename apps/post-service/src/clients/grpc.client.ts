@@ -24,6 +24,8 @@ const client = new ProfileData(GRPC_URL, grpc.credentials.createInsecure())
 export interface ActorProfile {
   username: string
   avatarId: string
+  firstName: string
+  lastName: string
 }
 
 export function getActorProfile(actorId: string): Promise<ActorProfile | null> {

@@ -25,6 +25,7 @@ export function createPostRouter(
   router.get("/trending-tags", identity, controller.trendingTags)
   router.get("/liked-by-me", identity, likeController.getMyLikes)
   router.get("/users/:userId", identity, controller.getUserPosts)
+  router.get("/:id/detail", identity, controller.getDetail)
   router.get("/:id", identity, controller.getOne)
   router.delete(
     "/:id",
