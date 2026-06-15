@@ -102,7 +102,7 @@ function Post({
                     key={item.id}
                     src={mediaUrl(`/api/media/videos/${item.id}`)}
                     className='w-full max-w-75 cursor-pointer rounded-lg object-cover'
-                    onClick={() => setViewerIndex(i)}
+                    onMaximize={() => setViewerIndex(i)}
                   />
                 )
               )}

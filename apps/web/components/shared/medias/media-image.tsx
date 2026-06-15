@@ -16,7 +16,7 @@ export function MediaImage({ src, onClick, cover = false, className }: MediaImag
   return (
     <div
       className={cn(
-        "relative cursor-pointer overflow-hidden rounded-lg",
+        "relative cursor-pointer overflow-hidden rounded-lg border",
         cover ? "aspect-square" : !loaded && "aspect-video",
         className
       )}

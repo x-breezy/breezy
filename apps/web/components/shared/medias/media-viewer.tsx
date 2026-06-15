@@ -6,6 +6,7 @@ import { IconX, IconChevronLeft, IconChevronRight } from "@tabler/icons-react"
 import { Dialog as DialogPrimitive } from "@base-ui/react/dialog"
 import type { SearchPostMedia } from "@/lib/actions/posts"
 import { DialogOverlay, DialogPortal } from "@/components/ui/dialog"
+import { AutoplayVideo } from "@/components/shared/medias/autoplay-video"
 import { mediaUrl } from "@/lib/utils"
 
 interface MediaViewerProps {
@@ -56,7 +57,7 @@ export function MediaViewer({ items, open, index, onClose, onNavigate }: MediaVi
           )}
 
           {item && (
-            <div className='max-h-[90vh] max-w-[90vw]'>
+            <div className='relative max-h-[90vh] max-w-[90vw]'>
               {item.type === "image" ? (
                 <Image
                   src={mediaUrl(`/api/media/images/${item.id}`)}
@@ -67,11 +68,10 @@ export function MediaViewer({ items, open, index, onClose, onNavigate }: MediaVi
                   className='max-h-[90vh] max-w-[90vw] object-contain'
                 />
               ) : (
-                <video
+                <AutoplayVideo
                   src={mediaUrl(`/api/media/videos/${item.id}`)}
                   className='max-h-[90vh] max-w-[90vw]'
-                  controls
-                  autoPlay
+                  onMaximize={onClose}
                 />
               )}
             </div>

@@ -31,7 +31,7 @@ export function MediaGrid({ items }: MediaGridProps) {
                 key={item.id}
                 src={mediaUrl(`/api/media/videos/${item.id}`)}
                 className='aspect-square w-full cursor-pointer rounded-lg object-cover'
-                onClick={() => setViewerIndex(i)}
+                onMaximize={() => setViewerIndex(i)}
               />
             )
           )}
