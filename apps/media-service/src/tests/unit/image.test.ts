@@ -54,7 +54,7 @@ describe("ImageService", () => {
           originalName: "test.png",
         }),
       }
-        ; (mockedModel.create as jest.Mock).mockResolvedValue(created)
+      ;(mockedModel.create as jest.Mock).mockResolvedValue(created)
 
       const result = await service.uploadImage({
         data,
@@ -87,9 +87,9 @@ describe("ImageService", () => {
           size: OPTIMIZED.length,
         }),
       }
-        ; (mockedModel.findById as jest.Mock).mockReturnValue({
-          exec: jest.fn().mockResolvedValue(doc),
-        })
+      ;(mockedModel.findById as jest.Mock).mockReturnValue({
+        exec: jest.fn().mockResolvedValue(doc),
+      })
 
       const result = await service.getImage("abc")
       expect(result?.id).toBe("abc")
@@ -99,7 +99,7 @@ describe("ImageService", () => {
 
   describe("deleteImage", () => {
     it("returns true when a document was removed", async () => {
-      ; (mockedModel.findByIdAndDelete as jest.Mock).mockReturnValue({
+      ;(mockedModel.findByIdAndDelete as jest.Mock).mockReturnValue({
         exec: jest.fn().mockResolvedValue({ id: "abc" }),
       })
 
@@ -107,7 +107,7 @@ describe("ImageService", () => {
     })
 
     it("returns false when nothing matched", async () => {
-      ; (mockedModel.findByIdAndDelete as jest.Mock).mockReturnValue({
+      ;(mockedModel.findByIdAndDelete as jest.Mock).mockReturnValue({
         exec: jest.fn().mockResolvedValue(null),
       })
 

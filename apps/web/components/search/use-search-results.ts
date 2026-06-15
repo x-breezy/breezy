@@ -2,7 +2,12 @@
 
 import { useEffect, useState, useCallback, useMemo } from "react"
 import { searchPosts, getLikedPostIds, toggleLike } from "@/lib/actions/posts"
-import { searchProfiles, fetchProfilesByIds, followProfile, unfollowProfile } from "@/lib/actions/profiles"
+import {
+  searchProfiles,
+  fetchProfilesByIds,
+  followProfile,
+  unfollowProfile,
+} from "@/lib/actions/profiles"
 import { collectMedia, profilesToPeople, type MergedPerson } from "./search-utils"
 import type { SearchPost, PaginatedResult } from "@/lib/actions/posts"
 import type { SearchProfile } from "@/lib/actions/profiles"

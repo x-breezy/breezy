@@ -72,7 +72,7 @@ beforeEach(() => {
 
 describe("POST /videos", () => {
   it("uploads a video and returns metadata", async () => {
-    ; (mockedModel.create as jest.Mock).mockResolvedValue(MOCK_META)
+    ;(mockedModel.create as jest.Mock).mockResolvedValue(MOCK_META)
 
     const res = await request(app)
       .post("/videos")
@@ -113,7 +113,7 @@ describe("POST /videos", () => {
 
 describe("GET /videos/:id (stream)", () => {
   it("streams full video bytes", async () => {
-    ; (mockedModel.findById as jest.Mock).mockReturnValue({
+    ;(mockedModel.findById as jest.Mock).mockReturnValue({
       exec: jest.fn().mockResolvedValue(MOCK_META),
     })
 
@@ -129,7 +129,7 @@ describe("GET /videos/:id (stream)", () => {
   })
 
   it("returns 206 with content-range for a range request", async () => {
-    ; (mockedModel.findById as jest.Mock).mockReturnValue({
+    ;(mockedModel.findById as jest.Mock).mockReturnValue({
       exec: jest.fn().mockResolvedValue(MOCK_META),
     })
     // content-length for bytes=0-3 is 4; mock must return exactly 4 bytes
@@ -149,7 +149,7 @@ describe("GET /videos/:id (stream)", () => {
   })
 
   it("returns 416 for out-of-bounds range", async () => {
-    ; (mockedModel.findById as jest.Mock).mockReturnValue({
+    ;(mockedModel.findById as jest.Mock).mockReturnValue({
       exec: jest.fn().mockResolvedValue(MOCK_META),
     })
 
@@ -163,7 +163,7 @@ describe("GET /videos/:id (stream)", () => {
   })
 
   it("returns 404 when meta not found", async () => {
-    ; (mockedModel.findById as jest.Mock).mockReturnValue({
+    ;(mockedModel.findById as jest.Mock).mockReturnValue({
       exec: jest.fn().mockResolvedValue(null),
     })
 
@@ -176,7 +176,7 @@ describe("GET /videos/:id (stream)", () => {
   })
 
   it("returns 404 when GridFS file missing", async () => {
-    ; (mockedModel.findById as jest.Mock).mockReturnValue({
+    ;(mockedModel.findById as jest.Mock).mockReturnValue({
       exec: jest.fn().mockResolvedValue(MOCK_META),
     })
     storageInstance.findById = jest.fn().mockResolvedValue(null)
@@ -199,7 +199,7 @@ describe("GET /videos/:id (stream)", () => {
 
 describe("GET /videos/:id/meta", () => {
   it("returns metadata JSON", async () => {
-    ; (mockedModel.findById as jest.Mock).mockReturnValue({
+    ;(mockedModel.findById as jest.Mock).mockReturnValue({
       exec: jest.fn().mockResolvedValue(MOCK_META),
     })
 
@@ -215,7 +215,7 @@ describe("GET /videos/:id/meta", () => {
   })
 
   it("returns 404 for unknown id", async () => {
-    ; (mockedModel.findById as jest.Mock).mockReturnValue({
+    ;(mockedModel.findById as jest.Mock).mockReturnValue({
       exec: jest.fn().mockResolvedValue(null),
     })
 
@@ -237,12 +237,12 @@ describe("GET /videos/:id/meta", () => {
 
 describe("DELETE /videos/:id", () => {
   it("allows owner to delete own video", async () => {
-    ; (mockedModel.findById as jest.Mock).mockReturnValue({
+    ;(mockedModel.findById as jest.Mock).mockReturnValue({
       exec: jest.fn().mockResolvedValue(MOCK_META), // ownerId: "user-1"
     })
-      ; (mockedModel.findByIdAndDelete as jest.Mock).mockReturnValue({
-        exec: jest.fn().mockResolvedValue(MOCK_META),
-      })
+    ;(mockedModel.findByIdAndDelete as jest.Mock).mockReturnValue({
+      exec: jest.fn().mockResolvedValue(MOCK_META),
+    })
 
     const res = await request(app)
       .delete(`/videos/${META_ID}`)
@@ -254,7 +254,7 @@ describe("DELETE /videos/:id", () => {
   })
 
   it("returns 403 when non-owner user tries to delete", async () => {
-    ; (mockedModel.findById as jest.Mock).mockReturnValue({
+    ;(mockedModel.findById as jest.Mock).mockReturnValue({
       exec: jest.fn().mockResolvedValue(MOCK_META), // ownerId: "user-1"
     })
 
@@ -268,12 +268,12 @@ describe("DELETE /videos/:id", () => {
   })
 
   it("allows moderator to delete any video", async () => {
-    ; (mockedModel.findById as jest.Mock).mockReturnValue({
+    ;(mockedModel.findById as jest.Mock).mockReturnValue({
       exec: jest.fn().mockResolvedValue(MOCK_META),
     })
-      ; (mockedModel.findByIdAndDelete as jest.Mock).mockReturnValue({
-        exec: jest.fn().mockResolvedValue(MOCK_META),
-      })
+    ;(mockedModel.findByIdAndDelete as jest.Mock).mockReturnValue({
+      exec: jest.fn().mockResolvedValue(MOCK_META),
+    })
 
     mockVerifyJwt.mockReturnValueOnce({ sub: "user-2", role: "moderator" })
     const res = await request(app)
@@ -285,12 +285,12 @@ describe("DELETE /videos/:id", () => {
   })
 
   it("allows admin to delete any video", async () => {
-    ; (mockedModel.findById as jest.Mock).mockReturnValue({
+    ;(mockedModel.findById as jest.Mock).mockReturnValue({
       exec: jest.fn().mockResolvedValue(MOCK_META),
     })
-      ; (mockedModel.findByIdAndDelete as jest.Mock).mockReturnValue({
-        exec: jest.fn().mockResolvedValue(MOCK_META),
-      })
+    ;(mockedModel.findByIdAndDelete as jest.Mock).mockReturnValue({
+      exec: jest.fn().mockResolvedValue(MOCK_META),
+    })
 
     mockVerifyJwt.mockReturnValueOnce({ sub: "user-2", role: "admin" })
     const res = await request(app)
@@ -302,7 +302,7 @@ describe("DELETE /videos/:id", () => {
   })
 
   it("returns 404 when meta doc not found", async () => {
-    ; (mockedModel.findById as jest.Mock).mockReturnValue({
+    ;(mockedModel.findById as jest.Mock).mockReturnValue({
       exec: jest.fn().mockResolvedValue(null),
     })
 
@@ -316,7 +316,7 @@ describe("DELETE /videos/:id", () => {
 
   it("returns 404 when video is deleted between ownership check and service call", async () => {
     // Ownership middleware passes (first findById), then service.delete's own findById returns null
-    ; (mockedModel.findById as jest.Mock)
+    ;(mockedModel.findById as jest.Mock)
       .mockReturnValueOnce({ exec: jest.fn().mockResolvedValue(MOCK_META) }) // ownership
       .mockReturnValueOnce({ exec: jest.fn().mockResolvedValue(null) }) // service.delete
 
@@ -338,7 +338,7 @@ describe("DELETE /videos/:id", () => {
 
 describe("video controller error handling", () => {
   beforeEach(() => {
-    jest.spyOn(console, "error").mockImplementation(() => { })
+    jest.spyOn(console, "error").mockImplementation(() => {})
   })
 
   it("returns 500 when VideoService.upload throws", async () => {
@@ -355,7 +355,7 @@ describe("video controller error handling", () => {
   })
 
   it("returns 500 when VideoService.getMeta throws on GET /:id", async () => {
-    ; (mockedModel.findById as jest.Mock).mockReturnValue({
+    ;(mockedModel.findById as jest.Mock).mockReturnValue({
       exec: jest.fn().mockRejectedValue(new Error("db error")),
     })
 
@@ -367,7 +367,7 @@ describe("video controller error handling", () => {
   })
 
   it("returns 500 when VideoService.getMeta throws on GET /:id/meta", async () => {
-    ; (mockedModel.findById as jest.Mock).mockReturnValue({
+    ;(mockedModel.findById as jest.Mock).mockReturnValue({
       exec: jest.fn().mockRejectedValue(new Error("db error")),
     })
 
@@ -379,7 +379,7 @@ describe("video controller error handling", () => {
   })
 
   it("returns 500 when VideoService.delete throws", async () => {
-    ; (mockedModel.findById as jest.Mock)
+    ;(mockedModel.findById as jest.Mock)
       .mockReturnValueOnce({ exec: jest.fn().mockResolvedValue(MOCK_META) }) // ownership
       .mockReturnValueOnce({ exec: jest.fn().mockRejectedValue(new Error("db error")) }) // service
 

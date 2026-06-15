@@ -3,7 +3,7 @@ import ImageService from "../services/image.service"
 import { uploadHeadersSchema } from "../schema/image.schema"
 
 class ImageController {
-  constructor(private readonly imageService: ImageService) { }
+  constructor(private readonly imageService: ImageService) {}
 
   uploadImage = async (
     req: Request<Record<string, never>, null, Buffer>,
