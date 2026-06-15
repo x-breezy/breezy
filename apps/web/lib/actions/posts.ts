@@ -90,6 +90,10 @@ export async function toggleLike(
     postId: string,
     liked: boolean
 ): Promise<{ likesCount: number }> {
+    // Validate postId format to prevent SSRF (CodeQL false positive suppression)
+    if (!/^[a-f0-9]{24}$/i.test(postId)) {
+        throw new Error("Invalid postId format")
+    }
     const headers = await getAuthHeaders()
     const res = await fetch(`${GATEWAY_URL}/api/posts/${postId}/likes`, {
         method: liked ? "POST" : "DELETE",
