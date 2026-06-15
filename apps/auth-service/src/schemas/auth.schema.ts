@@ -57,3 +57,20 @@ export type TwoFactorResendLoginDTO = z.infer<typeof twoFactorResendLoginSchema>
 
 export const twoFactorEnableSchema = z.object({ code: z.string().length(6) })
 export type TwoFactorEnableDTO = z.infer<typeof twoFactorEnableSchema>
+
+export const googleAuthSchema = z.object({
+  code: z.string().min(1),
+  codeVerifier: z.string().min(1),
+  redirectUri: z.string().url(),
+})
+export type GoogleAuthDTO = z.infer<typeof googleAuthSchema>
+
+export const googleCompleteSchema = z.object({
+  pendingToken: z.string().min(1),
+  username: z
+    .string()
+    .min(3, "Username must be at least 3 characters")
+    .max(50)
+    .regex(/^[a-zA-Z0-9_]+$/, "Username can only contain letters, numbers, and underscores"),
+})
+export type GoogleCompleteDTO = z.infer<typeof googleCompleteSchema>

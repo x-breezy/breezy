@@ -44,7 +44,7 @@ export function PersonCard({
   )
 
   return (
-    <div className='person-card flex w-full items-center gap-2.5 border-b border-border bg-background p-3.5 text-left transition-colors select-none active:bg-accent/50'>
+    <div className='person-card flex w-full items-center gap-2.5 bg-background p-3.5 text-left transition-colors select-none active:bg-accent/50'>
       <Avatar className='size-11 shrink-0'>
         <AvatarImage src={avatarUrl ?? undefined} />
         <AvatarFallback>{initials}</AvatarFallback>

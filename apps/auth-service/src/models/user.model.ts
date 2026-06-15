@@ -5,7 +5,8 @@ export interface UserAttributes {
   id: string
   username: string
   email: string
-  passwordHash: string
+  passwordHash: string | null
+  googleId: string | null
   role: Role
   isBanned: boolean
   isSuspended: boolean
@@ -15,18 +16,13 @@ export interface UserAttributes {
   updatedAt: Date
 }
 
-/** Fields a caller provides on create; the rest are defaulted by the model. */
-export type CreateUserInput = Omit<
-  UserAttributes,
-  | "id"
-  | "role"
-  | "isBanned"
-  | "isSuspended"
-  | "isEmailVerified"
-  | "twoFactorEnabled"
-  | "createdAt"
-  | "updatedAt"
->
+export type CreateUserInput = {
+  username: string
+  email: string
+  passwordHash?: string | null
+  googleId?: string | null
+  isEmailVerified?: boolean
+}
 
 /** User without the password hash, safe to serialize to clients/tokens. */
 export type SafeUser = Omit<UserAttributes, "passwordHash">
@@ -35,7 +31,8 @@ export class User extends Model<UserAttributes, CreateUserInput> implements User
   declare id: string
   declare username: string
   declare email: string
-  declare passwordHash: string
+  declare passwordHash: string | null
+  declare googleId: string | null
   declare role: Role
   declare isBanned: boolean
   declare isSuspended: boolean
@@ -76,7 +73,12 @@ export function initUserModel(sequelize: Sequelize): void {
       },
       passwordHash: {
         type: DataTypes.STRING(255),
-        allowNull: false,
+        allowNull: true,
+      },
+      googleId: {
+        type: DataTypes.STRING(255),
+        allowNull: true,
+        unique: true,
       },
       role: {
         type: DataTypes.STRING,
@@ -115,6 +117,7 @@ export function initUserModel(sequelize: Sequelize): void {
       indexes: [
         { unique: true, fields: ["username"] },
         { unique: true, fields: ["email"] },
+        { unique: true, fields: ["google_id"] },
       ],
     }
   )

@@ -19,6 +19,7 @@ import {
   twoFactorVerifyLoginSchema,
   twoFactorResendLoginSchema,
   twoFactorEnableSchema,
+  googleCompleteSchema,
 } from "../schemas/auth.schema"
 
 function createAuthRouter(
@@ -45,7 +46,15 @@ function createAuthRouter(
     validate(forgotPasswordSchema),
     authController.forgotPassword
   )
-  router.post("/reset-password", validate(resetPasswordSchema), authController.resetPassword)
+  router.post(
+    "/reset-password",
+    authenticatedEmailRateLimit,
+    validate(resetPasswordSchema),
+    authController.resetPassword
+  )
+  router.get("/google", authController.googleRedirect)
+  router.get("/google/callback", authController.googleCallback)
+  router.post("/google/complete", validate(googleCompleteSchema), authController.googleComplete)
 
   router.post(
     "/2fa/verify-login",

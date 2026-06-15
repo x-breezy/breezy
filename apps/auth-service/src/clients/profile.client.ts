@@ -14,7 +14,12 @@ const protoDescriptor = grpc.loadPackageDefinition(packageDefinition) as any
 const profileData = protoDescriptor.profile.data
 
 export interface ProfileClientPort {
-  createProfile(profileId: string, username: string, role: string): Promise<string | null>
+  createProfile(
+    profileId: string,
+    username: string,
+    role: string,
+    opts?: { firstName?: string; lastName?: string; avatarUrl?: string }
+  ): Promise<string | null>
 }
 
 const TIMEOUT_MS = 2000
@@ -29,13 +34,28 @@ export class GrpcProfileClient implements ProfileClientPort {
     )
   }
 
-  async createProfile(profileId: string, username: string, role: string): Promise<string | null> {
+  async createProfile(
+    profileId: string,
+    username: string,
+    role: string,
+    opts?: { firstName?: string; lastName?: string; avatarUrl?: string }
+  ): Promise<string | null> {
     return new Promise((resolve) => {
       const timer = setTimeout(() => resolve(null), TIMEOUT_MS)
-      this.client.createProfile({ profileId, username, role }, (err: any, res: any) => {
-        clearTimeout(timer)
-        resolve(err ? null : res.profileId)
-      })
+      this.client.createProfile(
+        {
+          profileId,
+          username,
+          role,
+          firstName: opts?.firstName ?? "",
+          lastName: opts?.lastName ?? "",
+          avatarUrl: opts?.avatarUrl ?? "",
+        },
+        (err: any, res: any) => {
+          clearTimeout(timer)
+          resolve(err ? null : res.profileId)
+        }
+      )
     })
   }
 }

@@ -125,7 +125,6 @@ export default function SignUpScreen() {
             bio={bio}
             onChange={handleFieldChange}
             onNext={() => setStep(3)}
-            onSkip={() => setStep(3)}
           />
         )}
 

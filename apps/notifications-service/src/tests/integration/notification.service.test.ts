@@ -69,7 +69,9 @@ describe("NotificationService.list", () => {
 
     await service.list("u1", { page: 2, limit: 10, read: false })
 
-    expect(mockModel.find).toHaveBeenCalledWith(expect.objectContaining({ userId: "u1", read: false }))
+    expect(mockModel.find).toHaveBeenCalledWith(
+      expect.objectContaining({ userId: "u1", read: false })
+    )
   })
 
   it("skips correct number of documents for page > 1", async () => {

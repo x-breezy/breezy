@@ -31,6 +31,9 @@ message createProfileRequest {
   string profileId = 1;
   string username = 2;
   string role = 3;
+  string firstName = 4;
+  string lastName = 5;
+  string avatarUrl = 6;
 }
 
 message createProfileResponse {

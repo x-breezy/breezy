@@ -17,7 +17,6 @@ interface ProfileStepProps {
   bio: string
   onChange: (field: "firstName" | "lastName" | "bio", value: string) => void
   onNext: () => void
-  onSkip: () => void
 }
 
 export function PhotoStep({
@@ -28,7 +27,6 @@ export function PhotoStep({
   bio,
   onChange,
   onNext,
-  onSkip,
 }: ProfileStepProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -80,6 +78,7 @@ export function PhotoStep({
                 type='text'
                 placeholder='Sam'
                 autoComplete='given-name'
+                required
                 value={firstName}
                 onChange={(e) => onChange("firstName", e.target.value)}
               />
@@ -91,6 +90,7 @@ export function PhotoStep({
                 type='text'
                 placeholder='Altman'
                 autoComplete='family-name'
+                required
                 value={lastName}
                 onChange={(e) => onChange("lastName", e.target.value)}
               />
@@ -111,18 +111,9 @@ export function PhotoStep({
         </FieldGroup>
       </FieldSet>
 
-      <div className='flex flex-col gap-3'>
-        <Button size='lg' onClick={onNext}>
-          Continue
-        </Button>
-        <button
-          type='button'
-          onClick={onSkip}
-          className='text-sm font-medium text-muted-foreground transition-colors hover:text-foreground'
-        >
-          Skip for now
-        </button>
-      </div>
+      <Button size='lg' onClick={onNext} disabled={!firstName || !lastName}>
+        Continue
+      </Button>
     </div>
   )
 }

@@ -2,9 +2,10 @@
 
 import { useRef, useState, useEffect } from "react"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { PostBottomBar } from "@/components/post/PostBottomBar"
 import { searchProfiles } from "@/lib/actions/profiles"
-import type { ResolvedMention, MediaPreview } from "@/components/post/use-post-compose"
+import { buildPostHTML } from "@/lib/post-utils"
+import { PostBottomBar } from "./PostBottomBar"
+import { MediaPreview, ResolvedMention } from "./use-post-compose"
 
 interface MentionSuggestion {
   profileId: string
@@ -39,42 +40,6 @@ function setCaretAt(el: HTMLElement, offset: number) {
   }
 }
 
-function escapeHtml(text: string): string {
-  return text
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#x27;")
-}
-
-function buildHTML(text: string): string {
-  // Secure approach: split by mentions/tags, escape text, wrap mentions/tags in styled spans
-  const parts: string[] = []
-  let lastIndex = 0
-  const regex = /[@#][a-zA-Z0-9_À-ÿ]+/g
-  let match: RegExpExecArray | null
-
-  while ((match = regex.exec(text)) !== null) {
-    if (match.index > lastIndex) {
-      parts.push(escapeHtml(text.slice(lastIndex, match.index)))
-    }
-    const token = match[0]
-    const isMention = token.startsWith("@")
-    const styledSpan = isMention
-      ? `<span class="inline-flex items-center rounded-full bg-primary/10 px-1.5 py-0.5 text-sm font-medium text-primary">${escapeHtml(token)}</span>`
-      : `<span class="inline-flex items-center rounded-full bg-secondary px-1.5 py-0.5 text-sm font-medium text-secondary-foreground">${escapeHtml(token)}</span>`
-    parts.push(styledSpan)
-    lastIndex = regex.lastIndex
-  }
-
-  if (lastIndex < text.length) {
-    parts.push(escapeHtml(text.slice(lastIndex)))
-  }
-
-  return parts.join("")
-}
-
 export function PostForm({
   content,
   setContent,
@@ -100,7 +65,7 @@ export function PostForm({
   useEffect(() => {
     const el = editorRef.current
     if (!el) return
-    const html = buildHTML(content)
+    const html = buildPostHTML(content)
     if (el.innerHTML !== html) {
       const offset = getCaretOffset(el)
       el.innerHTML = html
