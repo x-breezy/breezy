@@ -39,8 +39,22 @@ describe("ImageService", () => {
   describe("uploadImage", () => {
     it("persists optimized JPEG bytes and recomputes size", async () => {
       const data = Buffer.from("imagebytes")
-      const created = { id: "abc", size: OPTIMIZED.length, mimeType: "image/jpeg" }
-      ;(mockedModel.create as jest.Mock).mockResolvedValue(created)
+      const created = {
+        _id: { toString: () => "abc" },
+        id: "abc",
+        data: OPTIMIZED,
+        size: OPTIMIZED.length,
+        mimeType: "image/jpeg",
+        originalName: "test.png",
+        toObject: () => ({
+          _id: { toString: () => "abc" },
+          data: OPTIMIZED,
+          size: OPTIMIZED.length,
+          mimeType: "image/jpeg",
+          originalName: "test.png",
+        }),
+      }
+        ; (mockedModel.create as jest.Mock).mockResolvedValue(created)
 
       const result = await service.uploadImage({
         data,
@@ -52,25 +66,40 @@ describe("ImageService", () => {
       expect(mockedModel.create).toHaveBeenCalledWith(
         expect.objectContaining({ data: OPTIMIZED, size: OPTIMIZED.length, mimeType: "image/jpeg" })
       )
-      expect(result).toBe(created)
+      expect(result.id).toBe("abc")
     })
   })
 
   describe("getImage", () => {
     it("returns the document by id", async () => {
-      const doc = { id: "abc" }
-      ;(mockedModel.findById as jest.Mock).mockReturnValue({
-        exec: jest.fn().mockResolvedValue(doc),
-      })
+      const doc = {
+        _id: { toString: () => "abc" },
+        id: "abc",
+        data: OPTIMIZED,
+        mimeType: "image/jpeg",
+        originalName: "test.png",
+        size: OPTIMIZED.length,
+        toObject: () => ({
+          _id: { toString: () => "abc" },
+          data: OPTIMIZED,
+          mimeType: "image/jpeg",
+          originalName: "test.png",
+          size: OPTIMIZED.length,
+        }),
+      }
+        ; (mockedModel.findById as jest.Mock).mockReturnValue({
+          exec: jest.fn().mockResolvedValue(doc),
+        })
 
-      expect(await service.getImage("abc")).toBe(doc)
+      const result = await service.getImage("abc")
+      expect(result?.id).toBe("abc")
       expect(mockedModel.findById).toHaveBeenCalledWith("abc")
     })
   })
 
   describe("deleteImage", () => {
     it("returns true when a document was removed", async () => {
-      ;(mockedModel.findByIdAndDelete as jest.Mock).mockReturnValue({
+      ; (mockedModel.findByIdAndDelete as jest.Mock).mockReturnValue({
         exec: jest.fn().mockResolvedValue({ id: "abc" }),
       })
 
@@ -78,7 +107,7 @@ describe("ImageService", () => {
     })
 
     it("returns false when nothing matched", async () => {
-      ;(mockedModel.findByIdAndDelete as jest.Mock).mockReturnValue({
+      ; (mockedModel.findByIdAndDelete as jest.Mock).mockReturnValue({
         exec: jest.fn().mockResolvedValue(null),
       })
 

@@ -30,6 +30,7 @@ const OPTIMIZED = Buffer.from("optimized")
 const NOW = new Date("2026-01-01T00:00:00.000Z")
 
 const MOCK_DOC = {
+  _id: { toString: () => "abc" },
   id: "abc",
   data: PNG,
   originalName: "test.png",
@@ -38,13 +39,38 @@ const MOCK_DOC = {
   ownerId: "user-1",
   createdAt: NOW,
   updatedAt: NOW,
+  toObject: () => ({
+    _id: { toString: () => "abc" },
+    data: PNG,
+    originalName: "test.png",
+    size: PNG.length,
+    mimeType: "image/png",
+    ownerId: "user-1",
+    createdAt: NOW,
+    updatedAt: NOW,
+  }),
 }
 
 const UPLOADED_DOC = {
-  ...MOCK_DOC,
+  _id: { toString: () => "abc" },
+  id: "abc",
   data: OPTIMIZED,
   size: OPTIMIZED.length,
   mimeType: "image/jpeg",
+  originalName: "test.png",
+  ownerId: "user-1",
+  createdAt: NOW,
+  updatedAt: NOW,
+  toObject: () => ({
+    _id: { toString: () => "abc" },
+    data: OPTIMIZED,
+    size: OPTIMIZED.length,
+    mimeType: "image/jpeg",
+    originalName: "test.png",
+    ownerId: "user-1",
+    createdAt: NOW,
+    updatedAt: NOW,
+  }),
 }
 
 beforeEach(() => {
@@ -74,7 +100,7 @@ describe("GET /docs.json", () => {
 
 describe("POST /images", () => {
   it("stores an optimized JPEG image and returns metadata (no bytes) in ApiResponse", async () => {
-    ;(mockedModel.create as jest.Mock).mockResolvedValue(UPLOADED_DOC)
+    ; (mockedModel.create as jest.Mock).mockResolvedValue(UPLOADED_DOC)
 
     const res = await request(app)
       .post("/images")
@@ -100,7 +126,7 @@ describe("POST /images", () => {
   })
 
   it("uses 'upload' as default filename when x-filename header absent", async () => {
-    ;(mockedModel.create as jest.Mock).mockResolvedValue(UPLOADED_DOC)
+    ; (mockedModel.create as jest.Mock).mockResolvedValue(UPLOADED_DOC)
 
     const res = await request(app)
       .post("/images")
@@ -147,7 +173,7 @@ describe("POST /images", () => {
 
 describe("GET /images/:id", () => {
   it("returns raw bytes with correct content-type", async () => {
-    ;(mockedModel.findById as jest.Mock).mockReturnValue({
+    ; (mockedModel.findById as jest.Mock).mockReturnValue({
       exec: jest.fn().mockResolvedValue(MOCK_DOC),
     })
 
@@ -162,7 +188,7 @@ describe("GET /images/:id", () => {
   })
 
   it("returns 404 for an unknown id", async () => {
-    ;(mockedModel.findById as jest.Mock).mockReturnValue({
+    ; (mockedModel.findById as jest.Mock).mockReturnValue({
       exec: jest.fn().mockResolvedValue(null),
     })
 
@@ -174,7 +200,7 @@ describe("GET /images/:id", () => {
   })
 
   it("returns raw bytes without auth", async () => {
-    ;(mockedModel.findById as jest.Mock).mockReturnValue({
+    ; (mockedModel.findById as jest.Mock).mockReturnValue({
       exec: jest.fn().mockResolvedValue(MOCK_DOC),
     })
 
@@ -190,7 +216,7 @@ describe("GET /images/:id", () => {
 
 describe("GET /images/:id/meta", () => {
   it("returns metadata JSON without bytes", async () => {
-    ;(mockedModel.findById as jest.Mock).mockReturnValue({
+    ; (mockedModel.findById as jest.Mock).mockReturnValue({
       exec: jest.fn().mockResolvedValue(MOCK_DOC),
     })
 
@@ -205,7 +231,7 @@ describe("GET /images/:id/meta", () => {
   })
 
   it("returns 404 for an unknown id", async () => {
-    ;(mockedModel.findById as jest.Mock).mockReturnValue({
+    ; (mockedModel.findById as jest.Mock).mockReturnValue({
       exec: jest.fn().mockResolvedValue(null),
     })
 
@@ -227,12 +253,12 @@ describe("GET /images/:id/meta", () => {
 
 describe("DELETE /images/:id", () => {
   it("allows owner to delete own image", async () => {
-    ;(mockedModel.findById as jest.Mock).mockReturnValue({
+    ; (mockedModel.findById as jest.Mock).mockReturnValue({
       exec: jest.fn().mockResolvedValue(MOCK_DOC),
     })
-    ;(mockedModel.findByIdAndDelete as jest.Mock).mockReturnValue({
-      exec: jest.fn().mockResolvedValue({ id: "abc" }),
-    })
+      ; (mockedModel.findByIdAndDelete as jest.Mock).mockReturnValue({
+        exec: jest.fn().mockResolvedValue({ id: "abc" }),
+      })
 
     const res = await request(app).delete("/images/abc").set("Authorization", "Bearer fake-token")
 
@@ -241,7 +267,7 @@ describe("DELETE /images/:id", () => {
   })
 
   it("returns 403 when non-owner user tries to delete", async () => {
-    ;(mockedModel.findById as jest.Mock).mockReturnValue({
+    ; (mockedModel.findById as jest.Mock).mockReturnValue({
       exec: jest.fn().mockResolvedValue(MOCK_DOC), // ownerId: "user-1"
     })
 
@@ -253,12 +279,12 @@ describe("DELETE /images/:id", () => {
   })
 
   it("allows moderator to delete any image", async () => {
-    ;(mockedModel.findById as jest.Mock).mockReturnValue({
+    ; (mockedModel.findById as jest.Mock).mockReturnValue({
       exec: jest.fn().mockResolvedValue(MOCK_DOC),
     })
-    ;(mockedModel.findByIdAndDelete as jest.Mock).mockReturnValue({
-      exec: jest.fn().mockResolvedValue({ id: "abc" }),
-    })
+      ; (mockedModel.findByIdAndDelete as jest.Mock).mockReturnValue({
+        exec: jest.fn().mockResolvedValue({ id: "abc" }),
+      })
 
     mockVerifyJwt.mockReturnValueOnce({ sub: "user-2", role: "moderator" })
     const res = await request(app).delete("/images/abc").set("Authorization", "Bearer fake-token")
@@ -268,12 +294,12 @@ describe("DELETE /images/:id", () => {
   })
 
   it("allows admin to delete any image", async () => {
-    ;(mockedModel.findById as jest.Mock).mockReturnValue({
+    ; (mockedModel.findById as jest.Mock).mockReturnValue({
       exec: jest.fn().mockResolvedValue(MOCK_DOC),
     })
-    ;(mockedModel.findByIdAndDelete as jest.Mock).mockReturnValue({
-      exec: jest.fn().mockResolvedValue({ id: "abc" }),
-    })
+      ; (mockedModel.findByIdAndDelete as jest.Mock).mockReturnValue({
+        exec: jest.fn().mockResolvedValue({ id: "abc" }),
+      })
 
     mockVerifyJwt.mockReturnValueOnce({ sub: "user-2", role: "admin" })
     const res = await request(app).delete("/images/abc").set("Authorization", "Bearer fake-token")
@@ -283,7 +309,7 @@ describe("DELETE /images/:id", () => {
   })
 
   it("returns 404 when image not found", async () => {
-    ;(mockedModel.findById as jest.Mock).mockReturnValue({
+    ; (mockedModel.findById as jest.Mock).mockReturnValue({
       exec: jest.fn().mockResolvedValue(null),
     })
 
@@ -296,12 +322,12 @@ describe("DELETE /images/:id", () => {
   })
 
   it("returns 404 when image is deleted between ownership check and service call", async () => {
-    ;(mockedModel.findById as jest.Mock).mockReturnValue({
+    ; (mockedModel.findById as jest.Mock).mockReturnValue({
       exec: jest.fn().mockResolvedValue(MOCK_DOC), // ownership passes
     })
-    ;(mockedModel.findByIdAndDelete as jest.Mock).mockReturnValue({
-      exec: jest.fn().mockResolvedValue(null), // service returns false
-    })
+      ; (mockedModel.findByIdAndDelete as jest.Mock).mockReturnValue({
+        exec: jest.fn().mockResolvedValue(null), // service returns false
+      })
 
     const res = await request(app).delete("/images/abc").set("Authorization", "Bearer fake-token")
 
@@ -319,11 +345,11 @@ describe("DELETE /images/:id", () => {
 
 describe("image controller error handling", () => {
   beforeEach(() => {
-    jest.spyOn(console, "error").mockImplementation(() => {})
+    jest.spyOn(console, "error").mockImplementation(() => { })
   })
 
   it("returns 500 when ImageService.uploadImage throws", async () => {
-    ;(mockedModel.create as jest.Mock).mockRejectedValue(new Error("db error"))
+    ; (mockedModel.create as jest.Mock).mockRejectedValue(new Error("db error"))
 
     const res = await request(app)
       .post("/images")
@@ -336,7 +362,7 @@ describe("image controller error handling", () => {
   })
 
   it("returns 500 when ImageService.getImage throws on GET /:id", async () => {
-    ;(mockedModel.findById as jest.Mock).mockReturnValue({
+    ; (mockedModel.findById as jest.Mock).mockReturnValue({
       exec: jest.fn().mockRejectedValue(new Error("db error")),
     })
 
@@ -346,7 +372,7 @@ describe("image controller error handling", () => {
   })
 
   it("returns 500 when ImageService.getImage throws on GET /:id/meta", async () => {
-    ;(mockedModel.findById as jest.Mock).mockReturnValue({
+    ; (mockedModel.findById as jest.Mock).mockReturnValue({
       exec: jest.fn().mockRejectedValue(new Error("db error")),
     })
 
@@ -356,12 +382,12 @@ describe("image controller error handling", () => {
   })
 
   it("returns 500 when ImageService.deleteImage throws", async () => {
-    ;(mockedModel.findById as jest.Mock).mockReturnValue({
+    ; (mockedModel.findById as jest.Mock).mockReturnValue({
       exec: jest.fn().mockResolvedValue(MOCK_DOC),
     })
-    ;(mockedModel.findByIdAndDelete as jest.Mock).mockReturnValue({
-      exec: jest.fn().mockRejectedValue(new Error("db error")),
-    })
+      ; (mockedModel.findByIdAndDelete as jest.Mock).mockReturnValue({
+        exec: jest.fn().mockRejectedValue(new Error("db error")),
+      })
 
     const res = await request(app).delete("/images/abc").set("Authorization", "Bearer fake-token")
 

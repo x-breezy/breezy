@@ -24,14 +24,16 @@ export class PostService {
   constructor(private follow: FollowGraphPort = new GrpcFollowGraph()) {}
 
   async createPost(data: CreatePostDTO & { authorId: string }): Promise<Post> {
+    const mentions = data.mentions ?? extractMentions(data.content, data.authorId)
     const post = await PostModel.create({
       content: data.content,
       authorId: data.authorId,
       tags: data.tags ?? [],
+      mentions,
       media: data.media ?? [],
     })
     const postId = String(post._id)
-    for (const targetUserId of extractMentions(data.content, data.authorId)) {
+    for (const targetUserId of mentions.filter((id) => id !== data.authorId)) {
       void publish("content.mention", { actorId: data.authorId, targetUserId, postId })
     }
     return post

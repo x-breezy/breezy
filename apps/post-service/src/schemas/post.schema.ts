@@ -8,6 +8,7 @@ const mediaRefSchema = z.object({
 export const createPostSchema = z.object({
   content: z.string().min(1),
   tags: z.array(z.string()).optional(),
+  mentions: z.array(z.string().uuid()).optional(),
   media: z.array(mediaRefSchema).optional(),
 })
 

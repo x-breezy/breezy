@@ -12,11 +12,44 @@ class ImageService {
 
   async uploadImage(input: ImageUploadDTO): Promise<Image> {
     const data = await this.optimizeImage(input.data)
-    return ImageModel.create({ ...input, data, mimeType: "image/jpeg", size: data.length })
+    const doc = await ImageModel.create({ ...input, data, mimeType: "image/jpeg", size: data.length })
+    // Convert to plain object and map _id to id
+    const obj = doc.toObject()
+    const image: Image = {
+      id: obj._id?.toString() || String(obj._id),
+      data: obj.data as Buffer,
+      originalName: obj.originalName,
+      mimeType: obj.mimeType,
+      size: obj.size,
+      width: obj.width,
+      height: obj.height,
+      alt: obj.alt,
+      ownerId: obj.ownerId,
+      createdAt: obj.createdAt,
+      updatedAt: obj.updatedAt,
+    }
+    return image
   }
 
   async getImage(id: string): Promise<Image | null> {
-    return ImageModel.findById(id).exec()
+    const doc = await ImageModel.findById(id).exec()
+    if (!doc) return null
+    // Convert to plain object and map _id to id
+    const obj = doc.toObject()
+    const image: Image = {
+      id: obj._id?.toString() || String(obj._id),
+      data: obj.data as Buffer,
+      originalName: obj.originalName,
+      mimeType: obj.mimeType,
+      size: obj.size,
+      width: obj.width,
+      height: obj.height,
+      alt: obj.alt,
+      ownerId: obj.ownerId,
+      createdAt: obj.createdAt,
+      updatedAt: obj.updatedAt,
+    }
+    return image
   }
 
   async deleteImage(id: string): Promise<boolean> {
