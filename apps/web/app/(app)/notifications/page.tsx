@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
+import { useTranslations } from "next-intl"
 import { NotificationsHeader } from "@/components/notifications/notifications-header"
 import { NotificationCard } from "@/components/notifications/notification"
 import { useNotificationStore } from "@/stores/notification-store"
@@ -21,6 +22,7 @@ export default function NotificationsPage() {
   const error = useNotificationStore((s) => s.error)
   const markAllRead = useNotificationStore((s) => s.markAllRead)
   const remove = useNotificationStore((s) => s.remove)
+  const t = useTranslations("notifications")
 
   const hasMarkedRef = useRef(false)
   const [seenKeys, setSeenKeys] = useState<Set<string>>(new Set())
@@ -40,7 +42,7 @@ export default function NotificationsPage() {
       <div>
         <NotificationsHeader />
         <div className='flex items-center justify-center py-12 text-sm text-muted-foreground'>
-          Loading...
+          {t("loading")}
         </div>
       </div>
     )
@@ -62,7 +64,7 @@ export default function NotificationsPage() {
       <div>
         <NotificationsHeader />
         <div className='flex items-center justify-center py-12 text-sm text-muted-foreground'>
-          No notifications yet
+          {t("noNotifications")}
         </div>
       </div>
     )
@@ -77,7 +79,7 @@ export default function NotificationsPage() {
         {groups.map(({ label, views: groupViews }) => (
           <li key={label}>
             <div className='mb-2 border-b pb-1'>
-              <h2 className='text-xl font-bold'>{label}</h2>
+              <h2 className='text-xl font-bold'>{t(label as any)}</h2>
             </div>
             <ul>
               {groupViews.map((view) => {

@@ -47,7 +47,7 @@ export function PhotoStep({
           type='button'
           onClick={() => fileInputRef.current?.click()}
           className='group relative h-24 w-24 overflow-hidden rounded-full border-2 border-dashed border-border bg-muted transition-colors hover:border-foreground/40 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none'
-          aria-label='Upload profile photo'
+          aria-label={t("uploadPhoto")}
         >
           {preview ? (
             <Image src={preview} alt='Avatar preview' fill className='object-cover' />
@@ -80,7 +80,7 @@ export function PhotoStep({
               <Input
                 id='firstName'
                 type='text'
-                placeholder='Sam'
+                placeholder={t("firstNamePlaceholder")}
                 autoComplete='given-name'
                 value={firstName}
                 onChange={(e) => onChange("firstName", e.target.value)}
@@ -91,7 +91,7 @@ export function PhotoStep({
               <Input
                 id='lastName'
                 type='text'
-                placeholder='Altman'
+                placeholder={t("lastNamePlaceholder")}
                 autoComplete='family-name'
                 value={lastName}
                 onChange={(e) => onChange("lastName", e.target.value)}
@@ -103,7 +103,7 @@ export function PhotoStep({
             <Label htmlFor='bio'>{t("bio")}</Label>
             <Textarea
               id='bio'
-              placeholder='Tell people a little about yourself…'
+              placeholder={t("bioPlaceholder")}
               rows={3}
               className='resize-none'
               value={bio}

@@ -62,7 +62,7 @@ export function PasswordField({
           type={visible ? "text" : "password"}
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          placeholder='Enter your password'
+          placeholder={t("passwordPlaceholder")}
           autoComplete='new-password'
           required
         />

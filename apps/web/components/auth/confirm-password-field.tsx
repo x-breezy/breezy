@@ -27,7 +27,7 @@ export function ConfirmPasswordField({ value, password, onChange }: ConfirmPassw
           type={visible ? "text" : "password"}
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          placeholder='Confirm your password'
+          placeholder={t("confirmPasswordPlaceholder")}
           autoComplete='new-password'
           required
         />

@@ -53,7 +53,7 @@ export function AccountStep({ onSuccess }: { onSuccess: () => void }) {
                 id='username'
                 name='username'
                 type='text'
-                placeholder='omnescle'
+                placeholder={t("usernamePlaceholder")}
                 autoComplete='username'
                 required
                 value={username}
@@ -72,7 +72,7 @@ export function AccountStep({ onSuccess }: { onSuccess: () => void }) {
                 id='email'
                 name='email'
                 type='email'
-                placeholder='you@example.com'
+                placeholder={t("emailPlaceholder")}
                 autoComplete='email'
                 required
                 value={email}

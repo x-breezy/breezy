@@ -36,7 +36,7 @@ export default function SignInScreen() {
                   type='text'
                   value={identifier}
                   onChange={(e) => setIdentifier(e.target.value)}
-                  placeholder='you@example.com or samaltman'
+                  placeholder={t("identifierPlaceholder")}
                   autoComplete='username'
                   required
                 />
@@ -55,7 +55,7 @@ export default function SignInScreen() {
                   type={passwordVisible ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder='Enter your password'
+                  placeholder={t("passwordPlaceholder")}
                   autoComplete='current-password'
                   required
                 />
