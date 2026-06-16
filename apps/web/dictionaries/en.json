@@ -40,6 +40,7 @@
     "emailVerifyDesc": "Verify your email to secure your account.",
     "emailSendBtn": "Send verification email",
     "emailPasteToken": "Paste the verification token from the email",
+    "emailPasteTokenPlaceholder": "Paste token here",
     "emailVerifying": "Verifying…",
     "emailVerifyBtn": "Verify email"
   },
@@ -132,7 +133,11 @@
     "verifyEmailNewEmailSent": "If that account needs verification, a new email is on its way.",
     "verifyEmailResendBtn": "Resend verification email",
     "acceptTerms": "Accept the <link>terms and conditions</link>",
-    "termsError": "You must accept the terms."
+    "termsError": "You must accept the terms.",
+    "verifyEmailBannerSent": "Verification email sent! Check your inbox.",
+    "verifyEmailBannerText": "Verify your email address to unlock all features.",
+    "verifyEmailBannerSending": "Sending…",
+    "verifyEmailBannerRetry": "Retry in {seconds}s"
   },
   "notifications": {
     "title": "Notifications",

@@ -40,6 +40,7 @@
     "emailVerifyDesc": "Vérifiez votre e-mail pour sécuriser votre compte.",
     "emailSendBtn": "Envoyer l'e-mail de vérification",
     "emailPasteToken": "Collez le jeton de vérification de l'e-mail",
+    "emailPasteTokenPlaceholder": "Collez le jeton ici",
     "emailVerifying": "Vérification…",
     "emailVerifyBtn": "Vérifier l'e-mail"
   },
@@ -132,7 +133,11 @@
     "verifyEmailNewEmailSent": "Si ce compte nécessite une vérification, un nouvel e-mail est en route.",
     "verifyEmailResendBtn": "Renvoyer l'e-mail de vérification",
     "acceptTerms": "J'accepte les <link>conditions d'utilisation</link>",
-    "termsError": "Vous devez accepter les conditions."
+    "termsError": "Vous devez accepter les conditions.",
+    "verifyEmailBannerSent": "E-mail de vérification envoyé ! Vérifiez votre boîte de réception.",
+    "verifyEmailBannerText": "Vérifiez votre adresse e-mail pour débloquer toutes les fonctionnalités.",
+    "verifyEmailBannerSending": "Envoi en cours…",
+    "verifyEmailBannerRetry": "Réessayez dans {seconds}s"
   },
   "notifications": {
     "title": "Notifications",

@@ -4,12 +4,14 @@ import { useActionState } from "react"
 import { IconMailQuestion } from "@tabler/icons-react"
 import { useCooldown } from "@/hooks/use-cooldown"
 import { resendVerificationAction } from "@/app/(auth)/verify-email/actions"
+import { useTranslations } from "next-intl"
 
 interface EmailVerificationBannerProps {
   email: string
 }
 
 export function EmailVerificationBanner({ email }: EmailVerificationBannerProps) {
+  const t = useTranslations("auth")
   const [state, action, isPending] = useActionState(resendVerificationAction, null)
   const cooldown = useCooldown(state?.retryAfter, state)
 
@@ -18,10 +20,10 @@ export function EmailVerificationBanner({ email }: EmailVerificationBannerProps)
       <IconMailQuestion size={16} className='shrink-0 text-amber-600 dark:text-amber-400' />
       <span>
         {state?.success ? (
-          "Verification email sent! Check your inbox."
+          t("verifyEmailBannerSent")
         ) : (
           <>
-            Verify your email address to unlock all features.{" "}
+            {t("verifyEmailBannerText")}{" "}
             <form action={action} className='inline'>
               <input type='hidden' name='email' value={email} />
               <button
@@ -30,10 +32,10 @@ export function EmailVerificationBanner({ email }: EmailVerificationBannerProps)
                 className='font-semibold underline underline-offset-4 hover:text-amber-700 disabled:cursor-not-allowed disabled:opacity-60 dark:hover:text-amber-100'
               >
                 {isPending
-                  ? "Sending…"
+                  ? t("verifyEmailBannerSending")
                   : cooldown > 0
-                    ? `Retry in ${cooldown}s`
-                    : "Resend verification email"}
+                    ? t("verifyEmailBannerRetry", { seconds: cooldown })
+                    : t("verifyEmailResendBtn")}
               </button>
             </form>
           </>

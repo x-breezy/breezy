@@ -81,7 +81,7 @@ export function SettingsEmailVerification() {
                     id='verify-token'
                     name='token'
                     type='text'
-                    placeholder='Paste token here'
+                    placeholder={t("emailPasteTokenPlaceholder")}
                     required
                   />
                 </InputGroup>
