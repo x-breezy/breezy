@@ -1,7 +1,12 @@
 {
   "home": {
     "title": "Home",
-    "description": "The breeziest place to share what's on your mind."
+    "description": "The breeziest place to share what's on your mind.",
+    "feedForYou": "For you",
+    "feedFollowing": "Following",
+    "feedTrending": "Trending",
+    "createPost": "Create post",
+    "notifications": "Notifications"
   },
   "nav": {
     "home": "Home",
@@ -11,9 +16,32 @@
     "profile": "Profile"
   },
   "settings": {
+    "title": "Settings",
     "language": "Language",
     "theme": "Theme",
-    "logout": "Log out"
+    "themeLight": "Light",
+    "themeDark": "Dark",
+    "themeSystem": "System",
+    "logout": "Log out",
+    "2faTitle": "Two-factor authentication",
+    "2faEnabledDesc": "2FA is currently enabled on your account.",
+    "2faDisable": "Disable 2FA",
+    "2faDisabling": "Disabling…",
+    "2faDesc": "Add an extra layer of security to your account.",
+    "2faEnable": "Enable 2FA",
+    "2faSending": "Sending…",
+    "2faTryAgain": "Try again in {seconds}s",
+    "2faEnterCode": "Enter the code sent to your email",
+    "2faConfirming": "Confirming…",
+    "2faConfirm": "Confirm",
+    "emailVerified": "Email verified",
+    "emailVerifiedDesc": "Your email is currently verified on your account.",
+    "emailVerification": "Email verification",
+    "emailVerifyDesc": "Verify your email to secure your account.",
+    "emailSendBtn": "Send verification email",
+    "emailPasteToken": "Paste the verification token from the email",
+    "emailVerifying": "Verifying…",
+    "emailVerifyBtn": "Verify email"
   },
   "auth": {
     "welcome": "Welcome to Breezy",

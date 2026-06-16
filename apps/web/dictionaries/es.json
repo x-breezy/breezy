@@ -1,7 +1,12 @@
 {
   "home": {
     "title": "Inicio",
-    "description": "El lugar más agradable para compartir lo que tienes en mente."
+    "description": "El lugar más agradable para compartir lo que tienes en mente.",
+    "feedForYou": "Para ti",
+    "feedFollowing": "Siguiendo",
+    "feedTrending": "Tendencias",
+    "createPost": "Crear publicación",
+    "notifications": "Notificaciones"
   },
   "nav": {
     "home": "Inicio",
@@ -11,9 +16,32 @@
     "profile": "Perfil"
   },
   "settings": {
+    "title": "Ajustes",
     "language": "Idioma",
     "theme": "Tema",
-    "logout": "Cerrar sesión"
+    "themeLight": "Claro",
+    "themeDark": "Oscuro",
+    "themeSystem": "Sistema",
+    "logout": "Cerrar sesión",
+    "2faTitle": "Autenticación de dos factores",
+    "2faEnabledDesc": "El 2FA está activado actualmente en tu cuenta.",
+    "2faDisable": "Desactivar 2FA",
+    "2faDisabling": "Desactivando…",
+    "2faDesc": "Añade una capa extra de seguridad a tu cuenta.",
+    "2faEnable": "Activar 2FA",
+    "2faSending": "Enviando…",
+    "2faTryAgain": "Inténtalo de nuevo en {seconds}s",
+    "2faEnterCode": "Introduce el código enviado a tu correo",
+    "2faConfirming": "Confirmando…",
+    "2faConfirm": "Confirmar",
+    "emailVerified": "Correo verificado",
+    "emailVerifiedDesc": "Tu correo está verificado actualmente en tu cuenta.",
+    "emailVerification": "Verificación de correo",
+    "emailVerifyDesc": "Verifica tu correo para asegurar tu cuenta.",
+    "emailSendBtn": "Enviar correo de verificación",
+    "emailPasteToken": "Pega el código de verificación del correo",
+    "emailVerifying": "Verificando…",
+    "emailVerifyBtn": "Verificar correo"
   },
   "auth": {
     "welcome": "Bienvenido a Breezy",

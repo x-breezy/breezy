@@ -12,15 +12,15 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 
-const themes = [
-  { value: "light", label: "Light" },
-  { value: "dark", label: "Dark" },
-  { value: "system", label: "System" },
-]
-
 export function SettingsThemeSelect() {
   const { theme, setTheme } = useTheme()
   const t = useTranslations("settings")
+
+  const themes = [
+    { value: "light", label: t("themeLight") },
+    { value: "dark", label: t("themeDark") },
+    { value: "system", label: t("themeSystem") },
+  ]
 
   return (
     <Select value={theme} onValueChange={(val) => val && setTheme(val)}>

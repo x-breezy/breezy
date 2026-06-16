@@ -1,7 +1,12 @@
 {
   "home": {
     "title": "Accueil",
-    "description": "L'endroit le plus convivial pour partager ce que vous avez en tête."
+    "description": "L'endroit le plus convivial pour partager ce que vous avez en tête.",
+    "feedForYou": "Pour vous",
+    "feedFollowing": "Abonnements",
+    "feedTrending": "Tendances",
+    "createPost": "Créer une publication",
+    "notifications": "Notifications"
   },
   "nav": {
     "home": "Accueil",
@@ -11,9 +16,32 @@
     "profile": "Profil"
   },
   "settings": {
+    "title": "Paramètres",
     "language": "Langue",
     "theme": "Thème",
-    "logout": "Déconnexion"
+    "themeLight": "Clair",
+    "themeDark": "Sombre",
+    "themeSystem": "Système",
+    "logout": "Déconnexion",
+    "2faTitle": "Authentification à deux facteurs",
+    "2faEnabledDesc": "L'A2F est actuellement activée sur votre compte.",
+    "2faDisable": "Désactiver l'A2F",
+    "2faDisabling": "Désactivation…",
+    "2faDesc": "Ajoutez une couche de sécurité supplémentaire à votre compte.",
+    "2faEnable": "Activer l'A2F",
+    "2faSending": "Envoi…",
+    "2faTryAgain": "Réessayer dans {seconds}s",
+    "2faEnterCode": "Entrez le code envoyé à votre e-mail",
+    "2faConfirming": "Confirmation…",
+    "2faConfirm": "Confirmer",
+    "emailVerified": "E-mail vérifié",
+    "emailVerifiedDesc": "Votre e-mail est actuellement vérifié sur votre compte.",
+    "emailVerification": "Vérification de l'e-mail",
+    "emailVerifyDesc": "Vérifiez votre e-mail pour sécuriser votre compte.",
+    "emailSendBtn": "Envoyer l'e-mail de vérification",
+    "emailPasteToken": "Collez le jeton de vérification de l'e-mail",
+    "emailVerifying": "Vérification…",
+    "emailVerifyBtn": "Vérifier l'e-mail"
   },
   "auth": {
     "welcome": "Bienvenue sur Breezy",
