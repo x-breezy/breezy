@@ -98,6 +98,26 @@
     "buttonFollowing": "Abonné",
     "buttonFollow": "S'abonner",
     "buttonMessage": "Message",
-    "posts": "Publications"
+    "posts": "Publications",
+    "closeEdit": "Fermer l'édition du profil",
+    "uploadPhoto": "Télécharger une photo de profil",
+    "addPhoto": "Ajouter une photo",
+    "changePhoto": "Modifier la photo",
+    "firstName": "Prénom",
+    "firstNamePlaceholder": "Sam",
+    "lastName": "Nom de famille",
+    "lastNamePlaceholder": "Altman",
+    "bio": "Bio",
+    "bioPlaceholder": "Dites-en un peu plus sur vous…",
+    "saving": "Enregistrement…",
+    "saveChanges": "Enregistrer",
+    "cancel": "Annuler"
+  },
+  "composePost": {
+    "posting": "Publication…",
+    "postBtn": "Publier",
+    "placeholder": "Quoi de neuf ?",
+    "addPhoto": "Ajouter une photo",
+    "addVideo": "Ajouter une vidéo"
   }
 }

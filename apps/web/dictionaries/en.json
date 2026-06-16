@@ -98,6 +98,26 @@
     "buttonFollowing": "Following",
     "buttonFollow": "Follow",
     "buttonMessage": "Message",
-    "posts": "Posts"
+    "posts": "Posts",
+    "closeEdit": "Close profile edit",
+    "uploadPhoto": "Upload profile photo",
+    "addPhoto": "Add photo",
+    "changePhoto": "Change photo",
+    "firstName": "First name",
+    "firstNamePlaceholder": "Sam",
+    "lastName": "Last name",
+    "lastNamePlaceholder": "Altman",
+    "bio": "Bio",
+    "bioPlaceholder": "Tell people a little about yourself…",
+    "saving": "Saving…",
+    "saveChanges": "Save changes",
+    "cancel": "Cancel"
+  },
+  "composePost": {
+    "posting": "Posting…",
+    "postBtn": "Post",
+    "placeholder": "What's happening?",
+    "addPhoto": "Add photo",
+    "addVideo": "Add video"
   }
 }

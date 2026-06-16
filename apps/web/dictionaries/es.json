@@ -98,6 +98,26 @@
     "buttonFollowing": "Siguiendo",
     "buttonFollow": "Seguir",
     "buttonMessage": "Mensaje",
-    "posts": "Publicaciones"
+    "posts": "Publicaciones",
+    "closeEdit": "Cerrar edición de perfil",
+    "uploadPhoto": "Subir foto de perfil",
+    "addPhoto": "Añadir foto",
+    "changePhoto": "Cambiar foto",
+    "firstName": "Nombre",
+    "firstNamePlaceholder": "Sam",
+    "lastName": "Apellidos",
+    "lastNamePlaceholder": "Altman",
+    "bio": "Biografía",
+    "bioPlaceholder": "Cuéntale a la gente un poco sobre ti…",
+    "saving": "Guardando…",
+    "saveChanges": "Guardar cambios",
+    "cancel": "Cancelar"
+  },
+  "composePost": {
+    "posting": "Publicando…",
+    "postBtn": "Publicar",
+    "placeholder": "¿Qué está pasando?",
+    "addPhoto": "Añadir foto",
+    "addVideo": "Añadir video"
   }
 }
