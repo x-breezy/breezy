@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
+import { useTranslations } from "next-intl"
 import { IconSearch, IconX } from "@tabler/icons-react"
 import {
   InputGroup,
@@ -15,6 +16,7 @@ import { PageHeader } from "@/components/layout/page-header"
 export function SearchHeader() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const t = useTranslations("search")
   const [value, setValue] = useState(searchParams.get("q") ?? "")
   const [focused, setFocused] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -44,8 +46,8 @@ export function SearchHeader() {
           <InputGroupInput
             ref={inputRef}
             type='text'
-            placeholder='Rechercher'
-            aria-label='Rechercher'
+            placeholder={t("placeholder")}
+            aria-label={t("placeholder")}
             className='text-base'
             value={displayValue}
             onChange={(e) => setValue(e.target.value)}
@@ -67,7 +69,7 @@ export function SearchHeader() {
                   params.delete("q")
                   router.push(`/search?${params.toString()}`)
                 }}
-                aria-label='Cancel'
+                aria-label={t("cancel")}
               >
                 <IconX size={16} />
               </InputGroupButton>

@@ -2,6 +2,7 @@
 
 import { useTransition } from "react"
 import { useRouter } from "next/navigation"
+import { useTranslations } from "next-intl"
 import {
   IconHeartFilled,
   IconUserPlus,
@@ -22,17 +23,17 @@ export function getActorId(notification: Notification): string {
   return notification.payload.actorId ?? notification.payload.followerId ?? ""
 }
 
-export function formatRelativeTime(dateStr: string): string {
+export function formatRelativeTime(dateStr: string, t: any): string {
   const now = Date.now()
   const date = new Date(dateStr).getTime()
   const diffSec = Math.floor((now - date) / 1000)
-  if (diffSec < 60) return "now"
+  if (diffSec < 60) return t("timeNow")
   const diffMin = Math.floor(diffSec / 60)
-  if (diffMin < 60) return `${diffMin}m`
+  if (diffMin < 60) return t("timeMinutes", { m: diffMin })
   const diffHr = Math.floor(diffMin / 60)
-  if (diffHr < 24) return `${diffHr}h`
+  if (diffHr < 24) return t("timeHours", { h: diffHr })
   const diffDay = Math.floor(diffHr / 24)
-  if (diffDay < 30) return `${diffDay}d`
+  if (diffDay < 30) return t("timeDays", { d: diffDay })
   return new Date(dateStr).toLocaleDateString()
 }
 
@@ -47,63 +48,46 @@ function actorAvatarUrl(actor: ActorInfo): string {
   return actor.avatarId ?? `https://api.dicebear.com/10.x/glyphs/svg?seed=${actor.id}`
 }
 
-function NotificationText({ view }: { view: NotificationView }) {
-  const uname = (actor: ActorInfo) => <span className='font-semibold'>{actor.username}</span>
+function NotificationText({ view, t }: { view: NotificationView; t: any }) {
+  const uname = (chunks: any) => <span className='font-semibold'>{chunks}</span>
 
   if (view.kind === "follow") {
-    return (
-      <>
-        {uname(view.actor)}
-        <span className='text-foreground'> started following you.</span>
-      </>
-    )
+    return <>{t.rich("follow", { actorName: view.actor.username, actor: uname })}</>
   }
 
   if (view.kind === "mention") {
-    return (
-      <>
-        {uname(view.actor)}
-        <span className='text-foreground'> mentioned you in a post.</span>
-      </>
-    )
+    return <>{t.rich("mention", { actorName: view.actor.username, actor: uname })}</>
   }
 
   if (view.kind === "comment") {
-    return (
-      <>
-        {uname(view.actor)}
-        <span className='text-foreground'> commented on your post.</span>
-      </>
-    )
+    return <>{t.rich("comment", { actorName: view.actor.username, actor: uname })}</>
   }
 
   const { actors } = view
   const rest = actors.length - 2
 
   if (actors.length === 1) {
-    return (
-      <>
-        {uname(actors[0]!)}
-        <span className='text-foreground'> liked your post.</span>
-      </>
-    )
+    return <>{t.rich("like1", { actorName: actors[0]!.username, actor: uname })}</>
   }
   if (actors.length === 2) {
     return (
       <>
-        {uname(actors[0]!)}
-        <span className='text-foreground'> and </span>
-        {uname(actors[1]!)}
-        <span className='text-foreground'> liked your post.</span>
+        {t.rich("like2", {
+          actor1Name: actors[0]!.username,
+          actor2Name: actors[1]!.username,
+          actor: uname,
+        })}
       </>
     )
   }
   return (
     <>
-      {uname(actors[0]!)}
-      <span className='text-foreground'>, </span>
-      {uname(actors[1]!)}
-      <span className='text-foreground'> and {rest} more liked your post.</span>
+      {t.rich("likeMore", {
+        actor1Name: actors[0]!.username,
+        actor2Name: actors[1]!.username,
+        rest,
+        actor: uname,
+      })}
     </>
   )
 }
@@ -121,6 +105,7 @@ export function NotificationCard({ view, highlight, className }: CardProps) {
   const followed = useUserStore((s) => s.following[actorId] ?? false)
   const setRelation = useUserStore((s) => s.setRelation)
   const [isPending, startTransition] = useTransition()
+  const t = useTranslations("notifications")
 
   const primaryActor =
     view.kind === "like" ? (view.actors[0] ?? { id: "", username: "", avatarId: null }) : view.actor
@@ -157,7 +142,7 @@ export function NotificationCard({ view, highlight, className }: CardProps) {
     })
   }
 
-  const time = formatRelativeTime(view.createdAt)
+  const time = formatRelativeTime(view.createdAt, t)
 
   return (
     <div
@@ -188,7 +173,7 @@ export function NotificationCard({ view, highlight, className }: CardProps) {
           {highlight && (
             <span className='mr-1.5 inline-block size-2 rounded-full bg-primary align-middle' />
           )}
-          <NotificationText view={view} />
+          <NotificationText view={view} t={t} />
           <span className='ml-1 text-xs text-muted-foreground'> {time}</span>
         </p>
         {view.kind === "follow" &&
@@ -198,13 +183,13 @@ export function NotificationCard({ view, highlight, className }: CardProps) {
               onConfirm={handleUnfollow}
               trigger={
                 <Button className='min-w-24' variant='secondary' disabled={isPending}>
-                  {isPending ? <IconLoader2 className='animate-spin' stroke={2.3} /> : "Following"}
+                  {isPending ? <IconLoader2 className='animate-spin' stroke={2.3} /> : t("following")}
                 </Button>
               }
             />
           ) : (
             <Button className='min-w-24' disabled={isPending} onClick={handleFollowBack}>
-              {isPending ? <IconLoader2 className='animate-spin' stroke={2.3} /> : "Follow"}
+              {isPending ? <IconLoader2 className='animate-spin' stroke={2.3} /> : t("followBtn")}
             </Button>
           ))}
       </div>

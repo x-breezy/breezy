@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useCallback } from "react"
+import { useTranslations } from "next-intl"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 
@@ -24,6 +25,7 @@ export function PersonCard({
   initialFollowing,
   onFollow,
 }: PersonCardProps) {
+  const t = useTranslations("search")
   const initials = (displayName ?? username ?? "?")[0]?.toUpperCase()
   const [isFollowing, setIsFollowing] = useState(initialFollowing ?? false)
 
@@ -60,7 +62,7 @@ export function PersonCard({
         className='shrink-0'
         onClick={handleFollow}
       >
-        {isFollowing ? "Following" : "Follow"}
+        {isFollowing ? t("following") : t("follow")}
       </Button>
     </div>
   )

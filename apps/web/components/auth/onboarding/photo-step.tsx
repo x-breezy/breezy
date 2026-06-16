@@ -2,6 +2,7 @@
 
 import { useRef } from "react"
 import Image from "next/image"
+import { useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
 import { Field, FieldGroup, FieldSet } from "@/components/ui/field"
 import { Label } from "@/components/ui/label"
@@ -29,6 +30,7 @@ export function PhotoStep({
   onNext,
 }: ProfileStepProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const t = useTranslations("auth")
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -43,21 +45,21 @@ export function PhotoStep({
           type='button'
           onClick={() => fileInputRef.current?.click()}
           className='group relative h-24 w-24 overflow-hidden rounded-full border-2 border-dashed border-border bg-muted transition-colors hover:border-foreground/40 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none'
-          aria-label='Upload profile photo'
+          aria-label={t("uploadPhoto")}
         >
           {preview ? (
             <Image src={preview} alt='Avatar preview' fill className='object-cover' />
           ) : (
             <span className='flex h-full w-full flex-col items-center justify-center gap-1 text-muted-foreground'>
               <IconCamera size={24} />
-              <span className='text-[10px] font-medium'>Add photo</span>
+              <span className='text-[10px] font-medium'>{t("addPhoto")}</span>
             </span>
           )}
           <span className='absolute inset-0 flex items-center justify-center rounded-full bg-black/50 opacity-0 transition-opacity group-hover:opacity-100'>
             <IconUpload size={20} className='text-white' />
           </span>
         </button>
-        <p className='text-xs text-muted-foreground'>Optional</p>
+        <p className='text-xs text-muted-foreground'>{t("optional")}</p>
       </div>
 
       <input
@@ -72,11 +74,11 @@ export function PhotoStep({
         <FieldGroup>
           <div className='grid grid-cols-2 gap-3'>
             <Field>
-              <Label htmlFor='firstName'>First name</Label>
+              <Label htmlFor='firstName'>{t("firstName")}</Label>
               <Input
                 id='firstName'
                 type='text'
-                placeholder='Sam'
+                placeholder={t("firstNamePlaceholder")}
                 autoComplete='given-name'
                 required
                 value={firstName}
@@ -84,11 +86,11 @@ export function PhotoStep({
               />
             </Field>
             <Field>
-              <Label htmlFor='lastName'>Last name</Label>
+              <Label htmlFor='lastName'>{t("lastName")}</Label>
               <Input
                 id='lastName'
                 type='text'
-                placeholder='Altman'
+                placeholder={t("lastNamePlaceholder")}
                 autoComplete='family-name'
                 required
                 value={lastName}
@@ -98,10 +100,10 @@ export function PhotoStep({
           </div>
 
           <Field>
-            <Label htmlFor='bio'>Bio</Label>
+            <Label htmlFor='bio'>{t("bio")}</Label>
             <Textarea
               id='bio'
-              placeholder='Tell people a little about yourself…'
+              placeholder={t("bioPlaceholder")}
               rows={3}
               className='resize-none'
               value={bio}
@@ -111,9 +113,11 @@ export function PhotoStep({
         </FieldGroup>
       </FieldSet>
 
-      <Button size='lg' onClick={onNext} disabled={!firstName || !lastName}>
-        Continue
-      </Button>
+      <div className='flex flex-col gap-3'>
+        <Button size='lg' onClick={onNext} disabled={!firstName || !lastName}>
+          {t("continue")}
+        </Button>
+      </div>
     </div>
   )
 }

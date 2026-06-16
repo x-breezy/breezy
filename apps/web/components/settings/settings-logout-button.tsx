@@ -1,5 +1,6 @@
 "use client"
 
+import { useTranslations } from "next-intl"
 import { Button } from "../ui/button"
 
 interface SettingsLogoutButtonProps {
@@ -7,9 +8,10 @@ interface SettingsLogoutButtonProps {
 }
 
 export function SettingsLogoutButton({ onLogout }: SettingsLogoutButtonProps) {
+  const t = useTranslations("settings")
   return (
     <Button size='lg' variant='destructive' onClick={onLogout}>
-      Log out
+      {t("logout")}
     </Button>
   )
 }
