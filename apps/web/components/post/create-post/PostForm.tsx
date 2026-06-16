@@ -7,7 +7,6 @@ import { useTranslations } from "next-intl"
 import type { ResolvedMention, MediaPreview } from "@/components/post/use-post-compose"
 import { buildPostHTML } from "@/lib/post-utils"
 import { PostBottomBar } from "./PostBottomBar"
-import { MediaPreview, ResolvedMention } from "./use-post-compose"
 
 interface MentionSuggestion {
   profileId: string

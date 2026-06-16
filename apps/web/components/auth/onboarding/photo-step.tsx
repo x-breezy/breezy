@@ -114,20 +114,10 @@ export function PhotoStep({
       </FieldSet>
 
       <div className='flex flex-col gap-3'>
-        <Button size='lg' onClick={onNext}>
+        <Button size='lg' onClick={onNext} disabled={!firstName || !lastName}>
           {t("continue")}
         </Button>
-        <button
-          type='button'
-          onClick={onSkip}
-          className='text-sm font-medium text-muted-foreground transition-colors hover:text-foreground'
-        >
-          {t("skipForNow")}
-        </button>
       </div>
-      <Button size='lg' onClick={onNext} disabled={!firstName || !lastName}>
-        Continue
-      </Button>
     </div>
   )
 }
