@@ -1,5 +1,5 @@
 import NotificationService from "../services/notification.service"
-import type { ContentLikeEvent, ContentMentionEvent, ContentCommentEvent } from "../types/events"
+import type { ContentLikeEvent, ContentMentionEvent, ContentReplyEvent } from "../types/events"
 
 const notificationService = new NotificationService()
 
@@ -32,15 +32,15 @@ export async function handleMention(payload: unknown): Promise<void> {
   })
 }
 
-export async function handleComment(payload: unknown): Promise<void> {
-  const event = payload as ContentCommentEvent
+export async function handleReply(payload: unknown): Promise<void> {
+  const event = payload as ContentReplyEvent
   await notificationService.create({
     userId: event.targetUserId,
-    type: "comment",
+    type: "reply",
     payload: {
       actorId: event.actorId,
       postId: event.postId,
-      commentId: event.commentId,
+      replyPostId: event.replyPostId,
       username: event.username,
       avatarId: event.avatarId,
     },

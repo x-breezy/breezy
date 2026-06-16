@@ -43,10 +43,6 @@ export const notificationTypeMeta = {
   comment: { Icon: IconMessage, badge: "bg-amber-500", stroke: 2.3 },
 } as const
 
-function actorAvatarUrl(actor: ActorInfo): string {
-  return actor.avatarId ?? `https://api.dicebear.com/10.x/glyphs/svg?seed=${actor.id}`
-}
-
 function NotificationText({ view }: { view: NotificationView }) {
   const uname = (actor: ActorInfo) => <span className='font-semibold'>{actor.username}</span>
 
@@ -130,7 +126,7 @@ export function NotificationCard({ view, highlight, className }: CardProps) {
     if (view.kind === "follow") {
       router.push(`/profile/${view.actor.username}`)
     } else {
-      router.push(`/posts/${view.postId}`)
+      router.push(`/post/${view.actor.username}/${view.postId}`)
     }
   }
 
@@ -172,7 +168,7 @@ export function NotificationCard({ view, highlight, className }: CardProps) {
       )}
     >
       <div className='relative shrink-0'>
-        <ProfileAvatar src={actorAvatarUrl(primaryActor)} alt={primaryActor.username} size='2xs' />
+        <ProfileAvatar src={primaryActor.avatarId ?? ""} alt={primaryActor.username} size='2xs' />
         <span
           className={cn(
             "absolute -right-0.5 -bottom-0.5 flex size-5 items-center justify-center rounded-full text-white ring-2 ring-background",

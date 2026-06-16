@@ -10,7 +10,6 @@ import { AppLoader } from "@/components/layout/app-loader"
 import { IconChevronLeft } from "@tabler/icons-react"
 import type { PostDetail } from "@/lib/actions/post-detail"
 import { PageHeader, PageHeaderContent } from "@/components/layout/page-header"
-import { timeAgo } from "@/lib/utils"
 
 export default function PostPage({
   params,
@@ -21,52 +20,37 @@ export default function PostPage({
   const router = useRouter()
 
   const [detail, setDetail] = useState<PostDetail | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [initialLoading, setInitialLoading] = useState(true)
   const [notFoundState, setNotFoundState] = useState(false)
+  const [refreshKey, setRefreshKey] = useState(0)
 
   useEffect(() => {
-    setLoading(true)
     getPostDetail(postId)
       .then((d) => {
         if (d) setDetail(d)
         else setNotFoundState(true)
-        setLoading(false)
+        setInitialLoading(false)
       })
-      .catch(() => setLoading(false))
-  }, [postId])
+      .catch(() => setInitialLoading(false))
+  }, [postId, refreshKey])
 
-  const [likes, setLikes] = useState(0)
-  const [isLiked, setIsLiked] = useState(false)
-
-  useEffect(() => {
-    if (detail) {
-      setLikes(detail.post.likesCount)
-      setIsLiked(detail.likedByMe)
-    }
-  }, [detail])
+  const handleReplyCreated = useCallback(() => {
+    setRefreshKey((k) => k + 1)
+  }, [])
 
   const handleLike = useCallback(
-    async (_postId: string, newLiked: boolean) => {
-      const newIsLiked = newLiked
-      setIsLiked(newIsLiked)
-      setLikes((prev) => (newIsLiked ? prev + 1 : prev - 1))
-      try {
-        const res = await toggleLike(postId, newLiked)
-        setLikes(res.likesCount)
-        return res.likesCount
-      } catch {
-        setIsLiked((prev) => !prev)
-        setLikes((prev) => (newIsLiked ? prev - 1 : prev + 1))
-      }
+    async (_postId: string, liked: boolean) => {
+      const res = await toggleLike(postId, liked)
+      return res.likesCount
     },
     [postId]
   )
 
-  if (loading) return <AppLoader />
+  if (initialLoading) return <AppLoader />
   if (notFoundState) notFound()
   if (!detail) return null
 
-  const { post, comments } = detail
+  const { post, replies } = detail
 
   const authorName =
     [post.author?.firstName, post.author?.lastName].filter(Boolean).join(" ") ||
@@ -99,22 +83,24 @@ export default function PostPage({
           avatarUrl={post.author?.avatarId ?? undefined}
           content={post.content}
           media={post.media}
-          createdAt={timeAgo(post.createdAt)}
-          initialLikes={likes}
+          createdAt={post.createdAt}
+          initialLikes={post.likesCount}
           initialComments={post.commentsCount}
-          initialLiked={isLiked}
+          initialLiked={detail.likedByMe}
           onLike={handleLike}
+          onReplyCreated={handleReplyCreated}
+          compact={false}
         />
       </div>
 
       <section className='container-center p-4'>
         <h2 className='mb-4 text-sm font-semibold text-muted-foreground'>
-          Comments {post.commentsCount > 0 && `(${post.commentsCount})`}
+          Replies {post.commentsCount > 0 && `(${post.commentsCount})`}
         </h2>
-        {comments.length === 0 ? (
-          <p className='py-8 text-center text-sm text-muted-foreground'>No comments yet.</p>
+        {replies.length === 0 ? (
+          <p className='py-8 text-center text-sm text-muted-foreground'>No replies yet.</p>
         ) : (
-          <CommentTree comments={comments} />
+          <CommentTree comments={replies} onReplyCreated={handleReplyCreated} />
         )}
       </section>
     </>

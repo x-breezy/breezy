@@ -1,96 +1,133 @@
 "use client"
 
-import { useState } from "react"
-import { ProfileAvatar } from "@/components/profile"
-import { MediaImage } from "@/components/shared/medias/media-image"
-import { AutoplayVideo } from "@/components/shared/medias/autoplay-video"
-import { MediaViewer } from "@/components/shared/medias/media-viewer"
-import { timeAgo, mediaUrl, cn } from "@/lib/utils"
-import type { MediaItem } from "@/lib/actions/post-detail"
-
-interface CommentAuthor {
-  username: string
-  avatarId: string | null
-}
+import Post from "./post"
+import { ProfileAvatar } from "../profile"
+import { toggleLike } from "@/lib/actions/posts"
+import type { MediaItem, ProfileRef } from "@/lib/actions/post-detail"
 
 export interface CommentNode {
   _id: string
   content: string
   authorId: string
+  parentId?: string
+  tags: string[]
+  mentions: string[]
   media: MediaItem[]
+  likesCount: number
+  commentsCount: number
   createdAt: string
-  author: CommentAuthor | null
+  author: ProfileRef | null
+  likedByMe: boolean
   replies: CommentNode[]
 }
 
-function CommentCard({ comment, depth }: { comment: CommentNode; depth: number }) {
-  const [viewerIndex, setViewerIndex] = useState<number | null>(null)
+async function handleReplyLike(postId: string, liked: boolean) {
+  const res = await toggleLike(postId, liked)
+  return res.likesCount
+}
+
+function PostRow({
+  comment,
+  threadLine,
+  onReplyCreated,
+}: {
+  comment: CommentNode
+  threadLine: "solid" | "dashed" | "none"
+  onReplyCreated?: () => void
+}) {
+  const authorName =
+    [comment.author?.firstName, comment.author?.lastName].filter(Boolean).join(" ") ||
+    comment.author?.username ||
+    comment.authorId
 
   return (
-    <div className={cn("flex gap-2", depth > 0 ? "ml-8 border-l border-border pl-4" : "")}>
-      <ProfileAvatar
-        src={comment.author?.avatarId ?? undefined}
-        alt={comment.author?.username ?? "User"}
-        size='2xs'
-        className='mt-0.5 shrink-0'
-      />
-      <div className='min-w-0 flex-1'>
-        <div className='flex items-center gap-1.5'>
-          <span className='text-sm font-semibold'>{comment.author?.username ?? "unknown"}</span>
-          <span className='text-xs text-muted-foreground'>{timeAgo(comment.createdAt)}</span>
-        </div>
-        <p className='mt-0.5 text-sm whitespace-pre-wrap text-foreground'>{comment.content}</p>
-        {comment.media.length > 0 && (
-          <div
-            className={cn(
-              "mt-1.5 grid gap-1 overflow-hidden rounded-lg",
-              comment.media.length === 1 ? "" : "grid-cols-2"
-            )}
-          >
-            {comment.media.map((item, i) =>
-              item.type === "image" ? (
-                <MediaImage
-                  key={item.id}
-                  src={mediaUrl(`/api/media/images/${item.id}`)}
-                  onClick={() => setViewerIndex(i)}
-                />
-              ) : (
-                <AutoplayVideo
-                  key={item.id}
-                  src={mediaUrl(`/api/media/videos/${item.id}`)}
-                  className='w-full max-w-75 cursor-pointer rounded-lg object-cover'
-                  onMaximize={() => setViewerIndex(i)}
-                />
-              )
-            )}
-          </div>
-        )}
-        {comment.replies.length > 0 && (
-          <div className='mt-1 space-y-1'>
-            <CommentTree comments={comment.replies} depth={depth + 1} />
-          </div>
+    <div className='flex gap-3'>
+      <div className='flex shrink-0 flex-col items-center'>
+        <ProfileAvatar src={comment.author?.avatarId ?? undefined} alt={authorName} size='2xs' />
+        {threadLine === "solid" && <div className='mt-1 w-px flex-1 bg-border' />}
+        {threadLine === "dashed" && (
+          <div className='mt-1 w-px flex-1 border-l border-dashed border-border' />
         )}
       </div>
-      {comment.media.length > 0 && (
-        <MediaViewer
-          items={comment.media}
-          open={viewerIndex !== null}
-          index={viewerIndex ?? 0}
-          onClose={() => setViewerIndex(null)}
-          onNavigate={setViewerIndex}
+      <div className='min-w-0 flex-1 pb-2'>
+        <Post
+          id={comment._id}
+          name={authorName}
+          username={comment.author?.username ?? comment.authorId}
+          authorId={comment.authorId}
+          avatarUrl={comment.author?.avatarId ?? undefined}
+          content={comment.content}
+          media={comment.media}
+          createdAt={comment.createdAt}
+          initialLikes={comment.likesCount}
+          initialComments={comment.commentsCount}
+          initialLiked={comment.likedByMe}
+          href={`/post/${comment.author?.username ?? comment.authorId}/${comment._id}`}
+          onLike={handleReplyLike}
+          onReplyCreated={onReplyCreated}
+          showAvatar={false}
         />
-      )}
+      </div>
     </div>
   )
 }
 
-export function CommentTree({ comments, depth = 0 }: { comments: CommentNode[]; depth?: number }) {
+function CommentThread({
+  comment,
+  onReplyCreated,
+}: {
+  comment: CommentNode
+  onReplyCreated?: () => void
+}) {
+  const ownerReplies = comment.replies
+
+  return (
+    <div>
+      <PostRow
+        comment={comment}
+        threadLine={ownerReplies.length > 0 ? "solid" : "none"}
+        onReplyCreated={onReplyCreated}
+      />
+
+      {ownerReplies.map((reply, i) => {
+        const isLast = i === ownerReplies.length - 1
+        const showRepliesLink = isLast && reply.commentsCount > 0
+        const threadLine = !isLast ? "solid" : showRepliesLink ? "dashed" : "none"
+
+        return (
+          <div key={reply._id}>
+            <PostRow comment={reply} threadLine={threadLine} onReplyCreated={onReplyCreated} />
+            {showRepliesLink && (
+              <div className='flex gap-3'>
+                <div className='w-5 shrink-0' />
+                <a
+                  href={`/post/${reply.author?.username ?? reply.authorId}/${reply._id}`}
+                  className='mb-2 text-sm font-medium text-primary hover:underline'
+                >
+                  Show replies
+                </a>
+              </div>
+            )}
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+export function CommentTree({
+  comments,
+  onReplyCreated,
+}: {
+  comments: CommentNode[]
+  onReplyCreated?: () => void
+}) {
   if (comments.length === 0) return null
 
   return (
-    <div className='space-y-3'>
+    <div className='space-y-1'>
       {comments.map((comment) => (
-        <CommentCard key={comment._id} comment={comment} depth={depth} />
+        <CommentThread key={comment._id} comment={comment} onReplyCreated={onReplyCreated} />
       ))}
     </div>
   )

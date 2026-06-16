@@ -13,7 +13,6 @@ import { getProfileByUsernameAction } from "./actions"
 import { useProfilePosts } from "@/components/profile/use-profile-posts"
 import Post from "@/components/post/post"
 import { toggleLike } from "@/lib/actions/posts"
-import { timeAgo } from "@/lib/utils"
 
 export default function ProfilePage({ params }: { params: Promise<{ username: string }> }) {
   const { username } = use(params)
@@ -93,7 +92,7 @@ export default function ProfilePage({ params }: { params: Promise<{ username: st
                   avatarUrl={profile.avatarId ?? undefined}
                   content={post.content}
                   media={post.media}
-                  createdAt={timeAgo(post.createdAt)}
+                  createdAt={post.createdAt}
                   initialLikes={post.likesCount}
                   initialComments={post.commentsCount}
                   initialLiked={post.liked}

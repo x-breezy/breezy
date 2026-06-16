@@ -55,9 +55,22 @@ export class PostController {
     try {
       const page = Math.max(1, parseInt(req.query.page as string) || 1)
       const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 20))
-      const result = await this.service.byUser(req.params.userId!, page, limit)
+      const includeReplies = req.query.replies === "true"
+      const result = await this.service.byUser(req.params.userId!, page, limit, includeReplies)
 
       res.json({ success: true, data: result, message: "User posts retrieved successfully" })
+    } catch (err) {
+      next(err)
+    }
+  }
+
+  getReplies = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const page = Math.max(1, parseInt(req.query.page as string) || 1)
+      const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 20))
+      const result = await this.service.getReplies(req.params.id!, page, limit)
+
+      res.json({ success: true, data: result, message: "Replies retrieved successfully" })
     } catch (err) {
       next(err)
     }

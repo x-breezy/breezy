@@ -9,7 +9,7 @@ export interface MediaItem {
   type: "image" | "video"
 }
 
-interface ProfileRef {
+export interface ProfileRef {
   username: string
   avatarId: string | null
   firstName: string | null
@@ -29,27 +29,26 @@ interface PostData {
   author: ProfileRef | null
 }
 
-interface CommentAuthor {
-  username: string
-  avatarId: string | null
-}
-
-interface CommentData {
+export interface ReplyData {
   _id: string
   content: string
   authorId: string
-  postId: string
-  parentCommentId: string | null
+  parentId?: string
+  tags: string[]
+  mentions: string[]
   media: MediaItem[]
+  likesCount: number
+  commentsCount: number
   createdAt: string
-  author: CommentAuthor | null
-  replies: CommentData[]
+  author: ProfileRef | null
+  likedByMe: boolean
+  replies: ReplyData[]
 }
 
 export interface PostDetail {
   post: PostData
   likedByMe: boolean
-  comments: CommentData[]
+  replies: ReplyData[]
 }
 
 async function getAuthHeaders(): Promise<Record<string, string>> {

@@ -5,7 +5,6 @@ import Link from "next/link"
 import { IconLoader2 } from "@tabler/icons-react"
 import type { SearchProfile } from "@/lib/actions/profiles"
 import { parseTab } from "./types"
-import { timeAgo } from "@/lib/utils"
 import { PersonCard } from "./person-card"
 import { MediaGrid } from "./media-grid"
 import {
@@ -84,7 +83,7 @@ function renderPosts(
           authorId={post.authorId}
           content={post.content}
           media={post.media}
-          createdAt={timeAgo(post.createdAt)}
+          createdAt={post.createdAt}
           initialLikes={post.likesCount}
           initialComments={post.commentsCount}
           initialLiked={cache.likedIds.has(post._id)}

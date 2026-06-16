@@ -46,11 +46,11 @@ export interface ContentMentionEvent {
   avatarId?: string
 }
 
-export interface ContentCommentEvent {
+export interface ContentReplyEvent {
   actorId: string
   targetUserId: string
   postId: string
-  commentId: string
+  replyPostId: string
   username?: string
   avatarId?: string
 }
@@ -62,4 +62,4 @@ export type BreezyEvent =
   | SocialFollowEvent
   | ContentLikeEvent
   | ContentMentionEvent
-  | ContentCommentEvent
+  | ContentReplyEvent

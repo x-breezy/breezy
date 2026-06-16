@@ -1,21 +1,27 @@
 import type { MediaRef } from "./post"
 
-export interface CommentWithAuthor {
-  id: string
+export interface ProfileRef {
+  username: string
+  avatarId: string | null
+  firstName: string | null
+  lastName: string | null
+}
+
+export interface ReplyPost {
+  _id: string
   content: string
   authorId: string
-  postId: string
-  parentCommentId: string | null
+  parentId?: string
+  tags: string[]
+  mentions: string[]
   media: MediaRef[]
+  likesCount: number
+  commentsCount: number
   createdAt: Date
   updatedAt: Date
-  author: {
-    username: string
-    avatarId: string | null
-    firstName: string | null
-    lastName: string | null
-  } | null
-  replies: CommentWithAuthor[]
+  author: ProfileRef | null
+  likedByMe: boolean
+  replies: ReplyPost[]
 }
 
 export interface PostDetail {
@@ -26,17 +32,14 @@ export interface PostDetail {
     tags: string[]
     mentions: string[]
     media: MediaRef[]
+    parentId?: string
+    rootParentId?: string
     likesCount: number
     commentsCount: number
     createdAt: Date
     updatedAt: Date
-    author: {
-      username: string
-      avatarId: string | null
-      firstName: string | null
-      lastName: string | null
-    } | null
+    author: ProfileRef | null
   }
   likedByMe: boolean
-  comments: CommentWithAuthor[]
+  replies: ReplyPost[]
 }

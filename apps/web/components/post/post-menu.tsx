@@ -51,12 +51,15 @@ export function PostMenu({ postId, username, authorId }: PostMenuProps) {
       <DropdownMenu>
         <DropdownMenuTrigger
           render={
-            <button
+            <Button
+              variant='ghost'
+              size='icon-xs'
               aria-label='More options'
-              className='-mr-1 p-1 text-muted-foreground transition hover:text-foreground'
+              className='-mr-1 text-muted-foreground transition hover:text-foreground'
+              onClick={(e) => e.stopPropagation()}
             >
               <IconDots className='size-4' aria-hidden='true' />
-            </button>
+            </Button>
           }
         />
         <DropdownMenuContent align='start'>

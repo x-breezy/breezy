@@ -24,3 +24,18 @@ export function timeAgo(dateStr: string): string {
   if (w < 52) return `${w}sem`
   return `${Math.floor(w / 52)}an`
 }
+
+export function formatFullDate(dateStr: string): string {
+  const date = new Date(dateStr)
+  const time = date.toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  })
+  const dateStrFormatted = date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  })
+  return `${time} · ${dateStrFormatted}`
+}

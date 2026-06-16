@@ -1,6 +1,6 @@
 export { PostMeta } from "./post-meta"
 export { PostMenu } from "./post-menu"
 export { PostContent } from "./post-content"
-export { LikeButton } from "./like-button"
-export { CommentButton } from "./comment-button"
+export { LikeButton } from "./buttons/like-button"
+export { CommentButton } from "./buttons/comment-button"
 export { PostActions } from "./post-actions"

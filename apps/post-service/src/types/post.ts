@@ -19,6 +19,9 @@ export interface Post {
   mentions: string[]
   media: MediaRef[]
 
+  parentId?: string
+  rootParentId?: string
+
   likesCount: number
   commentsCount: number
 

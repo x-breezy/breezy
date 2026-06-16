@@ -4,7 +4,6 @@ import { useCallback, useRef, useEffect } from "react"
 import { useFeed } from "./use-feed"
 import Post from "./post"
 import { toggleLike } from "@/lib/actions/posts"
-import { timeAgo } from "@/lib/utils"
 import { Skeleton } from "@/components/ui/skeleton"
 
 export function Feed() {
@@ -82,7 +81,7 @@ export function Feed() {
             avatarUrl={post.author?.avatarUrl ?? undefined}
             content={post.content}
             media={post.media}
-            createdAt={timeAgo(post.createdAt)}
+            createdAt={post.createdAt}
             initialLikes={post.likesCount}
             initialComments={post.commentsCount}
             initialLiked={post.liked}

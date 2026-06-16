@@ -10,6 +10,7 @@ export const createPostSchema = z.object({
   tags: z.array(z.string()).optional(),
   mentions: z.array(z.string().uuid()).optional(),
   media: z.array(mediaRefSchema).optional(),
+  parentId: z.string().optional(),
 })
 
 export type CreatePostDTO = z.infer<typeof createPostSchema>

@@ -8,7 +8,6 @@ import { createPostSchema } from "../schemas/post.schema"
 import { PERMISSIONS } from "../constants/permissions"
 import { PostModel } from "../models/post.model"
 import { createLikeRouter } from "./like.route"
-import { createCommentRouter } from "./comment.route"
 import { LikeController } from "../controllers/like.controller"
 import { LikeService } from "../services/like.service"
 
@@ -26,6 +25,7 @@ export function createPostRouter(
   router.get("/liked-by-me", identity, likeController.getMyLikes)
   router.get("/users/:userId", identity, controller.getUserPosts)
   router.get("/:id/detail", identity, controller.getDetail)
+  router.get("/:id/replies", identity, controller.getReplies)
   router.get("/:id", identity, controller.getOne)
   router.delete(
     "/:id",
@@ -39,7 +39,6 @@ export function createPostRouter(
 
   // Sub-resources, mergeParams in child routers gives them access to :postId
   router.use("/:postId/likes", createLikeRouter())
-  router.use("/:postId/comments", createCommentRouter())
 
   return router
 }
