@@ -4,7 +4,7 @@ import { useRef, useState, useEffect } from "react"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { searchProfiles } from "@/lib/actions/profiles"
 import { useTranslations } from "next-intl"
-import type { ResolvedMention, MediaPreview } from "@/components/post/use-post-compose"
+import type { ResolvedMention, MediaPreview } from "./use-post-compose"
 import { buildPostHTML } from "@/lib/post-utils"
 import { PostBottomBar } from "./PostBottomBar"
 
