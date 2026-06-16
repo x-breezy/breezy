@@ -2,6 +2,7 @@
 
 import { use, useEffect, useState } from "react"
 import { notFound } from "next/navigation"
+import { useTranslations } from "next-intl"
 import { ProfileHeader } from "@/components/profile/profile-header"
 import { ProfileSection, ProfilePostsSection } from "@/components/profile"
 import { useUserStore } from "@/stores/user-store"
@@ -26,6 +27,7 @@ const MOCK_POSTS = [
 
 export default function ProfilePage({ params }: { params: Promise<{ username: string }> }) {
   const { username } = use(params)
+  const t = useTranslations("profilePage")
 
   const ownProfile = useUserStore((s) => s.profile)
   const user = useUserStore((s) => s.user)
@@ -54,12 +56,12 @@ export default function ProfilePage({ params }: { params: Promise<{ username: st
 
   return (
     <div>
-      <ProfileHeader title={isOwn ? "My Profile" : `@${username}`} isOwn={isOwn} />
+      <ProfileHeader title={isOwn ? t("myProfile") : `@${username}`} isOwn={isOwn} />
 
       <main className='md:px-4 md:py-6'>
         <ProfileSection profile={profile} role={user?.role as UserRole} isOwn={isOwn} />
 
-        <ProfilePostsSection posts={MOCK_POSTS} className='mt-8' />
+        <ProfilePostsSection posts={MOCK_POSTS} title={t("posts")} className='mt-8' />
       </main>
     </div>
   )

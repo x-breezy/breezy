@@ -61,5 +61,15 @@
     "ruleNumber": "Un chiffre",
     "confirmPassword": "Confirmer le mot de passe",
     "passwordsMatch": "Les mots de passe correspondent"
+  },
+  "profilePage": {
+    "myProfile": "Mon Profil",
+    "followers": "abonnés",
+    "following": "abonnements",
+    "editProfile": "Modifier le profil",
+    "buttonFollowing": "Abonné",
+    "buttonFollow": "S'abonner",
+    "buttonMessage": "Message",
+    "posts": "Publications"
   }
 }

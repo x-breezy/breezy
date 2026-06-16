@@ -61,5 +61,15 @@
     "ruleNumber": "One number",
     "confirmPassword": "Confirm password",
     "passwordsMatch": "Passwords match"
+  },
+  "profilePage": {
+    "myProfile": "My Profile",
+    "followers": "followers",
+    "following": "following",
+    "editProfile": "Edit Profile",
+    "buttonFollowing": "Following",
+    "buttonFollow": "Follow",
+    "buttonMessage": "Message",
+    "posts": "Posts"
   }
 }

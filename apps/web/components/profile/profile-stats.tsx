@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils"
+import { useTranslations } from "next-intl"
 
 interface ProfileStatProps {
   count: number
@@ -32,10 +33,11 @@ interface ProfileStatsProps {
 }
 
 export function ProfileStats({ followers, following, className }: ProfileStatsProps) {
+  const t = useTranslations("profilePage")
   return (
     <div className={cn("flex items-center gap-6", className)}>
-      <ProfileStat count={followers} label='followers' />
-      <ProfileStat count={following} label='following' />
+      <ProfileStat count={followers} label={t("followers")} />
+      <ProfileStat count={following} label={t("following")} />
     </div>
   )
 }
