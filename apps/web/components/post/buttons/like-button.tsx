@@ -30,7 +30,9 @@ export function LikeButton({ count, isLiked, onLike, size = "sm" }: LikeButtonPr
       aria-pressed={isLiked}
       className={cn(
         `flex items-center gap-1 ${s.text} rounded-full p-1 px-2 transition select-none hover:bg-red-50`,
-        isLiked ? "font-medium text-red-500" : "text-muted-foreground hover:text-red-500 active:text-red-500"
+        isLiked
+          ? "font-medium text-red-500"
+          : "text-muted-foreground hover:text-red-500 active:text-red-500"
       )}
     >
       <svg

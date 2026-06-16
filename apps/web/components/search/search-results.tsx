@@ -15,6 +15,7 @@ import {
 } from "./use-search-results"
 import { useUserStore } from "@/stores/user-store"
 import Post from "../post/post"
+import { UserRole } from "@/lib/auth/role"
 
 interface SearchResultsProps {
   q: string
@@ -81,6 +82,7 @@ function renderPosts(
           name={name}
           username={profile?.username ?? ""}
           authorId={post.authorId}
+          authorRole={profile?.role}
           content={post.content}
           media={post.media}
           createdAt={post.createdAt}
@@ -111,6 +113,7 @@ function renderPeople(
           displayName={item.displayName}
           username={item.username}
           avatarUrl={item.avatarUrl}
+          role={item.role as UserRole | undefined}
           bio={item.bio}
           followersCount={item.followersCount}
           initialFollowing={following[item.id] ?? false}

@@ -115,6 +115,7 @@ export class PostService {
           avatarId: entry.value.profile.avatarId,
           firstName: entry.value.profile.firstName,
           lastName: entry.value.profile.lastName,
+          role: entry.value.profile.role,
         })
       } else if (entry.status === "fulfilled") {
         profiles.set(entry.value.id, null)
@@ -144,10 +145,10 @@ export class PostService {
     const following = await this.follow.getFollowing(viewerId)
     const filter: Record<string, unknown> =
       following === null
-        ? { authorId: { $ne: viewerId }, parentId: { $exists: false } }
+        ? { authorId: { $ne: viewerId }, parentId: null }
         : {
             authorId: { $in: [...new Set(following)], $ne: viewerId },
-            parentId: { $exists: false },
+            parentId: null,
           }
     const skip = (page - 1) * limit
     const [data, total] = await Promise.all([
@@ -164,7 +165,7 @@ export class PostService {
     includeReplies = false
   ): Promise<PaginatedResponse<Post>> {
     const filter: Record<string, unknown> = { authorId: userId }
-    if (!includeReplies) filter.parentId = { $exists: false }
+    if (!includeReplies) filter.parentId = null
     const skip = (page - 1) * limit
     const [data, total] = await Promise.all([
       PostModel.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).exec(),

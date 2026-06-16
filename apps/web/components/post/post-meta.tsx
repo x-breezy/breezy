@@ -1,21 +1,24 @@
 import Link from "next/link"
+import { UserRole } from "@/lib/auth/role"
+import { UsernameDisplay } from "@/components/shared/username-display"
 
 interface PostMetaProps {
   name: string
   username: string
+  role?: UserRole
   createdAt?: string
   compact?: boolean
 }
 
-export function PostMeta({ name, username, createdAt, compact }: PostMetaProps) {
+export function PostMeta({ name, username, role, createdAt, compact }: PostMetaProps) {
   if (compact) {
     return (
       <Link
         href={`/profile/${username}`}
-        className='flex min-w-0 items-baseline gap-1.5 truncate'
+        className='flex min-w-0 items-center gap-1.5 truncate'
         onClick={(e) => e.stopPropagation()}
       >
-        <span className='truncate text-sm font-semibold hover:underline'>{name}</span>
+        <UsernameDisplay name={name} role={role} nameClassName='truncate text-sm hover:underline' />
         <span className='shrink-0 truncate text-xs text-muted-foreground'>@{username}</span>
         {createdAt && (
           <>
@@ -35,7 +38,7 @@ export function PostMeta({ name, username, createdAt, compact }: PostMetaProps) 
       className='flex min-w-0 flex-col'
       onClick={(e) => e.stopPropagation()}
     >
-      <p className='truncate text-sm font-semibold hover:underline'>{name}</p>
+      <UsernameDisplay name={name} role={role} nameClassName='truncate text-sm hover:underline' />
       <p className='flex items-center gap-1.5 truncate text-xs text-muted-foreground'>
         @{username}
       </p>

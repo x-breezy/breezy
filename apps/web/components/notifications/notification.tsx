@@ -123,10 +123,13 @@ export function NotificationCard({ view, highlight, className }: CardProps) {
   const { Icon, badge, stroke } = notificationTypeMeta[view.kind]
 
   function handleCardClick() {
+    const currentUsername = useUserStore.getState().profile?.username
     if (view.kind === "follow") {
       router.push(`/profile/${view.actor.username}`)
-    } else {
+    } else if (view.kind === "mention") {
       router.push(`/post/${view.actor.username}/${view.postId}`)
+    } else {
+      if (currentUsername) router.push(`/post/${currentUsername}/${view.postId}`)
     }
   }
 

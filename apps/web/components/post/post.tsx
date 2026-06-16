@@ -11,6 +11,7 @@ import { MediaViewer } from "../shared/medias/media-viewer"
 import { AutoplayVideo } from "../shared/medias/autoplay-video"
 import { MediaImage } from "../shared/medias/media-image"
 import { mediaUrl, timeAgo, formatFullDate, cn } from "@/lib/utils"
+import { UserRole } from "@/lib/auth/role"
 
 interface HomePostProps {
   id: string
@@ -27,6 +28,7 @@ interface HomePostProps {
   onLike?: (postId: string, newLiked: boolean) => Promise<number | void>
   onReplyCreated?: () => void
   authorId?: string
+  authorRole?: string
   compact?: boolean
   showAvatar?: boolean
   className?: string
@@ -47,6 +49,7 @@ function Post({
   onLike,
   onReplyCreated,
   authorId,
+  authorRole,
   compact = true,
   showAvatar = true,
   className,
@@ -126,6 +129,7 @@ function Post({
               <PostMeta
                 name={name}
                 username={username}
+                role={authorRole as UserRole | undefined}
                 createdAt={compact ? formattedTime : undefined}
                 compact={compact}
               />

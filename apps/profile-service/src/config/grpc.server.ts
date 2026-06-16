@@ -63,6 +63,7 @@ const profileDataHandler = {
         avatarId: result.avatarId ?? "",
         firstName: result.firstName ?? "",
         lastName: result.lastName ?? "",
+        role: result.role ?? "user",
       })
     } catch (err) {
       cb(err as Error, null)

@@ -55,6 +55,7 @@ function PostRow({
           name={authorName}
           username={comment.author?.username ?? comment.authorId}
           authorId={comment.authorId}
+          authorRole={comment.author?.role}
           avatarUrl={comment.author?.avatarId ?? undefined}
           content={comment.content}
           media={comment.media}

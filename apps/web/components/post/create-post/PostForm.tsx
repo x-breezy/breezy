@@ -7,6 +7,8 @@ import { buildPostHTML } from "@/lib/post-utils"
 import { PostBottomBar } from "./PostBottomBar"
 import { MediaPreview, ResolvedMention } from "./use-post-compose"
 import { ProfileAvatar } from "@/components/profile"
+import { ProfileBadges } from "@/components/profile/profile-badge"
+import { UserRole } from "@/lib/auth/role"
 import { useUserStore } from "@/stores/user-store"
 
 interface MentionSuggestion {
@@ -14,6 +16,7 @@ interface MentionSuggestion {
   username: string
   displayName: string
   avatarUrl: string | null
+  role: string
 }
 
 function getCaretOffset(el: HTMLElement): number {
@@ -95,6 +98,7 @@ export function PostForm({
             username: p.username ?? "",
             displayName: [p.firstName, p.lastName].filter(Boolean).join(" ") || (p.username ?? ""),
             avatarUrl: p.avatarUrl ?? null,
+            role: p.role ?? "",
           }))
         )
         setSelectedIndex(0)
@@ -243,7 +247,10 @@ export function PostForm({
                     >
                       <ProfileAvatar size='2xs' src={s.avatarUrl ?? ""} className='size-7' />
                       <div className='flex flex-col'>
-                        <span className='font-medium'>@{s.username}</span>
+                        <span className='flex items-center gap-1 font-medium'>
+                          @{s.username}
+                          <ProfileBadges role={s.role as UserRole} />
+                        </span>
                         {s.displayName !== s.username && (
                           <span className='text-xs text-muted-foreground'>{s.displayName}</span>
                         )}

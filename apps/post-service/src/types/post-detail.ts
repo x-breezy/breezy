@@ -5,6 +5,7 @@ export interface ProfileRef {
   avatarId: string | null
   firstName: string | null
   lastName: string | null
+  role?: string
 }
 
 export interface ReplyPost {

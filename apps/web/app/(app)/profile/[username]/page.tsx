@@ -59,10 +59,15 @@ export default function ProfilePage({ params }: { params: Promise<{ username: st
 
   return (
     <div>
-      <ProfileHeader title={isOwn ? "My Profile" : `@${username}`} isOwn={isOwn} />
+      <ProfileHeader
+        title={isOwn ? "My Profile" : `@${username}`}
+        name={!isOwn ? authorName : undefined}
+        role={!isOwn ? (profile.role as UserRole) : undefined}
+        isOwn={isOwn}
+      />
 
       <main className='md:px-4 md:py-6'>
-        <ProfileSection profile={profile} role={user?.role as UserRole} isOwn={isOwn} />
+        <ProfileSection profile={profile} role={profile.role as UserRole} isOwn={isOwn} />
 
         <section className='container-center mt-8 p-4 md:p-0'>
           {postsLoading ? (
@@ -89,6 +94,7 @@ export default function ProfilePage({ params }: { params: Promise<{ username: st
                   name={authorName}
                   username={profile.username}
                   authorId={post.authorId}
+                  authorRole={profile.role}
                   avatarUrl={profile.avatarId ?? undefined}
                   content={post.content}
                   media={post.media}

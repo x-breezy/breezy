@@ -36,7 +36,7 @@ export async function handleReply(payload: unknown): Promise<void> {
   const event = payload as ContentReplyEvent
   await notificationService.create({
     userId: event.targetUserId,
-    type: "reply",
+    type: "comment",
     payload: {
       actorId: event.actorId,
       postId: event.postId,

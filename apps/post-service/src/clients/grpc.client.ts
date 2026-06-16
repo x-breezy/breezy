@@ -26,6 +26,7 @@ export interface ActorProfile {
   avatarId: string
   firstName: string
   lastName: string
+  role: string
 }
 
 export function getActorProfile(actorId: string): Promise<ActorProfile | null> {

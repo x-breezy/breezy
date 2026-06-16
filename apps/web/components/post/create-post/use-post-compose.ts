@@ -82,7 +82,7 @@ export function usePostCompose(parentId?: string) {
         tags: parseTags(content),
         mentions: mentionIds,
         media: uploadedMedia,
-        parentId,
+        ...(parentId ? { parentId } : {}),
       })
 
       // Cleanup object URLs after successful upload
