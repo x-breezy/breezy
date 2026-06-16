@@ -33,6 +33,7 @@ export default function SignInScreen() {
                   name='identifier'
                   type='text'
                   value={identifier}
+                  className='!bg-none'
                   onChange={(e) => setIdentifier(e.target.value)}
                   placeholder='you@example.com or samaltman'
                   autoComplete='username'
