@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useTranslations } from "next-intl"
 import Link from "next/link"
 import { getTrendingTags, type TrendingTag } from "@/lib/api/search"
 import { IconTrendingUp } from "@tabler/icons-react"
@@ -12,6 +13,7 @@ function formatCount(n: number): string {
 
 export function TagList() {
   const [tags, setTags] = useState<TrendingTag[]>([])
+  const t = useTranslations("search")
 
   useEffect(() => {
     getTrendingTags(10)
@@ -24,7 +26,7 @@ export function TagList() {
   return (
     <div className='container-center mt-[30px] flex flex-col gap-4 px-4 py-4'>
       <div className='flex items-center justify-between gap-2'>
-        <p className='font-semibold'>Tendances en ce moment</p>
+        <p className='font-semibold'>{t("trending")}</p>
         <IconTrendingUp stroke={2} />
       </div>
       <ul className='flex flex-col gap-0'>
@@ -40,7 +42,7 @@ export function TagList() {
               <div className='flex w-full flex-row items-center justify-between gap-1'>
                 <span className='text-sm font-semibold'>{item.tag}</span>
                 <span className='shrink-0 text-xs text-muted-foreground'>
-                  {formatCount(item.count)} posts
+                  {t("postsCount", { count: formatCount(item.count) })}
                 </span>
               </div>
             </Link>

@@ -119,5 +119,20 @@
     "placeholder": "What's happening?",
     "addPhoto": "Add photo",
     "addVideo": "Add video"
+  },
+  "search": {
+    "placeholder": "Search",
+    "cancel": "Cancel",
+    "tabPosts": "Posts",
+    "tabPeople": "People",
+    "tabMedia": "Media",
+    "trending": "Trending right now",
+    "postsCount": "{count} posts",
+    "noPosts": "No posts found",
+    "noPeople": "No people found",
+    "noMedia": "No media found",
+    "fallbackUser": "User",
+    "following": "Following",
+    "follow": "Follow"
   }
 }

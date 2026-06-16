@@ -119,5 +119,20 @@
     "placeholder": "¿Qué está pasando?",
     "addPhoto": "Añadir foto",
     "addVideo": "Añadir video"
+  },
+  "search": {
+    "placeholder": "Buscar",
+    "cancel": "Cancelar",
+    "tabPosts": "Publicaciones",
+    "tabPeople": "Personas",
+    "tabMedia": "Multimedia",
+    "trending": "Tendencias ahora mismo",
+    "postsCount": "{count} posts",
+    "noPosts": "No se encontraron publicaciones",
+    "noPeople": "No se encontraron personas",
+    "noMedia": "No se encontró multimedia",
+    "fallbackUser": "Usuario",
+    "following": "Siguiendo",
+    "follow": "Seguir"
   }
 }

@@ -119,5 +119,20 @@
     "placeholder": "Quoi de neuf ?",
     "addPhoto": "Ajouter une photo",
     "addVideo": "Ajouter une vidéo"
+  },
+  "search": {
+    "placeholder": "Rechercher",
+    "cancel": "Annuler",
+    "tabPosts": "Publications",
+    "tabPeople": "Personnes",
+    "tabMedia": "Médias",
+    "trending": "Tendances en ce moment",
+    "postsCount": "{count} posts",
+    "noPosts": "Aucune publication trouvée",
+    "noPeople": "Aucun utilisateur trouvé",
+    "noMedia": "Aucun média trouvé",
+    "fallbackUser": "Utilisateur",
+    "following": "Abonné",
+    "follow": "S'abonner"
   }
 }
