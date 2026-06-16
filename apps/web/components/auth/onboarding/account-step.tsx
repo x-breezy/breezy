@@ -9,7 +9,10 @@ import { Label } from "../../ui/label"
 import OAuthButtons from "../oauth-buttons"
 import { InputGroup, InputGroupAddon, InputGroupInput } from "../../ui/input-group"
 import { IconAt, IconMail } from "@tabler/icons-react"
+import Link from "next/link"
 import { signUpAction } from "@/app/(auth)/sign-up/actions"
+import { Checkbox } from "@/components/ui/checkbox"
+import { FieldLabel } from "@/components/ui/field"
 
 export function AccountStep({ onSuccess }: { onSuccess: () => void }) {
   const [username, setUsername] = useState("")
@@ -18,12 +21,19 @@ export function AccountStep({ onSuccess }: { onSuccess: () => void }) {
   const [confirmPassword, setConfirmPassword] = useState("")
   const [localError, setLocalError] = useState<string | null>(null)
   const [state, action, isPending] = useActionState(signUpAction, null)
+  const [termsAccepted, setTermsAccepted] = useState(false)
+  const [termsError, setTermsError] = useState(false)
 
   useEffect(() => {
     if (state?.success) onSuccess()
   }, [state?.success, onSuccess])
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    if (!termsAccepted) {
+      event.preventDefault()
+      setTermsError(true)
+      return
+    }
     if (getStrength(password) < 3) {
       event.preventDefault()
       setLocalError("Please choose a stronger password.")
@@ -95,6 +105,28 @@ export function AccountStep({ onSuccess }: { onSuccess: () => void }) {
             password={password}
             onChange={setConfirmPassword}
           />
+
+          <FieldGroup className='mx-auto'>
+            <Field orientation='horizontal'>
+              <Checkbox
+                id='terms-checkbox-basic'
+                name='terms-checkbox-basic'
+                checked={termsAccepted}
+                onCheckedChange={(v) => {
+                  setTermsAccepted(!!v)
+                  setTermsError(false)
+                }}
+                className={termsError ? "border-destructive" : ""}
+              />
+              <FieldLabel htmlFor='terms-checkbox-basic' className='flex gap-1 whitespace-nowrap'>
+                Accept the{" "}
+                <Link href='/terms' target='_blank' className='text-foreground underline'>
+                  terms and conditions
+                </Link>
+              </FieldLabel>
+            </Field>
+            {termsError && <p className='text-xs text-destructive'>You must accept the terms.</p>}
+          </FieldGroup>
 
           {error && <p className='text-sm text-destructive'>{error}</p>}
 
