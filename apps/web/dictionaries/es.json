@@ -111,7 +111,8 @@
     "bioPlaceholder": "Cuéntale a la gente un poco sobre ti…",
     "saving": "Guardando…",
     "saveChanges": "Guardar cambios",
-    "cancel": "Cancelar"
+    "cancel": "Cancelar",
+    "biographyTitle": "Biografía"
   },
   "composePost": {
     "posting": "Publicando…",

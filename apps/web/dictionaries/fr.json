@@ -111,7 +111,8 @@
     "bioPlaceholder": "Dites-en un peu plus sur vous…",
     "saving": "Enregistrement…",
     "saveChanges": "Enregistrer",
-    "cancel": "Annuler"
+    "cancel": "Annuler",
+    "biographyTitle": "Biographie"
   },
   "composePost": {
     "posting": "Publication…",
