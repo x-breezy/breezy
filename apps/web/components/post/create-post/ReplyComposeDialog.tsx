@@ -1,25 +1,35 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import { useState } from "react"
 import { Dialog as DialogPrimitive } from "@base-ui/react/dialog"
 import { Dialog, DialogContent, DialogPortal } from "@/components/ui/dialog"
 import { useIsMobile } from "@/hooks/use-is-mobile"
 import { PostForm } from "./PostForm"
+import { PostBottomBar } from "./PostBottomBar"
 import { PostHeader } from "./PostHeader"
+import { PostContent } from ".."
+import { ProfileAvatar } from "@/components/profile"
+import { UsernameDisplay } from "@/components/shared/username-display"
 import { usePostCompose } from "./use-post-compose"
 
 const CLOSE_ANIMATION_DURATION = 100
 
 interface ReplyComposeDialogProps {
   postId: string
+  parentName: string
   parentUsername: string
+  parentAvatarUrl?: string
+  parentContent: string
   onSuccess: () => void
   onDismiss: () => void
 }
 
 export function ReplyComposeDialog({
   postId,
+  parentName,
   parentUsername,
+  parentAvatarUrl,
+  parentContent,
   onSuccess,
   onDismiss,
 }: ReplyComposeDialogProps) {
@@ -54,10 +64,41 @@ export function ReplyComposeDialog({
     onMentionResolved: compose.resolveMention,
   }
 
-  const replyBanner = (
-    <p className='px-4 pt-1 pb-2 text-sm text-muted-foreground'>
-      Replying to <span className='text-primary'>@{parentUsername}</span>
-    </p>
+  const dialogContent = (
+    <div className='flex flex-1 flex-col overflow-hidden'>
+      <div className='flex flex-1 flex-col overflow-y-auto'>
+        <div className='flex gap-2.5 px-4 pt-2 pb-1'>
+          <div className='flex shrink-0 flex-col items-center'>
+            <ProfileAvatar src={parentAvatarUrl} alt={parentName} size='2xs' />
+            <div className='my-1.5 w-px flex-1 bg-border' />
+          </div>
+          <div className='min-w-0 flex-1 pb-3'>
+            <div className='flex items-center gap-1.5'>
+              <UsernameDisplay
+                name={parentName}
+                nameClassName='truncate text-sm font-semibold hover:underline'
+              />
+              <span className='truncate text-xs text-muted-foreground'>
+                @{parentUsername}
+              </span>
+            </div>
+            <PostContent content={parentContent.length > 250 ? parentContent.slice(0, 250) + "…" : parentContent} />
+            <div className='mt-2 text-sm text-muted-foreground'>
+              Replying to{" "}
+              <span className='font-semibold text-primary'>@{parentUsername}</span>
+            </div>
+          </div>
+        </div>
+
+        <PostForm {...formProps} hideBottomBar noMaxHeight />
+      </div>
+
+      <PostBottomBar
+        onAddMedia={formProps.onAddMedia}
+        onSelectGif={formProps.onSelectGif}
+        charCount={compose.content.length}
+      />
+    </div>
   )
 
   if (isMobile) {
@@ -66,8 +107,7 @@ export function ReplyComposeDialog({
         <DialogPortal>
           <DialogPrimitive.Popup className='fixed inset-0 z-50 flex flex-col bg-background'>
             <PostHeader onPost={handlePost} onClose={handleClose} posting={compose.submitting} />
-            {replyBanner}
-            <PostForm {...formProps} />
+            {dialogContent}
           </DialogPrimitive.Popup>
         </DialogPortal>
       </Dialog>
@@ -78,11 +118,10 @@ export function ReplyComposeDialog({
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && handleClose()}>
       <DialogContent
         showCloseButton={false}
-        className='z-50 flex h-[60vh] flex-col gap-0 overflow-hidden p-0 sm:top-4 sm:max-w-lg sm:rounded-[min(var(--radius-4xl),24px)]'
+        className='z-50 flex h-[70vh] flex-col gap-0 overflow-hidden p-0 sm:top-4 sm:max-w-lg sm:rounded-[min(var(--radius-4xl),24px)]'
       >
         <PostHeader onPost={handlePost} onClose={handleClose} posting={compose.submitting} />
-        {replyBanner}
-        <PostForm {...formProps} />
+        {dialogContent}
       </DialogContent>
     </Dialog>
   )

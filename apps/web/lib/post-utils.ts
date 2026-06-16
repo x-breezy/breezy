@@ -1,7 +1,6 @@
 const POST_TOKEN_CLASSES = {
-  mention: "inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 text-primary",
-  hashtag:
-    "inline-flex items-center rounded-full bg-secondary px-2.5 py-0.5 text-secondary-foreground",
+  mention: "text-primary",
+  hashtag: "text-primary",
 } as const
 
 export type PostToken =
@@ -38,8 +37,18 @@ function escapeHtml(text: string): string {
 export function buildPostHTML(text: string): string {
   return buildPostTokens(text)
     .map((token) => {
-      if (token.type === "text") return escapeHtml(token.value)
+      if (token.type === "text") return escapeHtml(token.value).replace(/\n/g, "<br>")
       return `<span class="${POST_TOKEN_CLASSES[token.type]}">${escapeHtml(token.value)}</span>`
+    })
+    .join("")
+}
+
+// Editor variant: plain color only, \n kept as text node chars (works with whitespace-pre-wrap)
+export function buildEditorHTML(text: string): string {
+  return buildPostTokens(text)
+    .map((token) => {
+      if (token.type === "text") return escapeHtml(token.value)
+      return `<span class="text-primary">${escapeHtml(token.value)}</span>`
     })
     .join("")
 }

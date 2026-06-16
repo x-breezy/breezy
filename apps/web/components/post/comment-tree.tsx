@@ -1,7 +1,6 @@
 "use client"
 
 import Post from "./post"
-import { ProfileAvatar } from "../profile"
 import { toggleLike } from "@/lib/actions/posts"
 import type { MediaItem, ProfileRef } from "@/lib/actions/post-detail"
 
@@ -29,10 +28,14 @@ async function handleReplyLike(postId: string, liked: boolean) {
 function PostRow({
   comment,
   threadLine,
+  border,
+  threadLineTop,
   onReplyCreated,
 }: {
   comment: CommentNode
   threadLine: "solid" | "dashed" | "none"
+  border?: boolean
+  threadLineTop?: boolean
   onReplyCreated?: () => void
 }) {
   const authorName =
@@ -41,34 +44,26 @@ function PostRow({
     comment.authorId
 
   return (
-    <div className='flex gap-3'>
-      <div className='flex shrink-0 flex-col items-center'>
-        <ProfileAvatar src={comment.author?.avatarId ?? undefined} alt={authorName} size='2xs' />
-        {threadLine === "solid" && <div className='mt-1 w-px flex-1 bg-border' />}
-        {threadLine === "dashed" && (
-          <div className='mt-1 w-px flex-1 border-l border-dashed border-border' />
-        )}
-      </div>
-      <div className='min-w-0 flex-1 pb-2'>
-        <Post
-          id={comment._id}
-          name={authorName}
-          username={comment.author?.username ?? comment.authorId}
-          authorId={comment.authorId}
-          authorRole={comment.author?.role}
-          avatarUrl={comment.author?.avatarId ?? undefined}
-          content={comment.content}
-          media={comment.media}
-          createdAt={comment.createdAt}
-          initialLikes={comment.likesCount}
-          initialComments={comment.commentsCount}
-          initialLiked={comment.likedByMe}
-          href={`/post/${comment.author?.username ?? comment.authorId}/${comment._id}`}
-          onLike={handleReplyLike}
-          onReplyCreated={onReplyCreated}
-          showAvatar={false}
-        />
-      </div>
+    <div className={border ? "border-b border-border" : ""}>
+      <Post
+        id={comment._id}
+        name={authorName}
+        username={comment.author?.username ?? comment.authorId}
+        authorId={comment.authorId}
+        authorRole={comment.author?.role}
+        avatarUrl={comment.author?.avatarId ?? undefined}
+        content={comment.content}
+        media={comment.media}
+        createdAt={comment.createdAt}
+        initialLikes={comment.likesCount}
+        initialComments={comment.commentsCount}
+        initialLiked={comment.likedByMe}
+        href={`/post/${comment.author?.username ?? comment.authorId}/${comment._id}`}
+        onLike={handleReplyLike}
+        onReplyCreated={onReplyCreated}
+        threadLine={threadLine !== "none" ? threadLine : undefined}
+        threadLineTop={threadLineTop}
+      />
     </div>
   )
 }
@@ -76,17 +71,21 @@ function PostRow({
 function CommentThread({
   comment,
   onReplyCreated,
+  isLastThread,
 }: {
   comment: CommentNode
   onReplyCreated?: () => void
+  isLastThread?: boolean
 }) {
   const ownerReplies = comment.replies
+  const hasReplies = ownerReplies.length > 0
 
   return (
     <div>
       <PostRow
         comment={comment}
-        threadLine={ownerReplies.length > 0 ? "solid" : "none"}
+        threadLine={hasReplies ? "solid" : "none"}
+        border={!hasReplies && !isLastThread}
         onReplyCreated={onReplyCreated}
       />
 
@@ -97,7 +96,13 @@ function CommentThread({
 
         return (
           <div key={reply._id}>
-            <PostRow comment={reply} threadLine={threadLine} onReplyCreated={onReplyCreated} />
+            <PostRow
+              comment={reply}
+              threadLine={threadLine}
+              border={isLast && !isLastThread}
+              threadLineTop
+              onReplyCreated={onReplyCreated}
+            />
             {showRepliesLink && (
               <div className='flex gap-3'>
                 <div className='w-5 shrink-0' />
@@ -127,8 +132,13 @@ export function CommentTree({
 
   return (
     <div className='space-y-1'>
-      {comments.map((comment) => (
-        <CommentThread key={comment._id} comment={comment} onReplyCreated={onReplyCreated} />
+      {comments.map((comment, i) => (
+        <CommentThread
+          key={comment._id}
+          comment={comment}
+          onReplyCreated={onReplyCreated}
+          isLastThread={i === comments.length - 1}
+        />
       ))}
     </div>
   )

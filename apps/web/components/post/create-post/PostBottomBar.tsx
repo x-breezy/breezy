@@ -5,12 +5,15 @@ import { IconPhoto, IconVideo } from "@tabler/icons-react"
 import { Button } from "@/components/ui/button"
 import { GifPicker } from "./GifPicker"
 
+const MAX_CHARS = 250
+
 interface PostBottomBarProps {
   onAddMedia: (files: FileList) => void
   onSelectGif: (file: File) => void
+  charCount?: number
 }
 
-export function PostBottomBar({ onAddMedia, onSelectGif }: PostBottomBarProps) {
+export function PostBottomBar({ onAddMedia, onSelectGif, charCount = 0 }: PostBottomBarProps) {
   const imageRef = useRef<HTMLInputElement>(null)
   const videoRef = useRef<HTMLInputElement>(null)
   const [gifOpen, setGifOpen] = useState(false)
@@ -49,6 +52,10 @@ export function PostBottomBar({ onAddMedia, onSelectGif }: PostBottomBarProps) {
         >
           <span className='text-xs font-bold text-muted-foreground'>GIF</span>
         </Button>
+
+        <span className={`ml-auto pr-2 text-xs tabular-nums ${charCount >= MAX_CHARS ? "font-semibold text-destructive" : "text-muted-foreground"}`}>
+          {charCount}/{MAX_CHARS}
+        </span>
 
         <input
           ref={imageRef}

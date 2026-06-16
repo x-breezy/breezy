@@ -31,6 +31,8 @@ interface HomePostProps {
   authorRole?: string
   compact?: boolean
   showAvatar?: boolean
+  threadLine?: "solid" | "dashed"
+  threadLineTop?: boolean
   className?: string
 }
 
@@ -52,6 +54,8 @@ function Post({
   authorRole,
   compact = true,
   showAvatar = true,
+  threadLine,
+  threadLineTop,
   className,
 }: HomePostProps) {
   const router = useRouter()
@@ -115,11 +119,33 @@ function Post({
         aria-label={`Post by ${name}`}
         onClick={href ? handleArticleClick : undefined}
         className={cn(
-          `flex w-full items-start gap-2.5 rounded-lg bg-background p-3.5 text-left transition-colors ${href ? "cursor-pointer active:bg-accent/50" : ""}`,
+          `relative flex w-full items-start gap-2.5 rounded-lg bg-background px-3.5 pt-3.5 pb-3.5 text-left transition-colors ${href ? "cursor-pointer active:bg-accent/50" : ""}`,
           className
         )}
       >
-        {compact && showAvatar && <ProfileAvatar src={avatarUrl} alt={name} size='2xs' />}
+        {compact && showAvatar && (
+          <div className='flex shrink-0 flex-col items-center'>
+            <ProfileAvatar src={avatarUrl} alt={name} size='2xs' className='relative z-10' />
+          </div>
+        )}
+        {compact && showAvatar && threadLineTop && (
+          <div
+            className='absolute w-px bg-border'
+            style={{ left: "35.5px", top: 0, height: "36px" }}
+          />
+        )}
+        {compact && showAvatar && threadLine === "solid" && (
+          <div
+            className='absolute w-px bg-border'
+            style={{ left: "35.5px", top: "36px", bottom: 0 }}
+          />
+        )}
+        {compact && showAvatar && threadLine === "dashed" && (
+          <div
+            className='absolute w-px border-l border-dashed border-border'
+            style={{ left: "35.5px", top: "36px", bottom: 0 }}
+          />
+        )}
         <div className='min-w-0 flex-1'>
           <div
             className={`flex items-start justify-between gap-2.5 ${compact ? "mb-0.5" : "mb-4"}`}
@@ -191,7 +217,10 @@ function Post({
       {replyOpen && (
         <ReplyComposeDialog
           postId={id}
+          parentName={name}
           parentUsername={username}
+          parentAvatarUrl={avatarUrl}
+          parentContent={content}
           onSuccess={() => {
             setComments((prev) => prev + 1)
             onReplyCreated?.()

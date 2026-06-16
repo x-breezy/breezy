@@ -3,7 +3,7 @@
 import { useRef, useState, useEffect } from "react"
 import { createPortal } from "react-dom"
 import { searchProfiles } from "@/lib/actions/profiles"
-import { buildPostHTML } from "@/lib/post-utils"
+import { buildEditorHTML } from "@/lib/post-utils"
 import { PostBottomBar } from "./PostBottomBar"
 import { MediaPreview, ResolvedMention } from "./use-post-compose"
 import { ProfileAvatar } from "@/components/profile"
@@ -46,6 +46,8 @@ function setCaretAt(el: HTMLElement, offset: number) {
   }
 }
 
+export const MAX_POST_CHARS = 250
+
 export function PostForm({
   content,
   setContent,
@@ -54,6 +56,8 @@ export function PostForm({
   onAddMedia,
   onSelectGif,
   onMentionResolved,
+  hideBottomBar,
+  noMaxHeight,
 }: {
   content: string
   setContent: (value: string) => void
@@ -62,6 +66,8 @@ export function PostForm({
   onAddMedia: (files: FileList) => void
   onSelectGif: (file: File) => void
   onMentionResolved: (mention: ResolvedMention) => void
+  hideBottomBar?: boolean
+  noMaxHeight?: boolean
 }) {
   const editorRef = useRef<HTMLDivElement>(null)
   const isComposing = useRef(false)
@@ -74,7 +80,7 @@ export function PostForm({
   useEffect(() => {
     const el = editorRef.current
     if (!el) return
-    const html = buildPostHTML(content)
+    const html = buildEditorHTML(content)
     if (el.innerHTML !== html) {
       const offset = getCaretOffset(el)
       el.innerHTML = html
@@ -83,7 +89,7 @@ export function PostForm({
   }, [content])
 
   useEffect(() => {
-    if (mentionQuery === null || mentionQuery.length === 0) {
+    if (!mentionQuery) {
       setSuggestions([])
       return
     }
@@ -103,47 +109,31 @@ export function PostForm({
         )
         setSelectedIndex(0)
       } catch {
-        if (!controller.signal.aborted) {
-          setSuggestions([])
-        }
+        if (!controller.signal.aborted) setSuggestions([])
       }
     }, 200)
-    return () => {
-      clearTimeout(timer)
-      controller.abort()
-    }
+    return () => { clearTimeout(timer); controller.abort() }
   }, [mentionQuery])
 
   function detectMentionQuery(text: string, cursorPos: number): string | null {
-    const before = text.slice(0, cursorPos)
-    const match = before.match(/@([a-zA-Z0-9_]*)$/)
+    const match = text.slice(0, cursorPos).match(/@([a-zA-Z0-9_]*)$/)
     return match ? match[1]! : null
   }
 
   function updatePopupPos() {
     const sel = window.getSelection()
-    if (!sel || sel.rangeCount === 0 || !editorRef.current) {
-      setPopupPos(null)
-      return
-    }
-    const range = sel.getRangeAt(0)
-    const caretRect = range.getBoundingClientRect()
+    if (!sel || sel.rangeCount === 0 || !editorRef.current) { setPopupPos(null); return }
+    const caretRect = sel.getRangeAt(0).getBoundingClientRect()
     const dialog = editorRef.current.closest('[role="dialog"]')
     const dialogRect = dialog?.getBoundingClientRect()
-    const POPUP_WIDTH = 256
-    const POPUP_HEIGHT = 200
-
+    const POPUP_WIDTH = 256, POPUP_HEIGHT = 200
     let top = caretRect.bottom + 4
     let left = Math.max(0, caretRect.left)
-
     if (dialogRect) {
-      if (top + POPUP_HEIGHT > dialogRect.bottom) {
-        top = caretRect.top - POPUP_HEIGHT - 4
-      }
+      if (top + POPUP_HEIGHT > dialogRect.bottom) top = caretRect.top - POPUP_HEIGHT - 4
       top = Math.max(dialogRect.top + 4, Math.min(top, dialogRect.bottom - POPUP_HEIGHT))
       left = Math.max(dialogRect.left, Math.min(left, dialogRect.right - POPUP_WIDTH))
     }
-
     setPopupPos({ top, left })
   }
 
@@ -151,7 +141,7 @@ export function PostForm({
     if (isComposing.current) return
     const el = editorRef.current
     if (!el) return
-    const text = el.innerText.replace(/\n$/, "")
+    const text = el.innerText.replace(/\n$/, "").slice(0, MAX_POST_CHARS)
     const offset = getCaretOffset(el)
     setContent(text)
     const q = detectMentionQuery(text, offset)
@@ -162,24 +152,14 @@ export function PostForm({
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLDivElement>) {
     if (suggestions.length > 0) {
-      if (e.key === "ArrowDown") {
-        e.preventDefault()
-        setSelectedIndex((i) => Math.min(i + 1, suggestions.length - 1))
-      }
-      if (e.key === "ArrowUp") {
-        e.preventDefault()
-        setSelectedIndex((i) => Math.max(i - 1, 0))
-      }
+      if (e.key === "ArrowDown") { e.preventDefault(); setSelectedIndex((i) => Math.min(i + 1, suggestions.length - 1)) }
+      if (e.key === "ArrowUp") { e.preventDefault(); setSelectedIndex((i) => Math.max(i - 1, 0)) }
       if (e.key === "Enter" || e.key === "Tab") {
         e.preventDefault()
-        if (suggestions[selectedIndex]) {
-          applySuggestion(suggestions[selectedIndex])
-        }
+        if (suggestions[selectedIndex]) applySuggestion(suggestions[selectedIndex])
+        return
       }
-      if (e.key === "Escape") {
-        setSuggestions([])
-        setMentionQuery(null)
-      }
+      if (e.key === "Escape") { setSuggestions([]); setMentionQuery(null) }
     }
   }
 
@@ -190,8 +170,7 @@ export function PostForm({
     const text = el.innerText.replace(/\n$/, "")
     const before = text.slice(0, offset).replace(/@([a-zA-Z0-9_]*)$/, `@${s.username} `)
     const after = text.slice(offset)
-    const next = before + after
-    setContent(next)
+    setContent(before + after)
     setSuggestions([])
     setMentionQuery(null)
     setPopupPos(null)
@@ -203,8 +182,10 @@ export function PostForm({
 
   return (
     <>
-      <div className='flex max-h-[60vh] flex-1 flex-col gap-3 overflow-y-auto px-4 py-4'>
-        <div className='flex h-full gap-3'>
+      <div
+        className={`flex flex-col gap-3 px-4 ${noMaxHeight ? "flex-1 min-h-0 py-4" : "max-h-[60vh] overflow-y-auto pt-6 pb-4"}`}
+      >
+        <div className={`flex gap-3 ${noMaxHeight ? "flex-1 min-h-0" : "h-full"}`}>
           <ProfileAvatar size='2xs' src={profile?.avatarId ?? ""} />
 
           <div className='relative flex-1'>
@@ -219,47 +200,33 @@ export function PostForm({
               suppressContentEditableWarning
               onInput={handleInput}
               onKeyDown={handleKeyDown}
-              onCompositionStart={() => {
-                isComposing.current = true
-              }}
-              onCompositionEnd={() => {
-                isComposing.current = false
-                handleInput()
-              }}
-              className='h-full min-h-[6rem] w-full max-w-full text-xl leading-7 outline-none'
+              onCompositionStart={() => { isComposing.current = true }}
+              onCompositionEnd={() => { isComposing.current = false; handleInput() }}
+              className='min-h-[6rem] w-full max-w-full whitespace-pre-wrap text-xl leading-7 outline-none'
               autoFocus
             />
-            {suggestions.length > 0 &&
-              popupPos &&
-              createPortal(
-                <ul
-                  className='fixed z-[130] w-64 overflow-hidden rounded-xl border bg-popover shadow-lg'
-                  style={{ top: popupPos.top, left: popupPos.left }}
-                >
-                  {suggestions.map((s, i) => (
-                    <li
-                      key={s.profileId}
-                      onMouseDown={(e) => {
-                        e.preventDefault()
-                        applySuggestion(s)
-                      }}
-                      className={`flex cursor-pointer items-center gap-2 px-3 py-2 text-sm ${i === selectedIndex ? "bg-accent" : "hover:bg-accent/50"}`}
-                    >
-                      <ProfileAvatar size='2xs' src={s.avatarUrl ?? ""} className='size-7' />
-                      <div className='flex flex-col'>
-                        <span className='flex items-center gap-1 font-medium'>
-                          @{s.username}
-                          <ProfileBadges role={s.role as UserRole} />
-                        </span>
-                        {s.displayName !== s.username && (
-                          <span className='text-xs text-muted-foreground'>{s.displayName}</span>
-                        )}
-                      </div>
-                    </li>
-                  ))}
-                </ul>,
-                document.body
-              )}
+
+            {suggestions.length > 0 && popupPos && createPortal(
+              <ul className='fixed z-[130] w-64 overflow-hidden rounded-xl border bg-popover shadow-lg' style={{ top: popupPos.top, left: popupPos.left }}>
+                {suggestions.map((s, i) => (
+                  <li
+                    key={s.profileId}
+                    onMouseDown={(e) => { e.preventDefault(); applySuggestion(s) }}
+                    className={`flex cursor-pointer items-center gap-3 px-4 py-3 ${i === selectedIndex ? "bg-accent" : "hover:bg-accent/50"}`}
+                  >
+                    <ProfileAvatar size='2xs' src={s.avatarUrl ?? ""} className='size-10 shrink-0' />
+                    <div className='flex min-w-0 flex-col'>
+                      <span className='flex items-center gap-1 truncate font-semibold'>
+                        {s.displayName}
+                        <ProfileBadges role={s.role as UserRole} />
+                      </span>
+                      <span className='truncate text-sm text-muted-foreground'>@{s.username}</span>
+                    </div>
+                  </li>
+                ))}
+              </ul>,
+              document.body
+            )}
           </div>
         </div>
 
@@ -285,9 +252,11 @@ export function PostForm({
         )}
       </div>
 
-      <div className='shrink-0'>
-        <PostBottomBar onAddMedia={onAddMedia} onSelectGif={onSelectGif} />
-      </div>
+      {!hideBottomBar && (
+        <div className='shrink-0'>
+          <PostBottomBar onAddMedia={onAddMedia} onSelectGif={onSelectGif} charCount={content.length} />
+        </div>
+      )}
     </>
   )
 }
