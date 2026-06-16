@@ -2,6 +2,7 @@
 
 import { cn } from "@/lib/utils"
 import { ProfileEditDialog } from "./edit/profile-edit-dialog"
+import { useTranslations } from "next-intl"
 import { useState } from "react"
 import { Button } from "../ui/button"
 import {
@@ -24,6 +25,7 @@ interface ProfileActionsProps {
 }
 
 export function ProfileActions({ className, profile, isOwn }: ProfileActionsProps) {
+  const t = useTranslations("profilePage")
   const [open, setOpen] = useState(false)
   const [pending, setPending] = useState(false)
   const updateProfile = useProfileStore((s) => s.update)
@@ -69,7 +71,7 @@ export function ProfileActions({ className, profile, isOwn }: ProfileActionsProp
           size='lg'
           onClick={() => setOpen(true)}
         >
-          Edit Profile
+          {t("editProfile")}
           <IconPencilFilled />
         </Button>
       )}
@@ -90,7 +92,7 @@ export function ProfileActions({ className, profile, isOwn }: ProfileActionsProp
                     <IconLoader2 className='animate-spin' stroke={2.3} />
                   ) : (
                     <>
-                      <IconUserX stroke={2.3} /> Following
+                      <IconUserX stroke={2.3} /> {t("buttonFollowing")}
                     </>
                   )}
                 </Button>
@@ -105,7 +107,7 @@ export function ProfileActions({ className, profile, isOwn }: ProfileActionsProp
               disabled={pending}
               onClick={handleFollow}
             >
-              <IconUserPlus stroke={2.3} /> Follow
+              <IconUserPlus stroke={2.3} /> {t("buttonFollow")}
             </Button>
           )}
           <Button
@@ -115,7 +117,7 @@ export function ProfileActions({ className, profile, isOwn }: ProfileActionsProp
             onClick={handleMessage}
           >
             <IconMessageCircle stroke={2.3} />
-            Message
+            {t("buttonMessage")}
           </Button>
         </>
       )}

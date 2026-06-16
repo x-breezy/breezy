@@ -1,6 +1,7 @@
 "use client"
 
 import { IconX } from "@tabler/icons-react"
+import { useTranslations } from "next-intl"
 import { PageHeader, PageHeaderContent } from "@/components/layout/page-header"
 
 interface SettingsHeaderProps {
@@ -8,6 +9,7 @@ interface SettingsHeaderProps {
 }
 
 export function SettingsHeader({ onClose }: SettingsHeaderProps) {
+  const t = useTranslations("settings")
   return (
     <PageHeader className='w-full bg-background'>
       <PageHeaderContent
@@ -20,7 +22,7 @@ export function SettingsHeader({ onClose }: SettingsHeaderProps) {
             <IconX stroke={2} />
           </button>
         }
-        center={<h1 className='text-lg font-bold'>Settings</h1>}
+        center={<h1 className='text-lg font-bold'>{t("title")}</h1>}
         right={<div className='size-8'></div>}
       />
     </PageHeader>

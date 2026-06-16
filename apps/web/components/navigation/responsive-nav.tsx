@@ -1,17 +1,20 @@
 "use client"
 
 import { usePathname } from "next/navigation"
+import { useTranslations } from "next-intl"
 import { HomeIcon, SearchIcon, GrodIcon, SendIcon, ProfileIcon } from "@/components/icons"
 import { NavItem } from "./nav-item"
 import { useUserStore } from "@/stores/user-store"
 import type { NavItemData } from "./types"
 
-const NAV_ITEMS: NavItemData[] = [
-  { href: "/", icon: HomeIcon, label: "Home" },
-  { href: "/search", icon: SearchIcon, label: "Search" },
-  { href: "/grod", icon: GrodIcon, label: "Grod" },
-  { href: "/messages", icon: SendIcon, label: "Messages" },
-]
+function getNavItems(t: any): NavItemData[] {
+  return [
+    { href: "/", icon: HomeIcon, label: t("home") },
+    { href: "/search", icon: SearchIcon, label: t("search") },
+    { href: "/grod", icon: GrodIcon, label: t("grod") },
+    { href: "/messages", icon: SendIcon, label: t("messages") },
+  ]
+}
 
 function makeProfileIcon(avatarId: string | null) {
   return function ProfileNavIcon({ active, className }: { active?: boolean; className?: string }) {
@@ -24,15 +27,18 @@ function makeProfileIcon(avatarId: string | null) {
 
 export function ResponsiveNav() {
   const pathname = usePathname()
+  const t = useTranslations("nav")
   const profile = useUserStore((s) => s.profile)
   const ProfileNavIcon = makeProfileIcon(profile?.avatarId ?? null)
   const isProfileActive = pathname === `/profile/${profile?.username}`
+  
+  const navItems = getNavItems(t)
 
   return (
     <>
       {/* Mobile: Bottom bar - visible en dessous de lg */}
       <nav className='fixed right-0 bottom-0 left-0 z-50 grid h-15 grid-cols-5 border-t bg-background pb-[env(safe-area-inset-bottom)] lg:hidden'>
-        {NAV_ITEMS.map(({ href, icon, label }) => (
+        {navItems.map(({ href, icon, label }) => (
           <NavItem
             key={href}
             href={href}
@@ -46,7 +52,7 @@ export function ResponsiveNav() {
         <NavItem
           href={`/profile/${profile?.username}`}
           icon={ProfileNavIcon}
-          label='Profile'
+          label={t("profile")}
           isActive={isProfileActive}
           showLabel={false}
           iconClassName='block size-6'
@@ -59,7 +65,7 @@ export function ResponsiveNav() {
           <span className='font-geom text-xl font-bold'>Breezy</span>
         </div>
         <nav className='flex flex-1 flex-col gap-1'>
-          {NAV_ITEMS.map(({ href, icon, label }) => (
+          {navItems.map(({ href, icon, label }) => (
             <NavItem
               key={href}
               href={href}
@@ -73,7 +79,7 @@ export function ResponsiveNav() {
           <NavItem
             href={`/profile/${profile?.username}`}
             icon={ProfileNavIcon}
-            label='Profile'
+            label={t("profile")}
             isActive={isProfileActive}
             showLabel={true}
             iconClassName='block size-7'

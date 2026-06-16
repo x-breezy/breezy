@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button"
 import { IconArrowLeft } from "@tabler/icons-react"
 import { useRouter } from "next/navigation"
+import { useTranslations } from "next-intl"
 
 export function PostHeader({
   onPost,
@@ -14,6 +15,7 @@ export function PostHeader({
   posting?: boolean
 }) {
   const router = useRouter()
+  const t = useTranslations("composePost")
 
   return (
     <header className='flex h-15 items-center justify-between border-b px-4'>
@@ -21,7 +23,7 @@ export function PostHeader({
         <IconArrowLeft className='size-5' />
       </Button>
       <Button className='font-semibold' onClick={onPost} disabled={posting}>
-        {posting ? "Posting…" : "Post"}
+        {posting ? t("posting") : t("postBtn")}
       </Button>
     </header>
   )

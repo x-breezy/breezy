@@ -1,5 +1,7 @@
 "use client"
 
+import { useRouter } from "next/navigation"
+import { useTranslations } from "next-intl"
 import { IconWorldFilled } from "@tabler/icons-react"
 import {
   Select,
@@ -7,12 +9,11 @@ import {
   SelectGroup,
   SelectItem,
   SelectTrigger,
-  SelectValue,
 } from "@/components/ui/select"
+import { setLanguageCookie, type Language } from "@/lib/language"
 
 interface SettingsLanguageSelectProps {
-  value: string | null
-  onChange: (value: string | null) => void
+  value: Language
 }
 
 const languages = [
@@ -21,16 +22,25 @@ const languages = [
   { value: "es", label: "Español" },
 ]
 
-export function SettingsLanguageSelect({ value, onChange }: SettingsLanguageSelectProps) {
+export function SettingsLanguageSelect({ value }: SettingsLanguageSelectProps) {
+  const router = useRouter()
+  const t = useTranslations("settings")
+
+  function handleLanguageChange(val: string | null) {
+    if (!val) return
+    setLanguageCookie(val as Language)
+    router.refresh()
+  }
+
   return (
-    <Select value={value ?? undefined} onValueChange={(val) => onChange(val ?? null)}>
+    <Select value={value} onValueChange={handleLanguageChange}>
       <SelectTrigger className='min-h-9 w-full px-3'>
         <div className='flex w-3/4 items-center gap-2'>
           <IconWorldFilled className='h-5 w-5 shrink-0 text-muted-foreground' strokeWidth={2} />
-          <span className='text-sm font-medium text-foreground'>Language</span>
+          <span className='text-sm font-medium text-foreground'>{t("language")}</span>
         </div>
-        <div className='w-1/4 capitalize'>
-          <SelectValue />
+        <div className='w-1/4 flex justify-end text-sm text-muted-foreground'>
+          <span>{languages.find((l) => l.value === value)?.label || "English"}</span>
         </div>
       </SelectTrigger>
       <SelectContent alignItemWithTrigger={false}>

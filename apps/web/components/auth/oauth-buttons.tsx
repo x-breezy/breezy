@@ -3,12 +3,15 @@
 import { Button } from "../ui/button"
 import { Field } from "../ui/field"
 import Image from "next/image"
+import { useTranslations } from "next-intl"
 
 interface OAuthButtonsProps {
   status: "connect" | "register"
 }
 
 export default function OAuthButtons({ status }: OAuthButtonsProps) {
+  const t = useTranslations("auth")
+
   return (
     <Field>
       <Button
@@ -25,7 +28,7 @@ export default function OAuthButtons({ status }: OAuthButtonsProps) {
           height={16}
           data-icon='inline-start'
         />
-        {status === "connect" ? <>Connect with Google</> : <>Sign up with Google</>}
+        {status === "connect" ? <>{t("connectGoogle")}</> : <>{t("signUpGoogle")}</>}
       </Button>
     </Field>
   )

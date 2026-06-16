@@ -2,6 +2,7 @@
 
 import { useActionState, useEffect, useTransition } from "react"
 import { useRouter } from "next/navigation"
+import { useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { IconUserFilled } from "@tabler/icons-react"
@@ -31,6 +32,7 @@ export function WelcomeStep({
   const [state, action, isPending] = useActionState(setupAction, null)
   const [, startTransition] = useTransition()
   const router = useRouter()
+  const t = useTranslations("auth")
 
   const displayName = [firstName, lastName].filter(Boolean).join(" ") || null
 
@@ -66,10 +68,10 @@ export function WelcomeStep({
 
         <div className='flex flex-col gap-1.5'>
           <p className='text-xl font-semibold tracking-tight text-foreground'>
-            {displayName ? `Welcome to Breezy, ${displayName}` : "Welcome to Breezy"}
+            {displayName ? `${t("welcome")}, ${displayName}` : t("welcome")}
           </p>
           <p className='text-sm text-muted-foreground'>
-            Your account is ready. Start exploring and share your world.
+            {t("accountReadyDesc")}
           </p>
         </div>
       </div>
@@ -78,7 +80,7 @@ export function WelcomeStep({
 
       <form onSubmit={handleSubmit} className='flex w-full flex-col gap-2'>
         <Button size='lg' className='w-full' type='submit' disabled={isPending}>
-          {isPending ? "Setting up…" : "Get started"}
+          {isPending ? t("settingUp") : t("getStarted")}
         </Button>
       </form>
     </div>

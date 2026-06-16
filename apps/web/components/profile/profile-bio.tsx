@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils"
 import Link from "next/link"
+import { useTranslations } from "next-intl"
 
 interface BioMentionProps {
   username: string
@@ -19,9 +20,11 @@ interface ProfileBioProps {
 }
 
 export function ProfileBio({ children, className }: ProfileBioProps) {
+  const t = useTranslations("profilePage")
   return (
     <section className={cn("space-y-2", className)}>
-      <p className='leading-relaxed'>{children}</p>
+      <h2 className='text-lg font-semibold'>{t("biographyTitle")}</h2>
+      <p className='leading-relaxed text-muted-foreground'>{children}</p>
     </section>
   )
 }

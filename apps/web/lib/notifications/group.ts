@@ -149,21 +149,21 @@ export function groupByTimeFrame(views: NotificationView[]): TimeFrameGroup[] {
   const startOfMonth = new Date(startOfToday.getTime() - 29 * 86_400_000)
 
   const buckets: Record<string, NotificationView[]> = {
-    Today: [],
-    Yesterday: [],
-    "Last week": [],
-    "Last month": [],
+    today: [],
+    yesterday: [],
+    lastWeek: [],
+    lastMonth: [],
   }
 
   for (const v of views) {
     const d = new Date(v.createdAt)
-    if (d >= startOfToday) buckets["Today"]!.push(v)
-    else if (d >= startOfYesterday) buckets["Yesterday"]!.push(v)
-    else if (d >= startOfWeek) buckets["Last week"]!.push(v)
-    else if (d >= startOfMonth) buckets["Last month"]!.push(v)
+    if (d >= startOfToday) buckets["today"]!.push(v)
+    else if (d >= startOfYesterday) buckets["yesterday"]!.push(v)
+    else if (d >= startOfWeek) buckets["lastWeek"]!.push(v)
+    else if (d >= startOfMonth) buckets["lastMonth"]!.push(v)
   }
 
-  return (["Today", "Yesterday", "Last week", "Last month"] as const)
+  return (["today", "yesterday", "lastWeek", "lastMonth"] as const)
     .filter((label) => buckets[label]!.length > 0)
     .map((label) => ({ label, views: buckets[label]! }))
 }

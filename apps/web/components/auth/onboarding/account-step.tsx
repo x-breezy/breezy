@@ -1,6 +1,7 @@
 "use client"
 
 import { useActionState, useEffect, useState } from "react"
+import { useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
 import { PasswordField, getStrength } from "../password-field"
 import { ConfirmPasswordField } from "../confirm-password-field"
@@ -23,6 +24,7 @@ export function AccountStep({ onSuccess }: { onSuccess: () => void }) {
   const [state, action, isPending] = useActionState(signUpAction, null)
   const [termsAccepted, setTermsAccepted] = useState(false)
   const [termsError, setTermsError] = useState(false)
+  const t = useTranslations("auth")
 
   useEffect(() => {
     if (state?.success) onSuccess()
@@ -36,12 +38,12 @@ export function AccountStep({ onSuccess }: { onSuccess: () => void }) {
     }
     if (getStrength(password) < 3) {
       event.preventDefault()
-      setLocalError("Please choose a stronger password.")
+      setLocalError(t("weakPassword"))
       return
     }
     if (password !== confirmPassword) {
       event.preventDefault()
-      setLocalError("Passwords do not match.")
+      setLocalError(t("passwordsMismatch"))
       return
     }
     setLocalError(null)
@@ -55,13 +57,13 @@ export function AccountStep({ onSuccess }: { onSuccess: () => void }) {
         <FieldGroup>
           <OAuthButtons status='register' />
           <Field>
-            <Label htmlFor='username'>Username</Label>
+            <Label htmlFor='username'>{t("username")}</Label>
             <InputGroup>
               <InputGroupInput
                 id='username'
                 name='username'
                 type='text'
-                placeholder='omnescle'
+                placeholder={t("usernamePlaceholder")}
                 autoComplete='username'
                 required
                 value={username}
@@ -74,13 +76,13 @@ export function AccountStep({ onSuccess }: { onSuccess: () => void }) {
           </Field>
 
           <Field>
-            <Label htmlFor='email'>Email address</Label>
+            <Label htmlFor='email'>{t("emailAddress")}</Label>
             <InputGroup>
               <InputGroupInput
                 id='email'
                 name='email'
                 type='email'
-                placeholder='you@example.com'
+                placeholder={t("emailPlaceholder")}
                 autoComplete='email'
                 required
                 value={email}
@@ -131,7 +133,7 @@ export function AccountStep({ onSuccess }: { onSuccess: () => void }) {
           {error && <p className='text-sm text-destructive'>{error}</p>}
 
           <Button type='submit' size='lg' disabled={isPending}>
-            {isPending ? "Creating account…" : "Continue"}
+            {isPending ? t("creatingAccount") : t("continue")}
           </Button>
         </FieldGroup>
       </FieldSet>

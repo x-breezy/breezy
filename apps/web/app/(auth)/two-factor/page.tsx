@@ -1,6 +1,7 @@
 "use client"
 
 import { useActionState } from "react"
+import { useTranslations } from "next-intl"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { useCooldown } from "@/hooks/use-cooldown"
@@ -17,19 +18,20 @@ export default function TwoFactorPage() {
   const [state, action, isPending] = useActionState(twoFactorAction, null)
   const [resendState, resendAction, resendPending] = useActionState(resendTwoFactorCodeAction, null)
   const resendCooldown = useCooldown(resendState?.retryAfter, resendState)
+  const t = useTranslations("auth")
 
   if (!pendingToken) {
     return (
       <div className='mx-auto flex w-full max-w-sm animate-in flex-col justify-center px-4 py-12 text-center font-sans duration-300 select-none fade-in slide-in-from-bottom-4'>
         <AuthHeader
-          title='Verification session expired'
-          subtitle='Please sign in again to request a new two-factor code.'
+          title={t("twoFactorExpiredTitle")}
+          subtitle={t("twoFactorExpiredDesc")}
         />
         <Link
           href='/sign-in'
           className='mt-6 inline-flex h-9 w-full items-center justify-center rounded-2xl bg-primary px-4 text-sm font-medium text-primary-foreground transition-all hover:bg-primary/80'
         >
-          Back to sign in
+          {t("backToSignIn")}
         </Link>
       </div>
     )
@@ -37,14 +39,14 @@ export default function TwoFactorPage() {
 
   return (
     <div className='mx-auto flex w-full max-w-sm animate-in flex-col justify-center px-4 py-12 font-sans duration-300 select-none fade-in slide-in-from-bottom-4'>
-      <AuthHeader title='Two-factor verification' subtitle='Enter the code sent to your email' />
+      <AuthHeader title={t("twoFactorTitle")} subtitle={t("twoFactorSubtitle")} />
 
       <form action={action} className='flex w-full flex-col gap-4'>
         <input type='hidden' name='pendingToken' value={pendingToken} />
         <FieldSet>
           <FieldGroup>
             <Field>
-              <Label htmlFor='code'>Verification code</Label>
+              <Label htmlFor='code'>{t("verificationCode")}</Label>
               <InputGroup>
                 <InputGroupInput
                   id='code'
@@ -52,7 +54,7 @@ export default function TwoFactorPage() {
                   type='text'
                   inputMode='numeric'
                   maxLength={6}
-                  placeholder='000000'
+                  placeholder={t("verificationCodePlaceholder")}
                   autoComplete='one-time-code'
                   required
                 />
@@ -62,13 +64,13 @@ export default function TwoFactorPage() {
             {state?.error && (
               <div className='text-xs text-destructive'>
                 <p>{state.error}</p>
-                {state.code && <p className='mt-1 text-muted-foreground'>Code: {state.code}</p>}
+                {state.code && <p className='mt-1 text-muted-foreground'>{t("codePrefix")}: {state.code}</p>}
               </div>
             )}
 
             <Field>
               <Button type='submit' size='lg' disabled={isPending}>
-                {isPending ? "Verifying…" : "Verify"}
+                {isPending ? t("twoFactorVerifying") : t("twoFactorVerifyBtn")}
               </Button>
             </Field>
           </FieldGroup>
@@ -76,12 +78,12 @@ export default function TwoFactorPage() {
       </form>
 
       <div className='mt-4 text-center text-sm text-muted-foreground'>
-        {resendState?.success && <p>A new code has been sent to your email.</p>}
+        {resendState?.success && <p>{t("twoFactorNewCodeSent")}</p>}
         {resendState?.error && (
           <div className='text-destructive'>
             <p>{resendState.error}</p>
             {resendState.code && (
-              <p className='mt-1 text-xs text-muted-foreground'>Code: {resendState.code}</p>
+              <p className='mt-1 text-xs text-muted-foreground'>{t("codePrefix")}: {resendState.code}</p>
             )}
           </div>
         )}
@@ -94,15 +96,15 @@ export default function TwoFactorPage() {
             disabled={resendPending || resendCooldown > 0}
           >
             {resendPending
-              ? "Sending…"
+              ? t("sending")
               : resendCooldown > 0
-                ? `Try again in ${resendCooldown}s`
-                : "Resend code"}
+                ? t("tryAgainIn", { seconds: resendCooldown })
+                : t("twoFactorResendCode")}
           </Button>
         </form>
         <p className='mt-4'>
           <Link href='/sign-in' className='font-semibold text-foreground underline'>
-            Back to sign in
+            {t("backToSignIn")}
           </Link>
         </p>
       </div>

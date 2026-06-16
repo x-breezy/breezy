@@ -5,7 +5,7 @@ import { HomeHeader } from "@/components/home/home-header"
 import HomePost from "@/components/home/home-post"
 
 export default function HomePage() {
-  const [feed, setFeed] = useState("For you")
+  const [feed, setFeed] = useState("forYou")
 
   return (
     <div>

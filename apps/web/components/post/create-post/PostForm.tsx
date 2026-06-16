@@ -3,9 +3,10 @@
 import { useRef, useState, useEffect } from "react"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { searchProfiles } from "@/lib/actions/profiles"
+import { useTranslations } from "next-intl"
+import type { ResolvedMention, MediaPreview } from "./use-post-compose"
 import { buildPostHTML } from "@/lib/post-utils"
 import { PostBottomBar } from "./PostBottomBar"
-import { MediaPreview, ResolvedMention } from "./use-post-compose"
 
 interface MentionSuggestion {
   profileId: string
@@ -61,6 +62,7 @@ export function PostForm({
   const [mentionQuery, setMentionQuery] = useState<string | null>(null)
   const [selectedIndex, setSelectedIndex] = useState(0)
   const [popupPos, setPopupPos] = useState<{ top: number; left: number } | null>(null)
+  const t = useTranslations("composePost")
 
   useEffect(() => {
     const el = editorRef.current
@@ -189,7 +191,7 @@ export function PostForm({
           <div className='relative flex-1'>
             {!content && (
               <span className='pointer-events-none absolute top-0 left-0 text-xl text-muted-foreground/80 select-none'>
-                What&apos;s happening?
+                {t("placeholder")}
               </span>
             )}
             <div
@@ -261,3 +263,4 @@ export function PostForm({
     </>
   )
 }
+            

@@ -1,6 +1,7 @@
 "use client"
 
 import { useSearchParams } from "next/navigation"
+import { useTranslations } from "next-intl"
 import Link from "next/link"
 import { IconLoader2 } from "@tabler/icons-react"
 import HomePost from "@/components/home/home-post"
@@ -24,6 +25,7 @@ interface SearchResultsProps {
 export function SearchResults({ q }: SearchResultsProps) {
   const searchParams = useSearchParams()
   const tab = parseTab(searchParams.get("tab"))
+  const t = useTranslations("search")
 
   const following = useUserStore((s) => s.following)
 
@@ -51,12 +53,12 @@ export function SearchResults({ q }: SearchResultsProps) {
           <li className='px-4 py-8 text-center text-sm text-destructive'>{error}</li>
         )}
 
-        {!loading && !error && tab === "posts" && renderPosts(postsCache, profileMap, handleLike)}
+        {!loading && !error && tab === "posts" && renderPosts(postsCache, profileMap, handleLike, t)}
         {!loading &&
           !error &&
           tab === "people" &&
-          renderPeople(peopleCache, handleFollow, following)}
-        {!loading && !error && tab === "media" && renderMedia(mediaCache)}
+          renderPeople(peopleCache, handleFollow, following, t)}
+        {!loading && !error && tab === "media" && renderMedia(mediaCache, t)}
       </ul>
     </div>
   )
@@ -65,15 +67,16 @@ export function SearchResults({ q }: SearchResultsProps) {
 function renderPosts(
   cache: PostsCache | null,
   profileMap: Map<string, SearchProfile>,
-  onLike: (postId: string, liked: boolean) => Promise<number | void>
+  onLike: (postId: string, liked: boolean) => Promise<number | void>,
+  t: any
 ) {
   if (!cache || cache.posts.length === 0) {
-    return <EmptyState label='Aucun post trouvé' />
+    return <EmptyState label={t("noPosts")} />
   }
   return cache.posts.map((post) => {
     const profile = profileMap.get(post.authorId)
     const displayName = [profile?.firstName, profile?.lastName].filter(Boolean).join(" ") || null
-    const name = displayName ?? profile?.username ?? "Utilisateur"
+    const name = displayName ?? profile?.username ?? t("fallbackUser")
     return (
       <li key={post._id} className='w-full'>
         <HomePost
@@ -95,10 +98,11 @@ function renderPosts(
 function renderPeople(
   cache: PeopleCache | null,
   onFollow: (id: string, follow: boolean) => Promise<void>,
-  following: Record<string, boolean>
+  following: Record<string, boolean>,
+  t: any
 ) {
   if (!cache || cache.people.length === 0) {
-    return <EmptyState label='Aucun utilisateur trouvé' />
+    return <EmptyState label={t("noPeople")} />
   }
   return cache.people.map((item) => (
     <li key={item.id} className='w-full'>
@@ -118,9 +122,9 @@ function renderPeople(
   ))
 }
 
-function renderMedia(cache: MediaCache | null) {
+function renderMedia(cache: MediaCache | null, t: any) {
   if (!cache || cache.media.length === 0) {
-    return <EmptyState label='Aucun média trouvé' />
+    return <EmptyState label={t("noMedia")} />
   }
   return <MediaGrid items={cache.media} />
 }
