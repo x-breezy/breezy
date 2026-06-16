@@ -5,7 +5,11 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { IconUserFilled } from "@tabler/icons-react"
-import { setupProfileAction } from "@/app/(auth)/sign-up/actions"
+
+interface ActionState {
+  error: string | null
+  success?: boolean
+}
 
 interface WelcomeStepProps {
   avatar: File | null
@@ -13,10 +17,18 @@ interface WelcomeStepProps {
   firstName: string
   lastName: string
   bio: string
+  setupAction: (_prev: ActionState | null, formData: FormData) => Promise<ActionState>
 }
 
-export function WelcomeStep({ avatar, avatarPreview, firstName, lastName, bio }: WelcomeStepProps) {
-  const [state, action, isPending] = useActionState(setupProfileAction, null)
+export function WelcomeStep({
+  avatar,
+  avatarPreview,
+  firstName,
+  lastName,
+  bio,
+  setupAction,
+}: WelcomeStepProps) {
+  const [state, action, isPending] = useActionState(setupAction, null)
   const [, startTransition] = useTransition()
   const router = useRouter()
 

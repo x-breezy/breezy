@@ -10,33 +10,13 @@ import {
   ACCESS_COOKIE,
   getUserId,
 } from "@/lib/auth/session"
-import { signUp, getMe } from "@/lib/services/auth-service"
+import { getMe } from "@/lib/services/auth-service"
 import { createProfile } from "@/lib/services/profile-service"
 import { uploadImage } from "@/lib/services/image-service"
 
 export interface ActionState {
   error: string | null
   success?: boolean
-}
-
-export async function signUpAction(
-  _prev: ActionState | null,
-  formData: FormData
-): Promise<ActionState> {
-  const username = formData.get("username") as string
-  const email = formData.get("email") as string
-  const password = formData.get("password") as string
-
-  try {
-    const { data } = await signUp(username, email, password)
-    const { token, refreshToken } = data.data as { token: string; refreshToken: string }
-    await setSessionCookies(token, refreshToken)
-  } catch (err) {
-    if (isAxiosError(err)) return { error: err.response?.data?.message ?? "Something went wrong." }
-    return { error: "Could not reach the server." }
-  }
-
-  return { error: null, success: true }
 }
 
 export async function setupProfileAction(
@@ -87,18 +67,12 @@ export async function setupProfileAction(
   }
 
   try {
-    // Récupérer le username de l'utilisateur avec validation
     const userRes = await getMe(authHeader)
     if (!userRes?.data?.data?.username) {
       return { error: "Invalid user data", success: false }
     }
 
     const username = userRes.data.data.username
-
-    // Valider les données avant création
-    if (!userId || !username) {
-      return { error: "Missing required user information", success: false }
-    }
 
     await createProfile(userId, { username, firstName, lastName, bio, avatarId }, authHeader)
 

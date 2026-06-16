@@ -1,22 +1,19 @@
 "use client"
 
 import { useState } from "react"
-import Link from "next/link"
 import { AuthHeader } from "./auth-header"
-import { AccountStep } from "./onboarding/account-step"
 import { PhotoStep } from "./onboarding/photo-step"
 import { WelcomeStep } from "./onboarding/welcome-step"
 import { cn } from "@/lib/utils"
-import { setupProfileAction } from "@/app/(auth)/sign-up/actions"
+import { setupProfileAction } from "@/app/(auth)/onboarding/actions"
 
-type Step = 1 | 2 | 3
+type Step = 1 | 2
 
-const STEPS: { label: string }[] = [{ label: "Account" }, { label: "Profile" }, { label: "Done" }]
+const STEPS: { label: string }[] = [{ label: "Profile" }, { label: "Done" }]
 
 const STEP_META: Record<Step, { title: string; subtitle: string }> = {
-  1: { title: "Create an account", subtitle: "Sign up to get started" },
-  2: { title: "Set up your profile", subtitle: "Add a few details, you can update these later" },
-  3: { title: "You're all set!", subtitle: "Your account is ready" },
+  1: { title: "Set up your profile", subtitle: "Add a few details, you can update these later" },
+  2: { title: "You're all set!", subtitle: "Your account is ready" },
 }
 
 function StepIndicator({ current }: { current: Step }) {
@@ -77,7 +74,7 @@ function StepIndicator({ current }: { current: Step }) {
   )
 }
 
-export default function SignUpScreen() {
+export default function OnboardingScreen() {
   const [step, setStep] = useState<Step>(1)
   const [avatar, setAvatar] = useState<File | null>(null)
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
@@ -106,18 +103,6 @@ export default function SignUpScreen() {
 
       <div key={step} className='animate-in duration-200 fade-in slide-in-from-right-4'>
         {step === 1 && (
-          <>
-            <AccountStep onSuccess={() => setStep(2)} />
-            <div className='mt-6 text-center text-sm font-medium text-muted-foreground'>
-              Already have an account?{" "}
-              <Link href='/sign-in' className='font-semibold text-foreground underline'>
-                Sign in
-              </Link>
-            </div>
-          </>
-        )}
-
-        {step === 2 && (
           <PhotoStep
             preview={avatarPreview}
             onAvatarChange={handleAvatarChange}
@@ -125,11 +110,11 @@ export default function SignUpScreen() {
             lastName={lastName}
             bio={bio}
             onChange={handleFieldChange}
-            onNext={() => setStep(3)}
+            onNext={() => setStep(2)}
           />
         )}
 
-        {step === 3 && (
+        {step === 2 && (
           <WelcomeStep
             avatar={avatar}
             avatarPreview={avatarPreview}
