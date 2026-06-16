@@ -1,3 +1,5 @@
+"use client"
+
 import { Button } from "../ui/button"
 import { Field } from "../ui/field"
 import Image from "next/image"
@@ -12,7 +14,13 @@ export default function OAuthButtons({ status }: OAuthButtonsProps) {
 
   return (
     <Field>
-      <Button variant='outline' size='lg' disabled>
+      <Button
+        variant='outline'
+        size='lg'
+        onClick={() => {
+          window.location.href = `${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost"}/api/auth/google`
+        }}
+      >
         <Image
           src='/assets/google-icon.svg'
           alt='Google icon'

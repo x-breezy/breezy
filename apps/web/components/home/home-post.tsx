@@ -2,7 +2,7 @@
 
 import { memo, useState, useCallback } from "react"
 import { useRouter } from "next/navigation"
-import { PostAvatar, PostMeta, PostMenu, PostContent, PostActions } from "./post"
+import { PostAvatar, PostMeta, PostMenu, PostContent, PostActions } from "../post"
 
 interface HomePostProps {
   id: string

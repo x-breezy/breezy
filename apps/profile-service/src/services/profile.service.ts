@@ -1,4 +1,4 @@
-import { Op } from "sequelize"
+import { Op, QueryTypes } from "sequelize"
 import { Profile, CreateProfileInput, UpdateProfileInput } from "../models/profile.model"
 import { Follow } from "../models/follow.model"
 import { publish } from "../clients/rabbitmq"
@@ -84,17 +84,21 @@ class ProfileService {
     limit: number = 50
   ): Promise<{ count: number; followers: string[] }> {
     const offset = (page - 1) * limit
-    const [relations, count] = await Promise.all([
-      Follow.findAll({
-        where: { followingId: profileId },
-        attributes: ["followerId"],
-        limit,
-        offset,
-      }),
+    const sequelize = Profile.sequelize!
+    const [rows, countResult] = await Promise.all([
+      sequelize.query<{ id: string }>(
+        `SELECT f.follower_id AS id
+         FROM follows f
+         JOIN profiles p ON p.profile_id = f.follower_id
+         WHERE f.following_id = :profileId
+           AND p.deleted_at IS NULL
+         ORDER BY p.username ASC
+         LIMIT :limit OFFSET :offset`,
+        { replacements: { profileId, limit, offset }, type: QueryTypes.SELECT }
+      ),
       Follow.count({ where: { followingId: profileId } }),
     ])
-    const followers = relations.map((f) => f.get("followerId") as string)
-    return { count, followers }
+    return { count: countResult, followers: rows.map((r) => r.id) }
   }
 
   async getFollowing(
@@ -103,17 +107,21 @@ class ProfileService {
     limit: number = 50
   ): Promise<{ count: number; following: string[] }> {
     const offset = (page - 1) * limit
-    const [relations, count] = await Promise.all([
-      Follow.findAll({
-        where: { followerId: profileId },
-        attributes: ["followingId"],
-        limit,
-        offset,
-      }),
+    const sequelize = Profile.sequelize!
+    const [rows, countResult] = await Promise.all([
+      sequelize.query<{ id: string }>(
+        `SELECT f.following_id AS id
+         FROM follows f
+         JOIN profiles p ON p.profile_id = f.following_id
+         WHERE f.follower_id = :profileId
+           AND p.deleted_at IS NULL
+         ORDER BY p.username ASC
+         LIMIT :limit OFFSET :offset`,
+        { replacements: { profileId, limit, offset }, type: QueryTypes.SELECT }
+      ),
       Follow.count({ where: { followerId: profileId } }),
     ])
-    const following = relations.map((f) => f.get("followingId") as string)
-    return { count, following }
+    return { count: countResult, following: rows.map((r) => r.id) }
   }
 
   async getProfilesByIds(ids: string[]): Promise<Profile[]> {

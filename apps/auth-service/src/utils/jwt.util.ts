@@ -48,16 +48,56 @@ export function verifyToken(token: string): TokenPayload {
 }
 
 /** pending (2FA) token stays HS256, internal only, never leaves auth-service. */
+function getPendingSecret(): string {
+  const secret = process.env.JWT_SECRET
+  if (!secret || secret === "changeme") {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("JWT_SECRET must be set to a strong secret in production")
+    }
+    return "changeme"
+  }
+  return secret
+}
+
 export function signPendingToken(userId: string): string {
-  const secret = process.env.JWT_SECRET ?? "changeme"
-  return jwt.sign({ sub: userId, purpose: "two-factor" }, secret, { expiresIn: "10m" })
+  return jwt.sign({ sub: userId, purpose: "two-factor" }, getPendingSecret(), { expiresIn: "10m" })
 }
 
 export function verifyPendingToken(token: string): string {
-  const secret = process.env.JWT_SECRET ?? "changeme"
+  const secret = getPendingSecret()
   const payload = jwt.verify(token, secret) as { sub: string; purpose: string }
   if (payload.purpose !== "two-factor") throw new Error("Invalid token purpose")
   return payload.sub
+}
+
+export interface PendingGoogleClaims {
+  googleId: string
+  email: string
+  emailVerified: boolean
+  firstName?: string
+  lastName?: string
+  picture?: string
+}
+
+export function signPendingGoogleToken(claims: PendingGoogleClaims): string {
+  return jwt.sign({ ...claims, purpose: "google-pending" }, getPendingSecret(), {
+    expiresIn: "15m",
+  })
+}
+
+export function verifyPendingGoogleToken(token: string): PendingGoogleClaims {
+  const payload = jwt.verify(token, getPendingSecret()) as PendingGoogleClaims & {
+    purpose: string
+  }
+  if (payload.purpose !== "google-pending") throw new Error("Invalid token purpose")
+  return {
+    googleId: payload.googleId,
+    email: payload.email,
+    emailVerified: payload.emailVerified,
+    firstName: payload.firstName,
+    lastName: payload.lastName,
+    picture: payload.picture,
+  }
 }
 
 export function generateRefreshToken(): string {

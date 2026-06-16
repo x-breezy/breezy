@@ -3,7 +3,6 @@ import UserService from "../services/user.service"
 import AuthService from "../services/auth.service"
 import { signPendingToken, verifyPendingToken, verifyToken, getJwks } from "../utils/jwt.util"
 import { publish } from "../clients/rabbitmq"
-import { GrpcProfileClient } from "../clients/profile.client"
 import type {
   SignInDTO,
   SignUpDTO,
@@ -16,17 +15,18 @@ import type {
   TwoFactorVerifyLoginDTO,
   TwoFactorResendLoginDTO,
   TwoFactorEnableDTO,
+  GoogleCompleteDTO,
 } from "../schemas/auth.schema"
+
+const APP_URL = process.env.APP_URL ?? "http://localhost:3000"
 
 class AuthController {
   private userService: UserService
   private authService: AuthService
-  private profileClient: GrpcProfileClient
 
   constructor(userService: UserService, authService: AuthService = new AuthService()) {
     this.userService = userService
     this.authService = authService
-    this.profileClient = new GrpcProfileClient()
   }
 
   signIn = async (
@@ -90,8 +90,6 @@ class AuthController {
       }
 
       const user = await this.userService.addUser(req.body)
-
-      await this.profileClient.createProfile(user.id, user.username, user.role)
 
       const { token, verifyUrl } = await this.authService.createEmailVerificationToken(user.id)
       void publish("auth.email_verification", {
@@ -292,6 +290,10 @@ class AuthController {
         res.status(401).json({ success: false, message: "Invalid or expired code" })
         return
       }
+      if ((error as { code?: string }).code === "TWO_FACTOR_LOCKED") {
+        res.status(429).json({ success: false, message: "Too many attempts, try again later" })
+        return
+      }
       next(error)
     }
   }
@@ -370,6 +372,10 @@ class AuthController {
         res.status(401).json({ success: false, message: "Invalid or expired code" })
         return
       }
+      if ((error as { code?: string }).code === "TWO_FACTOR_LOCKED") {
+        res.status(429).json({ success: false, message: "Too many attempts, try again later" })
+        return
+      }
       next(error)
     }
   }
@@ -380,6 +386,104 @@ class AuthController {
       await this.authService.disableTwoFactor(userId)
       res.status(200).json({ success: true })
     } catch (error) {
+      next(error)
+    }
+  }
+
+  googleRedirect = async (_req: Request, res: Response): Promise<void> => {
+    try {
+      const authUrl = await this.authService.startGoogleOAuth()
+      res.redirect(authUrl)
+    } catch {
+      res.redirect(`${APP_URL}/sign-in?error=oauth`)
+    }
+  }
+
+  googleCallback = async (req: Request, res: Response): Promise<void> => {
+    const { code, state, error } = req.query as Record<string, string>
+
+    if (error || !code || !state) {
+      res.redirect(`${APP_URL}/sign-in?error=oauth`)
+      return
+    }
+
+    try {
+      const codeVerifier = await this.authService.resolveGoogleOAuthSession(state)
+      if (!codeVerifier) {
+        res.redirect(`${APP_URL}/sign-in?error=oauth`)
+        return
+      }
+
+      const result = await this.authService.findOrCreateGoogleUser(code, codeVerifier)
+      const isProd = process.env.NODE_ENV === "production"
+      const cookieOpts = { httpOnly: true, secure: isProd, sameSite: "lax" as const }
+
+      if (result.isNewUser) {
+        res.cookie("pending_google_token", result.pendingToken, {
+          ...cookieOpts,
+          maxAge: 15 * 60 * 1000,
+        })
+        res.redirect(`${APP_URL}/google-username`)
+        return
+      }
+
+      const { user } = result
+      const { accessToken, refreshToken } = await this.authService.issueTokenPair({
+        sub: user.id,
+        role: user.role,
+      })
+      res.cookie("breezy-token", accessToken, { ...cookieOpts, maxAge: 7 * 24 * 60 * 60 * 1000 })
+      res.cookie("breezy-refresh", refreshToken, {
+        ...cookieOpts,
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      })
+      res.redirect(`${APP_URL}/`)
+    } catch {
+      res.redirect(`${APP_URL}/sign-in?error=oauth`)
+    }
+  }
+
+  googleComplete = async (
+    req: Request<Record<string, never>, unknown, GoogleCompleteDTO>,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const { pendingToken, username } = req.body
+      const { user, created, googleClaims } = await this.authService.completeGoogleAuth(
+        pendingToken,
+        username
+      )
+
+      if (created) {
+        if (!user.isEmailVerified) {
+          const { token, verifyUrl } = await this.authService.createEmailVerificationToken(user.id)
+          void publish("auth.email_verification", {
+            userId: user.id,
+            email: user.email,
+            username: user.username,
+            token,
+            verifyUrl,
+          })
+        }
+      }
+
+      const { accessToken, refreshToken } = await this.authService.issueTokenPair({
+        sub: user.id,
+        role: user.role,
+      })
+
+      res.status(201).json({ success: true, data: { token: accessToken, refreshToken, user } })
+    } catch (error) {
+      const code = (error as { code?: string }).code
+      if (code === "USERNAME_TAKEN") {
+        res.status(409).json({ success: false, message: "Username already taken" })
+        return
+      }
+      if (code === "INVALID_TOKEN" || (error as Error).message?.includes("Invalid token")) {
+        res.status(401).json({ success: false, message: "Session expired, please sign in again" })
+        return
+      }
       next(error)
     }
   }

@@ -13,6 +13,7 @@ jest.mock("../../models/profile.model", () => ({
     decrement: jest.fn(),
     sequelize: {
       transaction: jest.fn().mockImplementation((cb: (t: unknown) => unknown) => cb({})),
+      query: jest.fn(),
     },
   },
 }))
@@ -100,10 +101,7 @@ describe("GET /profiles/:profileId", () => {
 // ─── GET /profiles/:profileId/followers ──────────────────────────────────────────────
 describe("GET /profiles/:profileId/followers", () => {
   it("returns followers list", async () => {
-    const makeFollow = (followerId: string) => ({
-      get: (k: string) => (k === "followerId" ? followerId : undefined),
-    })
-    ;(mockedFollow.findAll as jest.Mock).mockResolvedValue([makeFollow(FOLLOWER_UUID)])
+    ;(mockedProfile.sequelize!.query as jest.Mock).mockResolvedValue([{ id: FOLLOWER_UUID }])
     ;(mockedFollow.count as jest.Mock).mockResolvedValue(1)
 
     const res = await request(app)
@@ -121,10 +119,7 @@ describe("GET /profiles/:profileId/followers", () => {
 // ─── GET /profiles/:profileId/following ──────────────────────────────────────────────
 describe("GET /profiles/:profileId/following", () => {
   it("returns following list", async () => {
-    const makeFollow = (followingId: string) => ({
-      get: (k: string) => (k === "followingId" ? followingId : undefined),
-    })
-    ;(mockedFollow.findAll as jest.Mock).mockResolvedValue([makeFollow(FOLLOWING_UUID)])
+    ;(mockedProfile.sequelize!.query as jest.Mock).mockResolvedValue([{ id: FOLLOWING_UUID }])
     ;(mockedFollow.count as jest.Mock).mockResolvedValue(1)
 
     const res = await request(app)

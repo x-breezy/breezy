@@ -11,7 +11,7 @@ export interface VideoUploadHeaders {
 }
 
 class VideoService {
-  constructor(private readonly storage: StorageService = new StorageService("videos")) { }
+  constructor(private readonly storage: StorageService = new StorageService("videos")) {}
 
   async upload(source: Readable, headers: VideoUploadHeaders): Promise<Video> {
     const gridFsId = await this.storage.upload(source, {

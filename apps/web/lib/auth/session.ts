@@ -42,7 +42,7 @@ function decodeToken(token: string): { userId: string } {
     const part = token.split(".")[1]
     if (!part) throw new Error("Invalid token")
 
-    const payload = JSON.parse(Buffer.from(part, "base64").toString()) as {
+    const payload = JSON.parse(Buffer.from(part, "base64url").toString()) as {
       sub?: string
     }
     if (!payload.sub) throw new Error("Invalid token")

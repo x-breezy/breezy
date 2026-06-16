@@ -15,7 +15,6 @@ function BioMention({ username }: BioMentionProps) {
 }
 
 interface ProfileBioProps {
-  title?: string
   children: React.ReactNode
   className?: string
 }
@@ -26,6 +25,9 @@ export function ProfileBio({ children, className }: ProfileBioProps) {
     <section className={cn("space-y-2", className)}>
       <h2 className='text-lg font-semibold'>{t("biographyTitle")}</h2>
       <p className='leading-relaxed text-muted-foreground'>{children}</p>
+  return (
+    <section className={cn("space-y-2", className)}>
+      <p className='leading-relaxed'>{children}</p>
     </section>
   )
 }

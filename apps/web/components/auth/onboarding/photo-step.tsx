@@ -18,7 +18,6 @@ interface ProfileStepProps {
   bio: string
   onChange: (field: "firstName" | "lastName" | "bio", value: string) => void
   onNext: () => void
-  onSkip: () => void
 }
 
 export function PhotoStep({
@@ -29,7 +28,6 @@ export function PhotoStep({
   bio,
   onChange,
   onNext,
-  onSkip,
 }: ProfileStepProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const t = useTranslations("auth")
@@ -82,6 +80,7 @@ export function PhotoStep({
                 type='text'
                 placeholder={t("firstNamePlaceholder")}
                 autoComplete='given-name'
+                required
                 value={firstName}
                 onChange={(e) => onChange("firstName", e.target.value)}
               />
@@ -93,6 +92,7 @@ export function PhotoStep({
                 type='text'
                 placeholder={t("lastNamePlaceholder")}
                 autoComplete='family-name'
+                required
                 value={lastName}
                 onChange={(e) => onChange("lastName", e.target.value)}
               />
@@ -125,6 +125,9 @@ export function PhotoStep({
           {t("skipForNow")}
         </button>
       </div>
+      <Button size='lg' onClick={onNext} disabled={!firstName || !lastName}>
+        Continue
+      </Button>
     </div>
   )
 }

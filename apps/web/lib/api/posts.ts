@@ -7,16 +7,15 @@ export interface SearchPostMedia {
 }
 
 export interface CreatePostInput {
-    content: string
-    tags: string[]
-    mentions: string[]
-    media: SearchPostMedia[]
+  content: string
+  tags: string[]
+  mentions: string[]
+  media: SearchPostMedia[]
 }
 
 export async function createPost(input: CreatePostInput): Promise<void> {
-    await apiClient.post("/api/posts", input)
+  await apiClient.post("/api/posts", input)
 }
-
 
 export interface SearchPost {
   _id: string
