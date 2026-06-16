@@ -121,13 +121,16 @@ export function AccountStep({ onSuccess }: { onSuccess: () => void }) {
                 className={termsError ? "border-destructive" : ""}
               />
               <FieldLabel htmlFor='terms-checkbox-basic' className='flex gap-1 whitespace-nowrap'>
-                Accept the{" "}
-                <Link href='/terms' target='_blank' className='text-foreground underline'>
-                  terms and conditions
-                </Link>
+                {t.rich("acceptTerms", {
+                  link: (chunks) => (
+                    <Link href='/terms' target='_blank' className='text-foreground underline'>
+                      {chunks}
+                    </Link>
+                  ),
+                })}
               </FieldLabel>
             </Field>
-            {termsError && <p className='text-xs text-destructive'>You must accept the terms.</p>}
+            {termsError && <p className='text-xs text-destructive'>{t("termsError")}</p>}
           </FieldGroup>
 
           {error && <p className='text-sm text-destructive'>{error}</p>}
