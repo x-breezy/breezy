@@ -16,7 +16,7 @@ const AUTH_ONLY_PATHS = [
 ]
 
 // Always accessible regardless of auth state (token-based flows work for both auth states)
-const ALWAYS_ACCESSIBLE = ["/verify-email", "/reset-password"]
+const ALWAYS_ACCESSIBLE = ["/verify-email", "/reset-password", "/terms", "/privacy"]
 
 // Paths that require auth but are accessible even without a profile (to avoid redirect loops)
 const ONBOARDING_PATHS = ["/onboarding"]
