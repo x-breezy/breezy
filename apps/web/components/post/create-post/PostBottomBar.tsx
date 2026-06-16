@@ -53,7 +53,9 @@ export function PostBottomBar({ onAddMedia, onSelectGif, charCount = 0 }: PostBo
           <span className='text-xs font-bold text-muted-foreground'>GIF</span>
         </Button>
 
-        <span className={`ml-auto pr-2 text-xs tabular-nums ${charCount >= MAX_CHARS ? "font-semibold text-destructive" : "text-muted-foreground"}`}>
+        <span
+          className={`ml-auto pr-2 text-xs tabular-nums ${charCount >= MAX_CHARS ? "font-semibold text-destructive" : "text-muted-foreground"}`}
+        >
           {charCount}/{MAX_CHARS}
         </span>
 

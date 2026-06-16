@@ -78,14 +78,15 @@ export function ReplyComposeDialog({
                 name={parentName}
                 nameClassName='truncate text-sm font-semibold hover:underline'
               />
-              <span className='truncate text-xs text-muted-foreground'>
-                @{parentUsername}
-              </span>
+              <span className='truncate text-xs text-muted-foreground'>@{parentUsername}</span>
             </div>
-            <PostContent content={parentContent.length > 250 ? parentContent.slice(0, 250) + "…" : parentContent} />
+            <PostContent
+              content={
+                parentContent.length > 250 ? parentContent.slice(0, 250) + "…" : parentContent
+              }
+            />
             <div className='mt-2 text-sm text-muted-foreground'>
-              Replying to{" "}
-              <span className='font-semibold text-primary'>@{parentUsername}</span>
+              Replying to <span className='font-semibold text-primary'>@{parentUsername}</span>
             </div>
           </div>
         </div>

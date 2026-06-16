@@ -112,7 +112,10 @@ export function PostForm({
         if (!controller.signal.aborted) setSuggestions([])
       }
     }, 200)
-    return () => { clearTimeout(timer); controller.abort() }
+    return () => {
+      clearTimeout(timer)
+      controller.abort()
+    }
   }, [mentionQuery])
 
   function detectMentionQuery(text: string, cursorPos: number): string | null {
@@ -122,11 +125,15 @@ export function PostForm({
 
   function updatePopupPos() {
     const sel = window.getSelection()
-    if (!sel || sel.rangeCount === 0 || !editorRef.current) { setPopupPos(null); return }
+    if (!sel || sel.rangeCount === 0 || !editorRef.current) {
+      setPopupPos(null)
+      return
+    }
     const caretRect = sel.getRangeAt(0).getBoundingClientRect()
     const dialog = editorRef.current.closest('[role="dialog"]')
     const dialogRect = dialog?.getBoundingClientRect()
-    const POPUP_WIDTH = 256, POPUP_HEIGHT = 200
+    const POPUP_WIDTH = 256,
+      POPUP_HEIGHT = 200
     let top = caretRect.bottom + 4
     let left = Math.max(0, caretRect.left)
     if (dialogRect) {
@@ -152,14 +159,23 @@ export function PostForm({
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLDivElement>) {
     if (suggestions.length > 0) {
-      if (e.key === "ArrowDown") { e.preventDefault(); setSelectedIndex((i) => Math.min(i + 1, suggestions.length - 1)) }
-      if (e.key === "ArrowUp") { e.preventDefault(); setSelectedIndex((i) => Math.max(i - 1, 0)) }
+      if (e.key === "ArrowDown") {
+        e.preventDefault()
+        setSelectedIndex((i) => Math.min(i + 1, suggestions.length - 1))
+      }
+      if (e.key === "ArrowUp") {
+        e.preventDefault()
+        setSelectedIndex((i) => Math.max(i - 1, 0))
+      }
       if (e.key === "Enter" || e.key === "Tab") {
         e.preventDefault()
         if (suggestions[selectedIndex]) applySuggestion(suggestions[selectedIndex])
         return
       }
-      if (e.key === "Escape") { setSuggestions([]); setMentionQuery(null) }
+      if (e.key === "Escape") {
+        setSuggestions([])
+        setMentionQuery(null)
+      }
     }
   }
 
@@ -183,9 +199,9 @@ export function PostForm({
   return (
     <>
       <div
-        className={`flex flex-col gap-3 px-4 ${noMaxHeight ? "flex-1 min-h-0 py-4" : "max-h-[60vh] overflow-y-auto pt-6 pb-4"}`}
+        className={`flex flex-col gap-3 px-4 ${noMaxHeight ? "min-h-0 flex-1 py-4" : "max-h-[60vh] overflow-y-auto pt-6 pb-4"}`}
       >
-        <div className={`flex gap-3 ${noMaxHeight ? "flex-1 min-h-0" : "h-full"}`}>
+        <div className={`flex gap-3 ${noMaxHeight ? "min-h-0 flex-1" : "h-full"}`}>
           <ProfileAvatar size='2xs' src={profile?.avatarId ?? ""} />
 
           <div className='relative flex-1'>
@@ -200,33 +216,52 @@ export function PostForm({
               suppressContentEditableWarning
               onInput={handleInput}
               onKeyDown={handleKeyDown}
-              onCompositionStart={() => { isComposing.current = true }}
-              onCompositionEnd={() => { isComposing.current = false; handleInput() }}
-              className='min-h-[6rem] w-full max-w-full whitespace-pre-wrap text-xl leading-7 outline-none'
+              onCompositionStart={() => {
+                isComposing.current = true
+              }}
+              onCompositionEnd={() => {
+                isComposing.current = false
+                handleInput()
+              }}
+              className='min-h-[6rem] w-full max-w-full text-xl leading-7 whitespace-pre-wrap outline-none'
               autoFocus
             />
 
-            {suggestions.length > 0 && popupPos && createPortal(
-              <ul className='fixed z-[130] w-64 overflow-hidden rounded-xl border bg-popover shadow-lg' style={{ top: popupPos.top, left: popupPos.left }}>
-                {suggestions.map((s, i) => (
-                  <li
-                    key={s.profileId}
-                    onMouseDown={(e) => { e.preventDefault(); applySuggestion(s) }}
-                    className={`flex cursor-pointer items-center gap-3 px-4 py-3 ${i === selectedIndex ? "bg-accent" : "hover:bg-accent/50"}`}
-                  >
-                    <ProfileAvatar size='2xs' src={s.avatarUrl ?? ""} className='size-10 shrink-0' />
-                    <div className='flex min-w-0 flex-col'>
-                      <span className='flex items-center gap-1 truncate font-semibold'>
-                        {s.displayName}
-                        <ProfileBadges role={s.role as UserRole} />
-                      </span>
-                      <span className='truncate text-sm text-muted-foreground'>@{s.username}</span>
-                    </div>
-                  </li>
-                ))}
-              </ul>,
-              document.body
-            )}
+            {suggestions.length > 0 &&
+              popupPos &&
+              createPortal(
+                <ul
+                  className='fixed z-[130] w-64 overflow-hidden rounded-xl border bg-popover shadow-lg'
+                  style={{ top: popupPos.top, left: popupPos.left }}
+                >
+                  {suggestions.map((s, i) => (
+                    <li
+                      key={s.profileId}
+                      onMouseDown={(e) => {
+                        e.preventDefault()
+                        applySuggestion(s)
+                      }}
+                      className={`flex cursor-pointer items-center gap-3 px-4 py-3 ${i === selectedIndex ? "bg-accent" : "hover:bg-accent/50"}`}
+                    >
+                      <ProfileAvatar
+                        size='2xs'
+                        src={s.avatarUrl ?? ""}
+                        className='size-10 shrink-0'
+                      />
+                      <div className='flex min-w-0 flex-col'>
+                        <span className='flex items-center gap-1 truncate font-semibold'>
+                          {s.displayName}
+                          <ProfileBadges role={s.role as UserRole} />
+                        </span>
+                        <span className='truncate text-sm text-muted-foreground'>
+                          @{s.username}
+                        </span>
+                      </div>
+                    </li>
+                  ))}
+                </ul>,
+                document.body
+              )}
           </div>
         </div>
 
@@ -254,7 +289,11 @@ export function PostForm({
 
       {!hideBottomBar && (
         <div className='shrink-0'>
-          <PostBottomBar onAddMedia={onAddMedia} onSelectGif={onSelectGif} charCount={content.length} />
+          <PostBottomBar
+            onAddMedia={onAddMedia}
+            onSelectGif={onSelectGif}
+            charCount={content.length}
+          />
         </div>
       )}
     </>
