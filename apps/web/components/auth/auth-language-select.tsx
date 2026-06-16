@@ -23,8 +23,8 @@ export function AuthLanguageSelect() {
   const router = useRouter()
   const currentLocale = useLocale()
 
-  function handleLanguageChange(val: string) {
-    if (val === currentLocale) return
+  function handleLanguageChange(val: string | null) {
+    if (!val || val === currentLocale) return
     setLanguageCookie(val as Language)
     router.refresh()
   }
