@@ -32,7 +32,6 @@ jest.mock("../../utils/jwt")
 jest.mock("../../clients/rabbitmq", () => ({ publish: jest.fn() }))
 
 const mockVerifyJwt = verifyJwt as jest.MockedFunction<typeof verifyJwt>
-const mockedProfile = Profile as jest.Mocked<typeof Profile>
 
 const app = createProfileRouter()
 const ALICE_ID = "11111111-1111-1111-1111-111111111111"
