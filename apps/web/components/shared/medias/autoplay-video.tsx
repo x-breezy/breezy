@@ -55,7 +55,6 @@ export function AutoplayVideo({
   const [showControls, setShowControls] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
   const [playbackRate, setPlaybackRate] = useState(1)
-  const [isDragging, setIsDragging] = useState(false)
 
   const cancelHide = useCallback(() => {
     if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current)
