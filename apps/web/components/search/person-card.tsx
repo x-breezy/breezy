@@ -18,6 +18,7 @@ export interface PersonCardProps {
   followersCount?: number
   initialFollowing?: boolean
   onFollow?: (id: string, follow: boolean) => Promise<void>
+  currentUserId?: string
 }
 
 export function PersonCard({
@@ -29,6 +30,7 @@ export function PersonCard({
   bio,
   initialFollowing,
   onFollow,
+  currentUserId,
 }: PersonCardProps) {
   const t = useTranslations("search")
   const initials = (displayName ?? username ?? "?")[0]?.toUpperCase()
@@ -63,14 +65,16 @@ export function PersonCard({
         {username && <p className='truncate text-xs text-muted-foreground'>@{username}</p>}
         {bio && <p className='mt-0.5 truncate text-xs text-muted-foreground'>{bio}</p>}
       </div>
-      <Button
-        size='sm'
-        variant={isFollowing ? "secondary" : "default"}
-        className='shrink-0'
-        onClick={handleFollow}
-      >
-        {isFollowing ? t("following") : t("follow")}
-      </Button>
+      {id !== currentUserId && (
+        <Button
+          size='sm'
+          variant={isFollowing ? "secondary" : "default"}
+          className='shrink-0'
+          onClick={handleFollow}
+        >
+          {isFollowing ? t("following") : t("follow")}
+        </Button>
+      )}
     </div>
   )
 }

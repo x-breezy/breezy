@@ -71,6 +71,7 @@ function FollowListBody({
   const sentinelRef = useRef<HTMLDivElement>(null)
   const following = useUserStore((s) => s.following)
   const setRelation = useUserStore((s) => s.setRelation)
+  const currentUserId = useUserStore((s) => s.profile?.profileId)
 
   const { profiles, total, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, error } =
     useFollowList(profileId, type, open)
@@ -135,6 +136,7 @@ function FollowListBody({
                       followersCount={p.followersCount}
                       initialFollowing={following[p.profileId] ?? false}
                       onFollow={handleFollow}
+                      currentUserId={currentUserId}
                     />
                   </Link>
                 </li>
