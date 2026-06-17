@@ -2,6 +2,7 @@ import { Router } from "express"
 import NotificationController from "../controllers/notification.controller"
 import NotificationService from "../services/notification.service"
 import { identity } from "../middlewares/identity.middleware"
+import { readLimit, writeLimit, streamLimit } from "../middlewares/rate-limit.middleware"
 import { validate } from "../middlewares/validate.middleware"
 import {
   notificationIdParamSchema,
@@ -13,20 +14,33 @@ function createNotificationRouter(
 ): Router {
   const router = Router({ mergeParams: true })
 
-  router.get("/stream", identity, controller.stream)
+  router.get("/stream", identity, streamLimit, controller.stream)
 
-  router.get("/", identity, validate(listNotificationsQuerySchema, "query"), controller.list)
+  router.get(
+    "/",
+    identity,
+    readLimit,
+    validate(listNotificationsQuerySchema, "query"),
+    controller.list
+  )
 
-  router.patch("/read-all", identity, controller.markAllRead)
+  router.patch("/read-all", identity, writeLimit, controller.markAllRead)
 
   router.patch(
     "/:id/read",
     identity,
+    writeLimit,
     validate(notificationIdParamSchema, "params"),
     controller.markRead
   )
 
-  router.delete("/:id", identity, validate(notificationIdParamSchema, "params"), controller.remove)
+  router.delete(
+    "/:id",
+    identity,
+    writeLimit,
+    validate(notificationIdParamSchema, "params"),
+    controller.remove
+  )
 
   return router
 }

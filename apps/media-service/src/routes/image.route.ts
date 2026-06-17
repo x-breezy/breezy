@@ -5,17 +5,30 @@ import { identity } from "../middlewares/identity.middleware"
 import { requireOwnership } from "../middlewares/owner.middleware"
 import { ImageModel } from "../models/image.model"
 import { ROLES } from "../constants/roles"
+import {
+  uploadLimit,
+  readLimit,
+  writeLimit,
+  publicReadLimit,
+} from "../middlewares/rate-limit.middleware"
 
 function createImageRouter(controller: ImageController = new ImageController(new ImageService())) {
   const router = Router()
 
   // Accept any binary body up to 16MB (MongoDB document cap).
-  router.post("/", identity, raw({ type: "*/*", limit: "16mb" }), controller.uploadImage)
-  router.get("/:id/meta", identity, controller.getImageMeta)
-  router.get("/:id", controller.getImage)
+  router.post(
+    "/",
+    identity,
+    uploadLimit,
+    raw({ type: "*/*", limit: "16mb" }),
+    controller.uploadImage
+  )
+  router.get("/:id/meta", identity, readLimit, controller.getImageMeta)
+  router.get("/:id", publicReadLimit, controller.getImage)
   router.delete(
     "/:id",
     identity,
+    writeLimit,
     requireOwnership(ImageModel, ROLES.MODERATOR, ROLES.ADMIN),
     controller.deleteImage
   )

@@ -7,6 +7,7 @@ import {
   emailSendRateLimit,
   authenticatedEmailRateLimit,
 } from "../middlewares/email-rate-limit.middleware"
+import { strictLimit, authWriteLimit } from "../middlewares/rate-limit.middleware"
 import {
   signInSchema,
   signUpSchema,
@@ -27,13 +28,13 @@ function createAuthRouter(
 ): Router {
   const router = Router()
 
-  router.post("/sign-in", validate(signInSchema), authController.signIn)
-  router.post("/sign-up", validate(signUpSchema), authController.signUp)
+  router.post("/sign-in", strictLimit, validate(signInSchema), authController.signIn)
+  router.post("/sign-up", strictLimit, validate(signUpSchema), authController.signUp)
   router.get("/validate", authController.validate)
-  router.post("/refresh", validate(refreshSchema), authController.refresh)
-  router.post("/logout", validate(logoutSchema), authController.logout)
+  router.post("/refresh", authWriteLimit, validate(refreshSchema), authController.refresh)
+  router.post("/logout", authWriteLimit, validate(logoutSchema), authController.logout)
 
-  router.post("/verify-email", validate(verifyEmailSchema), authController.verifyEmail)
+  router.post("/verify-email", strictLimit, validate(verifyEmailSchema), authController.verifyEmail)
   router.post(
     "/resend-verification",
     emailSendRateLimit,
@@ -52,12 +53,18 @@ function createAuthRouter(
     validate(resetPasswordSchema),
     authController.resetPassword
   )
-  router.get("/google", authController.googleRedirect)
-  router.get("/google/callback", authController.googleCallback)
-  router.post("/google/complete", validate(googleCompleteSchema), authController.googleComplete)
+  router.get("/google", authWriteLimit, authController.googleRedirect)
+  router.get("/google/callback", authWriteLimit, authController.googleCallback)
+  router.post(
+    "/google/complete",
+    authWriteLimit,
+    validate(googleCompleteSchema),
+    authController.googleComplete
+  )
 
   router.post(
     "/2fa/verify-login",
+    strictLimit,
     validate(twoFactorVerifyLoginSchema),
     authController.twoFactorVerifyLogin
   )
@@ -68,8 +75,13 @@ function createAuthRouter(
     authController.twoFactorResendLoginCode
   )
   router.post("/2fa/send-code", authenticatedEmailRateLimit, authController.twoFactorSendCode)
-  router.post("/2fa/enable", validate(twoFactorEnableSchema), authController.twoFactorEnable)
-  router.post("/2fa/disable", authController.twoFactorDisable)
+  router.post(
+    "/2fa/enable",
+    strictLimit,
+    validate(twoFactorEnableSchema),
+    authController.twoFactorEnable
+  )
+  router.post("/2fa/disable", strictLimit, authController.twoFactorDisable)
 
   return router
 }

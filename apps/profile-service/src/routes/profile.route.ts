@@ -4,6 +4,13 @@ import ProfileService from "../services/profile.service"
 import { validate } from "../middlewares/validate.middleware"
 import { identity } from "../middlewares/identity.middleware"
 import { requirePermission } from "../middlewares/roles.middleware"
+import {
+  readLimit,
+  writeLimit,
+  searchLimit,
+  followLimit,
+  publicReadLimit,
+} from "../middlewares/rate-limit.middleware"
 import { PERMISSIONS } from "../constants/permissions"
 import {
   createProfileSchema,
@@ -19,13 +26,14 @@ function createProfileRouter() {
   const profileService = new ProfileService()
   const profileController = new ProfileController(profileService)
 
-  router.get("/search", identity, profileController.search)
-  router.get("/batch", profileController.batchGet)
+  router.get("/search", identity, searchLimit, profileController.search)
+  router.get("/batch", publicReadLimit, profileController.batchGet)
 
   // Protected, static routes BEFORE /:profileId to avoid param-route swallowing
   router.get(
     "/by-username/:username",
     identity,
+    readLimit,
     requirePermission(PERMISSIONS.PROFILE_READ),
     validate(usernameParamSchema, "params"),
     profileController.getProfileByUsername
@@ -33,6 +41,7 @@ function createProfileRouter() {
   router.get(
     "/:profileId",
     identity,
+    readLimit,
     requirePermission(PERMISSIONS.PROFILE_READ),
     validate(profileIdParamSchema, "params"),
     profileController.getProfile
@@ -40,6 +49,7 @@ function createProfileRouter() {
   router.get(
     "/:profileId/is-following",
     identity,
+    readLimit,
     requirePermission(PERMISSIONS.PROFILE_READ),
     validate(profileIdParamSchema, "params"),
     profileController.isFollowing
@@ -47,6 +57,7 @@ function createProfileRouter() {
   router.get(
     "/:profileId/followers",
     identity,
+    readLimit,
     requirePermission(PERMISSIONS.PROFILE_READ),
     validate(profileIdParamSchema, "params"),
     profileController.getFollowers
@@ -54,14 +65,22 @@ function createProfileRouter() {
   router.get(
     "/:profileId/following",
     identity,
+    readLimit,
     requirePermission(PERMISSIONS.PROFILE_READ),
     validate(profileIdParamSchema, "params"),
     profileController.getFollowing
   )
-  router.post("/", identity, validate(createProfileSchema), profileController.createProfile)
+  router.post(
+    "/",
+    identity,
+    writeLimit,
+    validate(createProfileSchema),
+    profileController.createProfile
+  )
   router.patch(
     "/",
     identity,
+    writeLimit,
     requirePermission(PERMISSIONS.PROFILE_UPDATE_OWN),
     validate(updateProfileSchema),
     profileController.updateProfile
@@ -69,12 +88,14 @@ function createProfileRouter() {
   router.delete(
     "/",
     identity,
+    writeLimit,
     requirePermission(PERMISSIONS.PROFILE_DELETE_OWN),
     profileController.deleteProfile
   )
   router.post(
     "/follow",
     identity,
+    followLimit,
     requirePermission(PERMISSIONS.FOLLOW_CREATE),
     validate(followSchema),
     profileController.follow
@@ -82,6 +103,7 @@ function createProfileRouter() {
   router.post(
     "/unfollow",
     identity,
+    followLimit,
     requirePermission(PERMISSIONS.FOLLOW_DELETE_OWN),
     validate(followSchema),
     profileController.unfollow
