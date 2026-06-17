@@ -1,10 +1,11 @@
-import { createLogger } from "@breezy/logger"
+import { createLogger, registerProcessHandlers } from "@breezy/logger"
 import { createApp } from "./app"
 import { connect } from "./config/database"
 import { startConsuming } from "./clients/rabbitmq"
 import { handleEvent } from "./consumers/event.consumer"
 
 const logger = createLogger({ service: "notifications-service" })
+registerProcessHandlers(logger)
 
 const app = createApp()
 const port = process.env.PORT ?? 4060

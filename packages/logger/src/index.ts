@@ -6,6 +6,11 @@ import { createWriteStream } from "node:fs"
 
 export type { Logger } from "pino"
 
+export interface ErrorHandlerOptions {
+  /** Whether to include error stack traces in the response (dev only). */
+  exposeStack?: boolean
+}
+
 declare global {
   namespace Express {
     interface Request {
@@ -73,13 +78,12 @@ export interface HttpLoggerOptions {
  * Express middleware that:
  * - Assigns correlation ID per request
  * - Attaches logger to req.log
- * - Logs all HTTP requests with timing
+ * - Logs all HTTP requests with timing and context
  */
 export function httpLogger(logger: Logger, options: HttpLoggerOptions = {}): RequestHandler {
   const skipPaths = new Set(options.skipPaths || ["/health", "/favicon.ico"])
 
   return (req: Request, res: Response, next: NextFunction): void => {
-    // Skip logging for health checks etc.
     if (skipPaths.has(req.path)) {
       return next()
     }
@@ -91,21 +95,90 @@ export function httpLogger(logger: Logger, options: HttpLoggerOptions = {}): Req
     req.log = logger.child({ correlationId })
 
     const start = Date.now()
+    const contentLength = req.headers["content-length"]
+    const userAgent = req.headers["user-agent"]
+    const referer = req.headers["referer"]
 
     res.on("finish", () => {
       const duration = Date.now() - start
-      req.log.info(
-        {
-          method: req.method,
-          path: req.path,
-          statusCode: res.statusCode,
-          duration,
-          userId: req.get("x-user-id"),
-        },
-        `${req.method} ${req.path} ${res.statusCode} ${duration}ms`
-      )
+      const logData: Record<string, unknown> = {
+        method: req.method,
+        path: req.path,
+        query: Object.keys(req.query).length > 0 ? req.query : undefined,
+        statusCode: res.statusCode,
+        duration,
+        contentLength: contentLength ? Number(contentLength) : undefined,
+        responseSize: res.getHeader("content-length")
+          ? Number(res.getHeader("content-length"))
+          : undefined,
+        userId: req.get("x-user-id") || undefined,
+        userAgent: userAgent || undefined,
+        referer: referer || undefined,
+        ip: req.ip,
+      }
+
+      if (res.statusCode >= 400) {
+        req.log.warn(logData, `${req.method} ${req.path} ${res.statusCode} ${duration}ms`)
+      } else {
+        req.log.info(logData, `${req.method} ${req.path} ${res.statusCode} ${duration}ms`)
+      }
     })
 
     next()
   }
+}
+
+/**
+ * Express error-handling middleware factory.
+ * Logs structured error context and returns a consistent JSON response.
+ */
+export function createErrorHandler(
+  logger: Logger,
+  options: ErrorHandlerOptions = {}
+): (err: Error, req: Request, res: Response, next: NextFunction) => void {
+  return (err: Error, req: Request, res: Response, _next: NextFunction): void => {
+    const errorContext: Record<string, unknown> = {
+      err,
+      method: req.method,
+      path: req.path,
+      correlationId: req.correlationId,
+      userId: req.get("x-user-id") || undefined,
+    }
+
+    logger.error(errorContext, err.message || "Unhandled error")
+
+    const statusCode =
+      (err as Error & { statusCode?: number }).statusCode ||
+      (err as Error & { status?: number }).status ||
+      500
+
+    const body: Record<string, unknown> = {
+      success: false,
+      error: statusCode >= 500 ? "Internal server error" : err.message,
+    }
+
+    if (options.exposeStack && err.stack) {
+      body.stack = err.stack
+    }
+
+    res.status(statusCode).json(body)
+  }
+}
+
+/**
+ * Register global process-level error handlers for uncaught exceptions
+ * and unhandled promise rejections.
+ */
+export function registerProcessHandlers(logger: Logger): void {
+  process.on("uncaughtException", (err) => {
+    logger.fatal({ err }, "Uncaught exception")
+    process.exit(1)
+  })
+
+  process.on("unhandledRejection", (reason) => {
+    logger.error(
+      { err: reason instanceof Error ? reason : new Error(String(reason)) },
+      "Unhandled promise rejection"
+    )
+  })
 }

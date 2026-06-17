@@ -1,4 +1,4 @@
-import { createLogger } from "@breezy/logger"
+import { createLogger, registerProcessHandlers } from "@breezy/logger"
 import { createApp } from "./app"
 import { connect } from "./config/database"
 import { initUserModel } from "./models/user.model"
@@ -10,6 +10,7 @@ import { connectRabbitMQ } from "./clients/rabbitmq"
 import { connectRedis } from "./clients/redis"
 
 const logger = createLogger({ service: "auth-service" })
+registerProcessHandlers(logger)
 
 const app = createApp()
 const port = process.env.PORT ?? 4000

@@ -1,4 +1,4 @@
-import { createLogger } from "@breezy/logger"
+import { createLogger, registerProcessHandlers } from "@breezy/logger"
 import { createApp } from "./app"
 import { connect } from "./config/database"
 import { initFollowModel } from "./models/follow.model"
@@ -7,6 +7,7 @@ import { connectRabbitMQ } from "./clients/rabbitmq"
 import { startGrpcServer } from "./config/grpc.server"
 
 const logger = createLogger({ service: "profile-service" })
+registerProcessHandlers(logger)
 
 const app = createApp()
 const port = process.env.PORT ?? 4010
@@ -24,7 +25,7 @@ async function start(): Promise<void> {
   logger.info("Models synchronized")
 
   await connectRabbitMQ()
-  startGrpcServer(50051)
+  startGrpcServer(logger, 50051)
 
   const server = app.listen(port, () => {
     logger.info({ port }, "Profile service listening")

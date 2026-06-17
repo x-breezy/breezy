@@ -1,4 +1,4 @@
-import { randomUUID, randomInt } from "crypto"
+import { randomUUID, randomInt, randomBytes, createHash } from "crypto"
 import { Op } from "sequelize"
 import { OAuth2Client } from "google-auth-library"
 import { User, type SafeUser } from "../models/user.model"
@@ -303,7 +303,6 @@ class AuthService {
   }
 
   async startGoogleOAuth(): Promise<string> {
-    const { randomBytes, createHash } = await import("crypto")
     const state = randomBytes(32).toString("hex")
     const codeVerifier = randomBytes(32).toString("base64url")
     const codeChallenge = createHash("sha256").update(codeVerifier).digest("base64url")
