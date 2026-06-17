@@ -3,7 +3,6 @@ import request from "supertest"
 import { createProfileRouter } from "../../routes/profile.route"
 import { verifyJwt } from "../../utils/jwt"
 import { Profile } from "../../models/profile.model"
-import { Follow } from "../../models/follow.model"
 import { publish } from "../../clients/rabbitmq"
 
 jest.mock("../../models/profile.model", () => ({
