@@ -59,3 +59,7 @@ export function googleAuth(code: string, codeVerifier: string, redirectUri: stri
 export function completeGoogleAuth(pendingToken: string, username: string) {
   return serverClient.post("/api/auth/google/complete", { pendingToken, username })
 }
+
+export function notifyProfileCreated(refreshToken: string) {
+  return serverClient.post("/api/auth/profile-created", { refreshToken })
+}

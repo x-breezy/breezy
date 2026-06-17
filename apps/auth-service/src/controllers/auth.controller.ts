@@ -488,6 +488,25 @@ class AuthController {
     }
   }
 
+  profileCreated = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const refreshToken = req.body?.refreshToken as string | undefined
+      if (!refreshToken) {
+        res.status(400).json({ success: false, message: "Missing refreshToken" })
+        return
+      }
+      const { accessToken, refreshToken: newRefreshToken } =
+        await this.authService.markProfileCreated(refreshToken)
+      res.status(200).json({ success: true, data: { token: accessToken, refreshToken: newRefreshToken } })
+    } catch (error) {
+      if ((error as { code?: string }).code === "INVALID_REFRESH") {
+        res.status(401).json({ success: false, message: "Invalid or expired refresh token" })
+        return
+      }
+      next(error)
+    }
+  }
+
   jwks = (_req: Request, res: Response): void => {
     res.json(getJwks())
   }

@@ -1,6 +1,6 @@
 "use server"
 
-import { revalidatePath } from "next/cache"
+import { redirect } from "next/navigation"
 import { cookies } from "next/headers"
 import { isAxiosError } from "axios"
 import {
@@ -10,7 +10,8 @@ import {
   ACCESS_COOKIE,
   getUserId,
 } from "@/lib/auth/session"
-import { signUp, getMe } from "@/lib/services/auth-service"
+import { REFRESH_COOKIE } from "@/lib/auth/auth-cookies"
+import { signUp, getMe, notifyProfileCreated } from "@/lib/services/auth-service"
 import { createProfile } from "@/lib/services/profile-service"
 import { uploadImage } from "@/lib/services/image-service"
 
@@ -100,22 +101,32 @@ export async function setupProfileAction(
       return { error: "Missing required user information", success: false }
     }
 
-    await createProfile(userId, { username, firstName, lastName, bio, avatarId }, authHeader)
+    try {
+      await createProfile(userId, { username, firstName, lastName, bio, avatarId }, authHeader)
+    } catch (err) {
+      if (isAxiosError(err) && err.response?.status !== 409) {
+        return { error: err.response?.data?.message ?? "Something went wrong.", success: false }
+      }
+      if (!isAxiosError(err)) return { error: "Could not reach the server.", success: false }
+    }
 
-    cookieStore.set("has_profile", "1", {
-      path: "/",
-      maxAge: 60 * 60 * 24 * 365,
-      sameSite: "lax",
-      httpOnly: false,
-      secure: process.env.NODE_ENV === "production",
-    })
+    const refreshToken = cookieStore.get(REFRESH_COOKIE)?.value
+    if (refreshToken) {
+      try {
+        const res = await notifyProfileCreated(refreshToken)
+        const data = res.data?.data as { token?: string; refreshToken?: string } | undefined
+        if (data?.token && data?.refreshToken) {
+          await setSessionCookies(data.token, data.refreshToken)
+        }
+      } catch {
+      }
+    }
 
-    revalidatePath("/", "layout")
   } catch (err) {
     if (isAxiosError(err))
       return { error: err.response?.data?.message ?? "Something went wrong.", success: false }
     return { error: "Could not reach the server.", success: false }
   }
 
-  return { error: null, success: true }
+  redirect("/")
 }
