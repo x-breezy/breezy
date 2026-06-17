@@ -92,6 +92,8 @@ function createAuthRouter(
 
   router.post("/profile-created", authController.profileCreated)
 
+  router.post("/profile-created", authController.profileCreated)
+
   return router
 }
 
