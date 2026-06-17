@@ -1,5 +1,5 @@
 import Image from "next/image"
-import { AuthLanguageSelect } from "@/components/auth/auth-language-select"
+import { AuthThemeSelect } from "@/components/auth/auth-theme-select"
 
 interface AuthLayoutProps {
   children: React.ReactNode
@@ -10,7 +10,7 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
     <div className='flex min-h-svh select-none'>
       <div className='flex flex-1 animate-in flex-col items-center justify-center px-6 py-12'>
         {children}
-        <AuthLanguageSelect />
+        <AuthThemeSelect />
       </div>
 
       <div className='m-8 hidden flex-1 flex-col items-center justify-center gap-6 rounded-4xl bg-auth-panel lg:flex'>

@@ -50,7 +50,13 @@ class ProfileService {
         transaction: t,
       })
     })
-    const follower = await Profile.findOne({ where: { profileId: followerId } })
+    const [follower, followingProfile] = await Promise.all([
+      Profile.findOne({ where: { profileId: followerId } }),
+      Profile.findOne({ where: { profileId: followingId } }),
+    ])
+    if (followingProfile?.role === "moderator" || followingProfile?.role === "admin") {
+      return
+    }
     void publish("social.follow", {
       followerId,
       followingId,

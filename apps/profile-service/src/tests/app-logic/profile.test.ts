@@ -23,6 +23,10 @@ jest.mock("../../models/follow.model", () => ({
   },
 }))
 
+jest.mock("../../clients/rabbitmq", () => ({ publish: jest.fn() }))
+import { publish } from "../../clients/rabbitmq"
+const mockPublish = publish as jest.Mock
+
 const mockedProfile = Profile as jest.Mocked<typeof Profile>
 const mockedFollow = Follow as jest.Mocked<typeof Follow>
 
@@ -108,10 +112,13 @@ describe("ProfileService", () => {
   })
 
   describe("follow", () => {
-    it("should create follow and increment counts", async () => {
+    it("should create follow and increment counts for user target", async () => {
       ;(mockedFollow.create as jest.Mock).mockResolvedValue({})
       ;(mockedProfile.increment as jest.Mock).mockResolvedValue({})
       ;(mockedProfile.sequelize!.transaction as jest.Mock).mockImplementation((cb) => cb({}))
+      ;(mockedProfile.findOne as jest.Mock)
+        .mockResolvedValueOnce({ username: "follower", role: "user" })
+        .mockResolvedValueOnce({ username: "following", role: "user" })
 
       await service.follow("follower-1", "following-1")
 
@@ -127,6 +134,34 @@ describe("ProfileService", () => {
         where: { profileId: "following-1" },
         transaction: {},
       })
+    })
+
+    it("should skip follow notification when target is moderator", async () => {
+      mockPublish.mockClear()
+      ;(mockedFollow.create as jest.Mock).mockResolvedValue({})
+      ;(mockedProfile.increment as jest.Mock).mockResolvedValue({})
+      ;(mockedProfile.sequelize!.transaction as jest.Mock).mockImplementation((cb) => cb({}))
+      ;(mockedProfile.findOne as jest.Mock)
+        .mockResolvedValueOnce({ username: "follower", role: "user" })
+        .mockResolvedValueOnce({ username: "mod", role: "moderator" })
+
+      await service.follow("follower-1", "following-1")
+
+      expect(mockPublish).not.toHaveBeenCalled()
+    })
+
+    it("should skip follow notification when target is admin", async () => {
+      mockPublish.mockClear()
+      ;(mockedFollow.create as jest.Mock).mockResolvedValue({})
+      ;(mockedProfile.increment as jest.Mock).mockResolvedValue({})
+      ;(mockedProfile.sequelize!.transaction as jest.Mock).mockImplementation((cb) => cb({}))
+      ;(mockedProfile.findOne as jest.Mock)
+        .mockResolvedValueOnce({ username: "follower", role: "user" })
+        .mockResolvedValueOnce({ username: "admin", role: "admin" })
+
+      await service.follow("follower-1", "following-1")
+
+      expect(mockPublish).not.toHaveBeenCalled()
     })
   })
 

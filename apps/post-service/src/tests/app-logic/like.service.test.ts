@@ -62,7 +62,9 @@ describe("like", () => {
     ;(mockedPostModel.findByIdAndUpdate as jest.Mock).mockReturnValue(
       execMock({ ...MOCK_POST, likesCount: 6 })
     )
-    mockGetActorProfile.mockResolvedValue({ username: "alice", avatarId: "av-1" })
+    mockGetActorProfile
+      .mockResolvedValueOnce({ username: "alice", avatarId: "av-1", role: "user" })
+      .mockResolvedValueOnce({ username: "bob", avatarId: "av-2", role: "user" })
 
     const result = await service.like("post-1", "user-1")
 
@@ -73,6 +75,7 @@ describe("like", () => {
       { new: true }
     )
     expect(mockGetActorProfile).toHaveBeenCalledWith("user-1")
+    expect(mockGetActorProfile).toHaveBeenCalledWith("user-2")
     expect(publish).toHaveBeenCalledWith("content.like", {
       actorId: "user-1",
       targetUserId: "user-2",
@@ -80,6 +83,36 @@ describe("like", () => {
       username: "alice",
       avatarId: "av-1",
     })
+    expect(result).toEqual({ alreadyLiked: false, nb: 6 })
+  })
+
+  it("skips event publish when liking a moderator's post", async () => {
+    ;(mockedLikeModel.create as jest.Mock).mockResolvedValue({})
+    ;(mockedPostModel.findByIdAndUpdate as jest.Mock).mockReturnValue(
+      execMock({ ...MOCK_POST, likesCount: 6 })
+    )
+    mockGetActorProfile
+      .mockResolvedValueOnce({ username: "alice", avatarId: "av-1", role: "user" })
+      .mockResolvedValueOnce({ username: "mod", avatarId: "av-2", role: "moderator" })
+
+    const result = await service.like("post-1", "user-1")
+
+    expect(publish).not.toHaveBeenCalled()
+    expect(result).toEqual({ alreadyLiked: false, nb: 6 })
+  })
+
+  it("skips event publish when liking an admin's post", async () => {
+    ;(mockedLikeModel.create as jest.Mock).mockResolvedValue({})
+    ;(mockedPostModel.findByIdAndUpdate as jest.Mock).mockReturnValue(
+      execMock({ ...MOCK_POST, likesCount: 6 })
+    )
+    mockGetActorProfile
+      .mockResolvedValueOnce({ username: "alice", avatarId: "av-1", role: "user" })
+      .mockResolvedValueOnce({ username: "admin", avatarId: "av-2", role: "admin" })
+
+    const result = await service.like("post-1", "user-1")
+
+    expect(publish).not.toHaveBeenCalled()
     expect(result).toEqual({ alreadyLiked: false, nb: 6 })
   })
 
