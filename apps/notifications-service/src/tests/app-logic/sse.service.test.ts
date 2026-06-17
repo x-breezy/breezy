@@ -11,7 +11,8 @@ describe("SseService", () => {
       write: jest.fn(),
       on: jest.fn((_event: string, cb: () => void) => {
         closeHandler = cb
-      }),
+        return mockRes
+      }) as jest.Mock,
     }
   })
 
