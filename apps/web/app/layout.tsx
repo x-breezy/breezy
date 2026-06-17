@@ -67,7 +67,7 @@ export default async function RootLayout({
       data-theme={theme}
       className={cn("antialiased", geistMono.variable, "font-sans", geist.variable, geom.variable)}
     >
-      <body>
+      <body suppressHydrationWarning>
         <NextIntlClientProvider messages={messages}>
           <QueryProvider>
             <ThemeProvider defaultTheme={theme}>
