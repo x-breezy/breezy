@@ -9,7 +9,6 @@ import {
   SelectGroup,
   SelectItem,
   SelectTrigger,
-  SelectValue,
 } from "@/components/ui/select"
 
 export function SettingsThemeSelect() {
@@ -29,8 +28,8 @@ export function SettingsThemeSelect() {
           <IconPaintFilled className='shrink-0 text-muted-foreground' />
           <span className='text-sm font-medium text-foreground'>{t("theme")}</span>
         </div>
-        <div className='w-1/4 capitalize'>
-          <SelectValue />
+        <div className='w-1/4 flex justify-end text-sm text-muted-foreground capitalize'>
+          <span>{themes.find((t) => t.value === theme)?.label || "System"}</span>
         </div>
       </SelectTrigger>
       <SelectContent alignItemWithTrigger={false}>
