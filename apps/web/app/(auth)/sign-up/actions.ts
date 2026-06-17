@@ -118,7 +118,7 @@ export async function setupProfileAction(
         if (data?.token && data?.refreshToken) {
           await setSessionCookies(data.token, data.refreshToken)
         }
-      } catch {
+      } catch (_) {
       }
     }
 
