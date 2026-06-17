@@ -2,10 +2,7 @@ import * as grpc from "@grpc/grpc-js"
 import * as protoLoader from "@grpc/proto-loader"
 import path from "path"
 
-const PROTO_PATH = path.resolve(
-  __dirname,
-  "../../../media-service/src/config/data/media.service.proto"
-)
+const PROTO_PATH = path.resolve(__dirname, "../config/data/media.service.proto")
 
 const packageDefinition = protoLoader.loadSync(PROTO_PATH, {
   keepCase: true,
