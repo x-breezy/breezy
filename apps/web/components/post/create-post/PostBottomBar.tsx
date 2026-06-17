@@ -3,7 +3,11 @@
 import { useRef, useState } from "react"
 import { IconPhoto, IconVideo } from "@tabler/icons-react"
 import { Button } from "@/components/ui/button"
+<<<<<<< HEAD
 import { GifPicker } from "./GifPicker"
+=======
+import { useTranslations } from "next-intl"
+>>>>>>> dev
 
 const MAX_CHARS = 250
 
@@ -16,7 +20,11 @@ interface PostBottomBarProps {
 export function PostBottomBar({ onAddMedia, onSelectGif, charCount = 0 }: PostBottomBarProps) {
   const imageRef = useRef<HTMLInputElement>(null)
   const videoRef = useRef<HTMLInputElement>(null)
+<<<<<<< HEAD
   const [gifOpen, setGifOpen] = useState(false)
+=======
+  const t = useTranslations("composePost")
+>>>>>>> dev
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     if (e.target.files && e.target.files.length > 0) {
@@ -26,6 +34,7 @@ export function PostBottomBar({ onAddMedia, onSelectGif, charCount = 0 }: PostBo
   }
 
   return (
+<<<<<<< HEAD
     <>
       <div className='flex items-center gap-1 border-t px-2 py-2'>
         <Button
@@ -83,6 +92,32 @@ export function PostBottomBar({ onAddMedia, onSelectGif, charCount = 0 }: PostBo
           onSelectGif(file)
           setGifOpen(false)
         }}
+=======
+    <div className='flex items-center gap-1 border-t px-2 py-2'>
+      <Button
+        variant='ghost'
+        size='icon-lg'
+        aria-label={t("addPhoto")}
+        onClick={() => imageRef.current?.click()}
+      >
+        <IconPhoto className='size-5 text-muted-foreground' strokeWidth={2} />
+      </Button>
+      <Button
+        variant='ghost'
+        size='icon-lg'
+        aria-label={t("addVideo")}
+        onClick={() => videoRef.current?.click()}
+      >
+        <IconVideo className='size-5 text-muted-foreground' strokeWidth={2} />
+      </Button>
+      <input
+        ref={imageRef}
+        type='file'
+        accept='image/*'
+        multiple
+        className='hidden'
+        onChange={handleChange}
+>>>>>>> dev
       />
     </>
   )

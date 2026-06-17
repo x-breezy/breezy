@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from "react"
 import Link from "next/link"
+import { useTranslations } from "next-intl"
 import { AuthHeader } from "./auth-header"
 import { Button } from "@/components/ui/button"
 import { Label } from "../ui/label"
@@ -16,25 +17,27 @@ export default function SignInScreen() {
   const [password, setPassword] = useState("")
   const [passwordVisible, setPasswordVisible] = useState(false)
   const [state, action, isPending] = useActionState(signInAction, null)
+  const t = useTranslations("auth")
 
   return (
     <div className='mx-auto flex w-full max-w-sm animate-in flex-col justify-center px-4 py-12 font-sans duration-300 select-none fade-in slide-in-from-bottom-4'>
-      <AuthHeader title='Welcome to Breezy' subtitle='Log in to continue' />
+      <AuthHeader title={t("welcome")} subtitle={t("loginToContinue")} />
 
       <form action={action} className='flex w-full flex-col gap-4'>
         <FieldSet>
           <FieldGroup>
             <OAuthButtons status='connect' />
             <Field>
-              <Label htmlFor='identifier'>Email or username</Label>
+              <Label htmlFor='identifier'>{t("emailOrUsername")}</Label>
               <InputGroup>
                 <InputGroupInput
                   id='identifier'
                   name='identifier'
                   type='text'
                   value={identifier}
+                  className='!bg-none'
                   onChange={(e) => setIdentifier(e.target.value)}
-                  placeholder='you@example.com or samaltman'
+                  placeholder={t("identifierPlaceholder")}
                   autoComplete='username'
                   required
                 />
@@ -45,7 +48,7 @@ export default function SignInScreen() {
             </Field>
 
             <Field>
-              <Label htmlFor='password'>Password</Label>
+              <Label htmlFor='password'>{t("password")}</Label>
               <InputGroup>
                 <InputGroupInput
                   id='password'
@@ -53,7 +56,7 @@ export default function SignInScreen() {
                   type={passwordVisible ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder='Enter your password'
+                  placeholder={t("passwordPlaceholder")}
                   autoComplete='current-password'
                   required
                 />
@@ -74,7 +77,7 @@ export default function SignInScreen() {
 
             <Field>
               <Button type='submit' size='lg' disabled={isPending}>
-                {isPending ? "Connecting…" : "Connect"}
+                {isPending ? t("connecting") : t("connect")}
               </Button>
             </Field>
           </FieldGroup>
@@ -83,14 +86,14 @@ export default function SignInScreen() {
 
       <div className='mt-4 text-center text-sm font-medium text-muted-foreground'>
         <Link href='/forgot-password' className='font-semibold text-foreground underline'>
-          Forgot password?
+          {t("forgotPassword")}
         </Link>
       </div>
 
       <div className='mt-4 text-center text-sm font-medium text-muted-foreground'>
-        Don&apos;t have an account?{" "}
+        {t("noAccount")}{" "}
         <Link href='/sign-up' className='font-semibold text-foreground underline'>
-          Sign up
+          {t("signUp")}
         </Link>
       </div>
     </div>

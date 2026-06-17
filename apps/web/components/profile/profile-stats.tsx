@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { cn } from "@/lib/utils"
+import { useTranslations } from "next-intl"
 import { FollowListDialog } from "./follow-list-dialog"
 import type { FollowType } from "./use-follow-list"
 
@@ -44,12 +45,13 @@ interface ProfileStatsProps {
 
 export function ProfileStats({ profileId, followers, following, className }: ProfileStatsProps) {
   const [open, setOpen] = useState<FollowType | null>(null)
+  const t = useTranslations("profilePage")
 
   return (
     <>
       <div className={cn("flex items-center gap-3 text-sm", className)}>
-        <ProfileStat count={followers} label='followers' onClick={() => setOpen("followers")} />
-        <ProfileStat count={following} label='following' onClick={() => setOpen("following")} />
+        <ProfileStat count={followers} label={t("followers")} onClick={() => setOpen("followers")} />
+        <ProfileStat count={following} label={t("following")} onClick={() => setOpen("following")} />
       </div>
 
       {open && (

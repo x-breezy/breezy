@@ -2,6 +2,7 @@
 
 import { use, useEffect, useState, useCallback } from "react"
 import { notFound } from "next/navigation"
+import { useTranslations } from "next-intl"
 import { ProfileHeader } from "@/components/profile/profile-header"
 import { ProfileSection } from "@/components/profile"
 import { useUserStore } from "@/stores/user-store"
@@ -16,6 +17,7 @@ import { toggleLike } from "@/lib/actions/posts"
 
 export default function ProfilePage({ params }: { params: Promise<{ username: string }> }) {
   const { username } = use(params)
+  const t = useTranslations("profilePage")
 
   const ownProfile = useUserStore((s) => s.profile)
   const user = useUserStore((s) => s.user)
@@ -59,16 +61,21 @@ export default function ProfilePage({ params }: { params: Promise<{ username: st
 
   return (
     <div>
+<<<<<<< HEAD
       <ProfileHeader
         title={isOwn ? "My Profile" : `@${username}`}
         name={!isOwn ? authorName : undefined}
         role={!isOwn ? (profile.role as UserRole) : undefined}
         isOwn={isOwn}
       />
+=======
+      <ProfileHeader title={isOwn ? t("myProfile") : `@${username}`} isOwn={isOwn} />
+>>>>>>> dev
 
       <main className='md:px-4 md:py-6'>
         <ProfileSection profile={profile} role={profile.role as UserRole} isOwn={isOwn} />
 
+<<<<<<< HEAD
         <section className='container-center mt-8 p-4 md:p-0'>
           {postsLoading ? (
             <div className='space-y-1'>
@@ -117,6 +124,9 @@ export default function ProfilePage({ params }: { params: Promise<{ username: st
             </>
           )}
         </section>
+=======
+        <ProfilePostsSection posts={MOCK_POSTS} title={t("posts")} className='mt-8' />
+>>>>>>> dev
       </main>
     </div>
   )

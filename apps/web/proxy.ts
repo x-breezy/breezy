@@ -16,7 +16,10 @@ const AUTH_ONLY_PATHS = [
 ]
 
 // Always accessible regardless of auth state (token-based flows work for both auth states)
-const ALWAYS_ACCESSIBLE = ["/verify-email", "/reset-password"]
+const ALWAYS_ACCESSIBLE = ["/verify-email", "/reset-password", "/terms", "/privacy"]
+
+// Paths that require auth but are accessible even without a profile (to avoid redirect loops)
+const ONBOARDING_PATHS = ["/onboarding"]
 
 async function refreshTokens(
   refreshToken: string
@@ -67,6 +70,7 @@ export default async function proxy(request: NextRequest) {
 
   const isAuthOnlyPath = AUTH_ONLY_PATHS.some((p) => pathname.startsWith(p))
   const isAlwaysAccessible = ALWAYS_ACCESSIBLE.some((p) => pathname.startsWith(p))
+  const isOnboardingPath = ONBOARDING_PATHS.some((p) => pathname.startsWith(p))
 
   const redirectToSignIn = () => {
     const res = NextResponse.redirect(new URL("/sign-in", request.url))
@@ -75,14 +79,23 @@ export default async function proxy(request: NextRequest) {
     return res
   }
 
+  const redirectToOnboarding = () =>
+    NextResponse.redirect(new URL("/onboarding", request.url))
+
   const valid = token ? !isTokenExpired(token) : false
 
   if (!valid && refreshToken) {
     const refreshed = await refreshTokens(refreshToken)
     if (refreshed) {
-      const res = isAuthOnlyPath
-        ? NextResponse.redirect(new URL("/", request.url))
-        : NextResponse.next()
+      const hasProfile = request.cookies.get("has_profile")?.value === "1"
+      let res: NextResponse
+      if (isAuthOnlyPath) {
+        res = NextResponse.redirect(new URL(hasProfile ? "/" : "/onboarding", request.url))
+      } else if (!hasProfile && !isOnboardingPath && !isAlwaysAccessible) {
+        res = redirectToOnboarding()
+      } else {
+        res = NextResponse.next()
+      }
       setSession(res, refreshed.token, refreshed.refreshToken)
       return res
     }
@@ -97,7 +110,13 @@ export default async function proxy(request: NextRequest) {
 
   const isServerAction = request.headers.has("next-action")
   if (isAuthOnlyPath && !isServerAction) {
-    return NextResponse.redirect(new URL("/", request.url))
+    const hasProfile = request.cookies.get("has_profile")?.value === "1"
+    return NextResponse.redirect(new URL(hasProfile ? "/" : "/onboarding", request.url))
+  }
+
+  if (!isServerAction && !isOnboardingPath && !isAlwaysAccessible) {
+    const hasProfile = request.cookies.get("has_profile")?.value === "1"
+    if (!hasProfile) return redirectToOnboarding()
   }
 
   return NextResponse.next()

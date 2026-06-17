@@ -40,5 +40,5 @@ export async function googleUsernameAction(
     return { error: "Could not reach the server." }
   }
 
-  redirect("/")
+  redirect("/onboarding")
 }

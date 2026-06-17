@@ -1,6 +1,7 @@
 "use client"
 
 import { useActionState, useState } from "react"
+import { useTranslations } from "next-intl"
 import { useSearchParams } from "next/navigation"
 import { AuthHeader } from "@/components/auth/auth-header"
 import { Button } from "@/components/ui/button"
@@ -16,16 +17,17 @@ export default function ResetPasswordPage() {
   const [confirmPassword, setConfirmPassword] = useState("")
   const [localError, setLocalError] = useState<string | null>(null)
   const [state, action, isPending] = useActionState(resetPasswordAction, null)
+  const t = useTranslations("auth")
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     if (getStrength(password) < 3) {
       event.preventDefault()
-      setLocalError("Please choose a stronger password.")
+      setLocalError(t("weakPassword"))
       return
     }
     if (password !== confirmPassword) {
       event.preventDefault()
-      setLocalError("Passwords do not match.")
+      setLocalError(t("passwordsMismatch"))
       return
     }
     setLocalError(null)
@@ -36,14 +38,14 @@ export default function ResetPasswordPage() {
   if (!token) {
     return (
       <div className='mx-auto flex w-full max-w-sm animate-in flex-col justify-center px-4 py-12 text-center font-sans duration-300 select-none fade-in slide-in-from-bottom-4'>
-        <AuthHeader title='Invalid link' subtitle='This reset link is missing or malformed.' />
+        <AuthHeader title={t("invalidLink")} subtitle={t("invalidLinkDesc")} />
       </div>
     )
   }
 
   return (
     <div className='mx-auto flex w-full max-w-sm animate-in flex-col justify-center px-4 py-12 font-sans duration-300 select-none fade-in slide-in-from-bottom-4'>
-      <AuthHeader title='Reset password' subtitle='Choose a new password for your account' />
+      <AuthHeader title={t("resetPasswordTitle")} subtitle={t("resetPasswordSubtitle")} />
 
       <form action={action} onSubmit={handleSubmit} className='flex w-full flex-col gap-4'>
         <input type='hidden' name='token' value={token} />
@@ -67,7 +69,7 @@ export default function ResetPasswordPage() {
 
             <Field>
               <Button type='submit' size='lg' disabled={isPending}>
-                {isPending ? "Resetting…" : "Reset password"}
+                {isPending ? t("resetting") : t("resetBtn")}
               </Button>
             </Field>
           </FieldGroup>
