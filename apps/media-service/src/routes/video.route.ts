@@ -5,17 +5,24 @@ import { identity } from "../middlewares/identity.middleware"
 import { requireOwnership } from "../middlewares/owner.middleware"
 import { VideoModel } from "../models/video.model"
 import { ROLES } from "../constants/roles"
+import {
+  videoUploadLimit,
+  readLimit,
+  writeLimit,
+  publicReadLimit,
+} from "../middlewares/rate-limit.middleware"
 
 function createVideoRouter(controller: VideoController = new VideoController(new VideoService())) {
   const router = Router()
 
   // No body parser: the raw request stream is piped straight into GridFS.
-  router.post("/", identity, controller.upload)
-  router.get("/:id/meta", identity, controller.getMeta)
-  router.get("/:id", controller.getStream)
+  router.post("/", identity, videoUploadLimit, controller.upload)
+  router.get("/:id/meta", identity, readLimit, controller.getMeta)
+  router.get("/:id", publicReadLimit, controller.getStream)
   router.delete(
     "/:id",
     identity,
+    writeLimit,
     requireOwnership(VideoModel, ROLES.MODERATOR, ROLES.ADMIN),
     controller.delete
   )

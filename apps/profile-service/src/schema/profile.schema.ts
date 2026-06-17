@@ -1,7 +1,6 @@
 import { z } from "zod"
 
 export const createProfileSchema = z.object({
-  profileId: z.string().uuid(),
   username: z.string().max(100),
   firstName: z.string().max(100).nullable().optional(),
   lastName: z.string().max(100).nullable().optional(),

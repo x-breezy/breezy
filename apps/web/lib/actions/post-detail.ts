@@ -2,7 +2,7 @@
 
 import { cookies } from "next/headers"
 
-const GATEWAY_URL = process.env.GATEWAY_URL ?? "http://localhost:80"
+const API_URL = process.env.API_URL ?? "http://localhost"
 
 export interface MediaItem {
   id: string
@@ -62,7 +62,7 @@ export async function getPostDetail(postId: string): Promise<PostDetail | null> 
   if (!/^[a-f0-9]{24}$/i.test(postId)) return null
 
   const headers = await getAuthHeaders()
-  const res = await fetch(`${GATEWAY_URL}/api/posts/${postId}/detail`, { headers })
+  const res = await fetch(`${API_URL}/api/posts/${postId}/detail`, { headers })
   if (!res.ok) {
     if (res.status === 404) return null
     throw new Error(`Failed to fetch post detail: ${res.status}`)

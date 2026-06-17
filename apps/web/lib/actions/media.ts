@@ -2,7 +2,7 @@
 
 import { cookies } from "next/headers"
 
-const GATEWAY_URL = process.env.GATEWAY_URL ?? "http://localhost:80"
+const API_URL = process.env.API_URL ?? "http://localhost"
 
 export async function uploadMediaAction(
   file: File
@@ -13,7 +13,7 @@ export async function uploadMediaAction(
   const isVideo = file.type.startsWith("video/")
   const endpoint = isVideo ? "/api/media/videos" : "/api/media/images"
 
-  const res = await fetch(`${GATEWAY_URL}${endpoint}`, {
+  const res = await fetch(`${API_URL}${endpoint}`, {
     method: "POST",
     headers: {
       "Content-Type": file.type,

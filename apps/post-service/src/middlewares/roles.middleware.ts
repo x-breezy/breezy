@@ -44,6 +44,7 @@ export function requireOwnership<T extends { authorId: string }>(
       res.status(404).json({ success: false, error: "Not found" })
       return
     }
+    req.resource = resource
     const isOwner = resource.authorId === req.user?.id
     const hasElevated = req.user?.permissions.includes(elevatedPermission) ?? false
     if (!isOwner && !hasElevated) {

@@ -18,7 +18,7 @@ import type {
   GoogleCompleteDTO,
 } from "../schemas/auth.schema"
 
-const APP_URL = process.env.APP_URL ?? "http://localhost:3000"
+const FRONTEND_URL = process.env.FRONTEND_URL ?? "http://localhost:3000"
 
 class AuthController {
   private userService: UserService
@@ -335,7 +335,7 @@ class AuthController {
 
   twoFactorSendCode = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const userId = req.headers["x-user-id"] as string
+      const userId = req.user!.id
       const user = await this.userService.getUser(userId)
       if (!user) {
         res.status(404).json({ success: false, message: "User not found" })
@@ -363,7 +363,7 @@ class AuthController {
     next: NextFunction
   ): Promise<void> => {
     try {
-      const userId = req.headers["x-user-id"] as string
+      const userId = req.user!.id
       await this.authService.verifyTwoFactorCode(userId, req.body.code)
       await this.authService.enableTwoFactor(userId)
       res.status(200).json({ success: true })
@@ -382,7 +382,7 @@ class AuthController {
 
   twoFactorDisable = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const userId = req.headers["x-user-id"] as string
+      const userId = req.user!.id
       await this.authService.disableTwoFactor(userId)
       res.status(200).json({ success: true })
     } catch (error) {
@@ -395,7 +395,7 @@ class AuthController {
       const authUrl = await this.authService.startGoogleOAuth()
       res.redirect(authUrl)
     } catch {
-      res.redirect(`${APP_URL}/sign-in?error=oauth`)
+      res.redirect(`${FRONTEND_URL}/sign-in?error=oauth`)
     }
   }
 
@@ -403,14 +403,14 @@ class AuthController {
     const { code, state, error } = req.query as Record<string, string>
 
     if (error || !code || !state) {
-      res.redirect(`${APP_URL}/sign-in?error=oauth`)
+      res.redirect(`${FRONTEND_URL}/sign-in?error=oauth`)
       return
     }
 
     try {
       const codeVerifier = await this.authService.resolveGoogleOAuthSession(state)
       if (!codeVerifier) {
-        res.redirect(`${APP_URL}/sign-in?error=oauth`)
+        res.redirect(`${FRONTEND_URL}/sign-in?error=oauth`)
         return
       }
 
@@ -423,7 +423,7 @@ class AuthController {
           ...cookieOpts,
           maxAge: 15 * 60 * 1000,
         })
-        res.redirect(`${APP_URL}/google-username`)
+        res.redirect(`${FRONTEND_URL}/google-username`)
         return
       }
 
@@ -437,9 +437,9 @@ class AuthController {
         ...cookieOpts,
         maxAge: 7 * 24 * 60 * 60 * 1000,
       })
-      res.redirect(`${APP_URL}/`)
+      res.redirect(`${FRONTEND_URL}/`)
     } catch {
-      res.redirect(`${APP_URL}/sign-in?error=oauth`)
+      res.redirect(`${FRONTEND_URL}/sign-in?error=oauth`)
     }
   }
 
@@ -450,10 +450,7 @@ class AuthController {
   ): Promise<void> => {
     try {
       const { pendingToken, username } = req.body
-      const { user, created, googleClaims } = await this.authService.completeGoogleAuth(
-        pendingToken,
-        username
-      )
+      const { user, created } = await this.authService.completeGoogleAuth(pendingToken, username)
 
       if (created) {
         if (!user.isEmailVerified) {

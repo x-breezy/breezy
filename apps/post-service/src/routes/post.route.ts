@@ -5,6 +5,7 @@ import { identity } from "../middlewares/identity.middleware"
 import { requireOwnership } from "../middlewares/roles.middleware"
 import { validate } from "../middlewares/validate.middleware"
 import { createPostSchema, updatePostSchema } from "../schemas/post.schema"
+import { readLimit, writeLimit, searchLimit } from "../middlewares/rate-limit.middleware"
 import { PERMISSIONS } from "../constants/permissions"
 import { PostModel } from "../models/post.model"
 import { createLikeRouter } from "./like.route"
@@ -18,18 +19,19 @@ export function createPostRouter(
   const router = Router()
 
   // Static routes BEFORE /:id to avoid param-route swallowing
-  router.post("/", identity, validate(createPostSchema), controller.create)
-  router.get("/feed", identity, controller.getFeed)
-  router.get("/search", identity, controller.search)
-  router.get("/trending-tags", identity, controller.trendingTags)
-  router.get("/liked-by-me", identity, likeController.getMyLikes)
-  router.get("/users/:userId", identity, controller.getUserPosts)
-  router.get("/:id/detail", identity, controller.getDetail)
-  router.get("/:id/replies", identity, controller.getReplies)
-  router.get("/:id", identity, controller.getOne)
+  router.post("/", identity, writeLimit, validate(createPostSchema), controller.create)
+  router.get("/feed", identity, readLimit, controller.getFeed)
+  router.get("/search", identity, searchLimit, controller.search)
+  router.get("/trending-tags", identity, readLimit, controller.trendingTags)
+  router.get("/liked-by-me", identity, readLimit, likeController.getMyLikes)
+  router.get("/users/:userId", identity, readLimit, controller.getUserPosts)
+  router.get("/:id/detail", identity, readLimit, controller.getDetail)
+  router.get("/:id/replies", identity, readLimit, controller.getReplies)
+  router.get("/:id", identity, readLimit, controller.getOne)
   router.patch(
     "/:id",
     identity,
+    writeLimit,
     requireOwnership(
       (req) => PostModel.findById(req.params.id).exec(),
       PERMISSIONS.POST_UPDATE_ANY
@@ -40,6 +42,7 @@ export function createPostRouter(
   router.delete(
     "/:id",
     identity,
+    writeLimit,
     requireOwnership(
       (req) => PostModel.findById(req.params.id).exec(),
       PERMISSIONS.POST_DELETE_ANY

@@ -4,7 +4,7 @@ import { cookies } from "next/headers"
 import { getLikedPostIds, type SearchPost } from "@/lib/actions/posts"
 import { fetchProfilesByIds, type SearchProfile } from "@/lib/actions/profiles"
 
-const GATEWAY_URL = process.env.GATEWAY_URL ?? "http://localhost:80"
+const API_URL = process.env.API_URL ?? "http://localhost"
 const LIMIT = 20
 
 export interface FeedPage {
@@ -25,7 +25,7 @@ async function getAuthHeaders(): Promise<Record<string, string>> {
 export async function listFeedPosts(page = 1): Promise<FeedPage> {
   const headers = await getAuthHeaders()
   const params = new URLSearchParams({ page: String(page), limit: String(LIMIT) })
-  const res = await fetch(`${GATEWAY_URL}/api/posts/feed?${params}`, { headers })
+  const res = await fetch(`${API_URL}/api/posts/feed?${params}`, { headers })
   if (!res.ok) throw new Error(`Failed to fetch feed: ${res.status}`)
   const json = await res.json()
   const result = json.data as { data: SearchPost[]; total: number; page: number; limit: number }
