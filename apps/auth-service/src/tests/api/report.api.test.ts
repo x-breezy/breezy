@@ -131,7 +131,10 @@ describe("PATCH /reports/:id/resolve", () => {
 
     expect(res.status).toBe(200)
     expect(res.body.success).toBe(true)
-    expect(mockReportService.resolveReport).toHaveBeenCalledWith("33333333-3333-3333-3333-333333333333", ADMIN_ID)
+    expect(mockReportService.resolveReport).toHaveBeenCalledWith(
+      "33333333-3333-3333-3333-333333333333",
+      ADMIN_ID
+    )
   })
 
   it("returns 401 without auth header", async () => {
