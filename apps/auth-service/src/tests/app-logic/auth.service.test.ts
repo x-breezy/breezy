@@ -4,7 +4,7 @@ import { EmailVerificationToken } from "../../models/email-verification-token.mo
 import { PasswordResetToken } from "../../models/password-reset-token.model"
 import { TwoFactorCode } from "../../models/two-factor-code.model"
 import { hashPassword, verifyPassword } from "../../utils/password.util"
-import { signToken, generateRefreshToken, hashRefreshToken } from "../../utils/jwt.util"
+import { signToken } from "../../utils/jwt.util"
 import { getRedis } from "../../clients/redis"
 
 jest.mock("../../models/user.model", () => ({
