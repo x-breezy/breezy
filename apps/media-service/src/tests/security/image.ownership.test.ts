@@ -36,7 +36,7 @@ beforeEach(() => {
   })
 })
 
-describe("DELETE /images/:id — ownership enforcement", () => {
+describe("DELETE /images/:id ownership enforcement", () => {
   it("allows owner to delete their own image", async () => {
     mockVerifyJwt.mockReturnValue({ sub: ALICE_ID, role: "user" })
     ;(mockImageModel.findById as jest.Mock).mockReturnValue({

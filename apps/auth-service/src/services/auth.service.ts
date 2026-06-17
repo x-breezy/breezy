@@ -19,7 +19,7 @@ import { getRedis } from "../clients/redis"
 import type { Role } from "../constants/roles"
 import type { SignInDTO } from "../schemas/auth.schema"
 
-const APP_URL = process.env.APP_URL ?? "http://localhost:3000"
+const FRONTEND_URL = process.env.FRONTEND_URL ?? "http://localhost:3000"
 const REFRESH_TTL_SECONDS = Math.floor(REFRESH_TOKEN_TTL_MS / 1000)
 
 const GRACE_TTL_SECONDS = 60
@@ -201,7 +201,7 @@ class AuthService {
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000)
     await EmailVerificationToken.create({ userId, token, expiresAt, usedAt: null })
 
-    return { token, verifyUrl: `${APP_URL}/verify-email?token=${token}` }
+    return { token, verifyUrl: `${FRONTEND_URL}/verify-email?token=${token}` }
   }
 
   async resendVerification(
@@ -241,7 +241,7 @@ class AuthService {
       userId: user.id,
       username: user.username,
       token,
-      resetUrl: `${APP_URL}/reset-password?token=${token}`,
+      resetUrl: `${FRONTEND_URL}/reset-password?token=${token}`,
     }
   }
 

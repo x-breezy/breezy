@@ -13,6 +13,7 @@ jest.mock("../../models/image.model", () => ({
 
 jest.mock("sharp", () =>
   jest.fn(() => ({
+    rotate: jest.fn().mockReturnThis(),
     resize: jest.fn().mockReturnThis(),
     toFormat: jest.fn().mockReturnThis(),
     toBuffer: jest.fn().mockResolvedValue(Buffer.from("optimized")),

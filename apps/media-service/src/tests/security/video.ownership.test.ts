@@ -36,7 +36,7 @@ beforeEach(() => {
   })
 })
 
-describe("DELETE /videos/:id — ownership enforcement", () => {
+describe("DELETE /videos/:id ownership enforcement", () => {
   it("allows owner to delete their own video", async () => {
     mockVerifyJwt.mockReturnValue({ sub: ALICE_ID, role: "user" })
     ;(mockVideoModel.findById as jest.Mock).mockReturnValue({

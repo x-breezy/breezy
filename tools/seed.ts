@@ -183,7 +183,7 @@ const USERS: UserSeed[] = [
     role: ROLES.ADMIN,
     firstName: "Alex",
     lastName: "Chen",
-    bio: "Building Breezy — the freshest social platform. Tech, design, and good vibes.",
+    bio: "Building Breezy the freshest social platform. Tech, design, and good vibes.",
     gender: "men",
     avatarIndex: 32,
   },
@@ -428,7 +428,7 @@ const USERS: UserSeed[] = [
 // ── Images (using MongoDB-compatible ObjectIds) ──
 
 const IMAGES: MediaSeed[] = [
-  // Maya (photographer) — 5 images
+  // Maya (photographer) 5 images
   {
     id: objectId(),
     originalName: "golden-hour-brooklyn.png",
@@ -480,7 +480,7 @@ const IMAGES: MediaSeed[] = [
     height: 80,
   },
 
-  // Lena (illustrator) — 3 images
+  // Lena (illustrator) 3 images
   {
     id: objectId(),
     originalName: "neon-dreams.png",
@@ -512,7 +512,7 @@ const IMAGES: MediaSeed[] = [
     height: 80,
   },
 
-  // Emma (food blogger) — 3 images
+  // Emma (food blogger) 3 images
   {
     id: objectId(),
     originalName: "truffle-pasta.png",
@@ -544,7 +544,7 @@ const IMAGES: MediaSeed[] = [
     height: 60,
   },
 
-  // Liam (travel) — 2 images
+  // Liam (travel) 2 images
   {
     id: objectId(),
     originalName: "machu-picchu.png",
@@ -566,7 +566,7 @@ const IMAGES: MediaSeed[] = [
     height: 60,
   },
 
-  // Others — 1 each
+  // Others 1 each
   {
     id: objectId(),
     originalName: "dark-mode-preview.png",
@@ -677,7 +677,7 @@ const FOLLOW_GRAPH: Record<string, string[]> = {
 // ── Posts (media refs will be resolved at runtime) ──
 
 const POSTS: PostSeed[] = [
-  // Alex — 2 posts
+  // Alex 2 posts
   {
     content:
       "Excited to announce dark mode on Breezy! Took a few late nights but we think you'll love it. #Breezy #Update",
@@ -694,7 +694,7 @@ const POSTS: PostSeed[] = [
     mentions: [],
   },
 
-  // Maya — 3 posts
+  // Maya 3 posts
   {
     content:
       "Golden hour at Brooklyn Bridge today. Sometimes you just have to stop and appreciate the light. #photography #NYC #goldenhour",
@@ -705,7 +705,7 @@ const POSTS: PostSeed[] = [
   },
   {
     content:
-      "Film vs digital — why not both? Shot this on my Leica M6 and edited on Lightroom. #photography #film",
+      "Film vs digital why not both? Shot this on my Leica M6 and edited on Lightroom. #photography #film",
     authorUsername: "maya",
     tags: ["photography", "film"],
     mentions: [],
@@ -719,10 +719,10 @@ const POSTS: PostSeed[] = [
     mentions: ["alex", "priya"],
   },
 
-  // James — 3 posts
+  // James 3 posts
   {
     content:
-      "Just shipped a new open source project — a lightweight rate limiter for Express APIs. Check it out! #opensource #nodejs #typescript",
+      "Just shipped a new open source project a lightweight rate limiter for Express APIs. Check it out! #opensource #nodejs #typescript",
     authorUsername: "james",
     tags: ["opensource", "nodejs", "typescript"],
     mentions: [],
@@ -742,7 +742,7 @@ const POSTS: PostSeed[] = [
     mentions: ["alex"],
   },
 
-  // Priya — 2 posts
+  // Priya 2 posts
   {
     content:
       "Spent the week redesigning our onboarding flow. First impressions matter! Here's a sneak peek. #design #UX #Breezy",
@@ -759,7 +759,7 @@ const POSTS: PostSeed[] = [
     mentions: [],
   },
 
-  // Sam — 2 posts
+  // Sam  2 posts
   {
     content:
       "Morning pages are non-negotiable. Day 347 of stream-of-consciousness before the world gets loud. #writing #morningpages",
@@ -775,7 +775,7 @@ const POSTS: PostSeed[] = [
     mentions: [],
   },
 
-  // Jordan — 2 posts
+  // Jordan  2 posts
   {
     content:
       "New community guidelines are live! Updated our policies on harassment and misinformation. Let's keep Breezy positive. #community #safety",
@@ -791,16 +791,16 @@ const POSTS: PostSeed[] = [
     mentions: [],
   },
 
-  // David — 1 post
+  // David  1 post
   {
     content:
-      "Training a recommendation model on Breezy engagement patterns. The data is fascinating — users are most active at 8pm. #ML #Breezy #data",
+      "Training a recommendation model on Breezy engagement patterns. The data is fascinating  users are most active at 8pm. #ML #Breezy #data",
     authorUsername: "david",
     tags: ["ML", "Breezy", "data"],
     mentions: [],
   },
 
-  // Sarah — 1 post
+  // Sarah  1 post
   {
     content:
       "Just migrated our entire infrastructure to Kubernetes. Zero downtime. Feeling proud of the team. #devops #kubernetes #cloud",
@@ -809,7 +809,7 @@ const POSTS: PostSeed[] = [
     mentions: [],
   },
 
-  // Ananya — 1 post
+  // Ananya  1 post
   {
     content:
       "Analyzed engagement patterns across 10k users. Peak activity at 8pm with a secondary spike at noon. Insights incoming! #data #analytics",
@@ -818,7 +818,7 @@ const POSTS: PostSeed[] = [
     mentions: [],
   },
 
-  // Lena — 2 posts
+  // Lena  2 posts
   {
     content:
       "New illustration series: Neon Dreams. Here's the first piece. Feedback welcome! #art #illustration #design",
@@ -836,7 +836,7 @@ const POSTS: PostSeed[] = [
     media: [],
   },
 
-  // Yuki — 1 post
+  // Yuki  1 post
   {
     content:
       "Just wrapped shooting a short film in Kyoto. The autumn colors were absolutely unbelievable. #filmmaking #Kyoto #cinematography",
@@ -846,7 +846,7 @@ const POSTS: PostSeed[] = [
     media: [],
   },
 
-  // Emma — 2 posts
+  // Emma  2 posts
   {
     content:
       "Homemade truffle pasta from scratch. 30 minutes, 10 ingredients, pure magic. Recipe coming soon! #cooking #pasta #food",
@@ -864,7 +864,7 @@ const POSTS: PostSeed[] = [
     media: [],
   },
 
-  // Carlos — 1 post
+  // Carlos  1 post
   {
     content:
       "Consistency over intensity. 500 days streak today. Showing up is half the battle. #fitness #discipline #health",
@@ -873,7 +873,7 @@ const POSTS: PostSeed[] = [
     mentions: [],
   },
 
-  // Zara — 1 post
+  // Zara  1 post
   {
     content:
       "Spring capsule wardrobe: 15 pieces, endless combinations. Who says minimalism is boring? #fashion #style #minimalism",
@@ -882,7 +882,7 @@ const POSTS: PostSeed[] = [
     mentions: [],
   },
 
-  // Liam — 2 posts
+  // Liam  2 posts
   {
     content: "Sunrise over Machu Picchu. Some places change you forever. #travel #Peru #adventure",
     authorUsername: "liam",
@@ -899,7 +899,7 @@ const POSTS: PostSeed[] = [
     media: [],
   },
 
-  // Marcus — 1 post
+  // Marcus  1 post
   {
     content:
       "The secret to a perfect steak: let it rest. Patience is the most underrated ingredient. #cooking #steak #tips",
@@ -909,7 +909,7 @@ const POSTS: PostSeed[] = [
     media: [],
   },
 
-  // Nina — 1 post
+  // Nina  1 post
   {
     content:
       "Digital wellness tip: schedule phone-free hours. Your brain will thank you. Start with one hour before bed. #wellness #mentalhealth",
@@ -918,7 +918,7 @@ const POSTS: PostSeed[] = [
     mentions: [],
   },
 
-  // Rajan — 1 post
+  // Rajan  1 post
   {
     content:
       "Bootstrapped from 0 to 100k users. The single biggest lesson: talk to your users every single day. #startup #entrepreneurship",
@@ -927,7 +927,7 @@ const POSTS: PostSeed[] = [
     mentions: [],
   },
 
-  // Fatima — 1 post
+  // Fatima  1 post
   {
     content:
       "Published my paper on climate modeling! Years of work finally out in the world. #science #climate #research",
@@ -936,7 +936,7 @@ const POSTS: PostSeed[] = [
     mentions: [],
   },
 
-  // Ben — 1 post
+  // Ben  1 post
   {
     content:
       "My students built their first web app today. A full-stack CRUD app. I've never been prouder. The future is bright! #teaching #coding #education",

@@ -223,7 +223,7 @@ export class PostService {
     }
 
     const ids = posts.map((p) => String(p.id))
-    // depth=1 fetches level-2 replies — only show root author's responses
+    // depth=1 fetches level-2 replies only show root author's responses
     const childFilter: Record<string, unknown> = { parentId: { $in: ids } }
     if (depth === 1 && rootAuthorId) childFilter.authorId = rootAuthorId
     const children = (await PostModel.find(childFilter)
