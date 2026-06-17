@@ -5,6 +5,7 @@ import type { Role } from "../constants/roles"
 export interface TokenClaims {
   sub: string
   role: Role
+  isComplete?: boolean
 }
 
 export interface TokenPayload extends TokenClaims {
@@ -36,7 +37,8 @@ export const REFRESH_TOKEN_TTL_MS = Number(
 
 export function signToken(claims: TokenClaims): string {
   const jti = randomUUID()
-  return jwt.sign({ ...claims, jti }, getPrivatePem(), {
+  const { sub, role, isComplete = false } = claims
+  return jwt.sign({ sub, role, isComplete, jti }, getPrivatePem(), {
     algorithm: "RS256",
     expiresIn,
     keyid: getKid(),
