@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react"
 
 const STORAGE_KEY = "breezy_recent_searches"
-const MAX_RECENT_SEARCHES = 10
+const MAX_RECENT_SEARCHES = 5
 
 export function useRecentSearches() {
   const [recentSearches, setRecentSearches] = useState<string[]>([])
