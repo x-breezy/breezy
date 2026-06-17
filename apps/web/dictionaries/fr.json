@@ -210,7 +210,7 @@
   "terms": {
     "title": "Conditions d'Utilisation",
     "lastUpdated": "Dernière mise à jour : {date}",
-    "intro1": "Bienvenue sur <company>{appName}</company>. Ces Conditions d'Utilisation (\"Conditions\") régissent votre accès et votre utilisation de la plateforme {appName}, y compris notre site web, nos applications mobiles et tous les services associés (collectivement le \"Service\"), exploités par <company>{company}</company> (\"nous\", \"notre\" ou \"nos\").",
+    "intro1": "Bienvenue sur <bold>{appName}</bold>. Ces Conditions d'Utilisation (\"Conditions\") régissent votre accès et votre utilisation de la plateforme {appName}, y compris notre site web, nos applications mobiles et tous les services associés (collectivement le \"Service\"), exploités par <bold>{company}</bold> (\"nous\", \"notre\" ou \"nos\").",
     "intro2": "En créant un compte ou en utilisant le Service de quelque manière que ce soit, vous acceptez d'être lié par ces Conditions. Si vous n'acceptez pas, vous ne devez pas accéder ni utiliser le Service.",
     "s1Title": "1. Éligibilité",
     "s1_1": "Vous devez avoir au moins <bold>13 ans</bold> pour utiliser {appName}. Si vous avez moins de 18 ans, vous devez avoir l'accord d'un parent ou tuteur légal.",

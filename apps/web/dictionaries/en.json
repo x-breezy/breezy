@@ -210,7 +210,7 @@
   "terms": {
     "title": "Terms and Conditions",
     "lastUpdated": "Last updated: {date}",
-    "intro1": "Welcome to <company>{appName}</company>. These Terms and Conditions (\"Terms\") govern your access to and use of the {appName} platform, including our website, mobile applications, and all related services (collectively, the \"Service\"), operated by <company>{company}</company> (\"we\", \"us\", or \"our\").",
+    "intro1": "Welcome to <bold>{appName}</bold>. These Terms and Conditions (\"Terms\") govern your access to and use of the {appName} platform, including our website, mobile applications, and all related services (collectively, the \"Service\"), operated by <bold>{company}</bold> (\"we\", \"us\", or \"our\").",
     "intro2": "By creating an account or using the Service in any way, you agree to be bound by these Terms. If you do not agree, you must not access or use the Service.",
     "s1Title": "1. Eligibility",
     "s1_1": "You must be at least <bold>13 years old</bold> to use {appName}. If you are under 18, you must have consent from a parent or legal guardian.",
