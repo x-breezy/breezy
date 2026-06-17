@@ -51,6 +51,17 @@ function isTokenExpired(token: string): boolean {
   }
 }
 
+function getIsComplete(token: string): boolean {
+  try {
+    const part = token.split(".")[1]
+    if (!part) return false
+    const payload = JSON.parse(Buffer.from(part, "base64url").toString()) as { isComplete?: boolean }
+    return payload.isComplete === true
+  } catch {
+    return false
+  }
+}
+
 function setSession(res: NextResponse, token: string, refreshToken: string) {
   const opts = {
     path: "/",
@@ -86,11 +97,11 @@ export default async function proxy(request: NextRequest) {
   if (!valid && refreshToken) {
     const refreshed = await refreshTokens(refreshToken)
     if (refreshed) {
-      const hasProfile = request.cookies.get("has_profile")?.value === "1"
+      const isComplete = getIsComplete(refreshed.token)
       let res: NextResponse
       if (isAuthOnlyPath) {
-        res = NextResponse.redirect(new URL(hasProfile ? "/" : "/onboarding", request.url))
-      } else if (!hasProfile && !isOnboardingPath && !isAlwaysAccessible) {
+        res = NextResponse.redirect(new URL(isComplete ? "/" : "/onboarding", request.url))
+      } else if (!isComplete && !isOnboardingPath && !isAlwaysAccessible) {
         res = redirectToOnboarding()
       } else {
         res = NextResponse.next()
@@ -109,13 +120,13 @@ export default async function proxy(request: NextRequest) {
 
   const isServerAction = request.headers.has("next-action")
   if (isAuthOnlyPath && !isServerAction) {
-    const hasProfile = request.cookies.get("has_profile")?.value === "1"
-    return NextResponse.redirect(new URL(hasProfile ? "/" : "/onboarding", request.url))
+    const isComplete = getIsComplete(token!)
+    return NextResponse.redirect(new URL(isComplete ? "/" : "/onboarding", request.url))
   }
 
   if (!isServerAction && !isOnboardingPath && !isAlwaysAccessible) {
-    const hasProfile = request.cookies.get("has_profile")?.value === "1"
-    if (!hasProfile) return redirectToOnboarding()
+    const isComplete = getIsComplete(token!)
+    if (!isComplete) return redirectToOnboarding()
   }
 
   return NextResponse.next()

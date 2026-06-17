@@ -90,6 +90,8 @@ function createAuthRouter(
   )
   router.post("/2fa/disable", identity, strictLimit, authController.twoFactorDisable)
 
+  router.post("/profile-created", authController.profileCreated)
+
   return router
 }
 

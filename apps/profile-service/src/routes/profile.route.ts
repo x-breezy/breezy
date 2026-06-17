@@ -26,8 +26,9 @@ function createProfileRouter() {
   const profileService = new ProfileService()
   const profileController = new ProfileController(profileService)
 
-  router.get("/search", identity, searchLimit, profileController.search)
-  router.get("/batch", publicReadLimit, profileController.batchGet)
+  router.get("/search", identity, profileController.search)
+  router.get("/batch", profileController.batchGet)
+  router.get("/internal/:profileId", readLimit, profileController.getProfile)
 
   // Protected, static routes BEFORE /:profileId to avoid param-route swallowing
   router.get(
