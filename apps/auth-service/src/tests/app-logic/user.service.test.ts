@@ -1,7 +1,6 @@
 import UserService from "../../services/user.service"
 import { User } from "../../models/user.model"
 import { hashPassword, verifyPassword } from "../../utils/password.util"
-import { getRedis } from "../../clients/redis"
 
 jest.mock("../../models/user.model", () => ({
   User: {
