@@ -233,8 +233,8 @@ export function AutoplayVideo({
             onValueChange={(v) => {
               const el = videoRef.current
               if (!el) return
-              el.currentTime = v
-              setCurrentTime(v)
+              el.currentTime = v[0]!
+              setCurrentTime(v[0]!)
             }}
             className='mb-1.5'
           >
