@@ -32,8 +32,12 @@ async function start(): Promise<void> {
   await connectRabbitMQ()
   await connectRedis()
 
-  app.listen(port, () => {
+  const server = app.listen(port, () => {
     logger.info({ port }, "Auth service listening")
+  })
+
+  process.on("SIGTERM", () => {
+    server.close(() => process.exit(0))
   })
 }
 

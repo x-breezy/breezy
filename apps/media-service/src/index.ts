@@ -15,8 +15,12 @@ async function start(): Promise<void> {
 
   startGrpcServer(Number(process.env.GRPC_PORT ?? 50052))
 
-  app.listen(port, () => {
+  const server = app.listen(port, () => {
     logger.info({ port }, "Media service listening")
+  })
+
+  process.on("SIGTERM", () => {
+    server.close(() => process.exit(0))
   })
 }
 

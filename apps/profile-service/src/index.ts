@@ -26,8 +26,12 @@ async function start(): Promise<void> {
   await connectRabbitMQ()
   startGrpcServer(50051)
 
-  app.listen(port, () => {
+  const server = app.listen(port, () => {
     logger.info({ port }, "Profile service listening")
+  })
+
+  process.on("SIGTERM", () => {
+    server.close(() => process.exit(0))
   })
 }
 

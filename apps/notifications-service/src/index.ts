@@ -16,8 +16,12 @@ async function start(): Promise<void> {
 
   await startConsuming(handleEvent)
 
-  app.listen(port, () => {
+  const server = app.listen(port, () => {
     logger.info({ port }, "Notifications service listening")
+  })
+
+  process.on("SIGTERM", () => {
+    server.close(() => process.exit(0))
   })
 }
 

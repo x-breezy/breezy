@@ -15,8 +15,12 @@ async function start(): Promise<void> {
 
   await connectRabbitMQ()
 
-  app.listen(port, () => {
+  const server = app.listen(port, () => {
     logger.info({ port }, "Post service listening")
+  })
+
+  process.on("SIGTERM", () => {
+    server.close(() => process.exit(0))
   })
 }
 

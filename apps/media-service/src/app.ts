@@ -1,3 +1,4 @@
+import helmet from "helmet"
 import express from "express"
 import type { Express, Request, Response, NextFunction } from "express"
 import swaggerUi from "swagger-ui-express"
@@ -12,8 +13,11 @@ const logger = createLogger({ service: "media-service" })
 export function createApp(): Express {
   const app = express()
 
+  app.set("trust proxy", 1)
+  app.disable("x-powered-by")
+  app.use(helmet())
   app.use(httpLogger(logger))
-  app.use(express.json())
+  app.use(express.json({ limit: "1mb" }))
 
   app.get("/", (_req, res) => {
     res.json({ status: "ok" })
