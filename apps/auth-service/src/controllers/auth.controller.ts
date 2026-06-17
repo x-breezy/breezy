@@ -335,7 +335,7 @@ class AuthController {
 
   twoFactorSendCode = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const userId = req.headers["x-user-id"] as string
+      const userId = req.user!.id
       const user = await this.userService.getUser(userId)
       if (!user) {
         res.status(404).json({ success: false, message: "User not found" })
@@ -363,7 +363,7 @@ class AuthController {
     next: NextFunction
   ): Promise<void> => {
     try {
-      const userId = req.headers["x-user-id"] as string
+      const userId = req.user!.id
       await this.authService.verifyTwoFactorCode(userId, req.body.code)
       await this.authService.enableTwoFactor(userId)
       res.status(200).json({ success: true })
@@ -382,7 +382,7 @@ class AuthController {
 
   twoFactorDisable = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const userId = req.headers["x-user-id"] as string
+      const userId = req.user!.id
       await this.authService.disableTwoFactor(userId)
       res.status(200).json({ success: true })
     } catch (error) {
@@ -450,10 +450,7 @@ class AuthController {
   ): Promise<void> => {
     try {
       const { pendingToken, username } = req.body
-      const { user, created, googleClaims } = await this.authService.completeGoogleAuth(
-        pendingToken,
-        username
-      )
+      const { user, created } = await this.authService.completeGoogleAuth(pendingToken, username)
 
       if (created) {
         if (!user.isEmailVerified) {

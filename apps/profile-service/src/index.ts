@@ -11,7 +11,7 @@ const logger = createLogger({ service: "profile-service" })
 const app = createApp()
 const port = process.env.PORT ?? 4010
 const databaseUrl =
-  process.env.DATABASE_URL ?? "postgres://breezy:breezy@localhost:5432/breezy_auth"
+  process.env.DATABASE_URL ?? "postgres://breezy:breezy@localhost:5432/breezy_profiles"
 
 async function start(): Promise<void> {
   const sequelize = await connect(databaseUrl)

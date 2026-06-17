@@ -2,7 +2,6 @@ import { Op } from "sequelize"
 import { User, type SafeUser } from "../models/user.model"
 import { hashPassword, verifyPassword } from "../utils/password.util"
 import type { CreateUserDTO } from "../schemas/user.schema"
-import { publish } from "../clients/rabbitmq"
 import { getRedis } from "../clients/redis"
 
 class UserService {
@@ -14,11 +13,6 @@ class UserService {
       passwordHash,
     })
     const safe = user.toJSON()
-    void publish("auth.email_verification", {
-      userId: safe.id,
-      email: safe.email,
-      token: safe.id,
-    })
     return safe
   }
 

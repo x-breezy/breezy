@@ -51,7 +51,7 @@ class ProfileService {
       })
     })
     const follower = await Profile.findOne({ where: { profileId: followerId } })
-    publish("social.follow", {
+    void publish("social.follow", {
       followerId,
       followingId,
       username: follower?.username,

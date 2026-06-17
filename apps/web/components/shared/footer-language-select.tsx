@@ -28,15 +28,15 @@ export function FooterLanguageSelect() {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger className="hover:text-foreground hover:underline text-xs text-muted-foreground outline-none">
+      <DropdownMenuTrigger className='text-xs text-muted-foreground outline-none hover:text-foreground hover:underline'>
         {languages.find((l) => l.value === currentLocale)?.label || "English"}
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="center" className="min-w-32">
+      <DropdownMenuContent align='center' className='min-w-32'>
         {languages.map((lang) => (
           <DropdownMenuItem
             key={lang.value}
             onClick={() => handleLanguageChange(lang.value)}
-            className="cursor-pointer"
+            className='cursor-pointer'
           >
             {lang.label}
           </DropdownMenuItem>

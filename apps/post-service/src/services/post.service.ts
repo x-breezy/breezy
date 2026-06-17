@@ -185,9 +185,11 @@ export class PostService {
     return PostModel.findByIdAndUpdate(id, update, { new: true }).exec() as Promise<Post | null>
   }
 
-  async deletePost(id: string): Promise<boolean> {
-    const post = await PostModel.findById(id).exec()
-    if (!post) return false
+  async deletePost(id: string, post: Post | null = null): Promise<boolean> {
+    if (!post) {
+      post = (await PostModel.findById(id).exec()) as Post | null
+      if (!post) return false
+    }
 
     const deleted = await PostModel.findByIdAndDelete(id).exec()
     if (!deleted) return false
@@ -224,18 +226,10 @@ export class PostService {
     // depth=1 fetches level-2 replies — only show root author's responses
     const childFilter: Record<string, unknown> = { parentId: { $in: ids } }
     if (depth === 1 && rootAuthorId) childFilter.authorId = rootAuthorId
-    console.log(
-      `[attachReplies] depth=${depth} ids=${JSON.stringify(ids)} rootAuthorId=${rootAuthorId} filter=${JSON.stringify(childFilter)}`
-    )
     const children = (await PostModel.find(childFilter)
       .sort({ createdAt: 1 })
       .lean({ virtuals: true })
       .exec()) as Post[]
-    console.log(
-      `[attachReplies] depth=${depth} children found: ${children.length}`,
-      children.map((c) => ({ id: String(c.id), authorId: c.authorId, parentId: c.parentId }))
-    )
-
     this.sortByOwnerFirst(children, rootAuthorId, viewerId)
     const nestedChildren = await this.attachReplies(children, depth + 1, rootAuthorId, viewerId)
 
@@ -346,9 +340,10 @@ export class PostService {
     const exclude = viewerId ? { authorId: { $ne: viewerId } } : {}
 
     // Fetch: exact tag match first, then text-score ranked, then regex fallback
+    const fetchLimit = skip + limit
     const tagDocs = await PostModel.find({ tags: tagRegex, ...exclude })
       .sort({ createdAt: -1 })
-      .limit(limit)
+      .limit(fetchLimit)
       .exec()
 
     const textDocs = await PostModel.find(
@@ -356,12 +351,12 @@ export class PostService {
       { score: { $meta: "textScore" } }
     )
       .sort({ score: { $meta: "textScore" } })
-      .limit(limit)
+      .limit(fetchLimit)
       .exec()
 
     const regexDocs = await PostModel.find({ content: contentRegex, ...exclude })
       .sort({ createdAt: -1 })
-      .limit(limit)
+      .limit(fetchLimit)
       .exec()
 
     // Posts from matching authors (people search cross-join)
@@ -371,7 +366,7 @@ export class PostService {
             authorId: { $in: authorIds, ...(viewerId ? { $ne: viewerId } : {}) },
           })
             .sort({ createdAt: -1 })
-            .limit(limit)
+            .limit(fetchLimit)
             .exec()
         : []
 

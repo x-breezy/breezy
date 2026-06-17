@@ -1,5 +1,6 @@
 import type { Request, Response, NextFunction } from "express"
 import { PostService } from "../services/post.service"
+import type { Post } from "../types/post"
 
 export class PostController {
   constructor(private service = new PostService()) {}
@@ -91,7 +92,7 @@ export class PostController {
 
   delete = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const deleted = await this.service.deletePost(req.params.id!)
+      const deleted = await this.service.deletePost(req.params.id!, req.resource as Post)
       if (!deleted) {
         res.status(404).json({ success: false, message: "Post not found" })
         return

@@ -16,9 +16,19 @@ const COMPANY = "Breezy SAS"
 export default async function TermsPage() {
   const t = await getTranslations("terms")
 
-  const boldRenderer = (chunks: React.ReactNode) => <strong className="font-semibold">{chunks}</strong>
-  const linkRenderer = (chunks: React.ReactNode) => <Link href='/privacy' className='text-foreground underline'>{chunks}</Link>
-  const emailLinkRenderer = (chunks: React.ReactNode) => <a href={`mailto:${CONTACT_EMAIL}`} className='text-foreground underline'>{chunks}</a>
+  const boldRenderer = (chunks: React.ReactNode) => (
+    <strong className='font-semibold'>{chunks}</strong>
+  )
+  const linkRenderer = (chunks: React.ReactNode) => (
+    <Link href='/privacy' className='text-foreground underline'>
+      {chunks}
+    </Link>
+  )
+  const emailLinkRenderer = (chunks: React.ReactNode) => (
+    <a href={`mailto:${CONTACT_EMAIL}`} className='text-foreground underline'>
+      {chunks}
+    </a>
+  )
 
   return (
     <div className='min-h-screen bg-background'>
@@ -31,9 +41,7 @@ export default async function TermsPage() {
           >
             {APP_NAME}
           </Link>
-          <h1 className='mt-6 text-3xl font-bold tracking-tight text-foreground'>
-            {t("title")}
-          </h1>
+          <h1 className='mt-6 text-3xl font-bold tracking-tight text-foreground'>{t("title")}</h1>
           <p className='mt-2 text-sm text-muted-foreground'>
             {t("lastUpdated", { date: LAST_UPDATED })}
           </p>
@@ -46,12 +54,10 @@ export default async function TermsPage() {
               {t.rich("intro1", {
                 appName: APP_NAME,
                 company: COMPANY,
-                bold: boldRenderer
+                bold: boldRenderer,
               })}
             </p>
-            <p className='mt-4'>
-              {t("intro2")}
-            </p>
+            <p className='mt-4'>{t("intro2")}</p>
           </section>
 
           <hr className='border-border' />
@@ -110,9 +116,7 @@ export default async function TermsPage() {
           {/* 6 */}
           <section>
             <h2 className='mb-4 text-lg font-semibold text-foreground'>{t("s6Title")}</h2>
-            <p className='text-muted-foreground'>
-              {t.rich("s6_1", { link: linkRenderer })}
-            </p>
+            <p className='text-muted-foreground'>{t.rich("s6_1", { link: linkRenderer })}</p>
           </section>
 
           <hr className='border-border' />
@@ -143,12 +147,8 @@ export default async function TermsPage() {
           {/* 9 */}
           <section>
             <h2 className='mb-4 text-lg font-semibold text-foreground'>{t("s9Title")}</h2>
-            <p className='text-muted-foreground'>
-              {t("s9_1", { company: COMPANY })}
-            </p>
-            <p className='mt-3 text-muted-foreground'>
-              {t("s9_2")}
-            </p>
+            <p className='text-muted-foreground'>{t("s9_1", { company: COMPANY })}</p>
+            <p className='mt-3 text-muted-foreground'>{t("s9_2")}</p>
           </section>
 
           <hr className='border-border' />
@@ -156,9 +156,7 @@ export default async function TermsPage() {
           {/* 10 */}
           <section>
             <h2 className='mb-4 text-lg font-semibold text-foreground'>{t("s10Title")}</h2>
-            <p className='text-muted-foreground'>
-              {t("s10_1", { company: COMPANY })}
-            </p>
+            <p className='text-muted-foreground'>{t("s10_1", { company: COMPANY })}</p>
           </section>
 
           <hr className='border-border' />
@@ -178,9 +176,7 @@ export default async function TermsPage() {
           {/* 12 */}
           <section>
             <h2 className='mb-4 text-lg font-semibold text-foreground'>{t("s12Title")}</h2>
-            <p className='text-muted-foreground'>
-              {t("s12_1")}
-            </p>
+            <p className='text-muted-foreground'>{t("s12_1")}</p>
           </section>
 
           <hr className='border-border' />
@@ -213,9 +209,7 @@ export default async function TermsPage() {
           {/* Contact */}
           <section>
             <h2 className='mb-4 text-lg font-semibold text-foreground'>{t("s15Title")}</h2>
-            <p className='text-muted-foreground'>
-              {t("s15_1")}
-            </p>
+            <p className='text-muted-foreground'>{t("s15_1")}</p>
             <div className='mt-3 rounded-xl border border-border bg-muted/40 p-4 text-muted-foreground'>
               <p className='font-medium text-foreground'>{COMPANY}</p>
               <p>
@@ -232,8 +226,12 @@ export default async function TermsPage() {
         <div className='mt-16 border-t border-border pt-8 text-center text-xs text-muted-foreground'>
           <p>{t("footerRights", { year: new Date().getFullYear(), company: COMPANY })}</p>
           <div className='mt-2 flex items-center justify-center gap-4'>
-            <Link href='/' className='hover:text-foreground hover:underline'>{t("home")}</Link>
-            <Link href='/privacy' className='hover:text-foreground hover:underline'>{t("privacyPolicy")}</Link>
+            <Link href='/' className='hover:text-foreground hover:underline'>
+              {t("home")}
+            </Link>
+            <Link href='/privacy' className='hover:text-foreground hover:underline'>
+              {t("privacyPolicy")}
+            </Link>
             <FooterLanguageSelect />
           </div>
         </div>

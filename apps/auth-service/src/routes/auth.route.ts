@@ -3,6 +3,7 @@ import AuthController from "../controllers/auth.controller"
 import UserService from "../services/user.service"
 import AuthService from "../services/auth.service"
 import { validate } from "../middlewares/validate.middleware"
+import { identity } from "../middlewares/identity.middleware"
 import {
   emailSendRateLimit,
   authenticatedEmailRateLimit,
@@ -74,14 +75,20 @@ function createAuthRouter(
     validate(twoFactorResendLoginSchema),
     authController.twoFactorResendLoginCode
   )
-  router.post("/2fa/send-code", authenticatedEmailRateLimit, authController.twoFactorSendCode)
+  router.post(
+    "/2fa/send-code",
+    identity,
+    authenticatedEmailRateLimit,
+    authController.twoFactorSendCode
+  )
   router.post(
     "/2fa/enable",
+    identity,
     strictLimit,
     validate(twoFactorEnableSchema),
     authController.twoFactorEnable
   )
-  router.post("/2fa/disable", strictLimit, authController.twoFactorDisable)
+  router.post("/2fa/disable", identity, strictLimit, authController.twoFactorDisable)
 
   return router
 }
