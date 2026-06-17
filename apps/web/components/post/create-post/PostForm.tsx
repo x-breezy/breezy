@@ -4,6 +4,8 @@ import { useRef, useState, useEffect } from "react"
 import { createPortal } from "react-dom"
 import { searchProfiles } from "@/lib/actions/profiles"
 import { buildEditorHTML } from "@/lib/post-utils"
+import { mediaUrl } from "@/lib/utils"
+import type { SearchPostMedia } from "@/lib/actions/posts"
 import { PostBottomBar } from "./PostBottomBar"
 import { ProfileAvatar } from "@/components/profile"
 import { ProfileBadges } from "@/components/profile/profile-badge"
@@ -57,6 +59,8 @@ export function PostForm({
   onAddMedia,
   onSelectGif,
   onMentionResolved,
+  existingMedia,
+  onRemoveExistingMedia,
   hideBottomBar,
   noMaxHeight,
 }: {
@@ -67,6 +71,8 @@ export function PostForm({
   onAddMedia: (files: FileList) => void
   onSelectGif: (file: File) => void
   onMentionResolved: (mention: ResolvedMention) => void
+  existingMedia?: SearchPostMedia[]
+  onRemoveExistingMedia?: (index: number) => void
   hideBottomBar?: boolean
   noMaxHeight?: boolean
 }) {
@@ -267,8 +273,32 @@ export function PostForm({
           </div>
         </div>
 
-        {mediaFiles.length > 0 && (
+        {((existingMedia?.length ?? 0) > 0 || mediaFiles.length > 0) && (
           <div className='grid grid-cols-2 gap-2 pl-12'>
+            {existingMedia?.map((m, i) => (
+              <div key={m.id} className='relative overflow-hidden rounded-lg'>
+                {m.type === "image" ? (
+                  <img
+                    src={mediaUrl(`/api/media/images/${m.id}`)}
+                    alt=''
+                    className='h-32 w-full object-cover'
+                  />
+                ) : (
+                  <video
+                    src={mediaUrl(`/api/media/videos/${m.id}`)}
+                    className='h-32 w-full object-cover'
+                    muted
+                  />
+                )}
+                <button
+                  type='button'
+                  onClick={() => onRemoveExistingMedia?.(i)}
+                  className='absolute top-1 right-1 flex size-5 items-center justify-center rounded-full bg-black/60 text-xs text-white'
+                >
+                  ×
+                </button>
+              </div>
+            ))}
             {mediaFiles.map((m, i) => (
               <div key={i} className='relative overflow-hidden rounded-lg'>
                 {m.type === "image" ? (

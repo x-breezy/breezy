@@ -101,6 +101,28 @@ export async function toggleLike(postId: string, liked: boolean): Promise<{ like
   return data.data as { likesCount: number }
 }
 
+export async function deletePost(postId: string): Promise<void> {
+  if (!/^[a-f0-9]{24}$/i.test(postId)) throw new Error("Invalid postId format")
+  const headers = await getAuthHeaders()
+  const res = await fetch(`${GATEWAY_URL}/api/posts/${postId}`, { method: "DELETE", headers })
+  if (!res.ok) throw new Error(`Failed to delete post: ${res.status}`)
+}
+
+export async function updatePost(
+  postId: string,
+  content: string,
+  media?: SearchPostMedia[]
+): Promise<void> {
+  if (!/^[a-f0-9]{24}$/i.test(postId)) throw new Error("Invalid postId format")
+  const headers = await getAuthHeaders()
+  const res = await fetch(`${GATEWAY_URL}/api/posts/${postId}`, {
+    method: "PATCH",
+    headers: { ...headers, "Content-Type": "application/json" },
+    body: JSON.stringify({ content, ...(media !== undefined ? { media } : {}) }),
+  })
+  if (!res.ok) throw new Error(`Failed to update post: ${res.status}`)
+}
+
 export async function getTrendingTags(limit = 10): Promise<TrendingTag[]> {
   const headers = await getAuthHeaders()
   const res = await fetch(`${GATEWAY_URL}/api/posts/trending-tags?limit=${limit}`, { headers })

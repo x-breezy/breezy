@@ -76,6 +76,19 @@ export class PostController {
     }
   }
 
+  update = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const post = await this.service.updatePost(req.params.id!, req.body.content, req.body.media)
+      if (!post) {
+        res.status(404).json({ success: false, message: "Post not found" })
+        return
+      }
+      res.json({ success: true, data: post, message: "Post updated successfully" })
+    } catch (err) {
+      next(err)
+    }
+  }
+
   delete = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const deleted = await this.service.deletePost(req.params.id!)

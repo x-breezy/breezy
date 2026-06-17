@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { IconDots, IconShare, IconFlag } from "@tabler/icons-react"
+import { IconDots, IconShare, IconFlag, IconPencil, IconTrash } from "@tabler/icons-react"
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -14,16 +14,38 @@ import { Dialog as DialogPrimitive } from "@base-ui/react/dialog"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { reportProfile } from "@/lib/actions/reports"
+import { deletePost, updatePost, type SearchPostMedia } from "@/lib/actions/posts"
+import { uploadMediaAction } from "@/lib/actions/media"
+import { useUserStore } from "@/stores/user-store"
+import { PostComposeDialog } from "./create-post/PostComposeDialog"
+import type { MediaPreview } from "./create-post/use-post-compose"
 
 interface PostMenuProps {
   postId: string
   username: string
   authorId: string
+  content: string
+  media?: SearchPostMedia[]
+  onDeleted?: () => void
+  onEdited?: (newContent: string, newMedia: SearchPostMedia[]) => void
 }
 
-export function PostMenu({ postId, username, authorId }: PostMenuProps) {
+export function PostMenu({
+  postId,
+  username,
+  authorId,
+  content,
+  media,
+  onDeleted,
+  onEdited,
+}: PostMenuProps) {
+  const currentProfileId = useUserStore((s) => s.profile?.profileId)
+  const isOwner = currentProfileId === authorId
+
   const [reportOpen, setReportOpen] = useState(false)
   const [reason, setReason] = useState("")
+  const [editOpen, setEditOpen] = useState(false)
+  const [deleteOpen, setDeleteOpen] = useState(false)
 
   const postUrl = `${window.location.origin}/post/${username}/${postId}`
 
@@ -46,8 +68,28 @@ export function PostMenu({ postId, username, authorId }: PostMenuProps) {
     setReason("")
   }
 
+  async function handleEditSubmit(
+    newContent: string,
+    newFiles: MediaPreview[],
+    keptMedia: SearchPostMedia[]
+  ): Promise<boolean> {
+    const uploadedNew =
+      newFiles.length > 0 ? await Promise.all(newFiles.map((m) => uploadMediaAction(m.file))) : []
+    const finalMedia = [...keptMedia, ...uploadedNew]
+    await updatePost(postId, newContent, finalMedia)
+    onEdited?.(newContent, finalMedia)
+    return true
+  }
+
+  async function handleDelete() {
+    await deletePost(postId)
+    setDeleteOpen(false)
+    onDeleted?.()
+  }
+
   return (
-    <>
+    // stops React portal synthetic event bubbling to the article onClick
+    <div onClick={(e) => e.stopPropagation()} className='contents'>
       <DropdownMenu>
         <DropdownMenuTrigger
           render={
@@ -70,17 +112,80 @@ export function PostMenu({ postId, username, authorId }: PostMenuProps) {
             <IconShare />
             Share
           </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem
-            variant='destructive'
-            onClick={() => setReportOpen(true)}
-            className='px-3 py-2.5 text-base md:px-2 md:py-1.5 md:text-sm'
-          >
-            <IconFlag />
-            Report
-          </DropdownMenuItem>
+          {isOwner && (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => setEditOpen(true)}
+                className='px-3 py-2.5 text-base md:px-2 md:py-1.5 md:text-sm'
+              >
+                <IconPencil />
+                Edit
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                variant='destructive'
+                onClick={() => setDeleteOpen(true)}
+                className='px-3 py-2.5 text-base md:px-2 md:py-1.5 md:text-sm'
+              >
+                <IconTrash />
+                Delete
+              </DropdownMenuItem>
+            </>
+          )}
+          {!isOwner && (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                variant='destructive'
+                onClick={() => setReportOpen(true)}
+                className='px-3 py-2.5 text-base md:px-2 md:py-1.5 md:text-sm'
+              >
+                <IconFlag />
+                Report
+              </DropdownMenuItem>
+            </>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
+
+      {editOpen && (
+        <PostComposeDialog
+          initialContent={content}
+          initialMedia={media}
+          onSubmit={handleEditSubmit}
+          onDismiss={() => setEditOpen(false)}
+          postLabel='Save'
+        />
+      )}
+
+      <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+        <DialogPortal>
+          <DialogOverlay />
+          <DialogPrimitive.Popup className='fixed top-1/2 left-1/2 z-120 w-full max-w-xs -translate-x-1/2 -translate-y-1/2 rounded-[min(var(--radius-4xl),24px)] bg-popover p-6 text-popover-foreground shadow-xl ring-1 ring-foreground/5 duration-100 outline-none dark:ring-foreground/10 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95'>
+            <div className='flex flex-col gap-5'>
+              <div className='flex flex-col gap-1'>
+                <DialogPrimitive.Title className='font-heading text-base font-medium'>
+                  Delete post?
+                </DialogPrimitive.Title>
+                <DialogPrimitive.Description className='text-sm text-muted-foreground'>
+                  This cannot be undone.
+                </DialogPrimitive.Description>
+              </div>
+              <div className='flex justify-center gap-2'>
+                <DialogPrimitive.Close
+                  render={<Button size='lg' className='w-1/2' variant='secondary' />}
+                >
+                  Cancel
+                </DialogPrimitive.Close>
+                <Button variant='destructive' className='w-1/2' size='lg' onClick={handleDelete}>
+                  <IconTrash />
+                  Delete
+                </Button>
+              </div>
+            </div>
+          </DialogPrimitive.Popup>
+        </DialogPortal>
+      </Dialog>
 
       <Dialog open={reportOpen} onOpenChange={setReportOpen}>
         <DialogPortal>
@@ -122,6 +227,6 @@ export function PostMenu({ postId, username, authorId }: PostMenuProps) {
           </DialogPrimitive.Popup>
         </DialogPortal>
       </Dialog>
-    </>
+    </div>
   )
 }

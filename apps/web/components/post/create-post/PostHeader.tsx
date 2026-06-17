@@ -10,11 +10,13 @@ export function PostHeader({
   onClose,
   posting = false,
   disabled = false,
+  label,
 }: {
   onPost: () => void | Promise<void>
   onClose?: () => void
   posting?: boolean
   disabled?: boolean
+  label?: string
 }) {
   const router = useRouter()
   const t = useTranslations("composePost")
@@ -25,7 +27,7 @@ export function PostHeader({
         <IconArrowLeft className='size-5' />
       </Button>
       <Button className='font-semibold' onClick={onPost} disabled={posting || disabled}>
-        {posting ? t("posting") : t("postBtn")}
+        {posting ? t("posting") : (label ?? t("postBtn"))}
       </Button>
     </header>
   )
