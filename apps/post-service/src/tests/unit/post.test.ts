@@ -38,7 +38,7 @@ describe("PostService", () => {
 
   describe("createPost", () => {
     it("calls PostModel.create with dto and returns result", async () => {
-      ; (mockedModel.create as jest.Mock).mockResolvedValue(MOCK_POST)
+      ;(mockedModel.create as jest.Mock).mockResolvedValue(MOCK_POST)
 
       const result = await service.createPost({
         content: "Hello world",
@@ -60,7 +60,7 @@ describe("PostService", () => {
     })
 
     it("defaults tags and media to empty arrays", async () => {
-      ; (mockedModel.create as jest.Mock).mockResolvedValue(MOCK_POST)
+      ;(mockedModel.create as jest.Mock).mockResolvedValue(MOCK_POST)
 
       await service.createPost({ content: "Hi", authorId: "user1" })
 
@@ -72,7 +72,7 @@ describe("PostService", () => {
 
   describe("getPost", () => {
     it("returns document by id", async () => {
-      ; (mockedModel.findById as jest.Mock).mockReturnValue({
+      ;(mockedModel.findById as jest.Mock).mockReturnValue({
         exec: jest.fn().mockResolvedValue(MOCK_POST),
       })
 
@@ -81,7 +81,7 @@ describe("PostService", () => {
     })
 
     it("returns null when not found", async () => {
-      ; (mockedModel.findById as jest.Mock).mockReturnValue({
+      ;(mockedModel.findById as jest.Mock).mockReturnValue({
         exec: jest.fn().mockResolvedValue(null),
       })
 
@@ -91,18 +91,18 @@ describe("PostService", () => {
 
   describe("deletePost", () => {
     it("returns true when document was removed", async () => {
-      ; (mockedModel.findById as jest.Mock).mockReturnValue({
+      ;(mockedModel.findById as jest.Mock).mockReturnValue({
         exec: jest.fn().mockResolvedValue({ id: "abc" }),
       })
-        ; (mockedModel.findByIdAndDelete as jest.Mock).mockReturnValue({
-          exec: jest.fn().mockResolvedValue({ id: "abc" }),
-        })
+      ;(mockedModel.findByIdAndDelete as jest.Mock).mockReturnValue({
+        exec: jest.fn().mockResolvedValue({ id: "abc" }),
+      })
 
       expect(await service.deletePost("abc")).toBe(true)
     })
 
     it("returns false when nothing matched", async () => {
-      ; (mockedModel.findById as jest.Mock).mockReturnValue({
+      ;(mockedModel.findById as jest.Mock).mockReturnValue({
         exec: jest.fn().mockResolvedValue(null),
       })
 
@@ -125,8 +125,8 @@ describe("PostService", () => {
     it("uses global filter when follow graph returns null (user-service unavailable)", async () => {
       const docs = [MOCK_POST]
       const mockQuery = makeQuery(docs)
-        ; (mockedModel.find as jest.Mock).mockReturnValue(mockQuery)
-        ; (mockedModel.countDocuments as jest.Mock).mockResolvedValue(1)
+      ;(mockedModel.find as jest.Mock).mockReturnValue(mockQuery)
+      ;(mockedModel.countDocuments as jest.Mock).mockResolvedValue(1)
 
       const svc = new PostService(makeFollow(null))
       const result = await svc.feed("user1", 1, 20)
@@ -140,8 +140,8 @@ describe("PostService", () => {
 
     it("filters by following + viewer when follow graph returns ids", async () => {
       const mockQuery = makeQuery([MOCK_POST])
-        ; (mockedModel.find as jest.Mock).mockReturnValue(mockQuery)
-        ; (mockedModel.countDocuments as jest.Mock).mockResolvedValue(1)
+      ;(mockedModel.find as jest.Mock).mockReturnValue(mockQuery)
+      ;(mockedModel.countDocuments as jest.Mock).mockResolvedValue(1)
 
       const svc = new PostService(makeFollow(["user2", "user3"]))
       await svc.feed("user1", 1, 20)
@@ -154,8 +154,8 @@ describe("PostService", () => {
 
     it("includes only viewer when following is empty", async () => {
       const mockQuery = makeQuery([])
-        ; (mockedModel.find as jest.Mock).mockReturnValue(mockQuery)
-        ; (mockedModel.countDocuments as jest.Mock).mockResolvedValue(0)
+      ;(mockedModel.find as jest.Mock).mockReturnValue(mockQuery)
+      ;(mockedModel.countDocuments as jest.Mock).mockResolvedValue(0)
 
       const svc = new PostService(makeFollow([]))
       await svc.feed("user1", 1, 20)
@@ -168,8 +168,8 @@ describe("PostService", () => {
 
     it("excludes viewer from $in even if present in following list", async () => {
       const mockQuery = makeQuery([])
-        ; (mockedModel.find as jest.Mock).mockReturnValue(mockQuery)
-        ; (mockedModel.countDocuments as jest.Mock).mockResolvedValue(0)
+      ;(mockedModel.find as jest.Mock).mockReturnValue(mockQuery)
+      ;(mockedModel.countDocuments as jest.Mock).mockResolvedValue(0)
 
       const svc = new PostService(makeFollow(["user1", "user2"])) // user1 already viewer
       await svc.feed("user1", 1, 20)
@@ -182,8 +182,8 @@ describe("PostService", () => {
 
     it("computes skip correctly for page > 1 (null graph)", async () => {
       const mockQuery = makeQuery([])
-        ; (mockedModel.find as jest.Mock).mockReturnValue(mockQuery)
-        ; (mockedModel.countDocuments as jest.Mock).mockResolvedValue(0)
+      ;(mockedModel.find as jest.Mock).mockReturnValue(mockQuery)
+      ;(mockedModel.countDocuments as jest.Mock).mockResolvedValue(0)
 
       const svc = new PostService(makeFollow(null))
       await svc.feed("user1", 3, 10)
@@ -200,8 +200,8 @@ describe("PostService", () => {
         limit: jest.fn().mockReturnThis(),
         exec: jest.fn().mockResolvedValue([MOCK_POST]),
       }
-        ; (mockedModel.find as jest.Mock).mockReturnValue(mockQuery)
-        ; (mockedModel.countDocuments as jest.Mock).mockResolvedValue(1)
+      ;(mockedModel.find as jest.Mock).mockReturnValue(mockQuery)
+      ;(mockedModel.countDocuments as jest.Mock).mockResolvedValue(1)
 
       const result = await service.byUser("user1", 1, 20)
 
@@ -221,8 +221,8 @@ describe("PostService", () => {
 
     it("queries with $text, tags regex, content regex and merges deduped results", async () => {
       const mockQuery = makeQuery([MOCK_POST])
-        ; (mockedModel.find as jest.Mock).mockReturnValue(mockQuery)
-        ; (mockedModel.countDocuments as jest.Mock).mockReturnValue(makeCountQuery(1))
+      ;(mockedModel.find as jest.Mock).mockReturnValue(mockQuery)
+      ;(mockedModel.countDocuments as jest.Mock).mockReturnValue(makeCountQuery(1))
 
       const result = await service.search("typescript", 1, 20)
 
@@ -238,8 +238,8 @@ describe("PostService", () => {
 
     it("applies page offset correctly for page > 1", async () => {
       const emptyQuery = makeQuery([])
-        ; (mockedModel.find as jest.Mock).mockReturnValue(emptyQuery)
-        ; (mockedModel.countDocuments as jest.Mock).mockReturnValue(makeCountQuery(0))
+      ;(mockedModel.find as jest.Mock).mockReturnValue(emptyQuery)
+      ;(mockedModel.countDocuments as jest.Mock).mockReturnValue(makeCountQuery(0))
 
       const result = await service.search("hello", 3, 10)
 
@@ -249,8 +249,8 @@ describe("PostService", () => {
 
     it("returns empty results when nothing matches", async () => {
       const emptyQuery = makeQuery([])
-        ; (mockedModel.find as jest.Mock).mockReturnValue(emptyQuery)
-        ; (mockedModel.countDocuments as jest.Mock).mockReturnValue(makeCountQuery(0))
+      ;(mockedModel.find as jest.Mock).mockReturnValue(emptyQuery)
+      ;(mockedModel.countDocuments as jest.Mock).mockReturnValue(makeCountQuery(0))
 
       const result = await service.search("noresult", 1, 20)
 
@@ -274,7 +274,7 @@ describe("PostService", () => {
         { tag: "TypeScript", count: 42 },
         { tag: "React", count: 30 },
       ]
-        ; (mockedModel.aggregate as jest.Mock).mockResolvedValue(mockTags)
+      ;(mockedModel.aggregate as jest.Mock).mockResolvedValue(mockTags)
 
       const result = await service.trendingTags(10)
 
@@ -290,7 +290,7 @@ describe("PostService", () => {
 
     it("uses default limit of 10", async () => {
       dateSpy.mockReturnValue(10 * 60 * 1000)
-        ; (mockedModel.aggregate as jest.Mock).mockResolvedValue([])
+      ;(mockedModel.aggregate as jest.Mock).mockResolvedValue([])
 
       await service.trendingTags()
 

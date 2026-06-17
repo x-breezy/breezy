@@ -50,8 +50,16 @@ export function ProfileStats({ profileId, followers, following, className }: Pro
   return (
     <>
       <div className={cn("flex items-center gap-3 text-sm", className)}>
-        <ProfileStat count={followers} label={t("followers")} onClick={() => setOpen("followers")} />
-        <ProfileStat count={following} label={t("following")} onClick={() => setOpen("following")} />
+        <ProfileStat
+          count={followers}
+          label={t("followers")}
+          onClick={() => setOpen("followers")}
+        />
+        <ProfileStat
+          count={following}
+          label={t("following")}
+          onClick={() => setOpen("following")}
+        />
       </div>
 
       {open && (

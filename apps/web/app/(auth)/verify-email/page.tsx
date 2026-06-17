@@ -23,11 +23,7 @@ export default function VerifyEmailPage() {
     <div className='mx-auto flex w-full max-w-sm animate-in flex-col justify-center px-4 py-12 text-center font-sans duration-300 select-none fade-in slide-in-from-bottom-4'>
       <AuthHeader
         title={t("verifyEmailTitle")}
-        subtitle={
-          hasToken
-            ? t("verifyEmailSubtitleToken")
-            : t("verifyEmailSubtitleNoToken")
-        }
+        subtitle={hasToken ? t("verifyEmailSubtitleToken") : t("verifyEmailSubtitleNoToken")}
       />
 
       {hasToken && (
@@ -37,7 +33,9 @@ export default function VerifyEmailPage() {
             <div className='mb-4 text-sm text-destructive'>
               <p>{state.error}</p>
               {state.code && (
-                <p className='mt-1 text-xs text-muted-foreground'>{t("codePrefix")}: {state.code}</p>
+                <p className='mt-1 text-xs text-muted-foreground'>
+                  {t("codePrefix")}: {state.code}
+                </p>
               )}
             </div>
           )}
@@ -49,19 +47,17 @@ export default function VerifyEmailPage() {
 
       {!hasToken && (
         <div className='mt-6'>
-          <p className='text-sm text-muted-foreground'>
-            {t("verifyEmailDidntReceive")}
-          </p>
+          <p className='text-sm text-muted-foreground'>{t("verifyEmailDidntReceive")}</p>
           {resendState?.success && (
-            <p className='mt-3 text-sm text-muted-foreground'>
-              {t("verifyEmailNewEmailSent")}
-            </p>
+            <p className='mt-3 text-sm text-muted-foreground'>{t("verifyEmailNewEmailSent")}</p>
           )}
           {resendState?.error && (
             <div className='mt-3 text-sm text-destructive'>
               <p>{resendState.error}</p>
               {resendState.code && (
-                <p className='mt-1 text-xs text-muted-foreground'>{t("codePrefix")}: {resendState.code}</p>
+                <p className='mt-1 text-xs text-muted-foreground'>
+                  {t("codePrefix")}: {resendState.code}
+                </p>
               )}
             </div>
           )}

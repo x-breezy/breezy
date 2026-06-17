@@ -31,7 +31,7 @@ export function ResponsiveNav() {
   const profile = useUserStore((s) => s.profile)
   const ProfileNavIcon = makeProfileIcon(profile?.avatarId ?? null)
   const isProfileActive = pathname === `/profile/${profile?.username}`
-  
+
   const navItems = getNavItems(t)
 
   return (

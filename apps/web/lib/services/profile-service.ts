@@ -10,7 +10,13 @@ export function getProfile(profileId: string, authHeader: Record<string, string>
 
 export function createProfile(
   profileId: string,
-  payload: { username: string; firstName?: string | null; lastName?: string | null; bio?: string | null; avatarId?: string | null },
+  payload: {
+    username: string
+    firstName?: string | null
+    lastName?: string | null
+    bio?: string | null
+    avatarId?: string | null
+  },
   authHeader: Record<string, string>
 ) {
   // Validation des entrées
@@ -29,7 +35,7 @@ export function createProfile(
   const payloadWithId = {
     ...payload,
     profileId: profileId.trim(),
-    username: payload.username.trim()
+    username: payload.username.trim(),
   }
   return serverClient.post(`/api/profiles/`, payloadWithId, { headers: authHeader })
 }

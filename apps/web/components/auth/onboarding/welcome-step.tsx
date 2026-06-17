@@ -70,9 +70,7 @@ export function WelcomeStep({
           <p className='text-xl font-semibold tracking-tight text-foreground'>
             {displayName ? `${t("welcome")}, ${displayName}` : t("welcome")}
           </p>
-          <p className='text-sm text-muted-foreground'>
-            {t("accountReadyDesc")}
-          </p>
+          <p className='text-sm text-muted-foreground'>{t("accountReadyDesc")}</p>
         </div>
       </div>
 

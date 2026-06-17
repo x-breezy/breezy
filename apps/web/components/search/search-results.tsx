@@ -53,7 +53,10 @@ export function SearchResults({ q }: SearchResultsProps) {
           <li className='px-4 py-8 text-center text-sm text-destructive'>{error}</li>
         )}
 
-        {!loading && !error && tab === "posts" && renderPosts(postsCache, profileMap, handleLike, t)}
+        {!loading &&
+          !error &&
+          tab === "posts" &&
+          renderPosts(postsCache, profileMap, handleLike, t)}
         {!loading &&
           !error &&
           tab === "people" &&

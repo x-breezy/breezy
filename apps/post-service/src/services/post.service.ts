@@ -25,7 +25,7 @@ function extractMentions(content: string, authorId: string): string[] {
 }
 
 export class PostService {
-  constructor(private follow: FollowGraphPort = new GrpcFollowGraph()) { }
+  constructor(private follow: FollowGraphPort = new GrpcFollowGraph()) {}
 
   async createPost(data: CreatePostDTO & { authorId: string }): Promise<Post> {
     const mentions = data.mentions ?? extractMentions(data.content, data.authorId)
@@ -147,9 +147,9 @@ export class PostService {
       following === null
         ? { authorId: { $ne: viewerId }, parentId: null }
         : {
-          authorId: { $in: [...new Set(following)], $ne: viewerId },
-          parentId: null,
-        }
+            authorId: { $in: [...new Set(following)], $ne: viewerId },
+            parentId: null,
+          }
     const skip = (page - 1) * limit
     const [data, total] = await Promise.all([
       PostModel.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).exec(),
@@ -353,11 +353,11 @@ export class PostService {
     const authorDocs =
       authorIds && authorIds.length > 0
         ? await PostModel.find({
-          authorId: { $in: authorIds, ...(viewerId ? { $ne: viewerId } : {}) },
-        })
-          .sort({ createdAt: -1 })
-          .limit(limit)
-          .exec()
+            authorId: { $in: authorIds, ...(viewerId ? { $ne: viewerId } : {}) },
+          })
+            .sort({ createdAt: -1 })
+            .limit(limit)
+            .exec()
         : []
 
     // Merge and deduplicate while preserving priority order

@@ -28,11 +28,14 @@ const profileDataHandler = {
       cb(null, { count: result.count, followers: result.followers })
     } catch (err) {
       const error = err as Error
-      console.error('Error in getFollowers:', error)
-      cb({
-        code: grpc.status.INTERNAL,
-        message: error.message || "Internal server error"
-      }, null)
+      console.error("Error in getFollowers:", error)
+      cb(
+        {
+          code: grpc.status.INTERNAL,
+          message: error.message || "Internal server error",
+        },
+        null
+      )
     }
   },
 
@@ -47,11 +50,14 @@ const profileDataHandler = {
       cb(null, { count: result.count, following: result.following })
     } catch (err) {
       const error = err as Error
-      console.error('Error in getFollowing:', error)
-      cb({
-        code: grpc.status.INTERNAL,
-        message: error.message || "Internal server error"
-      }, null)
+      console.error("Error in getFollowing:", error)
+      cb(
+        {
+          code: grpc.status.INTERNAL,
+          message: error.message || "Internal server error",
+        },
+        null
+      )
     }
   },
 
@@ -77,11 +83,14 @@ const profileDataHandler = {
       })
     } catch (err) {
       const error = err as Error
-      console.error('Error in getProfile:', error)
-      cb({
-        code: grpc.status.INTERNAL,
-        message: error.message || "Internal server error"
-      }, null)
+      console.error("Error in getProfile:", error)
+      cb(
+        {
+          code: grpc.status.INTERNAL,
+          message: error.message || "Internal server error",
+        },
+        null
+      )
     }
   },
 }

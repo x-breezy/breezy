@@ -5,15 +5,12 @@ import { createPortal } from "react-dom"
 import { searchProfiles } from "@/lib/actions/profiles"
 import { buildEditorHTML } from "@/lib/post-utils"
 import { PostBottomBar } from "./PostBottomBar"
-import { MediaPreview, ResolvedMention } from "./use-post-compose"
 import { ProfileAvatar } from "@/components/profile"
 import { ProfileBadges } from "@/components/profile/profile-badge"
 import { UserRole } from "@/lib/auth/role"
 import { useUserStore } from "@/stores/user-store"
 import { useTranslations } from "next-intl"
 import type { ResolvedMention, MediaPreview } from "./use-post-compose"
-import { buildPostHTML } from "@/lib/post-utils"
-import { PostBottomBar } from "./PostBottomBar"
 
 interface MentionSuggestion {
   profileId: string
@@ -153,7 +150,7 @@ export function PostForm({
     if (isComposing.current) return
     const el = editorRef.current
     if (!el) return
-    const text = el.innerText.replace(/\n$/, "").slice(0, MAX_POST_CHARS)
+    const text = el.innerText.replace(/\n$/, "")
     const offset = getCaretOffset(el)
     setContent(text)
     const q = detectMentionQuery(text, offset)

@@ -186,7 +186,11 @@ export function NotificationCard({ view, highlight, className }: CardProps) {
               onConfirm={handleUnfollow}
               trigger={
                 <Button className='min-w-24' variant='secondary' disabled={isPending}>
-                  {isPending ? <IconLoader2 className='animate-spin' stroke={2.3} /> : t("following")}
+                  {isPending ? (
+                    <IconLoader2 className='animate-spin' stroke={2.3} />
+                  ) : (
+                    t("following")
+                  )}
                 </Button>
               }
             />

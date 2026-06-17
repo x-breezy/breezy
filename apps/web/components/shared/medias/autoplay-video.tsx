@@ -185,7 +185,7 @@ export function AutoplayVideo({
   return (
     <div
       ref={containerRef}
-      className={cn("relative overflow-hidden rounded-lg select-none", className)}
+      className={cn("relative overflow-hidden rounded-xl select-none", className)}
       onMouseEnter={showWithTimeout}
       onMouseMove={showWithTimeout}
       onMouseLeave={() => {
@@ -212,7 +212,7 @@ export function AutoplayVideo({
       )}
 
       {!isPlaying && (
-        <div className='pointer-events-none absolute inset-0 flex items-center justify-center rounded-lg bg-black/20'>
+        <div className='pointer-events-none absolute inset-0 flex items-center justify-center rounded-xl bg-black/20'>
           <div className='flex size-12 items-center justify-center rounded-full bg-black/60'>
             <IconPlayerPlayFilled className='ml-0.5 size-6 text-white' />
           </div>
