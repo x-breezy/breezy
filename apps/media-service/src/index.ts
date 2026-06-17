@@ -1,6 +1,7 @@
 import { createLogger } from "@breezy/logger"
 import { createApp } from "./app"
 import { connect } from "./config/database"
+import { startGrpcServer } from "./config/grpc.server"
 
 export const logger = createLogger({ service: "media-service" })
 
@@ -11,6 +12,8 @@ const mongoUri = process.env.DATABASE_URL ?? "mongodb://localhost:27017/breezy"
 async function start(): Promise<void> {
   await connect(mongoUri)
   logger.info("Connected to MongoDB")
+
+  startGrpcServer(Number(process.env.GRPC_PORT ?? 50052))
 
   app.listen(port, () => {
     logger.info({ port }, "Media service listening")

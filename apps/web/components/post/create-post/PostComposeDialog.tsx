@@ -7,13 +7,34 @@ import { useIsMobile } from "@/hooks/use-is-mobile"
 import { PostForm } from "./PostForm"
 import { PostHeader } from "./PostHeader"
 import { usePostCompose } from "./use-post-compose"
+import type { MediaPreview } from "./use-post-compose"
+import type { SearchPostMedia } from "@/lib/actions/posts"
 
 const CLOSE_ANIMATION_DURATION = 100 // ms for dialog close animation
 
-export function PostComposeDialog({ onDismiss }: { onDismiss: () => void }) {
+interface PostComposeDialogProps {
+  onDismiss: () => void
+  initialContent?: string
+  initialMedia?: SearchPostMedia[]
+  onSubmit?: (
+    content: string,
+    newFiles: MediaPreview[],
+    keptMedia: SearchPostMedia[]
+  ) => Promise<boolean>
+  postLabel?: string
+}
+
+export function PostComposeDialog({
+  onDismiss,
+  initialContent,
+  initialMedia,
+  onSubmit,
+  postLabel,
+}: PostComposeDialogProps) {
   const [open, setOpen] = useState(true)
+  const [keptExisting, setKeptExisting] = useState<SearchPostMedia[]>(initialMedia ?? [])
   const isMobile = useIsMobile()
-  const compose = usePostCompose()
+  const compose = usePostCompose(undefined, initialContent ?? "")
 
   function handleClose() {
     if (isMobile) {
@@ -25,7 +46,9 @@ export function PostComposeDialog({ onDismiss }: { onDismiss: () => void }) {
   }
 
   async function handlePost() {
-    const ok = await compose.submit()
+    const ok = onSubmit
+      ? await onSubmit(compose.content, compose.mediaFiles, keptExisting)
+      : await compose.submit()
     if (ok) handleClose()
   }
 
@@ -37,6 +60,9 @@ export function PostComposeDialog({ onDismiss }: { onDismiss: () => void }) {
     onAddMedia: compose.addMedia,
     onSelectGif: (file: File) => compose.addMedia([file]),
     onMentionResolved: compose.resolveMention,
+    existingMedia: keptExisting,
+    onRemoveExistingMedia: (i: number) =>
+      setKeptExisting((prev) => prev.filter((_, idx) => idx !== i)),
   }
 
   if (isMobile) {
@@ -49,6 +75,7 @@ export function PostComposeDialog({ onDismiss }: { onDismiss: () => void }) {
               onClose={handleClose}
               posting={compose.submitting}
               disabled={compose.content.length > 250}
+              label={postLabel}
             />
             <PostForm {...formProps} />
           </DialogPrimitive.Popup>
@@ -68,6 +95,7 @@ export function PostComposeDialog({ onDismiss }: { onDismiss: () => void }) {
           onClose={handleClose}
           posting={compose.submitting}
           disabled={compose.content.length > 250}
+          label={postLabel}
         />
         <PostForm {...formProps} />
       </DialogContent>

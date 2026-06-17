@@ -7,6 +7,7 @@ import type { PostDetail, ReplyPost, ProfileRef } from "../types/post-detail"
 import type { PaginatedResponse } from "../types/api"
 import { GrpcFollowGraph, type FollowGraphPort } from "../clients/follow-graph"
 import { publish } from "../clients/rabbitmq"
+import { deleteMediaItems } from "../clients/media.grpc.client"
 
 const NEST_DEPTH = 2
 const MENTION_RE = /@([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/gi
@@ -174,6 +175,16 @@ export class PostService {
     return { data: data as Post[], total, page, limit }
   }
 
+  async updatePost(
+    id: string,
+    content: string,
+    media?: { id: string; type: string }[]
+  ): Promise<Post | null> {
+    const update: Record<string, unknown> = { content }
+    if (media !== undefined) update.media = media
+    return PostModel.findByIdAndUpdate(id, update, { new: true }).exec() as Promise<Post | null>
+  }
+
   async deletePost(id: string): Promise<boolean> {
     const post = await PostModel.findById(id).exec()
     if (!post) return false
@@ -185,6 +196,10 @@ export class PostService {
       await PostModel.findByIdAndUpdate(post.parentId, {
         $inc: { commentsCount: -1 },
       }).exec()
+    }
+
+    if (post.media?.length) {
+      void deleteMediaItems(post.media as { id: string; type: "image" | "video" }[])
     }
 
     return true

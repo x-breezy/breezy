@@ -188,7 +188,6 @@ describe("GET /videos/:id (stream)", () => {
     expect(res.status).toBe(404)
     expect(res.body.success).toBe(false)
   })
-
 })
 
 // ─── GET /videos/:id/meta ───────────────────────────────────────────────────

@@ -4,7 +4,7 @@ import { PostService } from "../services/post.service"
 import { identity } from "../middlewares/identity.middleware"
 import { requireOwnership } from "../middlewares/roles.middleware"
 import { validate } from "../middlewares/validate.middleware"
-import { createPostSchema } from "../schemas/post.schema"
+import { createPostSchema, updatePostSchema } from "../schemas/post.schema"
 import { PERMISSIONS } from "../constants/permissions"
 import { PostModel } from "../models/post.model"
 import { createLikeRouter } from "./like.route"
@@ -27,6 +27,16 @@ export function createPostRouter(
   router.get("/:id/detail", identity, controller.getDetail)
   router.get("/:id/replies", identity, controller.getReplies)
   router.get("/:id", identity, controller.getOne)
+  router.patch(
+    "/:id",
+    identity,
+    requireOwnership(
+      (req) => PostModel.findById(req.params.id).exec(),
+      PERMISSIONS.POST_UPDATE_ANY
+    ),
+    validate(updatePostSchema),
+    controller.update
+  )
   router.delete(
     "/:id",
     identity,

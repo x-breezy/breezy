@@ -27,8 +27,8 @@ function parseTags(content: string): string[] {
   return [...new Set(matches.map((t) => t.slice(1)))]
 }
 
-export function usePostCompose(parentId?: string) {
-  const [content, setContent] = useState("")
+export function usePostCompose(parentId?: string, initialContent = "") {
+  const [content, setContent] = useState(initialContent)
   const [mediaFiles, setMediaFiles] = useState<MediaPreview[]>([])
   const [resolvedMentions, setResolvedMentions] = useState<ResolvedMention[]>([])
   const [submitting, setSubmitting] = useState(false)

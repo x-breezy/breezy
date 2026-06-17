@@ -1,7 +1,7 @@
 "use client"
 
 import { memo, useState, useCallback } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, usePathname } from "next/navigation"
 import { PostMeta, PostContent, PostActions } from "."
 import { PostMenu } from "./post-menu"
 import { ProfileAvatar } from "../profile"
@@ -59,9 +59,14 @@ function Post({
   className,
 }: HomePostProps) {
   const router = useRouter()
+  const pathname = usePathname()
+  const isDetailPage = pathname.startsWith("/post/")
   const [likes, setLikes] = useState(initialLikes)
   const [comments, setComments] = useState(initialComments)
   const [isLiked, setIsLiked] = useState(initialLiked)
+  const [postContent, setPostContent] = useState(content)
+  const [postMedia, setPostMedia] = useState(media)
+  const [deleted, setDeleted] = useState(false)
   const [viewerIndex, setViewerIndex] = useState<number | null>(null)
   const [replyOpen, setReplyOpen] = useState(false)
   const formattedTime = compact ? timeAgo(createdAt) : formatFullDate(createdAt)
@@ -113,6 +118,8 @@ function Post({
     [id, username]
   )
 
+  if (deleted) return null
+
   return (
     <>
       <article
@@ -160,16 +167,30 @@ function Post({
                 compact={compact}
               />
             </div>
-            <PostMenu postId={id} username={username} authorId={authorId ?? id} />
+            <PostMenu
+              postId={id}
+              username={username}
+              authorId={authorId ?? id}
+              content={postContent}
+              media={postMedia}
+              onDeleted={() => {
+                setDeleted(true)
+                if (isDetailPage) router.back()
+              }}
+              onEdited={(c, m) => {
+                setPostContent(c)
+                setPostMedia(m)
+              }}
+            />
           </div>
 
-          <PostContent content={content} />
-          {media && media.length > 0 && (
+          <PostContent content={postContent} />
+          {postMedia && postMedia.length > 0 && (
             <div
               className='mt-4 mb-4 flex max-w-75 flex-col gap-2 rounded-lg'
               onClick={(e) => e.stopPropagation()}
             >
-              {media.map((item, i) =>
+              {postMedia.map((item, i) =>
                 item.type === "image" ? (
                   <MediaImage
                     key={item.id}
@@ -204,9 +225,9 @@ function Post({
         </div>
       </article>
 
-      {media && media.length > 0 && (
+      {postMedia && postMedia.length > 0 && (
         <MediaViewer
-          items={media}
+          items={postMedia}
           open={viewerIndex !== null}
           index={viewerIndex ?? 0}
           onClose={() => setViewerIndex(null)}
