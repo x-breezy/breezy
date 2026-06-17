@@ -6,7 +6,8 @@
     "feedFollowing": "Following",
     "feedTrending": "Trending",
     "createPost": "Create post",
-    "notifications": "Notifications"
+    "notifications": "Notifications",
+    "noPostsFeed": "No posts yet. Follow some people to see their posts here."
   },
   "nav": {
     "home": "Home",
@@ -182,7 +183,8 @@
     "saving": "Saving…",
     "saveChanges": "Save changes",
     "cancel": "Cancel",
-    "biographyTitle": "Biography"
+    "biographyTitle": "Biography",
+    "noPosts": "No posts yet."
   },
   "composePost": {
     "posting": "Posting…",

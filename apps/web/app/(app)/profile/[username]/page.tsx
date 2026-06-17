@@ -86,7 +86,7 @@ export default function ProfilePage({ params }: { params: Promise<{ username: st
               ))}
             </div>
           ) : posts.length === 0 ? (
-            <p className='py-8 text-center text-sm text-muted-foreground'>No posts yet.</p>
+            <p className='py-8 text-center text-sm text-muted-foreground'>{t("noPosts")}</p>
           ) : (
             <>
               {posts.map((post) => (

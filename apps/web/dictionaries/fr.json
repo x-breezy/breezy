@@ -6,7 +6,8 @@
     "feedFollowing": "Abonnements",
     "feedTrending": "Tendances",
     "createPost": "Créer une publication",
-    "notifications": "Notifications"
+    "notifications": "Notifications",
+    "noPostsFeed": "Aucune publication pour le moment. Suivez des personnes pour voir leurs publications ici."
   },
   "nav": {
     "home": "Accueil",
@@ -182,7 +183,8 @@
     "saving": "Enregistrement…",
     "saveChanges": "Enregistrer",
     "cancel": "Annuler",
-    "biographyTitle": "Biographie"
+    "biographyTitle": "Biographie",
+    "noPosts": "Aucune publication pour le moment."
   },
   "composePost": {
     "posting": "Publication…",

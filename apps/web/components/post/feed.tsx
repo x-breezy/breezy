@@ -5,9 +5,11 @@ import { useFeed } from "./use-feed"
 import Post from "./post"
 import { toggleLike } from "@/lib/actions/posts"
 import { Skeleton } from "@/components/ui/skeleton"
+import { useTranslations } from "next-intl"
 
 export function Feed() {
   const { posts, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useFeed()
+  const t = useTranslations("home")
 
   const sentinelRef = useRef<HTMLDivElement>(null)
 
@@ -53,7 +55,7 @@ export function Feed() {
   if (posts.length === 0) {
     return (
       <p className='py-8 text-center text-sm text-muted-foreground'>
-        No posts yet. Follow some people to see their posts here.
+        {t("noPostsFeed")}
       </p>
     )
   }
