@@ -2,7 +2,7 @@
 
 import { cookies } from "next/headers"
 
-const GATEWAY_URL = process.env.GATEWAY_URL ?? "http://localhost:80"
+const API_URL = process.env.API_URL ?? "http://localhost"
 
 export interface SearchPostMedia {
   id: string
@@ -48,7 +48,7 @@ async function getAuthHeaders(): Promise<Record<string, string>> {
 
 export async function createPost(input: CreatePostInput): Promise<void> {
   const headers = await getAuthHeaders()
-  const res = await fetch(`${GATEWAY_URL}/api/posts/`, {
+  const res = await fetch(`${API_URL}/api/posts/`, {
     method: "POST",
     headers: { ...headers, "Content-Type": "application/json" },
     body: JSON.stringify(input),
@@ -69,7 +69,7 @@ export async function searchPosts(
   const params = new URLSearchParams({ q, page: String(page), limit: String(limit) })
   if (authorIds?.length) params.set("authorIds", authorIds.join(","))
 
-  const res = await fetch(`${GATEWAY_URL}/api/posts/search?${params}`, { headers })
+  const res = await fetch(`${API_URL}/api/posts/search?${params}`, { headers })
   if (!res.ok) throw new Error(`Failed to search posts: ${res.status}`)
   const data = await res.json()
   return data.data as PaginatedResult<SearchPost>
@@ -78,7 +78,7 @@ export async function searchPosts(
 export async function getLikedPostIds(postIds: string[]): Promise<string[]> {
   if (postIds.length === 0) return []
   const headers = await getAuthHeaders()
-  const res = await fetch(`${GATEWAY_URL}/api/posts/liked-by-me?postIds=${postIds.join(",")}`, {
+  const res = await fetch(`${API_URL}/api/posts/liked-by-me?postIds=${postIds.join(",")}`, {
     headers,
   })
   if (!res.ok) throw new Error(`Failed to get liked posts: ${res.status}`)
@@ -92,7 +92,7 @@ export async function toggleLike(postId: string, liked: boolean): Promise<{ like
     throw new Error("Invalid postId format")
   }
   const headers = await getAuthHeaders()
-  const res = await fetch(`${GATEWAY_URL}/api/posts/${postId}/likes`, {
+  const res = await fetch(`${API_URL}/api/posts/${postId}/likes`, {
     method: liked ? "POST" : "DELETE",
     headers,
   })
@@ -104,7 +104,7 @@ export async function toggleLike(postId: string, liked: boolean): Promise<{ like
 export async function deletePost(postId: string): Promise<void> {
   if (!/^[a-f0-9]{24}$/i.test(postId)) throw new Error("Invalid postId format")
   const headers = await getAuthHeaders()
-  const res = await fetch(`${GATEWAY_URL}/api/posts/${postId}`, { method: "DELETE", headers })
+  const res = await fetch(`${API_URL}/api/posts/${postId}`, { method: "DELETE", headers })
   if (!res.ok) throw new Error(`Failed to delete post: ${res.status}`)
 }
 
@@ -115,7 +115,7 @@ export async function updatePost(
 ): Promise<void> {
   if (!/^[a-f0-9]{24}$/i.test(postId)) throw new Error("Invalid postId format")
   const headers = await getAuthHeaders()
-  const res = await fetch(`${GATEWAY_URL}/api/posts/${postId}`, {
+  const res = await fetch(`${API_URL}/api/posts/${postId}`, {
     method: "PATCH",
     headers: { ...headers, "Content-Type": "application/json" },
     body: JSON.stringify({ content, ...(media !== undefined ? { media } : {}) }),
@@ -125,7 +125,7 @@ export async function updatePost(
 
 export async function getTrendingTags(limit = 10): Promise<TrendingTag[]> {
   const headers = await getAuthHeaders()
-  const res = await fetch(`${GATEWAY_URL}/api/posts/trending-tags?limit=${limit}`, { headers })
+  const res = await fetch(`${API_URL}/api/posts/trending-tags?limit=${limit}`, { headers })
   if (!res.ok) throw new Error(`Failed to get trending tags: ${res.status}`)
   const data = await res.json()
   return data.data as TrendingTag[]

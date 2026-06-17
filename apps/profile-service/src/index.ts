@@ -1,4 +1,4 @@
-import { createLogger } from "@breezy/logger"
+import { createLogger, registerProcessHandlers } from "@breezy/logger"
 import { createApp } from "./app"
 import { connect } from "./config/database"
 import { initFollowModel } from "./models/follow.model"
@@ -7,11 +7,12 @@ import { connectRabbitMQ } from "./clients/rabbitmq"
 import { startGrpcServer } from "./config/grpc.server"
 
 const logger = createLogger({ service: "profile-service" })
+registerProcessHandlers(logger)
 
 const app = createApp()
 const port = process.env.PORT ?? 4010
 const databaseUrl =
-  process.env.DATABASE_URL ?? "postgres://breezy:breezy@localhost:5432/breezy_auth"
+  process.env.DATABASE_URL ?? "postgres://breezy:breezy@localhost:5432/breezy_profiles"
 
 async function start(): Promise<void> {
   const sequelize = await connect(databaseUrl)
@@ -24,10 +25,14 @@ async function start(): Promise<void> {
   logger.info("Models synchronized")
 
   await connectRabbitMQ()
-  startGrpcServer(50051)
+  startGrpcServer(logger, 50051)
 
-  app.listen(port, () => {
+  const server = app.listen(port, () => {
     logger.info({ port }, "Profile service listening")
+  })
+
+  process.on("SIGTERM", () => {
+    server.close(() => process.exit(0))
   })
 }
 

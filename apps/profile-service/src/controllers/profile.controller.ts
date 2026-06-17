@@ -15,7 +15,10 @@ class ProfileController {
     next: NextFunction
   ): Promise<void> => {
     try {
-      const profile = await this.profileService.createProfile(req.body)
+      const profile = await this.profileService.createProfile({
+        ...req.body,
+        profileId: req.user!.id,
+      })
       res.status(201).json({ success: true, data: profile })
     } catch (err) {
       next(err)

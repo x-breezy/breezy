@@ -2,7 +2,7 @@
 
 import { cookies } from "next/headers"
 
-const GATEWAY_URL = process.env.GATEWAY_URL ?? "http://localhost:80"
+const API_URL = process.env.API_URL ?? "http://localhost"
 
 export interface SearchProfile {
   profileId: string
@@ -52,7 +52,7 @@ export async function searchProfiles(
 ): Promise<{ profiles: SearchProfile[]; total: number; page: number; limit: number }> {
   const headers = await getAuthHeaders()
   const res = await fetch(
-    `${GATEWAY_URL}/api/profiles/search?q=${encodeURIComponent(q)}&page=${page}&limit=${limit}`,
+    `${API_URL}/api/profiles/search?q=${encodeURIComponent(q)}&page=${page}&limit=${limit}`,
     { headers }
   )
   if (!res.ok) throw new Error(`Failed to search profiles: ${res.status}`)
@@ -64,7 +64,7 @@ export async function searchProfiles(
 export async function fetchProfilesByIds(ids: string[]): Promise<SearchProfile[]> {
   if (ids.length === 0) return []
   const headers = await getAuthHeaders()
-  const res = await fetch(`${GATEWAY_URL}/api/profiles/batch?ids=${ids.join(",")}`, { headers })
+  const res = await fetch(`${API_URL}/api/profiles/batch?ids=${ids.join(",")}`, { headers })
   if (!res.ok) throw new Error(`Failed to fetch profiles: ${res.status}`)
   const data = await res.json()
   return (data.data as RawProfile[]).map(normalizeProfile)
@@ -72,7 +72,7 @@ export async function fetchProfilesByIds(ids: string[]): Promise<SearchProfile[]
 
 export async function followProfile(followingId: string): Promise<void> {
   const headers = await getAuthHeaders()
-  const res = await fetch(`${GATEWAY_URL}/api/profiles/follow`, {
+  const res = await fetch(`${API_URL}/api/profiles/follow`, {
     method: "POST",
     headers: { ...headers, "Content-Type": "application/json" },
     body: JSON.stringify({ followingId }),
@@ -82,7 +82,7 @@ export async function followProfile(followingId: string): Promise<void> {
 
 export async function unfollowProfile(followingId: string): Promise<void> {
   const headers = await getAuthHeaders()
-  const res = await fetch(`${GATEWAY_URL}/api/profiles/unfollow`, {
+  const res = await fetch(`${API_URL}/api/profiles/unfollow`, {
     method: "POST",
     headers: { ...headers, "Content-Type": "application/json" },
     body: JSON.stringify({ followingId }),

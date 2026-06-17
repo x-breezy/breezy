@@ -5,6 +5,7 @@ import { ImageUploadDTO, Image } from "../types/image"
 class ImageService {
   async optimizeImage(image: Buffer): Promise<Buffer> {
     return sharp(image)
+      .rotate()
       .resize(2000, 2000, { fit: "inside" })
       .toFormat("jpeg", { quality: 80 })
       .toBuffer()

@@ -53,6 +53,7 @@ jobs:
           cache: npm
 
       - name: Restore node_modules
+        id: restore-lint
         uses: actions/cache/restore@v4
         with:
           path: |
@@ -60,6 +61,10 @@ jobs:
             apps/*/node_modules
             packages/*/node_modules
           key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+
+      - name: Install dependencies (if cache miss)
+        if: steps.restore-lint.outputs.cache-hit != 'true'
+        run: npm ci
 
       - name: Lint
         run: npm run lint
@@ -77,6 +82,7 @@ jobs:
           cache: npm
 
       - name: Restore node_modules
+        id: restore-types
         uses: actions/cache/restore@v4
         with:
           path: |
@@ -84,6 +90,10 @@ jobs:
             apps/*/node_modules
             packages/*/node_modules
           key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+
+      - name: Install dependencies (if cache miss)
+        if: steps.restore-types.outputs.cache-hit != 'true'
+        run: npm ci
 
       - name: Check types
         run: npm run check-types
@@ -101,6 +111,7 @@ jobs:
           cache: npm
 
       - name: Restore node_modules
+        id: restore-test
         uses: actions/cache/restore@v4
         with:
           path: |
@@ -108,6 +119,10 @@ jobs:
             apps/*/node_modules
             packages/*/node_modules
           key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+
+      - name: Install dependencies (if cache miss)
+        if: steps.restore-test.outputs.cache-hit != 'true'
+        run: npm ci
 
       - name: Run tests with coverage
         run: npm run test:coverage
@@ -136,6 +151,7 @@ jobs:
           cache: npm
 
       - name: Restore node_modules
+        id: restore-build
         uses: actions/cache/restore@v4
         with:
           path: |
@@ -143,6 +159,10 @@ jobs:
             apps/*/node_modules
             packages/*/node_modules
           key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+
+      - name: Install dependencies (if cache miss)
+        if: steps.restore-build.outputs.cache-hit != 'true'
+        run: npm ci
 
       - name: Build
         run: npm run build
@@ -160,6 +180,7 @@ jobs:
           cache: npm
 
       - name: Restore node_modules
+        id: restore-security
         uses: actions/cache/restore@v4
         with:
           path: |
@@ -167,6 +188,10 @@ jobs:
             apps/*/node_modules
             packages/*/node_modules
           key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+
+      - name: Install dependencies (if cache miss)
+        if: steps.restore-security.outputs.cache-hit != 'true'
+        run: npm ci
 
       - name: Audit dependencies
         run: npm audit --audit-level=high
