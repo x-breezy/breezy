@@ -3,7 +3,6 @@
 import { useRef, useState, useEffect } from "react"
 import { createPortal } from "react-dom"
 import { searchProfiles } from "@/lib/actions/profiles"
-<<<<<<< HEAD
 import { buildEditorHTML } from "@/lib/post-utils"
 import { PostBottomBar } from "./PostBottomBar"
 import { MediaPreview, ResolvedMention } from "./use-post-compose"
@@ -11,12 +10,10 @@ import { ProfileAvatar } from "@/components/profile"
 import { ProfileBadges } from "@/components/profile/profile-badge"
 import { UserRole } from "@/lib/auth/role"
 import { useUserStore } from "@/stores/user-store"
-=======
 import { useTranslations } from "next-intl"
 import type { ResolvedMention, MediaPreview } from "./use-post-compose"
 import { buildPostHTML } from "@/lib/post-utils"
 import { PostBottomBar } from "./PostBottomBar"
->>>>>>> dev
 
 interface MentionSuggestion {
   profileId: string
@@ -82,11 +79,8 @@ export function PostForm({
   const [mentionQuery, setMentionQuery] = useState<string | null>(null)
   const [selectedIndex, setSelectedIndex] = useState(0)
   const [popupPos, setPopupPos] = useState<{ top: number; left: number } | null>(null)
-<<<<<<< HEAD
   const profile = useUserStore((s) => s.profile)
-=======
   const t = useTranslations("composePost")
->>>>>>> dev
 
   useEffect(() => {
     const el = editorRef.current
@@ -310,4 +304,3 @@ export function PostForm({
     </>
   )
 }
-            

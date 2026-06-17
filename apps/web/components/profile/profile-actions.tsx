@@ -116,13 +116,8 @@ export function ProfileActions({ className, profile, isOwn }: ProfileActionsProp
             size='lg'
             onClick={handleMessage}
           >
-<<<<<<< HEAD
             <IconSend stroke={2.3} />
-            Message
-=======
-            <IconMessageCircle stroke={2.3} />
             {t("buttonMessage")}
->>>>>>> dev
           </Button>
         </>
       )}

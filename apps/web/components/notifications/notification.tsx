@@ -44,17 +44,12 @@ export const notificationTypeMeta = {
   comment: { Icon: IconMessage, badge: "bg-amber-500", stroke: 2.3 },
 } as const
 
-<<<<<<< HEAD
-function NotificationText({ view }: { view: NotificationView }) {
-  const uname = (actor: ActorInfo) => <span className='font-semibold'>{actor.username}</span>
-=======
 function actorAvatarUrl(actor: ActorInfo): string {
   return actor.avatarId ?? `https://api.dicebear.com/10.x/glyphs/svg?seed=${actor.id}`
 }
 
 function NotificationText({ view, t }: { view: NotificationView; t: any }) {
   const uname = (chunks: any) => <span className='font-semibold'>{chunks}</span>
->>>>>>> dev
 
   if (view.kind === "follow") {
     return <>{t.rich("follow", { actorName: view.actor.username, actor: uname })}</>

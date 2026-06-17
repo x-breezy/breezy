@@ -1,11 +1,8 @@
 "use client"
 
 import { useState, useCallback } from "react"
-<<<<<<< HEAD
-=======
 import { useTranslations } from "next-intl"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
->>>>>>> dev
 import { Button } from "@/components/ui/button"
 import { ProfileAvatar } from "../profile/profile-avatar"
 import { UserRole } from "@/lib/auth/role"
@@ -33,11 +30,8 @@ export function PersonCard({
   initialFollowing,
   onFollow,
 }: PersonCardProps) {
-<<<<<<< HEAD
-=======
   const t = useTranslations("search")
   const initials = (displayName ?? username ?? "?")[0]?.toUpperCase()
->>>>>>> dev
   const [isFollowing, setIsFollowing] = useState(initialFollowing ?? false)
 
   const handleFollow = useCallback(
