@@ -1,6 +1,12 @@
+import type { Metadata } from "next"
 import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
 import { GoogleUsernameForm } from "./form"
+
+export const metadata: Metadata = {
+  title: "Choose Username",
+  description: "Pick your Breezy username to complete sign up.",
+}
 
 export default async function GoogleUsernamePage() {
   const cookieStore = await cookies()

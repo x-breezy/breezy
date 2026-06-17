@@ -1,5 +1,10 @@
 import Image from "next/image"
+import type { Metadata } from "next"
 import { AuthThemeSelect } from "@/components/auth/auth-theme-select"
+
+export const metadata: Metadata = {
+  description: "Sign in, sign up, and manage your Breezy account.",
+}
 
 interface AuthLayoutProps {
   children: React.ReactNode
