@@ -186,7 +186,7 @@ describe("issueTokenPair", () => {
   it("creates access and refresh tokens, stores refresh in Redis", async () => {
     const result = await service.issueTokenPair({ sub: "user-1", role: "user" })
 
-    expect(mockedSignToken).toHaveBeenCalledWith({ sub: "user-1", role: "user" })
+    expect(mockedSignToken).toHaveBeenCalledWith({ sub: "user-1", role: "user", isComplete: false })
     expect(mockMulti.set).toHaveBeenCalledWith(
       "refresh:mock-refresh-hash",
       expect.any(String),
