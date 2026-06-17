@@ -1,4 +1,4 @@
-import { generateKeyPairSync, randomBytes } from "crypto"
+import { generateKeyPairSync } from "crypto"
 import { writeFileSync, unlinkSync, existsSync, mkdtempSync, rmSync } from "fs"
 import { join } from "path"
 import { tmpdir } from "os"
