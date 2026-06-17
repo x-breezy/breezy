@@ -25,7 +25,7 @@ function extractMentions(content: string, authorId: string): string[] {
 }
 
 export class PostService {
-  constructor(private follow: FollowGraphPort = new GrpcFollowGraph()) {}
+  constructor(private follow: FollowGraphPort = new GrpcFollowGraph()) { }
 
   async createPost(data: CreatePostDTO & { authorId: string }): Promise<Post> {
     const mentions = data.mentions ?? extractMentions(data.content, data.authorId)
@@ -147,9 +147,9 @@ export class PostService {
       following === null
         ? { authorId: { $ne: viewerId }, parentId: null }
         : {
-            authorId: { $in: [...new Set(following)], $ne: viewerId },
-            parentId: null,
-          }
+          authorId: { $in: [...new Set(following)], $ne: viewerId },
+          parentId: null,
+        }
     const skip = (page - 1) * limit
     const [data, total] = await Promise.all([
       PostModel.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).exec(),
@@ -178,7 +178,8 @@ export class PostService {
     const post = await PostModel.findById(id).exec()
     if (!post) return false
 
-    await PostModel.findByIdAndDelete(id).exec()
+    const deleted = await PostModel.findByIdAndDelete(id).exec()
+    if (!deleted) return false
 
     if (post.parentId) {
       await PostModel.findByIdAndUpdate(post.parentId, {
@@ -204,7 +205,7 @@ export class PostService {
       })) as unknown as ReplyPost[]
     }
 
-    const ids = posts.map((p) => String(p._id))
+    const ids = posts.map((p) => String(p.id))
     // depth=1 fetches level-2 replies — only show root author's responses
     const childFilter: Record<string, unknown> = { parentId: { $in: ids } }
     if (depth === 1 && rootAuthorId) childFilter.authorId = rootAuthorId
@@ -217,7 +218,7 @@ export class PostService {
       .exec()) as Post[]
     console.log(
       `[attachReplies] depth=${depth} children found: ${children.length}`,
-      children.map((c) => ({ id: String(c._id), authorId: c.authorId, parentId: c.parentId }))
+      children.map((c) => ({ id: String(c.id), authorId: c.authorId, parentId: c.parentId }))
     )
 
     this.sortByOwnerFirst(children, rootAuthorId, viewerId)
@@ -233,7 +234,7 @@ export class PostService {
     }
 
     return posts.map((p) => {
-      const id = String(p._id)
+      const id = String(p.id)
       return { ...p, author: null, likedByMe: false, replies: repliesByParent.get(id) ?? [] }
     }) as unknown as ReplyPost[]
   }
@@ -352,11 +353,11 @@ export class PostService {
     const authorDocs =
       authorIds && authorIds.length > 0
         ? await PostModel.find({
-            authorId: { $in: authorIds, ...(viewerId ? { $ne: viewerId } : {}) },
-          })
-            .sort({ createdAt: -1 })
-            .limit(limit)
-            .exec()
+          authorId: { $in: authorIds, ...(viewerId ? { $ne: viewerId } : {}) },
+        })
+          .sort({ createdAt: -1 })
+          .limit(limit)
+          .exec()
         : []
 
     // Merge and deduplicate while preserving priority order
