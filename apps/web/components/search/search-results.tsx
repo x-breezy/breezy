@@ -4,10 +4,8 @@ import { useSearchParams } from "next/navigation"
 import { useTranslations } from "next-intl"
 import Link from "next/link"
 import { IconLoader2 } from "@tabler/icons-react"
-import HomePost from "@/components/home/home-post"
 import type { SearchProfile } from "@/lib/actions/profiles"
 import { parseTab } from "./types"
-import { timeAgo } from "@/lib/utils"
 import { PersonCard } from "./person-card"
 import { MediaGrid } from "./media-grid"
 import {
@@ -17,6 +15,8 @@ import {
   type MediaCache,
 } from "./use-search-results"
 import { useUserStore } from "@/stores/user-store"
+import Post from "../post/post"
+import { UserRole } from "@/lib/auth/role"
 
 interface SearchResultsProps {
   q: string
@@ -53,7 +53,10 @@ export function SearchResults({ q }: SearchResultsProps) {
           <li className='px-4 py-8 text-center text-sm text-destructive'>{error}</li>
         )}
 
-        {!loading && !error && tab === "posts" && renderPosts(postsCache, profileMap, handleLike, t)}
+        {!loading &&
+          !error &&
+          tab === "posts" &&
+          renderPosts(postsCache, profileMap, handleLike, t)}
         {!loading &&
           !error &&
           tab === "people" &&
@@ -79,16 +82,21 @@ function renderPosts(
     const name = displayName ?? profile?.username ?? t("fallbackUser")
     return (
       <li key={post._id} className='w-full'>
-        <HomePost
+        <Post
           id={post._id}
+          avatarUrl={profile?.avatarUrl || undefined}
           name={name}
           username={profile?.username ?? ""}
+          authorId={post.authorId}
+          authorRole={profile?.role}
           content={post.content}
-          createdAt={timeAgo(post.createdAt)}
+          media={post.media}
+          createdAt={post.createdAt}
           initialLikes={post.likesCount}
           initialComments={post.commentsCount}
           initialLiked={cache.likedIds.has(post._id)}
           onLike={onLike}
+          href={`/post/${profile?.username ?? post.authorId}/${post._id}`}
         />
       </li>
     )
@@ -112,6 +120,7 @@ function renderPeople(
           displayName={item.displayName}
           username={item.username}
           avatarUrl={item.avatarUrl}
+          role={item.role as UserRole | undefined}
           bio={item.bio}
           followersCount={item.followersCount}
           initialFollowing={following[item.id] ?? false}

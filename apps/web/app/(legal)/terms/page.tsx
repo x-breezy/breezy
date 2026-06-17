@@ -25,7 +25,10 @@ export default async function TermsPage() {
       <div className='mx-auto max-w-3xl px-6 py-16'>
         {/* Header */}
         <div className='mb-12'>
-          <Link href='/' className='mb-8 inline-block font-geom text-2xl font-semibold tracking-tight text-foreground'>
+          <Link
+            href='/'
+            className='mb-8 inline-block font-geom text-2xl font-semibold tracking-tight text-foreground'
+          >
             {APP_NAME}
           </Link>
           <h1 className='mt-6 text-3xl font-bold tracking-tight text-foreground'>
@@ -60,20 +63,6 @@ export default async function TermsPage() {
               <li>{t.rich("s1_1", { appName: APP_NAME, bold: boldRenderer })}</li>
               <li>{t("s1_2")}</li>
               <li>{t("s1_3")}</li>
-            </ul>
-          </section>
-
-          <hr className='border-border' />
-
-          {/* 2 */}
-          <section>
-            <h2 className='mb-4 text-lg font-semibold text-foreground'>{t("s2Title")}</h2>
-            <ul className='list-disc space-y-2 pl-6 text-muted-foreground'>
-              <li>{t("s2_1")}</li>
-              <li>{t("s2_2")}</li>
-              <li>{t.rich("s2_3", { email: CONTACT_EMAIL, link: emailLinkRenderer })}</li>
-              <li>{t("s2_4")}</li>
-              <li>{t("s2_5")}</li>
             </ul>
           </section>
 
@@ -229,7 +218,12 @@ export default async function TermsPage() {
             </p>
             <div className='mt-3 rounded-xl border border-border bg-muted/40 p-4 text-muted-foreground'>
               <p className='font-medium text-foreground'>{COMPANY}</p>
-              <p>Email: <a href={`mailto:${CONTACT_EMAIL}`} className='text-foreground underline'>{CONTACT_EMAIL}</a></p>
+              <p>
+                Email:{" "}
+                <a href={`mailto:${CONTACT_EMAIL}`} className='text-foreground underline'>
+                  {CONTACT_EMAIL}
+                </a>
+              </p>
             </div>
           </section>
         </div>

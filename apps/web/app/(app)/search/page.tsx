@@ -1,7 +1,7 @@
 import { Suspense } from "react"
 import { SearchHeader } from "@/components/search/search-header"
 import { SearchTabs } from "@/components/search/search-tabs"
-import { TagList } from "@/components/search/TagList"
+import { TagList } from "@/components/search/tag-list"
 import { SearchResults } from "@/components/search/search-results"
 
 interface SearchPageProps {

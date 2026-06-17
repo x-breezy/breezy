@@ -23,10 +23,7 @@ export default function TwoFactorPage() {
   if (!pendingToken) {
     return (
       <div className='mx-auto flex w-full max-w-sm animate-in flex-col justify-center px-4 py-12 text-center font-sans duration-300 select-none fade-in slide-in-from-bottom-4'>
-        <AuthHeader
-          title={t("twoFactorExpiredTitle")}
-          subtitle={t("twoFactorExpiredDesc")}
-        />
+        <AuthHeader title={t("twoFactorExpiredTitle")} subtitle={t("twoFactorExpiredDesc")} />
         <Link
           href='/sign-in'
           className='mt-6 inline-flex h-9 w-full items-center justify-center rounded-2xl bg-primary px-4 text-sm font-medium text-primary-foreground transition-all hover:bg-primary/80'
@@ -64,7 +61,11 @@ export default function TwoFactorPage() {
             {state?.error && (
               <div className='text-xs text-destructive'>
                 <p>{state.error}</p>
-                {state.code && <p className='mt-1 text-muted-foreground'>{t("codePrefix")}: {state.code}</p>}
+                {state.code && (
+                  <p className='mt-1 text-muted-foreground'>
+                    {t("codePrefix")}: {state.code}
+                  </p>
+                )}
               </div>
             )}
 
@@ -83,7 +84,9 @@ export default function TwoFactorPage() {
           <div className='text-destructive'>
             <p>{resendState.error}</p>
             {resendState.code && (
-              <p className='mt-1 text-xs text-muted-foreground'>{t("codePrefix")}: {resendState.code}</p>
+              <p className='mt-1 text-xs text-muted-foreground'>
+                {t("codePrefix")}: {resendState.code}
+              </p>
             )}
           </div>
         )}

@@ -1,16 +1,47 @@
+import Link from "next/link"
+import { UserRole } from "@/lib/auth/role"
+import { UsernameDisplay } from "@/components/shared/username-display"
+
 interface PostMetaProps {
   name: string
   username: string
-  createdAt: string
+  role?: UserRole
+  createdAt?: string
+  compact?: boolean
 }
 
-export function PostMeta({ name, username, createdAt }: PostMetaProps) {
+export function PostMeta({ name, username, role, createdAt, compact }: PostMetaProps) {
+  if (compact) {
+    return (
+      <Link
+        href={`/profile/${username}`}
+        className='flex min-w-0 items-center gap-1.5 truncate'
+        onClick={(e) => e.stopPropagation()}
+      >
+        <UsernameDisplay name={name} role={role} nameClassName='truncate text-sm hover:underline' />
+        <span className='shrink-0 truncate text-xs text-muted-foreground'>@{username}</span>
+        {createdAt && (
+          <>
+            <span className='shrink-0 text-xs text-muted-foreground' aria-hidden='true'>
+              &middot;
+            </span>
+            <span className='shrink-0 text-xs text-muted-foreground'>{createdAt}</span>
+          </>
+        )}
+      </Link>
+    )
+  }
+
   return (
-    <div className='flex min-w-0 items-center gap-1 text-sm'>
-      <span className='truncate font-bold text-foreground'>{name}</span>
-      <span className='truncate text-xs text-muted-foreground'>@{username}</span>
-      <span className='text-xs text-muted-foreground'>·</span>
-      <span className='shrink-0 text-xs text-muted-foreground'>{createdAt}</span>
-    </div>
+    <Link
+      href={`/profile/${username}`}
+      className='flex min-w-0 flex-col'
+      onClick={(e) => e.stopPropagation()}
+    >
+      <UsernameDisplay name={name} role={role} nameClassName='truncate text-sm hover:underline' />
+      <p className='flex items-center gap-1.5 truncate text-xs text-muted-foreground'>
+        @{username}
+      </p>
+    </Link>
   )
 }

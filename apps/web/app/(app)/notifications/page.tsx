@@ -78,7 +78,7 @@ export default function NotificationsPage() {
       <ul className='container-center px-6'>
         {groups.map(({ label, views: groupViews }) => (
           <li key={label}>
-            <div className='mb-2 border-b pb-1'>
+            <div className='mt-4 mb-2 border-b pb-1'>
               <h2 className='text-xl font-bold'>{t(label as any)}</h2>
             </div>
             <ul>

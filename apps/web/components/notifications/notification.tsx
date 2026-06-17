@@ -112,10 +112,13 @@ export function NotificationCard({ view, highlight, className }: CardProps) {
   const { Icon, badge, stroke } = notificationTypeMeta[view.kind]
 
   function handleCardClick() {
+    const currentUsername = useUserStore.getState().profile?.username
     if (view.kind === "follow") {
       router.push(`/profile/${view.actor.username}`)
+    } else if (view.kind === "mention") {
+      router.push(`/post/${view.actor.username}/${view.postId}`)
     } else {
-      router.push(`/posts/${view.postId}`)
+      if (currentUsername) router.push(`/post/${currentUsername}/${view.postId}`)
     }
   }
 
@@ -157,7 +160,7 @@ export function NotificationCard({ view, highlight, className }: CardProps) {
       )}
     >
       <div className='relative shrink-0'>
-        <ProfileAvatar src={actorAvatarUrl(primaryActor)} alt={primaryActor.username} size='2xs' />
+        <ProfileAvatar src={primaryActor.avatarId ?? ""} alt={primaryActor.username} size='2xs' />
         <span
           className={cn(
             "absolute -right-0.5 -bottom-0.5 flex size-5 items-center justify-center rounded-full text-white ring-2 ring-background",
@@ -183,7 +186,11 @@ export function NotificationCard({ view, highlight, className }: CardProps) {
               onConfirm={handleUnfollow}
               trigger={
                 <Button className='min-w-24' variant='secondary' disabled={isPending}>
-                  {isPending ? <IconLoader2 className='animate-spin' stroke={2.3} /> : t("following")}
+                  {isPending ? (
+                    <IconLoader2 className='animate-spin' stroke={2.3} />
+                  ) : (
+                    t("following")
+                  )}
                 </Button>
               }
             />

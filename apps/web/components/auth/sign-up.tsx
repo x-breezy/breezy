@@ -19,7 +19,6 @@ function StepIndicator({ current, t }: { current: Step; t: any }) {
     { label: t("stepDone") },
   ]
 
-
   return (
     <div className='mb-8 flex items-center justify-center'>
       {STEPS.map((s, i) => {

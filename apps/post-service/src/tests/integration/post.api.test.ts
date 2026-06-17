@@ -247,7 +247,7 @@ describe("GET /posts/feed", () => {
 
     await request(app).get("/posts/feed").set("Authorization", "Bearer fake-token")
 
-    expect(mockedModel.find).toHaveBeenCalledWith({})
+    expect(mockedModel.find).toHaveBeenCalledWith({ authorId: { $ne: USER1_UUID }, parentId: null })
   })
 
   it("returns 401 without auth", async () => {
@@ -276,7 +276,7 @@ describe("GET /posts/users/:userId", () => {
         limit: 20,
       }),
     })
-    expect(mockedModel.find).toHaveBeenCalledWith({ authorId: USER1_UUID })
+    expect(mockedModel.find).toHaveBeenCalledWith({ authorId: USER1_UUID, parentId: null })
   })
 
   it("returns empty list for user with no posts", async () => {
@@ -290,31 +290,9 @@ describe("GET /posts/users/:userId", () => {
     expect(res.body.data).toMatchObject({ data: [], total: 0 })
   })
 
-  it("returns 403 when user accesses another user's posts", async () => {
-    const res = await request(app)
-      .get(`/posts/users/${USER2_UUID}`)
-      .set("Authorization", "Bearer fake-token")
-
-    expect(res.status).toBe(403)
-    expect(res.body.success).toBe(false)
-  })
-
-  it("allows moderator to access any user's posts", async () => {
+  it("allows any authenticated user to access another user's posts", async () => {
     mockFindPaginated([MOCK_POST], 1)
 
-    mockVerifyJwt.mockReturnValueOnce({ sub: USER1_UUID, role: "moderator" })
-    const res = await request(app)
-      .get(`/posts/users/${USER2_UUID}`)
-      .set("Authorization", "Bearer fake-token")
-
-    expect(res.status).toBe(200)
-    expect(res.body.success).toBe(true)
-  })
-
-  it("allows admin to access any user's posts", async () => {
-    mockFindPaginated([MOCK_POST], 1)
-
-    mockVerifyJwt.mockReturnValueOnce({ sub: USER1_UUID, role: "admin" })
     const res = await request(app)
       .get(`/posts/users/${USER2_UUID}`)
       .set("Authorization", "Bearer fake-token")

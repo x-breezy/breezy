@@ -14,6 +14,7 @@ export interface CreatePostInput {
   tags: string[]
   mentions: string[]
   media: SearchPostMedia[]
+  parentId?: string
 }
 
 export interface SearchPost {

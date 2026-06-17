@@ -7,7 +7,7 @@ import { useState } from "react"
 import { Button } from "../ui/button"
 import {
   IconLoader2,
-  IconMessageCircle,
+  IconSend,
   IconPencilFilled,
   IconUserPlus,
   IconUserX,
@@ -116,7 +116,7 @@ export function ProfileActions({ className, profile, isOwn }: ProfileActionsProp
             size='lg'
             onClick={handleMessage}
           >
-            <IconMessageCircle stroke={2.3} />
+            <IconSend stroke={2.3} />
             {t("buttonMessage")}
           </Button>
         </>

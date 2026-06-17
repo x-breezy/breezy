@@ -7,7 +7,7 @@ interface PostContentProps {
 
 export function PostContent({ content }: PostContentProps) {
   return (
-    <p className='text-sm leading-tight break-words whitespace-pre-wrap text-foreground'>
+    <p className='text-sm leading-tight wrap-break-word whitespace-pre-wrap text-foreground'>
       {buildPostTokens(content).map((token, i) => {
         if (token.type === "text") return token.value
         if (token.type === "mention")

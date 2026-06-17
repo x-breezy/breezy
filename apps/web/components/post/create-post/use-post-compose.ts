@@ -27,7 +27,7 @@ function parseTags(content: string): string[] {
   return [...new Set(matches.map((t) => t.slice(1)))]
 }
 
-export function usePostCompose() {
+export function usePostCompose(parentId?: string) {
   const [content, setContent] = useState("")
   const [mediaFiles, setMediaFiles] = useState<MediaPreview[]>([])
   const [resolvedMentions, setResolvedMentions] = useState<ResolvedMention[]>([])
@@ -82,6 +82,7 @@ export function usePostCompose() {
         tags: parseTags(content),
         mentions: mentionIds,
         media: uploadedMedia,
+        ...(parentId ? { parentId } : {}),
       })
 
       // Cleanup object URLs after successful upload

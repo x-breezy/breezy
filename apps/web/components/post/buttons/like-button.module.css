@@ -1,0 +1,204 @@
+.heartSvg {
+  overflow: visible;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.heart {
+  transform-origin: center;
+}
+
+.mainCirc {
+  transform-origin: 12px 12px;
+}
+
+.grp1,
+.grp2,
+.grp3,
+.grp4,
+.grp5,
+.grp6,
+.grp7 {
+  opacity: 0;
+}
+
+/* Fill state, always tracks isLiked, no animation */
+.heartSvg[data-filled] .heart {
+  fill: #e2264d;
+  stroke: none;
+}
+
+/* Animation, only after first interaction */
+.heartSvg[data-liked] .heart {
+  animation: animateHeart 0.3s linear forwards 0.25s;
+}
+
+.heartSvg[data-liked] .mainCirc {
+  animation: animateCircle 0.3s linear forwards;
+  opacity: 1;
+}
+
+.heartSvg[data-liked] .grp1 {
+  opacity: 1;
+  transition: 0.1s all 0.3s;
+}
+.heartSvg[data-liked] .grp1 > circle:first-child {
+  transform: scale(0) translate(0, -12.4px);
+  transform-origin: 0 0 0;
+  transition: 0.5s transform 0.3s;
+}
+.heartSvg[data-liked] .grp1 > circle:last-child {
+  transform: scale(0) translate(4.1px, -20.7px);
+  transform-origin: 0 0 0;
+  transition: 1.5s transform 0.3s;
+}
+
+/* grp2: oval2=first-child, oval1=last-child */
+.heartSvg[data-liked] .grp2 {
+  opacity: 1;
+  transition: 0.1s all 0.3s;
+}
+.heartSvg[data-liked] .grp2 > circle:first-child {
+  transform: scale(0) translate(24.8px, -6.2px);
+  transform-origin: 0 0 0;
+  transition: 1.5s transform 0.3s;
+}
+.heartSvg[data-liked] .grp2 > circle:last-child {
+  transform: scale(0) translate(12.4px, -6.2px);
+  transform-origin: 0 0 0;
+  transition: 0.5s transform 0.3s;
+}
+
+/* grp3: oval2=first-child, oval1=last-child */
+.heartSvg[data-liked] .grp3 {
+  opacity: 1;
+  transition: 0.1s all 0.3s;
+}
+.heartSvg[data-liked] .grp3 > circle:first-child {
+  transform: scale(0) translate(12.4px, 0);
+  transform-origin: 0 0 0;
+  transition: 0.5s transform 0.3s;
+}
+.heartSvg[data-liked] .grp3 > circle:last-child {
+  transform: scale(0) translate(24.8px, 4.1px);
+  transform-origin: 0 0 0;
+  transition: 1.5s transform 0.3s;
+}
+
+.heartSvg[data-liked] .grp4 {
+  opacity: 1;
+  transition: 0.1s all 0.3s;
+}
+.heartSvg[data-liked] .grp4 > circle:first-child {
+  transform: scale(0) translate(12.4px, 6.2px);
+  transform-origin: 0 0 0;
+  transition: 0.5s transform 0.3s;
+}
+.heartSvg[data-liked] .grp4 > circle:last-child {
+  transform: scale(0) translate(16.6px, 20.7px);
+  transform-origin: 0 0 0;
+  transition: 1.5s transform 0.3s;
+}
+
+.heartSvg[data-liked] .grp5 {
+  opacity: 1;
+  transition: 0.1s all 0.3s;
+}
+.heartSvg[data-liked] .grp5 > circle:first-child {
+  transform: scale(0) translate(-4.1px, 8.3px);
+  transform-origin: 0 0 0;
+  transition: 0.5s transform 0.3s;
+}
+.heartSvg[data-liked] .grp5 > circle:last-child {
+  transform: scale(0) translate(-24.8px, 12.4px);
+  transform-origin: 0 0 0;
+  transition: 1.5s transform 0.3s;
+}
+
+.heartSvg[data-liked] .grp6 {
+  opacity: 1;
+  transition: 0.1s all 0.3s;
+}
+.heartSvg[data-liked] .grp6 > circle:first-child {
+  transform: scale(0) translate(-12.4px, 0);
+  transform-origin: 0 0 0;
+  transition: 0.5s transform 0.3s;
+}
+.heartSvg[data-liked] .grp6 > circle:last-child {
+  transform: scale(0) translate(-24.8px, -2.1px);
+  transform-origin: 0 0 0;
+  transition: 1.5s transform 0.3s;
+}
+
+.heartSvg[data-liked] .grp7 {
+  opacity: 1;
+  transition: 0.1s all 0.3s;
+}
+.heartSvg[data-liked] .grp7 > circle:first-child {
+  transform: scale(0) translate(-12.4px, -6.2px);
+  transform-origin: 0 0 0;
+  transition: 0.5s transform 0.3s;
+}
+.heartSvg[data-liked] .grp7 > circle:last-child {
+  transform: scale(0) translate(-22.8px, -12.4px);
+  transform-origin: 0 0 0;
+  transition: 1.5s transform 0.3s;
+}
+
+@keyframes animateCircle {
+  40% {
+    transform: scale(10);
+    opacity: 1;
+    fill: #dd4688;
+  }
+  55% {
+    transform: scale(11);
+    opacity: 1;
+    fill: #d46abf;
+  }
+  65% {
+    transform: scale(12);
+    opacity: 1;
+    fill: #cc8ef5;
+  }
+  75% {
+    transform: scale(13);
+    opacity: 1;
+    fill: transparent;
+    stroke: #cc8ef5;
+    stroke-width: 0.5;
+  }
+  85% {
+    transform: scale(17);
+    opacity: 1;
+    fill: transparent;
+    stroke: #cc8ef5;
+    stroke-width: 0.2;
+  }
+  95% {
+    transform: scale(18);
+    opacity: 1;
+    fill: transparent;
+    stroke: #cc8ef5;
+    stroke-width: 0.1;
+  }
+  100% {
+    transform: scale(19);
+    opacity: 1;
+    fill: transparent;
+    stroke: #cc8ef5;
+    stroke-width: 0;
+  }
+}
+
+@keyframes animateHeart {
+  0% {
+    transform: scale(0.2);
+  }
+  40% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}

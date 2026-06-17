@@ -13,6 +13,19 @@ export class PostController {
     }
   }
 
+  getDetail = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const detail = await this.service.getPostDetail(req.params.id!, req.user!.id)
+      if (!detail) {
+        res.status(404).json({ success: false, error: "Not found", message: "Post not found" })
+        return
+      }
+      res.json({ success: true, data: detail, message: "Post detail retrieved successfully" })
+    } catch (err) {
+      next(err)
+    }
+  }
+
   getOne = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const post = await this.service.getPost(req.params.id!)
@@ -42,9 +55,22 @@ export class PostController {
     try {
       const page = Math.max(1, parseInt(req.query.page as string) || 1)
       const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 20))
-      const result = await this.service.byUser(req.params.userId!, page, limit)
+      const includeReplies = req.query.replies === "true"
+      const result = await this.service.byUser(req.params.userId!, page, limit, includeReplies)
 
       res.json({ success: true, data: result, message: "User posts retrieved successfully" })
+    } catch (err) {
+      next(err)
+    }
+  }
+
+  getReplies = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const page = Math.max(1, parseInt(req.query.page as string) || 1)
+      const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 20))
+      const result = await this.service.getReplies(req.params.id!, page, limit)
+
+      res.json({ success: true, data: result, message: "Replies retrieved successfully" })
     } catch (err) {
       next(err)
     }
@@ -74,7 +100,7 @@ export class PostController {
       const limit = Math.min(50, Math.max(1, parseInt(req.query.limit as string) || 20))
       const rawAuthorIds = typeof req.query.authorIds === "string" ? req.query.authorIds : ""
       const authorIds = rawAuthorIds ? rawAuthorIds.split(",").filter(Boolean) : undefined
-      const result = await this.service.search(q, page, limit, authorIds)
+      const result = await this.service.search(q, page, limit, authorIds, req.user!.id)
       res.json({ success: true, data: result, message: "Search results retrieved successfully" })
     } catch (err) {
       next(err)

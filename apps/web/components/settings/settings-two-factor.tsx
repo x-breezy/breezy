@@ -32,9 +32,7 @@ export function SettingsTwoFactor() {
             <IconShieldLockFilled className='h-5 w-5 shrink-0 text-muted-foreground' />
             <p className='text-sm font-semibold'>{t("2faTitle")}</p>
           </div>
-          <p className='mt-0.5 text-xs text-muted-foreground'>
-            {t("2faEnabledDesc")}
-          </p>
+          <p className='mt-0.5 text-xs text-muted-foreground'>{t("2faEnabledDesc")}</p>
         </div>
         <form action={disableAction}>
           {disableState?.error && (
@@ -59,9 +57,7 @@ export function SettingsTwoFactor() {
           <IconShieldLockFilled className='h-5 w-5 shrink-0 text-muted-foreground' />
           <p className='text-sm font-semibold'>{t("2faTitle")}</p>
         </div>
-        <p className='mt-0.5 text-xs text-muted-foreground'>
-          {t("2faDesc")}
-        </p>
+        <p className='mt-0.5 text-xs text-muted-foreground'>{t("2faDesc")}</p>
       </div>
 
       {!codeSent ? (

@@ -189,7 +189,8 @@
     "postBtn": "Publier",
     "placeholder": "Quoi de neuf ?",
     "addPhoto": "Ajouter une photo",
-    "addVideo": "Ajouter une vidéo"
+    "addVideo": "Ajouter une vidéo",
+    "addGif": "Ajouter un GIF"
   },
   "search": {
     "placeholder": "Rechercher",

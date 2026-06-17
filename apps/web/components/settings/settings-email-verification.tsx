@@ -28,9 +28,7 @@ export function SettingsEmailVerification() {
             <p className='text-sm font-semibold'>{t("emailVerified")}</p>
             <IconCheckFilled className='h-3 w-3 shrink-0 text-muted-foreground' />
           </div>
-          <p className='mt-0.5 text-xs text-muted-foreground'>
-            {t("emailVerifiedDesc")}
-          </p>
+          <p className='mt-0.5 text-xs text-muted-foreground'>{t("emailVerifiedDesc")}</p>
         </div>
       </div>
     )
@@ -45,9 +43,7 @@ export function SettingsEmailVerification() {
           <IconMailFilled className='h-5 w-5 shrink-0 text-muted-foreground' />
           <p className='text-sm font-semibold'>{t("emailVerification")}</p>
         </div>
-        <p className='mt-0.5 text-xs text-muted-foreground'>
-          {t("emailVerifyDesc")}
-        </p>
+        <p className='mt-0.5 text-xs text-muted-foreground'>{t("emailVerifyDesc")}</p>
       </div>
 
       {!emailSent ? (

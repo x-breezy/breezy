@@ -189,7 +189,8 @@
     "postBtn": "Post",
     "placeholder": "What's happening?",
     "addPhoto": "Add photo",
-    "addVideo": "Add video"
+    "addVideo": "Add video",
+    "addGif": "Add GIF"
   },
   "search": {
     "placeholder": "Search",

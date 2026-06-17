@@ -2,8 +2,8 @@
 
 import { useState } from "react"
 import { cn } from "@/lib/utils"
-import { ProfileBadges } from "./profile-badge"
 import { UserRole } from "@/lib/auth/role"
+import { UsernameDisplay } from "@/components/shared/username-display"
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -16,7 +16,7 @@ import { Dialog, DialogOverlay, DialogPortal } from "@/components/ui/dialog"
 import { IconDots, IconShare, IconFlag, IconUserOff } from "@tabler/icons-react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
-import apiClient from "@/lib/api/client"
+import { reportProfile } from "@/lib/actions/reports"
 
 interface ProfileInfoProps {
   name: string
@@ -52,7 +52,7 @@ export function ProfileInfo({
 
   async function handleReport() {
     if (!reason.trim()) return
-    await apiClient.post("/api/reports/", { targetId: userId, reason })
+    await reportProfile(userId, reason)
     setReportOpen(false)
     setReason("")
   }
@@ -61,8 +61,9 @@ export function ProfileInfo({
     <>
       <div className={cn("flex flex-col items-center", className)}>
         <div className='flex items-center gap-1'>
-          <h1 className='text-2xl font-bold'>{name}</h1>
-          <ProfileBadges role={role} />
+          <h1>
+            <UsernameDisplay name={name} role={role} nameClassName='text-2xl font-bold' />
+          </h1>
           {!isOwn && (
             <DropdownMenu>
               <DropdownMenuTrigger

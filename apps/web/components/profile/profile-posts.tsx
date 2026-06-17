@@ -1,5 +1,7 @@
 import Image from "next/image"
 import { cn } from "@/lib/utils"
+import { UserRole } from "@/lib/auth/role"
+import { UsernameDisplay } from "@/components/shared/username-display"
 
 interface ProfilePostProps {
   id: string
@@ -7,6 +9,7 @@ interface ProfilePostProps {
     name: string
     username: string
     avatar?: string
+    role?: UserRole
   }
   content: string
   timestamp: string
@@ -31,7 +34,7 @@ function ProfilePost({ author, content, timestamp }: ProfilePostProps) {
         )}
         <div className='min-w-0 flex-1'>
           <div className='flex items-center gap-2'>
-            <span className='font-semibold'>{author.name}</span>
+            <UsernameDisplay name={author.name} role={author.role} />
             <span className='text-sm text-muted-foreground'>@{author.username}</span>
             <span className='text-muted-foreground'>·</span>
             <span className='text-sm text-muted-foreground'>{timestamp}</span>

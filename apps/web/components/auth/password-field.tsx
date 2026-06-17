@@ -89,9 +89,7 @@ export function PasswordField({
               />
             ))}
           </div>
-          <p className={`text-xs font-medium ${strengthTextColor[strength]}`}>
-            {labels[strength]}
-          </p>
+          <p className={`text-xs font-medium ${strengthTextColor[strength]}`}>{labels[strength]}</p>
           <ul className='flex flex-col gap-0.5'>
             {criteriaList.map((c) => (
               <li

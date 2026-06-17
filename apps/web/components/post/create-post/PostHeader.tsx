@@ -9,10 +9,12 @@ export function PostHeader({
   onPost,
   onClose,
   posting = false,
+  disabled = false,
 }: {
   onPost: () => void | Promise<void>
   onClose?: () => void
   posting?: boolean
+  disabled?: boolean
 }) {
   const router = useRouter()
   const t = useTranslations("composePost")
@@ -22,7 +24,7 @@ export function PostHeader({
       <Button variant='ghost' size='icon-lg' onClick={onClose ?? (() => router.back())}>
         <IconArrowLeft className='size-5' />
       </Button>
-      <Button className='font-semibold' onClick={onPost} disabled={posting}>
+      <Button className='font-semibold' onClick={onPost} disabled={posting || disabled}>
         {posting ? t("posting") : t("postBtn")}
       </Button>
     </header>

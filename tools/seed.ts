@@ -5,6 +5,8 @@
  * Requires the stack to be running (docker compose up -d).
  */
 
+import { execSync } from "child_process"
+
 const BASE_URL = process.env.API_URL ?? "http://localhost"
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
@@ -80,6 +82,15 @@ const USERS = [
     firstName: "Emma",
     lastName: "Moreau",
     bio: "Data engineer, Python & Spark",
+  },
+  {
+    username: "breezy_hq",
+    email: "admin@breezy.local",
+    password: "Seed1234!",
+    firstName: "Breezy",
+    lastName: "HQ",
+    bio: "Official Breezy account. Platform news, feature drops & community highlights.",
+    isAdmin: true,
   },
 ]
 
@@ -225,6 +236,52 @@ const POSTS_BY_USER: Record<string, { content: string; tags: string[] }[]> = {
       tags: ["DataQuality", "ETL", "BestPractices"],
     },
   ],
+  breezy_hq: [
+    {
+      content:
+        "Welcome to Breezy — the place where developers, designers and makers share what they're building. Happy to have you here.",
+      tags: ["Breezy", "Welcome", "Community"],
+    },
+    {
+      content:
+        "New feature: post replies are live. Thread your thoughts, reply to your community, keep conversations in context.",
+      tags: ["Breezy", "Product", "Update"],
+    },
+    {
+      content:
+        "Community reminder: be excellent to each other. Constructive feedback, honest opinions, zero harassment. Report anything that falls short.",
+      tags: ["Breezy", "Community", "Guidelines"],
+    },
+    {
+      content:
+        "Custom video player just shipped. Smooth scrubbing, clean controls, no third-party player bloat. Built in-house.",
+      tags: ["Breezy", "Product", "Update"],
+    },
+    {
+      content:
+        "Shoutout to everyone sharing their side projects here. This is exactly the kind of content this platform exists for. Keep shipping.",
+      tags: ["Breezy", "Community", "Makers"],
+    },
+    {
+      content:
+        "We read every report. If you see something that shouldn't be here, flag it — the report button exists for a reason and we act on it.",
+      tags: ["Breezy", "Trust", "Safety"],
+    },
+  ],
+}
+
+function promoteToAdmin(email: string): void {
+  try {
+    execSync(
+      `docker exec -e PGPASSWORD=postgres breezy-postgres-user-service psql -U postgres -d user_service -c "UPDATE users SET role='admin' WHERE email='${email}'"`,
+      { stdio: "pipe" }
+    )
+    console.log(`  ✓  ${email} promoted to admin`)
+  } catch {
+    console.warn(
+      `  ⚠  docker unavailable — run manually: docker exec -e PGPASSWORD=postgres breezy-postgres-user-service psql -U postgres -d user_service -c "UPDATE users SET role='admin' WHERE email='${email}'"`
+    )
+  }
 }
 
 async function createOrSignIn(user: (typeof USERS)[0]): Promise<{ token: string; userId: string }> {
@@ -422,6 +479,7 @@ async function main() {
     const { token, userId } = await createOrSignIn(user)
     await sleep(1200)
     await ensureProfile(token, userId, user)
+    if ("isAdmin" in user && user.isAdmin) promoteToAdmin(user.email)
     sessions.push({ token, userId, username: user.username })
     await sleep(1200)
   }
