@@ -16,6 +16,8 @@ const postSchema = new Schema<Post>(
       ],
       default: [],
     },
+    parentId: { type: String, index: true, default: null },
+    rootParentId: { type: String, index: true, default: null },
     likesCount: { type: Number, default: 0 },
     commentsCount: { type: Number, default: 0 },
   },

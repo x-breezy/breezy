@@ -35,6 +35,7 @@ export function PostComposeDialog({ onDismiss }: { onDismiss: () => void }) {
     mediaFiles: compose.mediaFiles,
     onRemoveMedia: compose.removeMedia,
     onAddMedia: compose.addMedia,
+    onSelectGif: (file: File) => compose.addMedia([file]),
     onMentionResolved: compose.resolveMention,
   }
 
@@ -43,7 +44,12 @@ export function PostComposeDialog({ onDismiss }: { onDismiss: () => void }) {
       <Dialog open={open} onOpenChange={(isOpen) => !isOpen && handleClose()}>
         <DialogPortal>
           <DialogPrimitive.Popup className='fixed inset-0 z-50 flex flex-col bg-background'>
-            <PostHeader onPost={handlePost} onClose={handleClose} posting={compose.submitting} />
+            <PostHeader
+              onPost={handlePost}
+              onClose={handleClose}
+              posting={compose.submitting}
+              disabled={compose.content.length > 250}
+            />
             <PostForm {...formProps} />
           </DialogPrimitive.Popup>
         </DialogPortal>
@@ -57,7 +63,12 @@ export function PostComposeDialog({ onDismiss }: { onDismiss: () => void }) {
         showCloseButton={false}
         className='z-50 flex h-[60vh] flex-col gap-0 overflow-hidden p-0 sm:top-4 sm:max-w-lg sm:rounded-[min(var(--radius-4xl),24px)]'
       >
-        <PostHeader onPost={handlePost} onClose={handleClose} posting={compose.submitting} />
+        <PostHeader
+          onPost={handlePost}
+          onClose={handleClose}
+          posting={compose.submitting}
+          disabled={compose.content.length > 250}
+        />
         <PostForm {...formProps} />
       </DialogContent>
     </Dialog>

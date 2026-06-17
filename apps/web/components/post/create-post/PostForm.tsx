@@ -1,17 +1,23 @@
 "use client"
 
 import { useRef, useState, useEffect } from "react"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { createPortal } from "react-dom"
 import { searchProfiles } from "@/lib/actions/profiles"
+import { buildEditorHTML } from "@/lib/post-utils"
+import { PostBottomBar } from "./PostBottomBar"
+import { ProfileAvatar } from "@/components/profile"
+import { ProfileBadges } from "@/components/profile/profile-badge"
+import { UserRole } from "@/lib/auth/role"
+import { useUserStore } from "@/stores/user-store"
 import { useTranslations } from "next-intl"
 import type { ResolvedMention, MediaPreview } from "./use-post-compose"
-import { buildPostHTML } from "@/lib/post-utils"
-import { PostBottomBar } from "./PostBottomBar"
 
 interface MentionSuggestion {
   profileId: string
   username: string
   displayName: string
+  avatarUrl: string | null
+  role: string
 }
 
 function getCaretOffset(el: HTMLElement): number {
@@ -41,20 +47,28 @@ function setCaretAt(el: HTMLElement, offset: number) {
   }
 }
 
+export const MAX_POST_CHARS = 250
+
 export function PostForm({
   content,
   setContent,
   mediaFiles,
   onRemoveMedia,
   onAddMedia,
+  onSelectGif,
   onMentionResolved,
+  hideBottomBar,
+  noMaxHeight,
 }: {
   content: string
   setContent: (value: string) => void
   mediaFiles: MediaPreview[]
   onRemoveMedia: (index: number) => void
   onAddMedia: (files: FileList) => void
+  onSelectGif: (file: File) => void
   onMentionResolved: (mention: ResolvedMention) => void
+  hideBottomBar?: boolean
+  noMaxHeight?: boolean
 }) {
   const editorRef = useRef<HTMLDivElement>(null)
   const isComposing = useRef(false)
@@ -62,12 +76,13 @@ export function PostForm({
   const [mentionQuery, setMentionQuery] = useState<string | null>(null)
   const [selectedIndex, setSelectedIndex] = useState(0)
   const [popupPos, setPopupPos] = useState<{ top: number; left: number } | null>(null)
+  const profile = useUserStore((s) => s.profile)
   const t = useTranslations("composePost")
 
   useEffect(() => {
     const el = editorRef.current
     if (!el) return
-    const html = buildPostHTML(content)
+    const html = buildEditorHTML(content)
     if (el.innerHTML !== html) {
       const offset = getCaretOffset(el)
       el.innerHTML = html
@@ -76,7 +91,7 @@ export function PostForm({
   }, [content])
 
   useEffect(() => {
-    if (mentionQuery === null || mentionQuery.length === 0) {
+    if (!mentionQuery) {
       setSuggestions([])
       return
     }
@@ -90,13 +105,13 @@ export function PostForm({
             profileId: p.profileId,
             username: p.username ?? "",
             displayName: [p.firstName, p.lastName].filter(Boolean).join(" ") || (p.username ?? ""),
+            avatarUrl: p.avatarUrl ?? null,
+            role: p.role ?? "",
           }))
         )
         setSelectedIndex(0)
       } catch {
-        if (!controller.signal.aborted) {
-          setSuggestions([])
-        }
+        if (!controller.signal.aborted) setSuggestions([])
       }
     }, 200)
     return () => {
@@ -106,8 +121,7 @@ export function PostForm({
   }, [mentionQuery])
 
   function detectMentionQuery(text: string, cursorPos: number): string | null {
-    const before = text.slice(0, cursorPos)
-    const match = before.match(/@([a-zA-Z0-9_]*)$/)
+    const match = text.slice(0, cursorPos).match(/@([a-zA-Z0-9_]*)$/)
     return match ? match[1]! : null
   }
 
@@ -117,13 +131,19 @@ export function PostForm({
       setPopupPos(null)
       return
     }
-    const range = sel.getRangeAt(0)
-    const caretRect = range.getBoundingClientRect()
-    const editorRect = editorRef.current.getBoundingClientRect()
-    setPopupPos({
-      top: caretRect.bottom - editorRect.top + 4,
-      left: Math.max(0, caretRect.left - editorRect.left),
-    })
+    const caretRect = sel.getRangeAt(0).getBoundingClientRect()
+    const dialog = editorRef.current.closest('[role="dialog"]')
+    const dialogRect = dialog?.getBoundingClientRect()
+    const POPUP_WIDTH = 256,
+      POPUP_HEIGHT = 200
+    let top = caretRect.bottom + 4
+    let left = Math.max(0, caretRect.left)
+    if (dialogRect) {
+      if (top + POPUP_HEIGHT > dialogRect.bottom) top = caretRect.top - POPUP_HEIGHT - 4
+      top = Math.max(dialogRect.top + 4, Math.min(top, dialogRect.bottom - POPUP_HEIGHT))
+      left = Math.max(dialogRect.left, Math.min(left, dialogRect.right - POPUP_WIDTH))
+    }
+    setPopupPos({ top, left })
   }
 
   function handleInput() {
@@ -151,9 +171,8 @@ export function PostForm({
       }
       if (e.key === "Enter" || e.key === "Tab") {
         e.preventDefault()
-        if (suggestions[selectedIndex]) {
-          applySuggestion(suggestions[selectedIndex])
-        }
+        if (suggestions[selectedIndex]) applySuggestion(suggestions[selectedIndex])
+        return
       }
       if (e.key === "Escape") {
         setSuggestions([])
@@ -169,8 +188,7 @@ export function PostForm({
     const text = el.innerText.replace(/\n$/, "")
     const before = text.slice(0, offset).replace(/@([a-zA-Z0-9_]*)$/, `@${s.username} `)
     const after = text.slice(offset)
-    const next = before + after
-    setContent(next)
+    setContent(before + after)
     setSuggestions([])
     setMentionQuery(null)
     setPopupPos(null)
@@ -182,11 +200,11 @@ export function PostForm({
 
   return (
     <>
-      <div className='flex max-h-[60vh] flex-1 flex-col gap-3 overflow-y-auto px-4 py-4'>
-        <div className='flex h-full gap-3'>
-          <Avatar size='lg'>
-            <AvatarFallback className='bg-amber-700 text-white'>G</AvatarFallback>
-          </Avatar>
+      <div
+        className={`flex flex-col gap-3 px-4 ${noMaxHeight ? "min-h-0 flex-1 py-4" : "max-h-[60vh] overflow-y-auto pt-6 pb-4"}`}
+      >
+        <div className={`flex gap-3 ${noMaxHeight ? "min-h-0 flex-1" : "h-full"}`}>
+          <ProfileAvatar size='2xs' src={profile?.avatarId ?? ""} />
 
           <div className='relative flex-1'>
             {!content && (
@@ -207,31 +225,45 @@ export function PostForm({
                 isComposing.current = false
                 handleInput()
               }}
-              className='h-full min-h-[6rem] w-full max-w-full text-xl leading-7 outline-none'
+              className='min-h-[6rem] w-full max-w-full text-xl leading-7 whitespace-pre-wrap outline-none'
               autoFocus
             />
-            {suggestions.length > 0 && popupPos && (
-              <ul
-                className='absolute z-50 w-64 overflow-hidden rounded-xl border bg-popover shadow-lg'
-                style={{ top: popupPos.top, left: popupPos.left }}
-              >
-                {suggestions.map((s, i) => (
-                  <li
-                    key={s.profileId}
-                    onMouseDown={(e) => {
-                      e.preventDefault()
-                      applySuggestion(s)
-                    }}
-                    className={`flex cursor-pointer flex-col px-3 py-2 text-sm ${i === selectedIndex ? "bg-accent" : "hover:bg-accent/50"}`}
-                  >
-                    <span className='font-medium'>@{s.username}</span>
-                    {s.displayName !== s.username && (
-                      <span className='text-xs text-muted-foreground'>{s.displayName}</span>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            )}
+
+            {suggestions.length > 0 &&
+              popupPos &&
+              createPortal(
+                <ul
+                  className='fixed z-[130] w-64 overflow-hidden rounded-xl border bg-popover shadow-lg'
+                  style={{ top: popupPos.top, left: popupPos.left }}
+                >
+                  {suggestions.map((s, i) => (
+                    <li
+                      key={s.profileId}
+                      onMouseDown={(e) => {
+                        e.preventDefault()
+                        applySuggestion(s)
+                      }}
+                      className={`flex cursor-pointer items-center gap-3 px-4 py-3 ${i === selectedIndex ? "bg-accent" : "hover:bg-accent/50"}`}
+                    >
+                      <ProfileAvatar
+                        size='2xs'
+                        src={s.avatarUrl ?? ""}
+                        className='size-10 shrink-0'
+                      />
+                      <div className='flex min-w-0 flex-col'>
+                        <span className='flex items-center gap-1 truncate font-semibold'>
+                          {s.displayName}
+                          <ProfileBadges role={s.role as UserRole} />
+                        </span>
+                        <span className='truncate text-sm text-muted-foreground'>
+                          @{s.username}
+                        </span>
+                      </div>
+                    </li>
+                  ))}
+                </ul>,
+                document.body
+              )}
           </div>
         </div>
 
@@ -257,10 +289,15 @@ export function PostForm({
         )}
       </div>
 
-      <div className='shrink-0'>
-        <PostBottomBar onAddMedia={onAddMedia} />
-      </div>
+      {!hideBottomBar && (
+        <div className='shrink-0'>
+          <PostBottomBar
+            onAddMedia={onAddMedia}
+            onSelectGif={onSelectGif}
+            charCount={content.length}
+          />
+        </div>
+      )}
     </>
   )
 }
-            

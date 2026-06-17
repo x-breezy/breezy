@@ -49,7 +49,7 @@ export function HomeHeader({ feed, onFeedChange }: HomeHeaderProps) {
           <Select value={feed} onValueChange={(v) => v && onFeedChange(v)}>
             <SelectTrigger className='border-transparent bg-transparent px-0 text-xl font-bold shadow-none focus-visible:ring-0'>
               <span className='capitalize'>
-                {t(FEED_OPTIONS.find((o) => o.value === feed)?.labelKey as any || "feedForYou")}
+                {t((FEED_OPTIONS.find((o) => o.value === feed)?.labelKey as any) || "feedForYou")}
               </span>
             </SelectTrigger>
             <SelectContent side='bottom'>

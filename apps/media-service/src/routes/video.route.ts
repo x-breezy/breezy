@@ -12,7 +12,7 @@ function createVideoRouter(controller: VideoController = new VideoController(new
   // No body parser: the raw request stream is piped straight into GridFS.
   router.post("/", identity, controller.upload)
   router.get("/:id/meta", identity, controller.getMeta)
-  router.get("/:id", identity, controller.getStream)
+  router.get("/:id", controller.getStream)
   router.delete(
     "/:id",
     identity,

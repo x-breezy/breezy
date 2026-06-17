@@ -12,6 +12,7 @@ export interface SearchProfile {
   avatarUrl: string | null
   bio: string | null
   followersCount: number
+  role?: string
 }
 
 export interface RawProfile {
@@ -22,6 +23,7 @@ export interface RawProfile {
   avatarId: string | null
   bio: string | null
   followersCount: number
+  role?: string
 }
 
 function normalizeProfile(p: RawProfile): SearchProfile {
@@ -33,6 +35,7 @@ function normalizeProfile(p: RawProfile): SearchProfile {
     avatarUrl: p.avatarId,
     bio: p.bio ?? null,
     followersCount: p.followersCount ?? 0,
+    role: p.role,
   }
 }
 

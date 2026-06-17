@@ -189,10 +189,6 @@ describe("GET /videos/:id (stream)", () => {
     expect(res.body.success).toBe(false)
   })
 
-  it("returns 401 without auth", async () => {
-    const res = await request(app).get(`/videos/${META_ID}`)
-    expect(res.status).toBe(401)
-  })
 })
 
 // ─── GET /videos/:id/meta ───────────────────────────────────────────────────

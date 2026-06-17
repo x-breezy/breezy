@@ -79,8 +79,7 @@ export default async function proxy(request: NextRequest) {
     return res
   }
 
-  const redirectToOnboarding = () =>
-    NextResponse.redirect(new URL("/onboarding", request.url))
+  const redirectToOnboarding = () => NextResponse.redirect(new URL("/onboarding", request.url))
 
   const valid = token ? !isTokenExpired(token) : false
 

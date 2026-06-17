@@ -11,11 +11,13 @@ class ImageService {
   }
 
   async uploadImage(input: ImageUploadDTO): Promise<Image> {
-    const data = await this.optimizeImage(input.data)
+    const isGif = input.mimeType === "image/gif"
+    const data = isGif ? input.data : await this.optimizeImage(input.data)
+    const mimeType = isGif ? "image/gif" : "image/jpeg"
     const doc = await ImageModel.create({
       ...input,
       data,
-      mimeType: "image/jpeg",
+      mimeType,
       size: data.length,
     })
     // Convert to plain object and map _id to id

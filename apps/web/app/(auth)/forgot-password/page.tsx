@@ -20,10 +20,7 @@ export default function ForgotPasswordPage() {
   if (state?.sent) {
     return (
       <div className='mx-auto flex w-full max-w-sm animate-in flex-col justify-center px-4 py-12 text-center font-sans duration-300 select-none fade-in slide-in-from-bottom-4'>
-        <AuthHeader
-          title={t("checkYourEmail")}
-          subtitle={t("resetLinkSent")}
-        />
+        <AuthHeader title={t("checkYourEmail")} subtitle={t("resetLinkSent")} />
         <div className='mt-6 text-sm text-muted-foreground'>
           <Link href='/sign-in' className='font-semibold text-foreground underline'>
             {t("backToSignIn")}
@@ -60,7 +57,11 @@ export default function ForgotPasswordPage() {
             {state?.error && (
               <div className='text-xs text-destructive'>
                 <p>{state.error}</p>
-                {state.code && <p className='mt-1 text-muted-foreground'>{t("codePrefix")}: {state.code}</p>}
+                {state.code && (
+                  <p className='mt-1 text-muted-foreground'>
+                    {t("codePrefix")}: {state.code}
+                  </p>
+                )}
               </div>
             )}
 

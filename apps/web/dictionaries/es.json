@@ -182,7 +182,8 @@
     "postBtn": "Publicar",
     "placeholder": "¿Qué está pasando?",
     "addPhoto": "Añadir foto",
-    "addVideo": "Añadir video"
+    "addVideo": "Añadir video",
+    "addGif": "Añadir GIF"
   },
   "search": {
     "placeholder": "Buscar",

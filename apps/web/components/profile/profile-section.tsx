@@ -15,6 +15,7 @@ interface ProfileSectionProps {
 }
 
 export function ProfileSection({ className, profile, role, isOwn }: ProfileSectionProps) {
+  console.log(profile, role, isOwn)
   return (
     <section className={cn("", className)}>
       {/* Mobile Layout */}

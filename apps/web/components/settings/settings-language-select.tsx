@@ -39,7 +39,7 @@ export function SettingsLanguageSelect({ value }: SettingsLanguageSelectProps) {
           <IconWorldFilled className='h-5 w-5 shrink-0 text-muted-foreground' strokeWidth={2} />
           <span className='text-sm font-medium text-foreground'>{t("language")}</span>
         </div>
-        <div className='w-1/4 flex justify-end text-sm text-muted-foreground'>
+        <div className='flex w-1/4 justify-end text-sm text-muted-foreground'>
           <span>{languages.find((l) => l.value === value)?.label || "English"}</span>
         </div>
       </SelectTrigger>

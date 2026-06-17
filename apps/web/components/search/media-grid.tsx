@@ -1,35 +1,49 @@
+"use client"
+
+import { useState } from "react"
 import type { SearchPostMedia } from "@/lib/actions/posts"
+import { MediaViewer } from "@/components/shared/medias/media-viewer"
+import { AutoplayVideo } from "@/components/shared/medias/autoplay-video"
+import { MediaImage } from "@/components/shared/medias/media-image"
+import { mediaUrl } from "@/lib/utils"
 
 interface MediaGridProps {
   items: SearchPostMedia[]
 }
 
 export function MediaGrid({ items }: MediaGridProps) {
+  const [viewerIndex, setViewerIndex] = useState<number | null>(null)
+
   return (
-    <li className='p-2'>
-      <div className='grid grid-cols-3 gap-1'>
-        {items.map((item) =>
-          item.type === "image" ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              key={item.id}
-              src={`/api/media/images/${item.id}`}
-              alt=''
-              loading='lazy'
-              className='aspect-square w-full cursor-pointer rounded object-cover'
-              onClick={() => window.open(`/api/media/images/${item.id}`, "_blank")}
-            />
-          ) : (
-            <video
-              key={item.id}
-              src={`/api/media/videos/${item.id}`}
-              preload='none'
-              className='aspect-square w-full cursor-pointer rounded object-cover'
-              controls
-            />
-          )
-        )}
-      </div>
-    </li>
+    <>
+      <li className='p-2'>
+        <div className='grid grid-cols-3 gap-1'>
+          {items.map((item, i) =>
+            item.type === "image" ? (
+              <MediaImage
+                key={item.id}
+                src={mediaUrl(`/api/media/images/${item.id}`)}
+                onClick={() => setViewerIndex(i)}
+                cover
+              />
+            ) : (
+              <AutoplayVideo
+                key={item.id}
+                src={mediaUrl(`/api/media/videos/${item.id}`)}
+                className='aspect-square w-full cursor-pointer rounded-lg object-cover'
+                onMaximize={() => setViewerIndex(i)}
+              />
+            )
+          )}
+        </div>
+      </li>
+      <MediaViewer
+        items={items}
+        open={viewerIndex !== null}
+        index={viewerIndex ?? 0}
+        onClose={() => setViewerIndex(null)}
+        onNavigate={setViewerIndex}
+      />
+    </>
   )
 }

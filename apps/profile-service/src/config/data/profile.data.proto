@@ -34,5 +34,6 @@ message getProfileResponse {
   string username = 1;
   string avatarId = 2;
   string firstName = 3;
-  string lastName = 4;
+  string lastName  = 4;
+  string role      = 5;
 }

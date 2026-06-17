@@ -130,7 +130,7 @@ function FollowListBody({
                       id={p.profileId}
                       displayName={displayName}
                       username={username}
-                      avatarUrl={p.avatarUrl}
+                      avatarUrl={p.avatarUrl || undefined}
                       bio={p.bio}
                       followersCount={p.followersCount}
                       initialFollowing={following[p.profileId] ?? false}
