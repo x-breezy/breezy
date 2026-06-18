@@ -1,4 +1,4 @@
-import { NavBar } from "../navigation/nav-bar"
+import { NavBar } from "./navigation/nav-bar"
 import { UserStoreProvider } from "../providers/user-store-provider"
 import { getServerAuthHeader, getUserId } from "@/lib/auth/session"
 import { getMe } from "@/lib/services/auth-service"

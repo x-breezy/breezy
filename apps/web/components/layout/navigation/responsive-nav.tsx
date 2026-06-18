@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation"
 import { useTranslations } from "next-intl"
-import { HomeIcon, SearchIcon, GrodIcon, SendIcon, ProfileIcon } from "@/components/icons"
+import { HomeIcon, SearchIcon, GrodIcon, SendIcon, ProfileIcon } from "@/components/shared/icons"
 import { NavItem } from "./nav-item"
 import { useUserStore } from "@/stores/user-store"
 import type { NavItemData } from "./types"
