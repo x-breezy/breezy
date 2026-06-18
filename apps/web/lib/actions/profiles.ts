@@ -83,23 +83,3 @@ export async function getSuggestedProfiles(profileId: string, limit = 3): Promis
     return []
   }
 }
-
-export async function followProfile(followingId: string): Promise<void> {
-  const headers = await getAuthHeaders()
-  const res = await fetch(`${API_URL}/api/profiles/follow`, {
-    method: "POST",
-    headers: { ...headers, "Content-Type": "application/json" },
-    body: JSON.stringify({ followingId }),
-  })
-  if (!res.ok) throw new Error(`Failed to follow profile: ${res.status}`)
-}
-
-export async function unfollowProfile(followingId: string): Promise<void> {
-  const headers = await getAuthHeaders()
-  const res = await fetch(`${API_URL}/api/profiles/unfollow`, {
-    method: "POST",
-    headers: { ...headers, "Content-Type": "application/json" },
-    body: JSON.stringify({ followingId }),
-  })
-  if (!res.ok) throw new Error(`Failed to unfollow profile: ${res.status}`)
-}

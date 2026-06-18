@@ -1,11 +1,10 @@
 import { create } from "zustand"
 import { searchPosts, getLikedPostIds, toggleLike } from "@/lib/actions/posts"
+import { searchProfiles, fetchProfilesByIds } from "@/lib/actions/profiles"
 import {
-  searchProfiles,
-  fetchProfilesByIds,
-  followProfile,
-  unfollowProfile,
-} from "@/lib/actions/profiles"
+  followUserAction as followProfile,
+  unfollowUserAction as unfollowProfile,
+} from "@/lib/actions/follow"
 import { collectMedia, profilesToPeople, type MergedPerson } from "@/components/search/search-utils"
 import type { SearchPost, PaginatedResult } from "@/lib/actions/posts"
 import type { SearchProfile } from "@/lib/actions/profiles"
