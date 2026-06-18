@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect } from "react"
 import { useSearchParams } from "next/navigation"
 import { useTranslations } from "next-intl"
 import Link from "next/link"
@@ -8,12 +9,7 @@ import type { SearchProfile } from "@/lib/actions/profiles"
 import { parseTab } from "./types"
 import { PersonCard } from "./person-card"
 import { MediaGrid } from "./media-grid"
-import {
-  useSearchResults,
-  type PostsCache,
-  type PeopleCache,
-  type MediaCache,
-} from "./use-search-results"
+import { useSearchStore, type PostsCache, type PeopleCache, type MediaCache } from "@/stores/search-store"
 import { useUserStore } from "@/stores/user-store"
 import Post from "../post/post"
 import { UserRole } from "@/lib/auth/role"
@@ -28,17 +24,19 @@ export function SearchResults({ q }: SearchResultsProps) {
   const t = useTranslations("search")
 
   const following = useUserStore((s) => s.following)
+  const search = useSearchStore((s) => s.search)
+  const postsCache = useSearchStore((s) => s.postsCache)
+  const peopleCache = useSearchStore((s) => s.peopleCache)
+  const mediaCache = useSearchStore((s) => s.mediaCache)
+  const profileMap = useSearchStore((s) => s.profileMap)
+  const loading = useSearchStore((s) => s.loading)
+  const error = useSearchStore((s) => s.error)
+  const handleLike = useSearchStore((s) => s.handleLike)
+  const handleFollow = useSearchStore((s) => s.handleFollow)
 
-  const {
-    postsCache,
-    peopleCache,
-    mediaCache,
-    profileMap,
-    loading,
-    error,
-    handleLike,
-    handleFollow,
-  } = useSearchResults(q, tab)
+  useEffect(() => {
+    search(q, tab)
+  }, [q, tab, search])
 
   return (
     <div>

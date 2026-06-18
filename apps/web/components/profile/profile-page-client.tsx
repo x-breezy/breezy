@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useCallback, useMemo } from "react"
+import { useEffect, useCallback, useMemo } from "react"
 import { notFound, useSearchParams } from "next/navigation"
 import { useTranslations } from "next-intl"
 import { ProfileHeader } from "@/components/profile/profile-header"
@@ -11,12 +11,11 @@ import { ProfileRepliesList } from "@/components/profile/profile-replies-list"
 import { ProfileMediaList } from "@/components/profile/profile-media-list"
 import { useUserStore } from "@/stores/user-store"
 import { useProfileStore } from "@/stores/profile-store"
+import { usePostStore } from "@/stores/post-store"
 import { UserRole } from "@/lib/auth/role"
 import { AppLoader } from "@/components/layout/app-loader"
-import { getProfileByUsernameAction } from "@/lib/actions/profile-username"
 import { useProfilePosts } from "@/components/profile/use-profile-posts"
 import { useProfileReplies } from "@/components/profile/use-profile-replies"
-import { toggleLike } from "@/lib/actions/posts"
 import type { ProfileRef } from "@/lib/actions/post-detail"
 
 const VALID_TABS: ProfileTab[] = ["posts", "replies", "medias"]
@@ -31,24 +30,20 @@ export function ProfilePageClient({ username }: { username: string }) {
   const tab = parseProfileTab(searchParams.get("tab"))
 
   const ownProfile = useUserStore((s) => s.profile)
+  const fetchProfile = useProfileStore((s) => s.fetchByUsername)
+  const profileLoading = useProfileStore((s) => s.loading)
+  const profileError = useProfileStore((s) => s.error)
+  const toggleLike = usePostStore((s) => s.toggleLike)
 
   const cachedProfile = useProfileStore((s) => s.profiles[username])
-  const cacheProfile = useProfileStore((s) => s.set)
-  const [loading, setLoading] = useState(false)
-  const [profileNotFound, setProfileNotFound] = useState(false)
 
   const isOwn = ownProfile?.username === username
   const profile = isOwn ? ownProfile : cachedProfile
 
   useEffect(() => {
-    if (isOwn || cachedProfile) return
-    setLoading(true)
-    getProfileByUsernameAction(username).then((p) => {
-      if (p) cacheProfile(username, p)
-      else setProfileNotFound(true)
-      setLoading(false)
-    })
-  }, [username, isOwn])
+    if (isOwn) return
+    fetchProfile(username)
+  }, [username, isOwn, fetchProfile])
 
   const isRepliesTab = tab === "replies"
   const isMediasTab = tab === "medias"
@@ -81,16 +76,18 @@ export function ProfilePageClient({ username }: { username: string }) {
     isRepliesTab
   )
 
-  const handleLike = useCallback(async (postId: string, liked: boolean) => {
-    const res = await toggleLike(postId, liked)
-    return res.likesCount
-  }, [])
+  const handleLike = useCallback(
+    async (postId: string, liked: boolean) => {
+      return toggleLike(postId, liked)
+    },
+    [toggleLike]
+  )
 
   const authorName =
     [profile?.firstName, profile?.lastName].filter(Boolean).join(" ") || profile?.username || ""
 
-  if (loading) return <AppLoader />
-  if (profileNotFound) notFound()
+  if (profileLoading) return <AppLoader />
+  if (profileError && !profile) notFound()
   if (!profile) return null
 
   return (

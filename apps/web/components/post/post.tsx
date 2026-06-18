@@ -1,6 +1,6 @@
 "use client"
 
-import { memo, useState, useCallback } from "react"
+import { memo, useState, useCallback, useEffect } from "react"
 import { useRouter, usePathname } from "next/navigation"
 import { PostMeta, PostContent, PostActions } from "."
 import { PostMenu } from "./post-menu"
@@ -12,6 +12,7 @@ import { AutoplayVideo } from "../shared/medias/autoplay-video"
 import { MediaImage } from "../shared/medias/media-image"
 import { mediaUrl, timeAgo, formatFullDate, cn } from "@/lib/utils"
 import { UserRole } from "@/lib/auth/role"
+import { usePostStore } from "@/stores/post-store"
 
 interface HomePostProps {
   id: string
@@ -61,10 +62,18 @@ function Post({
   const router = useRouter()
   const pathname = usePathname()
   const isDetailPage = pathname.startsWith("/post/")
+  const storeLiked = usePostStore((s) => s.likedPostIds.has(id))
+  const storeHasPost = usePostStore((s) => id in s.postsById)
   const [likes, setLikes] = useState(initialLikes)
   const [comments, setComments] = useState(initialComments)
   const [isLiked, setIsLiked] = useState(initialLiked)
   const [postContent, setPostContent] = useState(content)
+
+  useEffect(() => {
+    if (storeHasPost) {
+      setIsLiked(storeLiked)
+    }
+  }, [storeHasPost, storeLiked, id])
   const [postMedia, setPostMedia] = useState(media)
   const [deleted, setDeleted] = useState(false)
   const [viewerIndex, setViewerIndex] = useState<number | null>(null)

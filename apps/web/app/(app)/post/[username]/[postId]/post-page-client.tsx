@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react"
 import { notFound, useRouter } from "next/navigation"
 import { getPostDetail } from "@/lib/actions/post-detail"
-import { toggleLike } from "@/lib/actions/posts"
+import { usePostStore } from "@/stores/post-store"
 import Post from "@/components/post/post"
 import { CommentTree } from "@/components/post/comment-tree"
 import { AppLoader } from "@/components/layout/app-loader"
@@ -19,6 +19,9 @@ export function PostPageClient({
   postId: string
 }) {
   const router = useRouter()
+  const toggleLike = usePostStore((s) => s.toggleLike)
+  const cachePosts = usePostStore((s) => s.cachePosts)
+  const cacheLikedIds = usePostStore((s) => s.cacheLikedIds)
 
   const [detail, setDetail] = useState<PostDetail | null>(null)
   const [initialLoading, setInitialLoading] = useState(true)
@@ -28,23 +31,27 @@ export function PostPageClient({
   useEffect(() => {
     getPostDetail(postId)
       .then((d) => {
-        if (d) setDetail(d)
-        else setNotFoundState(true)
+        if (d) {
+          setDetail(d)
+          cachePosts([d.post])
+          if (d.likedByMe) cacheLikedIds([postId])
+        } else {
+          setNotFoundState(true)
+        }
         setInitialLoading(false)
       })
       .catch(() => setInitialLoading(false))
-  }, [postId, refreshKey])
+  }, [postId, refreshKey, cachePosts, cacheLikedIds])
 
   const handleReplyCreated = useCallback(() => {
     setRefreshKey((k) => k + 1)
   }, [])
 
   const handleLike = useCallback(
-    async (_postId: string, liked: boolean) => {
-      const res = await toggleLike(postId, liked)
-      return res.likesCount
+    async (_pid: string, liked: boolean) => {
+      return toggleLike(postId, liked)
     },
-    [postId]
+    [postId, toggleLike]
   )
 
   if (initialLoading) return <AppLoader />
