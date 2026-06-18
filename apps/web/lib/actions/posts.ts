@@ -126,9 +126,16 @@ export async function updatePost(
 }
 
 export async function getTrendingTags(limit = 10): Promise<TrendingTag[]> {
-  const headers = await getAuthHeaders()
-  const res = await fetch(`${API_URL}/api/posts/trending-tags?limit=${limit}`, { headers })
-  if (!res.ok) throw new Error(`Failed to get trending tags: ${res.status}`)
-  const data = await res.json()
-  return data.data as TrendingTag[]
+  try {
+    const headers = await getAuthHeaders()
+    const res = await fetch(`${API_URL}/api/posts/trending-tags?limit=${limit}`, { headers })
+    if (!res.ok) {
+      if (res.status === 401) return []
+      throw new Error(`Failed to get trending tags: ${res.status}`)
+    }
+    const data = await res.json()
+    return data.data as TrendingTag[]
+  } catch {
+    return []
+  }
 }

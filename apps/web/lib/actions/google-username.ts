@@ -35,7 +35,8 @@ export async function googleUsernameAction(
       if (status === 401) {
         return { error: "Session expired. Please sign in with Google again." }
       }
-      return { error: err.response?.data?.message ?? "Something went wrong." }
+      const data = err.response?.data as Record<string, unknown> | undefined
+      return { error: (data?.message ?? data?.error ?? "Something went wrong.") as string }
     }
     return { error: "Could not reach the server." }
   }

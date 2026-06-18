@@ -9,7 +9,12 @@ import type { SearchProfile } from "@/lib/actions/profiles"
 import { parseTab } from "./types"
 import { PersonCard } from "./person-card"
 import { MediaGrid } from "./media-grid"
-import { useSearchStore, type PostsCache, type PeopleCache, type MediaCache } from "@/stores/search-store"
+import {
+  useSearchStore,
+  type PostsCache,
+  type PeopleCache,
+  type MediaCache,
+} from "@/stores/search-store"
 import { useUserStore } from "@/stores/user-store"
 import Post from "../post/post"
 import { UserRole } from "@/lib/auth/role"
