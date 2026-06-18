@@ -210,6 +210,13 @@
     "following": "Abonné",
     "follow": "S'abonner"
   },
+  "sidebar": {
+    "whoToFollow": "Qui suivre",
+    "trendsForYou": "Tendances",
+    "posts": "{count} publications",
+    "showMore": "Voir plus",
+    "follow": "Suivre"
+  },
   "terms": {
     "title": "Conditions d'Utilisation",
     "lastUpdated": "Dernière mise à jour : {date}",

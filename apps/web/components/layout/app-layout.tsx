@@ -1,8 +1,11 @@
 import { NavBar } from "./navigation/nav-bar"
+import { RightSidebar } from "./right-sidebar"
 import { UserStoreProvider } from "../providers/user-store-provider"
 import { getServerAuthHeader, getUserId } from "@/lib/auth/session"
 import { getMe } from "@/lib/services/auth-service"
 import { getFollowing, getProfile } from "@/lib/services/profile-service"
+import { getSuggestedProfiles } from "@/lib/actions/profiles"
+import type { SearchProfile } from "@/lib/actions/profiles"
 import { Profile } from "@/types/profile"
 import { User } from "@/types/user"
 import { NotificationStoreProvider } from "../providers/notification-store-provider"
@@ -16,6 +19,7 @@ interface AppLayoutProps {
 export async function AppLayout({ children, modal }: AppLayoutProps) {
   let profile: Profile | null = null
   let user: User | null = null
+  let suggestedUsers: SearchProfile[] = []
   const following: Record<string, boolean> = {}
 
   try {
@@ -29,11 +33,14 @@ export async function AppLayout({ children, modal }: AppLayoutProps) {
 
       if (profile) {
         const relRes = await getFollowing(profile.profileId, authHeader)
+
         if (relRes.status === 200) {
           for (const id of relRes.data.data.following) {
             following[id] = true
           }
         }
+
+        suggestedUsers = await getSuggestedProfiles(profile.profileId, 3)
       }
     }
   } catch {
@@ -45,8 +52,17 @@ export async function AppLayout({ children, modal }: AppLayoutProps) {
       <NotificationStoreProvider>
         <NotificationToast />
         <div className='flex h-dvh'>
-          <NavBar />
-          <main className='flex-1 overflow-y-auto pb-15 lg:pb-0 lg:pl-64'>{children}</main>
+          <div className='flex min-w-0 flex-1'>
+            <div className='mx-auto flex w-full max-w-[1400px]'>
+              <NavBar />
+              <main className='min-w-0 flex-1 overflow-y-auto border-x pb-15 lg:pb-0'>
+                {children}
+              </main>
+              <aside className='hidden w-[350px] shrink-0 overflow-y-auto xl:block'>
+                <RightSidebar suggestedUsers={suggestedUsers} />
+              </aside>
+            </div>
+          </div>
           {modal}
         </div>
       </NotificationStoreProvider>

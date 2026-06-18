@@ -18,7 +18,7 @@ export function NavItem({
       href={href}
       className={cn(
         buttonVariants({ variant: "ghost" }),
-        "flex items-center justify-center gap-3 rounded-none border-0 focus-visible:ring-0 focus-visible:ring-offset-0",
+        "flex items-center justify-center gap-3 border-0 focus-visible:ring-0 focus-visible:ring-offset-0",
         showLabel ? "h-12 w-full justify-start px-4" : "h-full w-full",
         isActive && "lg:bg-muted"
       )}

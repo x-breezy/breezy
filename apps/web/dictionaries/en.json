@@ -210,6 +210,13 @@
     "following": "Following",
     "follow": "Follow"
   },
+  "sidebar": {
+    "whoToFollow": "Who to follow",
+    "trendsForYou": "Trends for you",
+    "posts": "{count} posts",
+    "showMore": "Show more",
+    "follow": "Follow"
+  },
   "terms": {
     "title": "Terms and Conditions",
     "lastUpdated": "Last updated: {date}",
