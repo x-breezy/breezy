@@ -21,7 +21,9 @@ export interface SearchPost {
   _id: string
   content: string
   authorId: string
+  parentId?: string
   tags: string[]
+  mentions: string[]
   media: SearchPostMedia[]
   likesCount: number
   commentsCount: number

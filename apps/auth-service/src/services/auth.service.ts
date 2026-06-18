@@ -192,7 +192,11 @@ class AuthService {
       throw Object.assign(new Error("Invalid refresh token"), { code: "INVALID_REFRESH" })
     }
 
-    const accessToken = signToken({ sub: record.userId, role: record.role, isComplete: record.isComplete })
+    const accessToken = signToken({
+      sub: record.userId,
+      role: record.role,
+      isComplete: record.isComplete,
+    })
     return { accessToken, refreshToken: newRefreshToken, user: user.toJSON() }
   }
 

@@ -295,7 +295,7 @@ describe("PATCH /users/:id/ban", () => {
 
   it("returns 200 on ban", async () => {
     mockService.banUser.mockResolvedValue({ id: UUID, isBanned: true })
-    mockVerifyToken.mockReturnValueOnce({ sub: ADMIN_ID, role: "admin" as any, jti: "x" })
+    mockVerifyToken.mockReturnValueOnce({ sub: ADMIN_ID, role: "admin", jti: "x" })
     const res = await request(app)
       .patch(`/users/${UUID}/ban`)
       .set("Authorization", "Bearer fake-token")
@@ -318,7 +318,7 @@ describe("PATCH /users/:id/ban", () => {
     mockService.banUser.mockRejectedValue(
       Object.assign(new Error("User not found"), { code: "USER_NOT_FOUND" })
     )
-    mockVerifyToken.mockReturnValueOnce({ sub: ADMIN_ID, role: "admin" as any, jti: "x" })
+    mockVerifyToken.mockReturnValueOnce({ sub: ADMIN_ID, role: "admin", jti: "x" })
     const res = await request(app)
       .patch(`/users/${UUID}/ban`)
       .set("Authorization", "Bearer fake-token")
@@ -328,7 +328,7 @@ describe("PATCH /users/:id/ban", () => {
   it("handles service error with 500", async () => {
     jest.spyOn(console, "error").mockImplementation(() => {})
     mockService.banUser.mockRejectedValue(new Error("db error"))
-    mockVerifyToken.mockReturnValueOnce({ sub: ADMIN_ID, role: "admin" as any, jti: "x" })
+    mockVerifyToken.mockReturnValueOnce({ sub: ADMIN_ID, role: "admin", jti: "x" })
     const res = await request(app)
       .patch(`/users/${UUID}/ban`)
       .set("Authorization", "Bearer fake-token")
@@ -343,7 +343,7 @@ describe("PATCH /users/:id/suspend", () => {
 
   it("returns 200 on suspend", async () => {
     mockService.suspendUser.mockResolvedValue({ id: UUID, isSuspended: true })
-    mockVerifyToken.mockReturnValueOnce({ sub: ADMIN_ID, role: "admin" as any, jti: "x" })
+    mockVerifyToken.mockReturnValueOnce({ sub: ADMIN_ID, role: "admin", jti: "x" })
     const res = await request(app)
       .patch(`/users/${UUID}/suspend`)
       .set("Authorization", "Bearer fake-token")
@@ -365,7 +365,7 @@ describe("PATCH /users/:id/suspend", () => {
   it("handles service error with 500", async () => {
     jest.spyOn(console, "error").mockImplementation(() => {})
     mockService.suspendUser.mockRejectedValue(new Error("db error"))
-    mockVerifyToken.mockReturnValueOnce({ sub: ADMIN_ID, role: "admin" as any, jti: "x" })
+    mockVerifyToken.mockReturnValueOnce({ sub: ADMIN_ID, role: "admin", jti: "x" })
     const res = await request(app)
       .patch(`/users/${UUID}/suspend`)
       .set("Authorization", "Bearer fake-token")

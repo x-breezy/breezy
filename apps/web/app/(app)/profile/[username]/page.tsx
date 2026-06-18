@@ -1,5 +1,6 @@
+import { Suspense } from "react"
 import type { Metadata } from "next"
-import { ProfilePageClient } from "./profile-page-client"
+import { ProfilePageClient } from "@/components/profile/profile-page-client"
 
 export async function generateMetadata({
   params,
@@ -13,11 +14,11 @@ export async function generateMetadata({
   }
 }
 
-export default async function ProfilePage({
-  params,
-}: {
-  params: Promise<{ username: string }>
-}) {
+export default async function ProfilePage({ params }: { params: Promise<{ username: string }> }) {
   const { username } = await params
-  return <ProfilePageClient username={username} />
+  return (
+    <Suspense>
+      <ProfilePageClient username={username} />
+    </Suspense>
+  )
 }

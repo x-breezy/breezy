@@ -92,10 +92,8 @@ export async function setupProfileAction(
         if (data?.token && data?.refreshToken) {
           await setSessionCookies(data.token, data.refreshToken)
         }
-      } catch (_) {
-      }
+      } catch (_) {}
     }
-
   } catch (err) {
     if (isAxiosError(err))
       return { error: err.response?.data?.message ?? "Something went wrong.", success: false }

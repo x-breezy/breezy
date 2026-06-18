@@ -80,7 +80,7 @@ export default async function TermsPage() {
             <p className='mb-3 text-muted-foreground'>{t("s3_0", { appName: APP_NAME })}</p>
             <ul className='list-disc space-y-2 pl-6 text-muted-foreground'>
               {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => (
-                <li key={`s3_${i}`}>{t(`s3_${i}` as any, { appName: APP_NAME })}</li>
+                <li key={`s3_${i}`}>{t(`s3_${i}`, { appName: APP_NAME })}</li>
               ))}
             </ul>
           </section>

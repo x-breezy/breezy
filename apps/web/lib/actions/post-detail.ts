@@ -70,3 +70,11 @@ export async function getPostDetail(postId: string): Promise<PostDetail | null> 
   const json = await res.json()
   return json.data as PostDetail
 }
+
+export async function getPostsContext(ids: string[]): Promise<PostDetail[]> {
+  const uniqueIds = [...new Set(ids.filter((id) => /^[a-f0-9]{24}$/i.test(id)))]
+  const results = await Promise.allSettled(uniqueIds.map((id) => getPostDetail(id)))
+  return results
+    .filter((r) => r.status === "fulfilled" && r.value !== null)
+    .map((r) => (r as PromiseFulfilledResult<PostDetail>).value)
+}

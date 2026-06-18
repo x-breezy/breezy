@@ -34,7 +34,7 @@ export function SearchTabs() {
         {TABS.map((tabItem) => (
           <TabsTrigger key={tabItem.key} value={tabItem.key} className='flex-1'>
             {tabItem.icon}
-            {t(tabItem.labelKey as any)}
+            {t(tabItem.labelKey)}
           </TabsTrigger>
         ))}
       </TabsList>

@@ -163,10 +163,12 @@ export class PostService {
     userId: string,
     page: number,
     limit: number,
-    includeReplies = false
+    type: "posts" | "replies" | "media" | "all" = "posts"
   ): Promise<PaginatedResponse<Post>> {
     const filter: Record<string, unknown> = { authorId: userId }
-    if (!includeReplies) filter.parentId = null
+    if (type === "posts") filter.parentId = null
+    else if (type === "replies") filter.parentId = { $ne: null }
+    else if (type === "media") filter.media = { $exists: true, $not: { $size: 0 } }
     const skip = (page - 1) * limit
     const [data, total] = await Promise.all([
       PostModel.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).exec(),

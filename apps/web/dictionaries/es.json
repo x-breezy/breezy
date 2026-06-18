@@ -182,7 +182,10 @@
     "saving": "Guardando…",
     "saveChanges": "Guardar cambios",
     "cancel": "Cancelar",
-    "biographyTitle": "Biografía"
+    "biographyTitle": "Biografía",
+    "tabPosts": "Publicaciones",
+    "tabReplies": "Respuestas",
+    "tabMedias": "Medios"
   },
   "composePost": {
     "posting": "Publicando…",
