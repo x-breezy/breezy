@@ -10,7 +10,7 @@ import { Field, FieldGroup, FieldSet } from "../ui/field"
 import OAuthButtons from "./oauth-buttons"
 import { InputGroup, InputGroupAddon, InputGroupInput } from "../ui/input-group"
 import { IconAt, IconEye, IconEyeClosed, IconLock } from "@tabler/icons-react"
-import { signInAction } from "@/app/(auth)/sign-in/actions"
+import { signInAction } from "@/lib/actions/sign-in"
 
 export default function SignInScreen() {
   const [identifier, setIdentifier] = useState("")

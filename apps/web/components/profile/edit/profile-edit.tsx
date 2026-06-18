@@ -11,7 +11,7 @@ import { Field, FieldGroup, FieldSet } from "@/components/ui/field"
 import { IconCamera, IconUpload } from "@tabler/icons-react"
 import { ProfileAvatar } from "@/components/profile/profile-avatar"
 import { useUserStore } from "@/stores/user-store"
-import { updateProfileAction, type UpdateProfileState } from "@/app/(app)/profile/actions"
+import { updateProfileAction, type UpdateProfileState } from "@/lib/actions/profile"
 import type { Profile } from "@/types/profile"
 
 interface ProfileEditScreenProps {

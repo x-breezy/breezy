@@ -6,7 +6,7 @@ import { Field, FieldGroup, FieldSet } from "@/components/ui/field"
 import { Label } from "@/components/ui/label"
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group"
 import { IconAt } from "@tabler/icons-react"
-import { googleUsernameAction } from "./actions"
+import { googleUsernameAction } from "@/lib/actions/google-username"
 
 interface GoogleUsernameFormProps {
   pendingToken: string

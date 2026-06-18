@@ -5,7 +5,7 @@ import { AuthHeader } from "./auth-header"
 import { PhotoStep } from "./onboarding/photo-step"
 import { WelcomeStep } from "./onboarding/welcome-step"
 import { cn } from "@/lib/utils"
-import { setupProfileAction } from "@/app/(auth)/onboarding/actions"
+import { setupProfileAction } from "@/lib/actions/sign-up"
 
 type Step = 1 | 2
 

@@ -2,7 +2,7 @@
 
 import { useInfiniteQuery } from "@tanstack/react-query"
 import { useMemo } from "react"
-import { listProfilePosts } from "@/app/(app)/profile/profile-posts-action"
+import { listProfilePosts } from "@/lib/actions/profile-posts"
 import type { SearchPost } from "@/lib/actions/posts"
 
 export interface ProfilePost extends SearchPost {

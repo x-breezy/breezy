@@ -8,7 +8,7 @@ import { AccountStep } from "./onboarding/account-step"
 import { PhotoStep } from "./onboarding/photo-step"
 import { WelcomeStep } from "./onboarding/welcome-step"
 import { cn } from "@/lib/utils"
-import { setupProfileAction } from "@/app/(auth)/sign-up/actions"
+import { setupProfileAction } from "@/lib/actions/sign-up"
 
 type Step = 1 | 2 | 3
 

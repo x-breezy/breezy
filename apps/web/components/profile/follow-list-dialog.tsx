@@ -9,7 +9,7 @@ import { PageHeader, PageHeaderContent } from "@/components/layout/page-header"
 import { PersonCard } from "@/components/search/person-card"
 import { useIsMobile } from "@/hooks/use-is-mobile"
 import { useUserStore } from "@/stores/user-store"
-import { followUserAction, unfollowUserAction } from "@/app/(app)/profile/follow-action"
+import { followUserAction, unfollowUserAction } from "@/lib/actions/follow"
 import { useFollowList, type FollowType } from "./use-follow-list"
 
 interface FollowListDialogProps {

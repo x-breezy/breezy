@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Field, FieldGroup, FieldSet } from "@/components/ui/field"
 import { PasswordField, getStrength } from "@/components/auth/password-field"
 import { ConfirmPasswordField } from "@/components/auth/confirm-password-field"
-import { resetPasswordAction } from "./actions"
+import { resetPasswordAction } from "@/lib/actions/reset-password"
 
 export default function ResetPasswordPage() {
   const searchParams = useSearchParams()

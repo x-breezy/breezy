@@ -13,7 +13,7 @@ import {
   IconUserX,
 } from "@tabler/icons-react"
 import type { Profile } from "@/types/profile"
-import { followUserAction, unfollowUserAction } from "@/app/(app)/profile/follow-action"
+import { followUserAction, unfollowUserAction } from "@/lib/actions/follow"
 import { useProfileStore } from "@/stores/profile-store"
 import { useUserStore } from "@/stores/user-store"
 import { UnfollowDialog } from "../shared/unfollow-dialog"

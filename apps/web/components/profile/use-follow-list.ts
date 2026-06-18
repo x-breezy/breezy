@@ -2,7 +2,7 @@
 
 import { useInfiniteQuery } from "@tanstack/react-query"
 import { useMemo } from "react"
-import { listFollowers, listFollowing } from "@/app/(app)/profile/follow-list-action"
+import { listFollowers, listFollowing } from "@/lib/actions/follow-list"
 import type { SearchProfile } from "@/lib/api/profiles"
 
 const LIMIT = 30
