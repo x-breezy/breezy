@@ -8,6 +8,7 @@ import { useUserStore } from "@/stores/user-store"
 import type { NavItemData } from "./types"
 import Link from "next/link"
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getNavItems(t: any): NavItemData[] {
   return [
     { href: "/", icon: HomeIcon, label: t("home") },

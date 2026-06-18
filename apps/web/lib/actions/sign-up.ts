@@ -125,7 +125,7 @@ export async function setupProfileAction(
         if (data?.token && data?.refreshToken) {
           await setSessionCookies(data.token, data.refreshToken)
         }
-      } catch (_) {}
+      } catch { /* no-op */ }
     }
   } catch (err) {
     if (isAxiosError(err)) {

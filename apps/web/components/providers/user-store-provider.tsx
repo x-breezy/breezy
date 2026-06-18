@@ -21,10 +21,12 @@ export function UserStoreProvider({ profile, user, following, children }: Props)
 
   useEffect(() => {
     initialize(profile, user, following)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile?.profileId, profile?.updatedAt, user?.id, user?.updatedAt])
 
   useEffect(() => {
     syncFromUser(user)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id, user?.updatedAt, syncFromUser])
 
   if (!initialized) return <AppLoader />

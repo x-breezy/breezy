@@ -17,7 +17,7 @@ interface SettingsStoreState {
   clear: () => void
 }
 
-export const useSettingsStore = create<SettingsStoreState>((set, get) => ({
+export const useSettingsStore = create<SettingsStoreState>((set) => ({
   twoFactorEnabled: false,
   isEmailVerified: false,
   theme: "system",

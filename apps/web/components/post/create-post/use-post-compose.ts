@@ -86,14 +86,14 @@ export function usePostCompose(parentId?: string, initialContent = "") {
       })
 
       // Cleanup object URLs after successful upload
-      mediaFiles.forEach((m) => URL.revokeObjectURL(m.previewUrl))
+      mediaFiles.forEach((_m) => URL.revokeObjectURL(_m.previewUrl))
       setContent("")
       setMediaFiles([])
       setResolvedMentions([])
       return true
     } catch {
       // Cleanup uploaded media on error, but keep previews for retry
-      uploadedMedia.forEach((m) => {
+      uploadedMedia.forEach(() => {
         // TODO: Call delete media API if needed
       })
       setError("Failed to post. Please try again.")
@@ -101,13 +101,14 @@ export function usePostCompose(parentId?: string, initialContent = "") {
     } finally {
       setSubmitting(false)
     }
-  }, [content, mediaFiles, resolvedMentions])
+  }, [content, mediaFiles, resolvedMentions, parentId])
 
   // Cleanup object URLs on unmount
   useEffect(() => {
     return () => {
       mediaFiles.forEach((m) => URL.revokeObjectURL(m.previewUrl))
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   return {

@@ -82,7 +82,8 @@ export const usePostStore = create<PostStoreState>((set, get) => ({
     try {
       await postsActions.deletePost(postId)
       set((s) => {
-        const { [postId]: _, ...rest } = s.postsById
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { [postId]: _, ...rest } = s.postsById
         const nextLiked = new Set(s.likedPostIds)
         nextLiked.delete(postId)
         return { postsById: rest, likedPostIds: nextLiked }

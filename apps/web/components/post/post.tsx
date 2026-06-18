@@ -71,6 +71,7 @@ function Post({
 
   useEffect(() => {
     if (storeHasPost) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsLiked(storeLiked)
     }
   }, [storeHasPost, storeLiked, id])

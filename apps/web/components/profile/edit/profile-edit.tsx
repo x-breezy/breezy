@@ -32,6 +32,7 @@ export default function ProfileEditScreen({ profile, onClose }: ProfileEditScree
       setProfile(state.profile)
       onClose()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state?.success])
 
   const fileInputRef = useRef<HTMLInputElement>(null)

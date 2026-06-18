@@ -44,6 +44,7 @@ export function AutoplayVideo({
   const hideTimeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined)
   const showUntilPauseRef = useRef(false)
   const onPlaybackUpdateRef = useRef(onPlaybackUpdate)
+  // eslint-disable-next-line react-hooks/refs
   onPlaybackUpdateRef.current = onPlaybackUpdate
   const lastTimeRef = useRef(-1)
   const rafRef = useRef(0)

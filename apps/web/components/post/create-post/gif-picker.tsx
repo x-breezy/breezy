@@ -44,6 +44,7 @@ export function GifPicker({ open, onClose, onSelect }: GifPickerProps) {
 
   useEffect(() => {
     if (!open) return
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true)
     setError(null)
     const timer = setTimeout(
@@ -60,6 +61,7 @@ export function GifPicker({ open, onClose, onSelect }: GifPickerProps) {
 
   useEffect(() => {
     if (!open) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setQuery("")
       setGifs([])
       setError(null)

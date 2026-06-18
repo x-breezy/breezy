@@ -6,6 +6,7 @@ export function useCooldown(seconds?: number, resetKey?: unknown): number {
   const [remaining, setRemaining] = useState(0)
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setRemaining(seconds && seconds > 0 ? seconds : 0)
   }, [seconds, resetKey])
 

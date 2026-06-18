@@ -12,7 +12,6 @@ import type { PostDetail } from "@/lib/actions/post-detail"
 import { PageHeader, PageHeaderContent } from "@/components/layout/page-header"
 
 export function PostPageClient({
-  username: _username,
   postId,
 }: {
   username: string

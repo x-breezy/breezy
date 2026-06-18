@@ -74,6 +74,7 @@ function renderPosts(
   cache: PostsCache | null,
   profileMap: Map<string, SearchProfile>,
   onLike: (postId: string, liked: boolean) => Promise<number | void>,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   t: any
 ) {
   if (!cache || cache.posts.length === 0) {
@@ -110,6 +111,7 @@ function renderPeople(
   cache: PeopleCache | null,
   onFollow: (id: string, follow: boolean) => Promise<void>,
   following: Record<string, boolean>,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   t: any
 ) {
   if (!cache || cache.people.length === 0) {
@@ -134,6 +136,7 @@ function renderPeople(
   ))
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function renderMedia(cache: MediaCache | null, t: any) {
   if (!cache || cache.media.length === 0) {
     return <EmptyState label={t("noMedia")} />
