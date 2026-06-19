@@ -6,6 +6,7 @@ describe("SseService", () => {
   let closeHandler: () => void
 
   beforeEach(() => {
+    jest.useFakeTimers()
     closeHandler = jest.fn()
     mockRes = {
       write: jest.fn(),
@@ -23,7 +24,6 @@ describe("SseService", () => {
   })
 
   it("registers a connection and starts heartbeat", () => {
-    jest.useFakeTimers()
     sseService.register("user-1", mockRes as Response)
     expect(mockRes.on).toHaveBeenCalledWith("close", expect.any(Function))
     jest.advanceTimersByTime(25000)
