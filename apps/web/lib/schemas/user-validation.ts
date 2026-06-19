@@ -8,10 +8,12 @@ export const usernameSchema = z
   .max(50, "usernameMaxLength")
   .regex(usernameRegex, "usernameInvalidChars")
 
+export const nameRegex = /^[\p{L}\s'.-]+$/u
+
 export const nameFieldSchema = z
   .string()
   .min(1, "nameMinLength")
   .max(100, "nameMaxLength")
-  .regex(usernameRegex, "nameInvalidChars")
+  .regex(nameRegex, "nameInvalidChars")
   .nullable()
   .optional()

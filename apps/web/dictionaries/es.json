@@ -146,7 +146,7 @@
     "usernameInvalidChars": "El nombre de usuario solo puede contener letras minúsculas, números, guiones y guiones bajos",
     "nameMinLength": "El nombre debe tener al menos 1 carácter",
     "nameMaxLength": "El nombre debe tener como máximo 100 caracteres",
-    "nameInvalidChars": "El nombre solo puede contener letras minúsculas, números, guiones y guiones bajos"
+    "nameInvalidChars": "El nombre solo puede contener letras, espacios, apóstrofos, guiones y puntos"
   },
   "notifications": {
     "title": "Notificaciones",
@@ -194,7 +194,7 @@
     "usernameInvalidChars": "El nombre de usuario solo puede contener letras minúsculas, números, guiones y guiones bajos",
     "usernameMinLength": "El nombre de usuario debe tener al menos 3 caracteres",
     "usernameMaxLength": "El nombre de usuario debe tener como máximo 50 caracteres",
-    "nameInvalidChars": "El nombre solo puede contener letras minúsculas, números, guiones y guiones bajos",
+    "nameInvalidChars": "El nombre solo puede contener letras, espacios, apóstrofos, guiones y puntos",
     "nameMinLength": "El nombre debe tener al menos 1 carácter",
     "nameMaxLength": "El nombre debe tener como máximo 100 caracteres",
     "biographyTitle": "Biografía",

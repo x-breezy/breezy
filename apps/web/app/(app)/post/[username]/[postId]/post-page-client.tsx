@@ -2,10 +2,12 @@
 
 import { useEffect, useState, useCallback } from "react"
 import { notFound, useRouter } from "next/navigation"
-import { getPostDetail } from "@/lib/actions/post-detail"
+import { getPostDetail, getPostsContext } from "@/lib/actions/post-detail"
 import { usePostStore } from "@/stores/post-store"
 import Post from "@/components/post/post"
 import { CommentTree } from "@/components/post/comment-tree"
+import { PostContent } from "@/components/post/post-content"
+import { ProfileAvatar } from "@/components/profile"
 import { AppLoader } from "@/components/layout/app-loader"
 import { Button } from "@/components/ui/button"
 import { IconChevronLeft } from "@tabler/icons-react"
@@ -20,6 +22,7 @@ export function PostPageClient({ postId }: { username: string; postId: string })
   const [initialLoading, setInitialLoading] = useState(true)
   const [notFoundState, setNotFoundState] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
+  const [parentPost, setParentPost] = useState<PostDetail["post"] | null>(null)
 
   useEffect(() => {
     getPostDetail(postId)
@@ -32,6 +35,11 @@ export function PostPageClient({ postId }: { username: string; postId: string })
               ? new Set([...s.likedPostIds, postId])
               : new Set([...s.likedPostIds].filter((id) => id !== postId)),
           }))
+          if (d.post.parentId) {
+            getPostsContext([d.post.parentId]).then((ctx) => {
+              if (ctx.length > 0) setParentPost(ctx[0]!.post)
+            })
+          }
         } else {
           setNotFoundState(true)
         }
@@ -81,6 +89,41 @@ export function PostPageClient({ postId }: { username: string; postId: string })
       </PageHeader>
 
       <div className='container-center'>
+        {parentPost && (
+          <div className='flex gap-2.5 px-4 pt-3 pb-1'>
+            <div className='flex shrink-0 flex-col items-center'>
+              <ProfileAvatar
+                src={parentPost.author?.avatarId ?? undefined}
+                alt={parentPost.author?.username ?? parentPost.authorId}
+                size='2xs'
+              />
+              <div className='my-1.5 w-px flex-1 bg-border' />
+            </div>
+            <div className='min-w-0 flex-1 pb-3'>
+              <div className='flex items-center gap-1.5'>
+                <span className='truncate text-sm font-semibold hover:underline'>
+                  {parentPost.author?.firstName ?? parentPost.author?.username ?? parentPost.authorId}
+                </span>
+                <span className='truncate text-xs text-muted-foreground'>
+                  @{parentPost.author?.username ?? parentPost.authorId}
+                </span>
+              </div>
+              <PostContent
+                content={
+                  parentPost.content.length > 250
+                    ? parentPost.content.slice(0, 250) + "…"
+                    : parentPost.content
+                }
+              />
+              <div className='mt-2 text-sm text-muted-foreground'>
+                Replying to{' '}
+                <span className='font-semibold text-primary'>
+                  @{parentPost.author?.username ?? parentPost.authorId}
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
         <Post
           id={post._id}
           name={authorName}

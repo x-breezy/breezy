@@ -42,7 +42,6 @@ export async function forYouFeed(
 
   const filter: Record<string, unknown> = {
     authorId: { $ne: viewerId },
-    parentId: null,
     createdAt: { $gte: sevenDaysAgo },
     ...(recentLikeIds.length > 0 && { _id: { $nin: recentLikeIds } }),
   }

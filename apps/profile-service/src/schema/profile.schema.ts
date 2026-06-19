@@ -1,7 +1,8 @@
 import { z } from "zod"
 
-const nameRegex = /^[a-z0-9_-]+$/
-const nameMessage = "Can only contain lowercase letters, numbers, underscores, and hyphens"
+const nameRegex = /^[\p{L}\s'.-]+$/u
+const nameMessage = "Name can only contain letters, spaces, apostrophes, hyphens, and periods"
+const usernameMessage = "Can only contain lowercase letters, numbers, underscores, and hyphens"
 
 const nameField = z
   .string()
@@ -15,7 +16,7 @@ export const createProfileSchema = z.object({
   username: z
     .string()
     .max(100)
-    .regex(/^[a-z0-9_-]+$/, nameMessage),
+    .regex(/^[a-z0-9_-]+$/, usernameMessage),
   firstName: nameField,
   lastName: nameField,
   bio: z.string().nullable().optional(),
@@ -41,7 +42,7 @@ export const usernameParamSchema = z.object({
   username: z
     .string()
     .max(100)
-    .regex(/^[a-z0-9_-]+$/, nameMessage),
+    .regex(/^[a-z0-9_-]+$/, usernameMessage),
 })
 
 export type CreateProfileDTO = z.infer<typeof createProfileSchema>

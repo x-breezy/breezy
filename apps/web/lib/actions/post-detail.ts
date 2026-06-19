@@ -15,10 +15,11 @@ export interface ProfileRef {
   role?: string
 }
 
-interface PostData {
+export interface PostData {
   _id: string
   content: string
   authorId: string
+  parentId?: string
   tags: string[]
   mentions: string[]
   media: MediaItem[]
