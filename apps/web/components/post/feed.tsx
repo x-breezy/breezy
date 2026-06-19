@@ -9,12 +9,11 @@ import { CommentTree } from "./comment-tree"
 import { usePostStore } from "@/stores/post-store"
 import { Skeleton } from "@/components/ui/skeleton"
 import { listFeedPosts } from "@/lib/actions/feed"
-import { getPostsContext } from "@/lib/actions/post-detail"
 import { IconArrowUp } from "@tabler/icons-react"
 import { Button } from "../ui/button"
 import type { CommentNode } from "./comment-tree"
 import type { FeedPost } from "./use-feed"
-import type { PostData, ProfileRef } from "@/lib/actions/post-detail"
+import type { ProfileRef } from "@/lib/actions/post-detail"
 import type { SearchProfile } from "@/lib/actions/profiles"
 
 function toProfileRef(profile?: SearchProfile): ProfileRef | null {
@@ -30,7 +29,8 @@ function toProfileRef(profile?: SearchProfile): ProfileRef | null {
 
 export function Feed({ feedType = "forYou" }: { feedType?: string }) {
   const t = useTranslations("feed")
-  const { posts, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useFeed(feedType)
+  const { posts, parentPosts, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
+    useFeed(feedType)
   const cachePosts = usePostStore((s) => s.cachePosts)
   const cacheLikedIds = usePostStore((s) => s.cacheLikedIds)
   const handleLike = usePostStore((s) => s.toggleLike)
@@ -102,29 +102,10 @@ export function Feed({ feedType = "forYou" }: { feedType?: string }) {
     return () => observer.disconnect()
   }, [hasNextPage, isFetchingNextPage, fetchNextPage])
 
-  const parentIds = useMemo(() => {
-    const ids = posts.map((p) => p.parentId).filter(Boolean) as string[]
-    return [...new Set(ids)]
-  }, [posts])
-
-  const { data: parentContexts } = useQuery({
-    queryKey: ["feed-parent-context", feedType, parentIds.slice().sort()],
-    queryFn: () => getPostsContext(parentIds),
-    enabled: parentIds.length > 0,
-  })
-
-  const parentMap = useMemo(() => {
-    const map = new Map<string, PostData>()
-    if (parentContexts) {
-      for (const ctx of parentContexts) {
-        map.set(ctx.post._id, ctx.post)
-      }
-    }
-    return map
-  }, [parentContexts])
-
   const feedItems = useMemo(() => {
-    const items: Array<{ type: "post"; post: FeedPost } | { type: "reply-group"; commentNode: CommentNode }> = []
+    const items: Array<
+      { type: "post"; post: FeedPost } | { type: "reply-group"; commentNode: CommentNode }
+    > = []
     const renderedParents = new Set<string>()
     const replyGroups = new Map<string, FeedPost[]>()
 
@@ -136,51 +117,55 @@ export function Feed({ feedType = "forYou" }: { feedType?: string }) {
       }
     }
 
+    const coveredParents = new Set<string>()
     for (const post of posts) {
-      if (!post.parentId) {
+      if (post.parentId && parentPosts[post.parentId]) {
+        coveredParents.add(post.parentId)
+      }
+    }
+
+    for (const post of posts) {
+      if (!post.parentId && !coveredParents.has(post._id)) {
         items.push({ type: "post", post })
-      } else if (!renderedParents.has(post.parentId)) {
+      } else if (post.parentId && !renderedParents.has(post.parentId)) {
         renderedParents.add(post.parentId)
-        const parent = parentMap.get(post.parentId)
-        if (!parent) {
-          items.push({ type: "post", post })
-        } else {
-          const group = replyGroups.get(post.parentId) ?? []
-          const commentNode: CommentNode = {
-            _id: parent._id,
-            content: parent.content,
-            authorId: parent.authorId,
-            parentId: parent.parentId,
-            tags: parent.tags,
-            mentions: parent.mentions,
-            media: parent.media,
-            likesCount: parent.likesCount,
-            commentsCount: parent.commentsCount,
-            createdAt: parent.createdAt,
-            author: parent.author,
-            likedByMe: false,
-            replies: group.map((r) => ({
-              _id: r._id,
-              content: r.content,
-              authorId: r.authorId,
-              parentId: r.parentId,
-              tags: r.tags,
-              mentions: r.mentions,
-              media: r.media,
-              likesCount: r.likesCount,
-              commentsCount: r.commentsCount,
-              createdAt: r.createdAt,
-              author: toProfileRef(r.author),
-              likedByMe: r.liked,
-              replies: [],
-            })),
-          }
-          items.push({ type: "reply-group", commentNode })
+        const parent = parentPosts[post.parentId]
+        if (!parent) continue
+        const group = replyGroups.get(post.parentId) ?? []
+        const commentNode: CommentNode = {
+          _id: parent._id,
+          content: parent.content,
+          authorId: parent.authorId,
+          parentId: parent.parentId,
+          tags: parent.tags,
+          mentions: parent.mentions,
+          media: parent.media,
+          likesCount: parent.likesCount,
+          commentsCount: parent.commentsCount,
+          createdAt: parent.createdAt,
+          author: toProfileRef(parent.author),
+          likedByMe: parent.liked,
+          replies: group.map((r) => ({
+            _id: r._id,
+            content: r.content,
+            authorId: r.authorId,
+            parentId: r.parentId,
+            tags: r.tags,
+            mentions: r.mentions,
+            media: r.media,
+            likesCount: r.likesCount,
+            commentsCount: r.commentsCount,
+            createdAt: r.createdAt,
+            author: toProfileRef(r.author),
+            likedByMe: r.liked,
+            replies: [],
+          })),
         }
+        items.push({ type: "reply-group", commentNode })
       }
     }
     return items
-  }, [posts, parentMap])
+  }, [posts, parentPosts])
 
   if (isLoading) {
     return (
@@ -231,9 +216,7 @@ export function Feed({ feedType = "forYou" }: { feedType?: string }) {
           <IconArrowUp size={12} /> New posts
         </Button>
       </div>
-      <ul
-        onClick={() => sessionStorage.setItem(scrollKey, String(window.scrollY))}
-      >
+      <ul onClick={() => sessionStorage.setItem(scrollKey, String(window.scrollY))}>
         {feedItems.map((item) => {
           if (item.type === "reply-group") {
             return (

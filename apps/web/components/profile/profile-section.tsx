@@ -16,7 +16,7 @@ interface ProfileSectionProps {
 
 export function ProfileSection({ className, profile, role, isOwn }: ProfileSectionProps) {
   return (
-    <section className={cn("", className)}>
+    <section className={cn("md:px-4 md:py-6", className)}>
       {/* Mobile Layout */}
       <div className='flex flex-col items-center gap-4 p-4 md:hidden'>
         <ProfileAvatar src={profile.avatarId || undefined} alt={profile.username} size='xl' />

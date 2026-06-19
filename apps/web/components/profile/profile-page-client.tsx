@@ -100,12 +100,12 @@ export function ProfilePageClient({ username }: { username: string }) {
         isOwn={isOwn}
       />
 
-      <main className='md:px-4 md:py-6'>
+      <main>
         <ProfileSection profile={profile} role={profile.role as UserRole} isOwn={isOwn} />
 
         <ProfileTabs />
 
-        <section className='container-center p-4 md:p-0'>
+        <section className='container-center'>
           {isRepliesTab ? (
             <ProfileRepliesList threads={threads} isLoading={repliesLoading} />
           ) : isMediasTab ? (

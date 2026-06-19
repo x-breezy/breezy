@@ -19,12 +19,13 @@ export function PostPageClient({ postId }: { username: string; postId: string })
   const toggleLike = usePostStore((s) => s.toggleLike)
 
   const [detail, setDetail] = useState<PostDetail | null>(null)
-  const [initialLoading, setInitialLoading] = useState(true)
+  const [pageReady, setPageReady] = useState(false)
   const [notFoundState, setNotFoundState] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
   const [parentPost, setParentPost] = useState<PostDetail["post"] | null>(null)
 
   useEffect(() => {
+    setPageReady(false)
     getPostDetail(postId)
       .then((d) => {
         if (d) {
@@ -38,14 +39,17 @@ export function PostPageClient({ postId }: { username: string; postId: string })
           if (d.post.parentId) {
             getPostsContext([d.post.parentId]).then((ctx) => {
               if (ctx.length > 0) setParentPost(ctx[0]!.post)
+              setPageReady(true)
             })
+          } else {
+            setPageReady(true)
           }
         } else {
           setNotFoundState(true)
+          setPageReady(true)
         }
-        setInitialLoading(false)
       })
-      .catch(() => setInitialLoading(false))
+      .catch(() => setPageReady(true))
   }, [postId, refreshKey])
 
   const handleReplyCreated = useCallback(() => {
@@ -59,7 +63,7 @@ export function PostPageClient({ postId }: { username: string; postId: string })
     [postId, toggleLike]
   )
 
-  if (initialLoading) return <AppLoader />
+  if (!pageReady) return <AppLoader />
   if (notFoundState) notFound()
   if (!detail) return null
 
@@ -105,7 +109,9 @@ export function PostPageClient({ postId }: { username: string; postId: string })
             <div className='min-w-0 flex-1 pb-3'>
               <div className='flex items-center gap-1.5'>
                 <span className='truncate text-sm font-semibold hover:underline'>
-                  {parentPost.author?.firstName ?? parentPost.author?.username ?? parentPost.authorId}
+                  {parentPost.author?.firstName ??
+                    parentPost.author?.username ??
+                    parentPost.authorId}
                 </span>
                 <span className='truncate text-xs text-muted-foreground'>
                   @{parentPost.author?.username ?? parentPost.authorId}
@@ -119,7 +125,7 @@ export function PostPageClient({ postId }: { username: string; postId: string })
                 }
               />
               <div className='mt-2 text-sm text-muted-foreground'>
-                Replying to{' '}
+                Replying to{" "}
                 <span className='font-semibold text-primary'>
                   @{parentPost.author?.username ?? parentPost.authorId}
                 </span>
@@ -146,8 +152,8 @@ export function PostPageClient({ postId }: { username: string; postId: string })
         />
       </div>
 
-      <section className='container-center p-4'>
-        <h2 className='mb-4 text-sm font-semibold text-muted-foreground'>
+      <section className='container-center'>
+        <h2 className='border-b border-border px-4 pt-4 pb-2 text-sm font-semibold text-muted-foreground'>
           Replies {post.commentsCount > 0 && `(${post.commentsCount})`}
         </h2>
         {replies.length === 0 ? (

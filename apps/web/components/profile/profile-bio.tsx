@@ -24,7 +24,7 @@ export function ProfileBio({ children, className }: ProfileBioProps) {
   return (
     <section className={cn("space-y-2", className)}>
       <h2 className='text-lg font-semibold'>{t("biographyTitle")}</h2>
-      <p className='whitespace-pre-wrap leading-relaxed text-muted-foreground'>{children}</p>
+      <p className='leading-relaxed whitespace-pre-wrap'>{children}</p>
     </section>
   )
 }

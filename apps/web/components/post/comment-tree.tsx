@@ -133,15 +133,16 @@ export function CommentTree({
   if (comments.length === 0) return null
 
   return (
-    <div className='space-y-1'>
+    <div>
       {comments.map((comment, i) => (
-        <CommentThread
-          key={comment._id}
-          comment={comment}
-          onReplyCreated={onReplyCreated}
-          isLastThread={i === comments.length - 1}
-          postAuthorId={postAuthorId}
-        />
+        <div key={comment._id} className='border-b border-border last:border-b-0'>
+          <CommentThread
+            comment={comment}
+            onReplyCreated={onReplyCreated}
+            isLastThread={i === comments.length - 1}
+            postAuthorId={postAuthorId}
+          />
+        </div>
       ))}
     </div>
   )

@@ -36,8 +36,42 @@ export function useFeed(type = "forYou") {
     [query.data]
   )
 
+  const parentPosts = useMemo<Record<string, FeedPost>>(() => {
+    const result: Record<string, FeedPost> = {}
+    for (const page of query.data?.pages ?? []) {
+      for (const [pid, pp] of Object.entries(page.parentPosts)) {
+        if (result[pid]) continue
+        result[pid] = {
+          ...pp,
+          liked: page.likedIds.includes(pp._id),
+          author: page.authors[pp.authorId],
+        }
+      }
+    }
+    return result
+  }, [query.data])
+
+  const likes = useMemo(() => {
+    const set = new Set<string>()
+    for (const page of query.data?.pages ?? []) {
+      for (const id of page.likedIds) set.add(id)
+    }
+    return set
+  }, [query.data])
+
+  const authors = useMemo(() => {
+    const map: Record<string, SearchProfile> = {}
+    for (const page of query.data?.pages ?? []) {
+      Object.assign(map, page.authors)
+    }
+    return map
+  }, [query.data])
+
   return {
     posts,
+    parentPosts,
+    likes,
+    authors,
     fetchNextPage: query.fetchNextPage,
     hasNextPage: query.hasNextPage,
     isFetchingNextPage: query.isFetchingNextPage,

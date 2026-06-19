@@ -8,6 +8,7 @@ const LIKE_HISTORY = 50
 const TAG_WEIGHT_MULTIPLIER = 3
 const FRESHNESS_WINDOW_HOURS = 10
 const FRESHNESS_MAX_BONUS = 10
+const LIKED_POST_PENALTY = 2
 
 export async function forYouFeed(
   viewerId: string,
@@ -40,10 +41,11 @@ export async function forYouFeed(
     }
   }
 
+  const likedPostSet = new Set(recentLikeIds)
+
   const filter: Record<string, unknown> = {
     authorId: { $ne: viewerId },
     createdAt: { $gte: sevenDaysAgo },
-    ...(recentLikeIds.length > 0 && { _id: { $nin: recentLikeIds } }),
   }
 
   const [pool, total] = await Promise.all([
@@ -72,7 +74,11 @@ export async function forYouFeed(
       )
 
       // HN-style decay: score drops as age grows
-      const score = (engagement + tagBoost + freshnessBonus) / Math.pow(ageHours + 2, 1.5)
+      let score = (engagement + tagBoost + freshnessBonus) / Math.pow(ageHours + 2, 1.5)
+      // Penalize already-liked posts so they appear later
+      if (likedPostSet.has(String((p as unknown as { _id: string })._id))) {
+        score -= LIKED_POST_PENALTY
+      }
       return { post: p, score }
     })
     .sort((a, b) => b.score - a.score)

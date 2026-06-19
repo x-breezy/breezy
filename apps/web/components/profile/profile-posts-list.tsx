@@ -46,25 +46,26 @@ export function ProfilePostsList({
   }
 
   return (
-    <>
+    <div>
       {posts.map((post) => (
-        <Post
-          key={post._id}
-          id={post._id}
-          name={authorName}
-          username={profile.username}
-          authorId={post.authorId}
-          authorRole={profile.role}
-          avatarUrl={profile.avatarId ?? undefined}
-          content={post.content}
-          media={post.media}
-          createdAt={post.createdAt}
-          initialLikes={post.likesCount}
-          initialComments={post.commentsCount}
-          initialLiked={post.liked}
-          onLike={onLike}
-          href={`/post/${profile.username}/${post._id}`}
-        />
+        <div key={post._id} className='border-b border-border last:border-b-0'>
+          <Post
+            id={post._id}
+            name={authorName}
+            username={profile.username}
+            authorId={post.authorId}
+            authorRole={profile.role}
+            avatarUrl={profile.avatarId ?? undefined}
+            content={post.content}
+            media={post.media}
+            createdAt={post.createdAt}
+            initialLikes={post.likesCount}
+            initialComments={post.commentsCount}
+            initialLiked={post.liked}
+            onLike={onLike}
+            href={`/post/${profile.username}/${post._id}`}
+          />
+        </div>
       ))}
       {hasNextPage && (
         <button
@@ -74,6 +75,6 @@ export function ProfilePostsList({
           Load more
         </button>
       )}
-    </>
+    </div>
   )
 }

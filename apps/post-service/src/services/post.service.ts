@@ -156,8 +156,37 @@ export class PostService {
     viewerId: string,
     page: number,
     limit: number
-  ): Promise<PaginatedResponse<Post>> {
-    return forYouFeed(viewerId, page, limit)
+  ): Promise<PaginatedResponse<Post> & { parentPosts: Record<string, Post> }> {
+    const result = await forYouFeed(viewerId, page, limit)
+
+    const replies = result.data.filter((p) => p.parentId)
+    const parentIds = [...new Set(replies.map((r) => r.parentId!))]
+
+    let parentPosts: Post[] = []
+    if (parentIds.length > 0) {
+      parentPosts = (await PostModel.find({ _id: { $in: parentIds } })
+        .lean({ virtuals: true })
+        .exec()) as Post[]
+    }
+
+    const parentIdSet = new Set(
+      parentPosts.map((p) => String((p as unknown as { _id: string })._id))
+    )
+
+    const filteredData = result.data.filter((p) => {
+      if (p.parentId) return true
+      return !parentIdSet.has(String((p as unknown as { _id: string })._id))
+    })
+
+    return {
+      data: filteredData,
+      parentPosts: Object.fromEntries(
+        parentPosts.map((p) => [String((p as unknown as { _id: string })._id), p])
+      ),
+      total: result.total,
+      page: result.page,
+      limit: result.limit,
+    }
   }
 
   async feed(viewerId: string, page: number, limit: number): Promise<PaginatedResponse<Post>> {
