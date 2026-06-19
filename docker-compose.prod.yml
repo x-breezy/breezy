@@ -188,7 +188,7 @@ services:
       LOG_FILE: /logs/auth-service.log
       LOG_LEVEL: info
     healthcheck:
-      test: ["CMD", "node", "-e", "require('http').get('http://localhost:4020/',r=>process.exit(0)).on('error',()=>process.exit(1))"]
+      test: ["CMD", "node", "-e", "require('net').connect(4020,'localhost').on('connect',()=>process.exit(0)).on('error',()=>process.exit(1))"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -224,7 +224,7 @@ services:
       LOG_FILE: /logs/profile-service.log
       LOG_LEVEL: info
     healthcheck:
-      test: ["CMD", "node", "-e", "require('http').get('http://localhost:4010/',r=>process.exit(0)).on('error',()=>process.exit(1))"]
+      test: ["CMD", "node", "-e", "require('net').connect(4010,'localhost').on('connect',()=>process.exit(0)).on('error',()=>process.exit(1))"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -259,7 +259,7 @@ services:
       LOG_FILE: /logs/post-service.log
       LOG_LEVEL: info
     healthcheck:
-      test: ["CMD", "node", "-e", "require('http').get('http://localhost:4040/',r=>process.exit(0)).on('error',()=>process.exit(1))"]
+      test: ["CMD", "node", "-e", "require('net').connect(4040,'localhost').on('connect',()=>process.exit(0)).on('error',()=>process.exit(1))"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -292,7 +292,7 @@ services:
       LOG_FILE: /logs/media-service.log
       LOG_LEVEL: info
     healthcheck:
-      test: ["CMD", "node", "-e", "require('http').get('http://localhost:4050/',r=>process.exit(0)).on('error',()=>process.exit(1))"]
+      test: ["CMD", "node", "-e", "require('net').connect(4050,'localhost').on('connect',()=>process.exit(0)).on('error',()=>process.exit(1))"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -330,7 +330,7 @@ services:
       LOG_FILE: /logs/notifications-service.log
       LOG_LEVEL: info
     healthcheck:
-      test: ["CMD", "node", "-e", "require('http').get('http://localhost:4060/',r=>process.exit(0)).on('error',()=>process.exit(1))"]
+      test: ["CMD", "node", "-e", "require('net').connect(4060,'localhost').on('connect',()=>process.exit(0)).on('error',()=>process.exit(1))"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -358,7 +358,7 @@ services:
       # SSR server-side calls go directly to the gateway container
       API_URL: http://gateway
     healthcheck:
-      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/',r=>process.exit(0)).on('error',()=>process.exit(1))"]
+      test: ["CMD", "node", "-e", "require('net').connect(3000,'localhost').on('connect',()=>process.exit(0)).on('error',()=>process.exit(1))"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -380,7 +380,7 @@ services:
       URL: /openapi.json
       BASE_URL: /api-docs
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/"]
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/api-docs/"]
       interval: 10s
       timeout: 5s
       retries: 5
