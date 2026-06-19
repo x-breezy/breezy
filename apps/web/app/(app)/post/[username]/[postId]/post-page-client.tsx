@@ -90,7 +90,10 @@ export function PostPageClient({ postId }: { username: string; postId: string })
 
       <div className='container-center'>
         {parentPost && (
-          <div className='flex gap-2.5 px-4 pt-3 pb-1'>
+          <a
+            href={`/post/${parentPost.author?.username ?? parentPost.authorId}/${parentPost._id}`}
+            className='flex gap-2.5 px-4 pt-3 pb-1 transition-colors hover:bg-accent/50'
+          >
             <div className='flex shrink-0 flex-col items-center'>
               <ProfileAvatar
                 src={parentPost.author?.avatarId ?? undefined}
@@ -122,7 +125,7 @@ export function PostPageClient({ postId }: { username: string; postId: string })
                 </span>
               </div>
             </div>
-          </div>
+          </a>
         )}
         <Post
           id={post._id}

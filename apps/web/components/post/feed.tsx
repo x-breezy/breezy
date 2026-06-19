@@ -5,83 +5,27 @@ import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { useTranslations } from "next-intl"
 import { useFeed } from "./use-feed"
 import Post from "./post"
-import { PostContent } from "./post-content"
-import { ProfileAvatar } from "@/components/profile"
+import { CommentTree } from "./comment-tree"
 import { usePostStore } from "@/stores/post-store"
 import { Skeleton } from "@/components/ui/skeleton"
 import { listFeedPosts } from "@/lib/actions/feed"
 import { getPostsContext } from "@/lib/actions/post-detail"
 import { IconArrowUp } from "@tabler/icons-react"
 import { Button } from "../ui/button"
+import type { CommentNode } from "./comment-tree"
+import type { FeedPost } from "./use-feed"
+import type { PostData, ProfileRef } from "@/lib/actions/post-detail"
+import type { SearchProfile } from "@/lib/actions/profiles"
 
-function ReplyBlock({
-  post,
-  parent,
-  authorNameFn,
-  handleLike,
-}: {
-  post: import("./use-feed").FeedPost
-  parent: import("@/lib/actions/post-detail").PostData
-  authorNameFn: (post: import("./use-feed").FeedPost) => string
-  handleLike: (postId: string, liked: boolean) => Promise<number | void>
-}) {
-  const parentName =
-    [parent.author?.firstName, parent.author?.lastName].filter(Boolean).join(" ") ||
-    parent.author?.username ||
-    parent.authorId
-
-  return (
-    <div>
-      <div className='flex gap-2.5 px-4 pt-2 pb-1'>
-        <div className='flex shrink-0 flex-col items-center'>
-          <ProfileAvatar
-            src={parent.author?.avatarId ?? undefined}
-            alt={parentName}
-            size='2xs'
-          />
-          <div className='my-1.5 w-px flex-1 bg-border' />
-        </div>
-        <div className='min-w-0 flex-1 pb-3'>
-          <div className='flex items-center gap-1.5'>
-            <span className='truncate text-sm font-semibold hover:underline'>{parentName}</span>
-            <span className='truncate text-xs text-muted-foreground'>
-              @{parent.author?.username ?? parent.authorId}
-            </span>
-          </div>
-          <PostContent
-            content={
-              parent.content.length > 250
-                ? parent.content.slice(0, 250) + "…"
-                : parent.content
-            }
-          />
-          <div className='mt-1 text-sm text-muted-foreground'>
-            Replying to{' '}
-            <span className='font-semibold text-primary'>
-              @{parent.author?.username ?? parent.authorId}
-            </span>
-          </div>
-        </div>
-      </div>
-      <Post
-        id={post._id}
-        name={authorNameFn(post)}
-        username={post.author?.username ?? post.authorId}
-        authorId={post.authorId}
-        avatarUrl={post.author?.avatarUrl ?? undefined}
-        content={post.content}
-        media={post.media}
-        createdAt={post.createdAt}
-        initialLikes={post.likesCount}
-        initialComments={post.commentsCount}
-        initialLiked={post.liked}
-        onLike={handleLike}
-        href={`/post/${post.author?.username ?? post.authorId}/${post._id}`}
-        threadLine='solid'
-        threadLineTop
-      />
-    </div>
-  )
+function toProfileRef(profile?: SearchProfile): ProfileRef | null {
+  if (!profile) return null
+  return {
+    username: profile.username ?? "",
+    avatarId: profile.avatarUrl,
+    firstName: profile.firstName,
+    lastName: profile.lastName,
+    role: profile.role,
+  }
 }
 
 export function Feed({ feedType = "forYou" }: { feedType?: string }) {
@@ -158,6 +102,86 @@ export function Feed({ feedType = "forYou" }: { feedType?: string }) {
     return () => observer.disconnect()
   }, [hasNextPage, isFetchingNextPage, fetchNextPage])
 
+  const parentIds = useMemo(() => {
+    const ids = posts.map((p) => p.parentId).filter(Boolean) as string[]
+    return [...new Set(ids)]
+  }, [posts])
+
+  const { data: parentContexts } = useQuery({
+    queryKey: ["feed-parent-context", feedType, parentIds.slice().sort()],
+    queryFn: () => getPostsContext(parentIds),
+    enabled: parentIds.length > 0,
+  })
+
+  const parentMap = useMemo(() => {
+    const map = new Map<string, PostData>()
+    if (parentContexts) {
+      for (const ctx of parentContexts) {
+        map.set(ctx.post._id, ctx.post)
+      }
+    }
+    return map
+  }, [parentContexts])
+
+  const feedItems = useMemo(() => {
+    const items: Array<{ type: "post"; post: FeedPost } | { type: "reply-group"; commentNode: CommentNode }> = []
+    const renderedParents = new Set<string>()
+    const replyGroups = new Map<string, FeedPost[]>()
+
+    for (const post of posts) {
+      if (post.parentId) {
+        const group = replyGroups.get(post.parentId) ?? []
+        group.push(post)
+        replyGroups.set(post.parentId, group)
+      }
+    }
+
+    for (const post of posts) {
+      if (!post.parentId) {
+        items.push({ type: "post", post })
+      } else if (!renderedParents.has(post.parentId)) {
+        renderedParents.add(post.parentId)
+        const parent = parentMap.get(post.parentId)
+        if (!parent) {
+          items.push({ type: "post", post })
+        } else {
+          const group = replyGroups.get(post.parentId) ?? []
+          const commentNode: CommentNode = {
+            _id: parent._id,
+            content: parent.content,
+            authorId: parent.authorId,
+            parentId: parent.parentId,
+            tags: parent.tags,
+            mentions: parent.mentions,
+            media: parent.media,
+            likesCount: parent.likesCount,
+            commentsCount: parent.commentsCount,
+            createdAt: parent.createdAt,
+            author: parent.author,
+            likedByMe: false,
+            replies: group.map((r) => ({
+              _id: r._id,
+              content: r.content,
+              authorId: r.authorId,
+              parentId: r.parentId,
+              tags: r.tags,
+              mentions: r.mentions,
+              media: r.media,
+              likesCount: r.likesCount,
+              commentsCount: r.commentsCount,
+              createdAt: r.createdAt,
+              author: toProfileRef(r.author),
+              likedByMe: r.liked,
+              replies: [],
+            })),
+          }
+          items.push({ type: "reply-group", commentNode })
+        }
+      }
+    }
+    return items
+  }, [posts, parentMap])
+
   if (isLoading) {
     return (
       <div className='space-y-1'>
@@ -183,28 +207,7 @@ export function Feed({ feedType = "forYou" }: { feedType?: string }) {
     )
   }
 
-  const parentIds = useMemo(() => {
-    const ids = posts.map((p) => p.parentId).filter(Boolean) as string[]
-    return [...new Set(ids)]
-  }, [posts])
-
-  const { data: parentContexts } = useQuery({
-    queryKey: ["feed-parent-context", feedType, parentIds.slice().sort()],
-    queryFn: () => getPostsContext(parentIds),
-    enabled: parentIds.length > 0,
-  })
-
-  const parentMap = useMemo(() => {
-    const map = new Map<string, import("@/lib/actions/post-detail").PostData>()
-    if (parentContexts) {
-      for (const ctx of parentContexts) {
-        map.set(ctx.post._id, ctx.post)
-      }
-    }
-    return map
-  }, [parentContexts])
-
-  const authorName = (post: (typeof posts)[number]) => {
+  const authorName = (post: FeedPost) => {
     const { author } = post
     if (!author) return post.authorId
     return (
@@ -232,13 +235,11 @@ export function Feed({ feedType = "forYou" }: { feedType?: string }) {
         className='space-y-1'
         onClick={() => sessionStorage.setItem(scrollKey, String(window.scrollY))}
       >
-        {posts.map((post) => {
-          if (post.parentId) {
-            const parent = parentMap.get(post.parentId)
-            if (parent) {
-              return <ReplyBlock key={post._id} post={post} parent={parent} authorNameFn={authorName} handleLike={handleLike} />
-            }
+        {feedItems.map((item) => {
+          if (item.type === "reply-group") {
+            return <CommentTree key={`ct-${item.commentNode._id}`} comments={[item.commentNode]} />
           }
+          const post = item.post
           return (
             <Post
               key={post._id}
