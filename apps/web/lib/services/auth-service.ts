@@ -63,3 +63,7 @@ export function completeGoogleAuth(pendingToken: string, username: string) {
 export function notifyProfileCreated(refreshToken: string) {
   return serverClient.post("/api/auth/profile-created", { refreshToken })
 }
+
+export function getUserById(id: string, authHeader: Record<string, string>) {
+  return serverClient.get(`/api/users/${id}`, { headers: authHeader })
+}

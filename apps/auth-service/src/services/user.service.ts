@@ -60,6 +60,39 @@ class UserService {
     await pipeline.exec()
   }
 
+  async listSanctioned(
+    page: number = 1,
+    limit: number = 20,
+    filter: "suspended" | "banned" | "all" = "all"
+  ): Promise<{ count: number; users: SafeUser[] }> {
+    const offset = (page - 1) * limit
+    const where =
+      filter === "suspended"
+        ? { isSuspended: true }
+        : filter === "banned"
+          ? { isBanned: true }
+          : { [Op.or]: [{ isSuspended: true }, { isBanned: true }] }
+    const { count, rows } = await User.findAndCountAll({
+      where,
+      order: [["updatedAt", "DESC"]],
+      limit,
+      offset,
+    })
+    return { count, users: rows.map((u) => u.toJSON()) }
+  }
+
+  async unsuspendUser(id: string): Promise<void> {
+    const user = await User.findByPk(id)
+    if (!user) throw Object.assign(new Error("User not found"), { code: "USER_NOT_FOUND" })
+    await user.update({ isSuspended: false })
+  }
+
+  async unbanUser(id: string): Promise<void> {
+    const user = await User.findByPk(id)
+    if (!user) throw Object.assign(new Error("User not found"), { code: "USER_NOT_FOUND" })
+    await user.update({ isBanned: false })
+  }
+
   async searchByUsername(
     q: string,
     page: number = 1,

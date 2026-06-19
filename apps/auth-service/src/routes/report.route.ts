@@ -6,7 +6,7 @@ import { requirePermission } from "../middlewares/roles.middleware"
 import { validate } from "../middlewares/validate.middleware"
 import { PERMISSIONS } from "../constants/permissions"
 import { createReportSchema, reportIdParamSchema } from "../schemas/report.schema"
-import { writeLimit } from "../middlewares/rate-limit.middleware"
+import { readLimit, writeLimit } from "../middlewares/rate-limit.middleware"
 
 function createReportRouter(
   reportController: ReportController = new ReportController(new ReportService())
@@ -22,6 +22,23 @@ function createReportRouter(
     reportController.createReport
   )
 
+  router.get(
+    "/",
+    identity,
+    readLimit,
+    requirePermission(PERMISSIONS.REPORT_RESOLVE),
+    reportController.listReports
+  )
+
+  router.get(
+    "/:id",
+    identity,
+    readLimit,
+    requirePermission(PERMISSIONS.REPORT_RESOLVE),
+    validate(reportIdParamSchema, "params"),
+    reportController.getReport
+  )
+
   router.patch(
     "/:id/resolve",
     identity,
@@ -29,6 +46,15 @@ function createReportRouter(
     requirePermission(PERMISSIONS.REPORT_RESOLVE),
     validate(reportIdParamSchema, "params"),
     reportController.resolveReport
+  )
+
+  router.patch(
+    "/:id/unresolve",
+    identity,
+    writeLimit,
+    requirePermission(PERMISSIONS.REPORT_RESOLVE),
+    validate(reportIdParamSchema, "params"),
+    reportController.unresolveReport
   )
 
   return router
@@ -39,6 +65,34 @@ export { createReportRouter }
 /**
  * @openapi
  * /api/auth/reports:
+ *   get:
+ *     summary: List reports (moderator/admin)
+ *     tags: [Reports]
+ *     parameters:
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum: [pending, resolved]
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 20
+ *     responses:
+ *       200:
+ *         description: Paginated list of reports.
+ *       403:
+ *         description: Insufficient permissions.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
  *   post:
  *     summary: Create a report
  *     tags: [Reports]

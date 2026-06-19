@@ -1,7 +1,8 @@
+import { redirect } from "next/navigation"
 import { NavBar } from "./navigation/nav-bar"
 import { RightSidebar } from "./right-sidebar"
 import { UserStoreProvider } from "../providers/user-store-provider"
-import { getServerAuthHeader, getUserId } from "@/lib/auth/session"
+import { clearSessionCookies, getServerAuthHeader, getUserId } from "@/lib/auth/session"
 import { getMe } from "@/lib/services/auth-service"
 import { getFollowing, getProfile } from "@/lib/services/profile-service"
 import { getSuggestedProfiles } from "@/lib/actions/profiles"
@@ -30,6 +31,11 @@ export async function AppLayout({ children, modal }: AppLayoutProps) {
       const [res, meRes] = await Promise.all([getProfile(userId, authHeader), getMe(authHeader)])
       if (res.status === 200) profile = res.data.data as Profile
       if (meRes.status === 200) user = meRes.data.data as User
+
+      if (user && (user.isSuspended || user.isBanned)) {
+        await clearSessionCookies()
+        redirect(user.isBanned ? "/sign-in?reason=banned" : "/sign-in?reason=suspended")
+      }
 
       if (profile) {
         const relRes = await getFollowing(profile.profileId, authHeader)

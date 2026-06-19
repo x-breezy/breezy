@@ -1,21 +1,30 @@
 "use server"
 
-import { cookies } from "next/headers"
-
-const API_URL = process.env.API_URL ?? "http://localhost"
+import { getServerAuthHeader } from "@/lib/auth/session"
+import * as reportService from "@/lib/services/report-service"
+import type { PaginatedReports } from "@/types/report"
 
 export async function reportProfile(reportedUserId: string, reason: string): Promise<void> {
-  const cookieStore = await cookies()
-  const token = cookieStore.get("breezy-token")?.value
+  const authHeader = await getServerAuthHeader()
+  await reportService.createReport(reportedUserId, reason, authHeader)
+}
 
-  const res = await fetch(`${API_URL}/api/reports/`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
-    body: JSON.stringify({ reportedUserId, reason }),
-  })
+export async function listReports(
+  page = 1,
+  limit = 20,
+  status?: string
+): Promise<PaginatedReports> {
+  const authHeader = await getServerAuthHeader()
+  const res = await reportService.getReports(authHeader, { status, page, limit })
+  return (res.data as { data: PaginatedReports }).data
+}
 
-  if (!res.ok) throw new Error(`Failed to submit report: ${res.status}`)
+export async function resolveReport(id: string): Promise<void> {
+  const authHeader = await getServerAuthHeader()
+  await reportService.resolveReport(id, authHeader)
+}
+
+export async function unresolveReport(id: string): Promise<void> {
+  const authHeader = await getServerAuthHeader()
+  await reportService.unresolveReport(id, authHeader)
 }

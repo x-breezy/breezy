@@ -14,6 +14,26 @@ import {
   getMe,
 } from "@/lib/services/auth-service"
 
+export async function checkSanctionStatus(): Promise<"suspended" | "banned" | null> {
+  try {
+    const authHeader = await getServerAuthHeader()
+    const res = await getMe(authHeader)
+    if (res.status !== 200) return null
+    const user = (res.data as { data: { isSuspended: boolean; isBanned: boolean } }).data
+    if (user.isBanned) {
+      await clearSessionCookies()
+      return "banned"
+    }
+    if (user.isSuspended) {
+      await clearSessionCookies()
+      return "suspended"
+    }
+    return null
+  } catch {
+    return null
+  }
+}
+
 export async function logoutAction() {
   const cookieStore = await cookies()
   const refreshToken = cookieStore.get(REFRESH_COOKIE)?.value

@@ -40,7 +40,9 @@ export function PostMenu({
   onEdited,
 }: PostMenuProps) {
   const currentProfileId = useUserStore((s) => s.profile?.profileId)
+  const currentUserRole = useUserStore((s) => s.user?.role)
   const isOwner = currentProfileId === authorId
+  const isModerator = currentUserRole === "moderator" || currentUserRole === "admin"
 
   const [reportOpen, setReportOpen] = useState(false)
   const [reason, setReason] = useState("")
@@ -135,6 +137,16 @@ export function PostMenu({
           {!isOwner && (
             <>
               <DropdownMenuSeparator />
+              {isModerator && (
+                <DropdownMenuItem
+                  variant='destructive'
+                  onClick={() => setDeleteOpen(true)}
+                  className='px-3 py-2.5 text-base md:px-2 md:py-1.5 md:text-sm'
+                >
+                  <IconTrash />
+                  Delete (mod)
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem
                 variant='destructive'
                 onClick={() => setReportOpen(true)}

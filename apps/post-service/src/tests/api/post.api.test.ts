@@ -74,8 +74,8 @@ function mockFindPaginated(docs: unknown[], total: number) {
     lean: jest.fn().mockReturnThis(),
     exec: jest.fn().mockResolvedValue(docs),
   }
-  ;(mockedModel.find as jest.Mock).mockReturnValue(mockQuery)
-  ;(mockedModel.countDocuments as jest.Mock).mockResolvedValue(total)
+    ; (mockedModel.find as jest.Mock).mockReturnValue(mockQuery)
+    ; (mockedModel.countDocuments as jest.Mock).mockResolvedValue(total)
 }
 
 function mockSearchPaginated(docs: unknown[], total: number) {
@@ -84,10 +84,10 @@ function mockSearchPaginated(docs: unknown[], total: number) {
     limit: jest.fn().mockReturnThis(),
     exec: jest.fn().mockResolvedValue(docs),
   }
-  ;(mockedModel.find as jest.Mock).mockReturnValue(mockQuery)
-  ;(mockedModel.countDocuments as jest.Mock).mockReturnValue({
-    exec: jest.fn().mockResolvedValue(total),
-  })
+    ; (mockedModel.find as jest.Mock).mockReturnValue(mockQuery)
+    ; (mockedModel.countDocuments as jest.Mock).mockReturnValue({
+      exec: jest.fn().mockResolvedValue(total),
+    })
 }
 
 beforeEach(() => {
@@ -117,7 +117,7 @@ describe("GET /docs.json", () => {
 
 describe("POST /posts", () => {
   it("creates a post and returns it in ApiResponse", async () => {
-    ;(mockedModel.create as jest.Mock).mockResolvedValue(MOCK_POST)
+    ; (mockedModel.create as jest.Mock).mockResolvedValue(MOCK_POST)
 
     const res = await request(app)
       .post("/posts")
@@ -177,7 +177,7 @@ describe("POST /posts", () => {
   })
 
   it("defaults tags and media to empty arrays", async () => {
-    ;(mockedModel.create as jest.Mock).mockResolvedValue({
+    ; (mockedModel.create as jest.Mock).mockResolvedValue({
       ...MOCK_POST,
       tags: [],
       media: [],
@@ -193,13 +193,14 @@ describe("POST /posts", () => {
       expect.objectContaining({ tags: [], media: [] })
     )
   })
+
 })
 
 // ─── GET /posts/:id ─────────────────────────────────────────────────────────
 
 describe("GET /posts/:id", () => {
   it("returns a post by id", async () => {
-    ;(mockedModel.findById as jest.Mock).mockReturnValue({
+    ; (mockedModel.findById as jest.Mock).mockReturnValue({
       exec: jest.fn().mockResolvedValue(MOCK_POST),
     })
 
@@ -213,7 +214,7 @@ describe("GET /posts/:id", () => {
   })
 
   it("returns 404 for unknown id", async () => {
-    ;(mockedModel.findById as jest.Mock).mockReturnValue({
+    ; (mockedModel.findById as jest.Mock).mockReturnValue({
       exec: jest.fn().mockResolvedValue(null),
     })
 
@@ -318,8 +319,32 @@ describe("GET /posts/users/:userId", () => {
     expect(res.body.data).toMatchObject({ data: [], total: 0 })
   })
 
-  it("allows any authenticated user to access another user's posts", async () => {
+  it("returns 403 when user accesses another user's posts", async () => {
     mockFindPaginated([MOCK_POST], 1)
+
+    const res = await request(app)
+      .get(`/posts/users/${USER2_UUID}`)
+      .set("Authorization", "Bearer fake-token")
+
+    expect(res.status).toBe(403)
+    expect(res.body.success).toBe(false)
+  })
+
+  it("allows moderator to access any user's posts", async () => {
+    mockFindPaginated([MOCK_POST], 1)
+    mockVerifyJwt.mockReturnValueOnce({ sub: USER1_UUID, role: "moderator" })
+
+    const res = await request(app)
+      .get(`/posts/users/${USER2_UUID}`)
+      .set("Authorization", "Bearer fake-token")
+
+    expect(res.status).toBe(200)
+    expect(res.body.success).toBe(true)
+  })
+
+  it("allows admin to access any user's posts", async () => {
+    mockFindPaginated([MOCK_POST], 1)
+    mockVerifyJwt.mockReturnValueOnce({ sub: USER1_UUID, role: "admin" })
 
     const res = await request(app)
       .get(`/posts/users/${USER2_UUID}`)
@@ -341,18 +366,18 @@ describe("GET /posts/:id/detail", () => {
   beforeEach(() => {
     LikeModel.findOne = jest.fn().mockReturnValue({ exec: jest.fn().mockResolvedValue(null) })
     getActorProfile.mockResolvedValue(null)
-    ;(mockedModel.find as jest.Mock).mockReturnValue({
-      sort: jest.fn().mockReturnThis(),
-      skip: jest.fn().mockReturnThis(),
-      limit: jest.fn().mockReturnThis(),
-      lean: jest.fn().mockReturnThis(),
-      exec: jest.fn().mockResolvedValue([]),
-    })
-    ;(mockedModel.countDocuments as jest.Mock).mockResolvedValue(0)
+      ; (mockedModel.find as jest.Mock).mockReturnValue({
+        sort: jest.fn().mockReturnThis(),
+        skip: jest.fn().mockReturnThis(),
+        limit: jest.fn().mockReturnThis(),
+        lean: jest.fn().mockReturnThis(),
+        exec: jest.fn().mockResolvedValue([]),
+      })
+      ; (mockedModel.countDocuments as jest.Mock).mockResolvedValue(0)
   })
 
   it("returns post detail with liked status", async () => {
-    ;(mockedModel.findById as jest.Mock).mockReturnValue({
+    ; (mockedModel.findById as jest.Mock).mockReturnValue({
       exec: jest.fn().mockResolvedValue(MOCK_POST),
     })
 
@@ -370,7 +395,7 @@ describe("GET /posts/:id/detail", () => {
   })
 
   it("returns 404 for unknown post", async () => {
-    ;(mockedModel.findById as jest.Mock).mockReturnValue({
+    ; (mockedModel.findById as jest.Mock).mockReturnValue({
       exec: jest.fn().mockResolvedValue(null),
     })
 
@@ -391,17 +416,17 @@ describe("GET /posts/:id/detail", () => {
 
 describe("GET /posts/:id/replies", () => {
   beforeEach(() => {
-    ;(mockedModel.findById as jest.Mock).mockReturnValue({
+    ; (mockedModel.findById as jest.Mock).mockReturnValue({
       exec: jest.fn().mockResolvedValue(MOCK_POST),
     })
-    ;(mockedModel.find as jest.Mock).mockReturnValue({
-      sort: jest.fn().mockReturnThis(),
-      skip: jest.fn().mockReturnThis(),
-      limit: jest.fn().mockReturnThis(),
-      lean: jest.fn().mockReturnThis(),
-      exec: jest.fn().mockResolvedValue([]),
-    })
-    ;(mockedModel.countDocuments as jest.Mock).mockResolvedValue(0)
+      ; (mockedModel.find as jest.Mock).mockReturnValue({
+        sort: jest.fn().mockReturnThis(),
+        skip: jest.fn().mockReturnThis(),
+        limit: jest.fn().mockReturnThis(),
+        lean: jest.fn().mockReturnThis(),
+        exec: jest.fn().mockResolvedValue([]),
+      })
+      ; (mockedModel.countDocuments as jest.Mock).mockResolvedValue(0)
   })
 
   it("returns paginated replies", async () => {
@@ -424,12 +449,12 @@ describe("GET /posts/:id/replies", () => {
 describe("PATCH /posts/:id", () => {
   it("allows owner to update own post", async () => {
     const updatedPost = { ...MOCK_POST, content: "Updated content" }
-    ;(mockedModel.findById as jest.Mock).mockReturnValue({
-      exec: jest.fn().mockResolvedValue({ authorId: USER1_UUID }),
-    })
-    ;(mockedModel.findByIdAndUpdate as jest.Mock).mockReturnValue({
-      exec: jest.fn().mockResolvedValue(updatedPost),
-    })
+      ; (mockedModel.findById as jest.Mock).mockReturnValue({
+        exec: jest.fn().mockResolvedValue({ authorId: USER1_UUID }),
+      })
+      ; (mockedModel.findByIdAndUpdate as jest.Mock).mockReturnValue({
+        exec: jest.fn().mockResolvedValue(updatedPost),
+      })
 
     const res = await request(app)
       .patch("/posts/abc")
@@ -442,12 +467,12 @@ describe("PATCH /posts/:id", () => {
   })
 
   it("returns 404 when post not found after ownership check", async () => {
-    ;(mockedModel.findById as jest.Mock).mockReturnValue({
+    ; (mockedModel.findById as jest.Mock).mockReturnValue({
       exec: jest.fn().mockResolvedValue({ authorId: USER1_UUID }),
     })
-    ;(mockedModel.findByIdAndUpdate as jest.Mock).mockReturnValue({
-      exec: jest.fn().mockResolvedValue(null),
-    })
+      ; (mockedModel.findByIdAndUpdate as jest.Mock).mockReturnValue({
+        exec: jest.fn().mockResolvedValue(null),
+      })
 
     const res = await request(app)
       .patch("/posts/abc")
@@ -468,12 +493,12 @@ describe("PATCH /posts/:id", () => {
 
 describe("DELETE /posts/:id", () => {
   it("allows owner to delete own post", async () => {
-    ;(mockedModel.findById as jest.Mock).mockReturnValue({
+    ; (mockedModel.findById as jest.Mock).mockReturnValue({
       exec: jest.fn().mockResolvedValue({ authorId: USER1_UUID }),
     })
-    ;(mockedModel.findByIdAndDelete as jest.Mock).mockReturnValue({
-      exec: jest.fn().mockResolvedValue({ id: "abc" }),
-    })
+      ; (mockedModel.findByIdAndDelete as jest.Mock).mockReturnValue({
+        exec: jest.fn().mockResolvedValue({ id: "abc" }),
+      })
 
     const res = await request(app).delete("/posts/abc").set("Authorization", "Bearer fake-token")
 
@@ -482,7 +507,7 @@ describe("DELETE /posts/:id", () => {
   })
 
   it("returns 404 when post not found", async () => {
-    ;(mockedModel.findById as jest.Mock).mockReturnValue({
+    ; (mockedModel.findById as jest.Mock).mockReturnValue({
       exec: jest.fn().mockResolvedValue(null),
     })
 
@@ -495,7 +520,7 @@ describe("DELETE /posts/:id", () => {
   })
 
   it("returns 403 when non-owner user tries to delete", async () => {
-    ;(mockedModel.findById as jest.Mock).mockReturnValue({
+    ; (mockedModel.findById as jest.Mock).mockReturnValue({
       exec: jest.fn().mockResolvedValue({ authorId: USER2_UUID }),
     })
 
@@ -506,12 +531,12 @@ describe("DELETE /posts/:id", () => {
   })
 
   it("allows moderator to delete any post", async () => {
-    ;(mockedModel.findById as jest.Mock).mockReturnValue({
+    ; (mockedModel.findById as jest.Mock).mockReturnValue({
       exec: jest.fn().mockResolvedValue({ authorId: USER2_UUID }),
     })
-    ;(mockedModel.findByIdAndDelete as jest.Mock).mockReturnValue({
-      exec: jest.fn().mockResolvedValue({ id: "abc" }),
-    })
+      ; (mockedModel.findByIdAndDelete as jest.Mock).mockReturnValue({
+        exec: jest.fn().mockResolvedValue({ id: "abc" }),
+      })
 
     mockVerifyJwt.mockReturnValueOnce({ sub: USER1_UUID, role: "moderator" })
     const res = await request(app).delete("/posts/abc").set("Authorization", "Bearer fake-token")
@@ -521,12 +546,12 @@ describe("DELETE /posts/:id", () => {
   })
 
   it("allows admin to delete any post", async () => {
-    ;(mockedModel.findById as jest.Mock).mockReturnValue({
+    ; (mockedModel.findById as jest.Mock).mockReturnValue({
       exec: jest.fn().mockResolvedValue({ authorId: USER2_UUID }),
     })
-    ;(mockedModel.findByIdAndDelete as jest.Mock).mockReturnValue({
-      exec: jest.fn().mockResolvedValue({ id: "abc" }),
-    })
+      ; (mockedModel.findByIdAndDelete as jest.Mock).mockReturnValue({
+        exec: jest.fn().mockResolvedValue({ id: "abc" }),
+      })
 
     mockVerifyJwt.mockReturnValueOnce({ sub: USER1_UUID, role: "admin" })
     const res = await request(app).delete("/posts/abc").set("Authorization", "Bearer fake-token")
@@ -536,12 +561,12 @@ describe("DELETE /posts/:id", () => {
   })
 
   it("returns 404 when post is deleted between ownership check and deletion", async () => {
-    ;(mockedModel.findById as jest.Mock).mockReturnValue({
+    ; (mockedModel.findById as jest.Mock).mockReturnValue({
       exec: jest.fn().mockResolvedValue({ authorId: USER1_UUID }),
     })
-    ;(mockedModel.findByIdAndDelete as jest.Mock).mockReturnValue({
-      exec: jest.fn().mockResolvedValue(null),
-    })
+      ; (mockedModel.findByIdAndDelete as jest.Mock).mockReturnValue({
+        exec: jest.fn().mockResolvedValue(null),
+      })
 
     const res = await request(app).delete("/posts/abc").set("Authorization", "Bearer fake-token")
 
@@ -553,17 +578,43 @@ describe("DELETE /posts/:id", () => {
     const res = await request(app).delete("/posts/abc")
     expect(res.status).toBe(401)
   })
+
+  it("allows moderator to delete any comment", async () => {
+    ; (mockedModel.findById as jest.Mock).mockReturnValue({
+      exec: jest.fn().mockResolvedValue({ authorId: USER2_UUID, parentId: "parent-post-id" }),
+    })
+      ; (mockedModel.findByIdAndDelete as jest.Mock).mockReturnValue({
+        exec: jest.fn().mockResolvedValue({ id: "abc" }),
+      })
+
+    mockVerifyJwt.mockReturnValueOnce({ sub: USER1_UUID, role: "moderator" })
+    const res = await request(app).delete("/posts/abc").set("Authorization", "Bearer fake-token")
+
+    expect(res.status).toBe(200)
+    expect(res.body.success).toBe(true)
+  })
+
+  it("returns 403 when user tries to delete another user's comment", async () => {
+    ; (mockedModel.findById as jest.Mock).mockReturnValue({
+      exec: jest.fn().mockResolvedValue({ authorId: USER2_UUID, parentId: "parent-post-id" }),
+    })
+
+    const res = await request(app).delete("/posts/abc").set("Authorization", "Bearer fake-token")
+
+    expect(res.status).toBe(403)
+    expect(res.body.success).toBe(false)
+  })
 })
 
 // ─── Error handler (500) ─────────────────────────────────────────────────────
 
 describe("global error handler", () => {
   beforeEach(() => {
-    jest.spyOn(console, "error").mockImplementation(() => {})
+    jest.spyOn(console, "error").mockImplementation(() => { })
   })
 
   it("returns 500 when PostModel.create throws", async () => {
-    ;(mockedModel.create as jest.Mock).mockRejectedValue(new Error("db error"))
+    ; (mockedModel.create as jest.Mock).mockRejectedValue(new Error("db error"))
 
     const res = await request(app)
       .post("/posts")
@@ -575,7 +626,7 @@ describe("global error handler", () => {
   })
 
   it("returns 500 when PostModel.findById throws on GET /:id", async () => {
-    ;(mockedModel.findById as jest.Mock).mockReturnValue({
+    ; (mockedModel.findById as jest.Mock).mockReturnValue({
       exec: jest.fn().mockRejectedValue(new Error("db error")),
     })
 
@@ -585,13 +636,13 @@ describe("global error handler", () => {
   })
 
   it("returns 500 when PostModel.find throws on GET /feed", async () => {
-    ;(mockedModel.find as jest.Mock).mockReturnValue({
+    ; (mockedModel.find as jest.Mock).mockReturnValue({
       sort: jest.fn().mockReturnThis(),
       skip: jest.fn().mockReturnThis(),
       limit: jest.fn().mockReturnThis(),
       exec: jest.fn().mockRejectedValue(new Error("db error")),
     })
-    ;(mockedModel.countDocuments as jest.Mock).mockResolvedValue(0)
+      ; (mockedModel.countDocuments as jest.Mock).mockResolvedValue(0)
 
     const res = await request(app).get("/posts/feed").set("Authorization", "Bearer fake-token")
 
@@ -599,13 +650,13 @@ describe("global error handler", () => {
   })
 
   it("returns 500 when PostModel.find throws on GET /users/:userId", async () => {
-    ;(mockedModel.find as jest.Mock).mockReturnValue({
+    ; (mockedModel.find as jest.Mock).mockReturnValue({
       sort: jest.fn().mockReturnThis(),
       skip: jest.fn().mockReturnThis(),
       limit: jest.fn().mockReturnThis(),
       exec: jest.fn().mockRejectedValue(new Error("db error")),
     })
-    ;(mockedModel.countDocuments as jest.Mock).mockResolvedValue(0)
+      ; (mockedModel.countDocuments as jest.Mock).mockResolvedValue(0)
 
     const res = await request(app)
       .get(`/posts/users/${USER1_UUID}`)
@@ -615,12 +666,12 @@ describe("global error handler", () => {
   })
 
   it("returns 500 when PostModel.findByIdAndDelete throws on DELETE /:id", async () => {
-    ;(mockedModel.findById as jest.Mock).mockReturnValue({
+    ; (mockedModel.findById as jest.Mock).mockReturnValue({
       exec: jest.fn().mockResolvedValue({ authorId: USER1_UUID }),
     })
-    ;(mockedModel.findByIdAndDelete as jest.Mock).mockReturnValue({
-      exec: jest.fn().mockRejectedValue(new Error("db error")),
-    })
+      ; (mockedModel.findByIdAndDelete as jest.Mock).mockReturnValue({
+        exec: jest.fn().mockRejectedValue(new Error("db error")),
+      })
 
     const res = await request(app).delete("/posts/abc").set("Authorization", "Bearer fake-token")
 
@@ -628,14 +679,14 @@ describe("global error handler", () => {
   })
 
   it("returns 500 when PostModel.find throws on GET /search", async () => {
-    ;(mockedModel.find as jest.Mock).mockReturnValue({
+    ; (mockedModel.find as jest.Mock).mockReturnValue({
       sort: jest.fn().mockReturnThis(),
       limit: jest.fn().mockReturnThis(),
       exec: jest.fn().mockRejectedValue(new Error("db error")),
     })
-    ;(mockedModel.countDocuments as jest.Mock).mockReturnValue({
-      exec: jest.fn().mockResolvedValue(0),
-    })
+      ; (mockedModel.countDocuments as jest.Mock).mockReturnValue({
+        exec: jest.fn().mockResolvedValue(0),
+      })
 
     const res = await request(app)
       .get("/posts/search?q=hello")
@@ -645,7 +696,7 @@ describe("global error handler", () => {
   })
 
   it("returns 500 when aggregate throws on GET /trending-tags", async () => {
-    ;(mockedModel.aggregate as jest.Mock).mockRejectedValue(new Error("db error"))
+    ; (mockedModel.aggregate as jest.Mock).mockRejectedValue(new Error("db error"))
     jest.spyOn(Date, "now").mockReturnValue(0)
 
     const res = await request(app)
@@ -656,7 +707,7 @@ describe("global error handler", () => {
   })
 
   it("returns 500 when PostModel.findById throws on GET /:id/detail", async () => {
-    ;(mockedModel.findById as jest.Mock).mockReturnValue({
+    ; (mockedModel.findById as jest.Mock).mockReturnValue({
       exec: jest.fn().mockRejectedValue(new Error("db error")),
     })
 
@@ -668,17 +719,17 @@ describe("global error handler", () => {
   })
 
   it("returns 500 when PostModel.findById throws on GET /:id/replies", async () => {
-    ;(mockedModel.findById as jest.Mock).mockReturnValue({
+    ; (mockedModel.findById as jest.Mock).mockReturnValue({
       exec: jest.fn().mockRejectedValue(new Error("db error")),
     })
-    ;(mockedModel.find as jest.Mock).mockReturnValue({
-      sort: jest.fn().mockReturnThis(),
-      skip: jest.fn().mockReturnThis(),
-      limit: jest.fn().mockReturnThis(),
-      lean: jest.fn().mockReturnThis(),
-      exec: jest.fn().mockResolvedValue([]),
-    })
-    ;(mockedModel.countDocuments as jest.Mock).mockResolvedValue(0)
+      ; (mockedModel.find as jest.Mock).mockReturnValue({
+        sort: jest.fn().mockReturnThis(),
+        skip: jest.fn().mockReturnThis(),
+        limit: jest.fn().mockReturnThis(),
+        lean: jest.fn().mockReturnThis(),
+        exec: jest.fn().mockResolvedValue([]),
+      })
+      ; (mockedModel.countDocuments as jest.Mock).mockResolvedValue(0)
 
     const res = await request(app)
       .get("/posts/abc/replies")
@@ -753,7 +804,7 @@ describe("global error handler", () => {
         { tag: "TypeScript", count: 42 },
         { tag: "React", count: 30 },
       ]
-      ;(mockedModel.aggregate as jest.Mock).mockResolvedValue(mockTags)
+        ; (mockedModel.aggregate as jest.Mock).mockResolvedValue(mockTags)
 
       const res = await request(app)
         .get("/posts/trending-tags")
@@ -768,7 +819,7 @@ describe("global error handler", () => {
 
     it("respects ?limit query param", async () => {
       dateSpy.mockReturnValue(10 * 60 * 1000)
-      ;(mockedModel.aggregate as jest.Mock).mockResolvedValue([])
+        ; (mockedModel.aggregate as jest.Mock).mockResolvedValue([])
 
       const res = await request(app)
         .get("/posts/trending-tags?limit=5")

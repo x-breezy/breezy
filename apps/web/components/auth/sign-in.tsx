@@ -9,10 +9,19 @@ import { Label } from "../ui/label"
 import { Field, FieldGroup, FieldSet } from "../ui/field"
 import OAuthButtons from "./oauth-buttons"
 import { InputGroup, InputGroupAddon, InputGroupInput } from "../ui/input-group"
-import { IconAt, IconEye, IconEyeClosed, IconLock } from "@tabler/icons-react"
+import { IconAt, IconAlertTriangle, IconEye, IconEyeClosed, IconLock } from "@tabler/icons-react"
 import { signInAction } from "@/lib/actions/sign-in"
 
-export default function SignInScreen() {
+interface Props {
+  reason?: string
+}
+
+const SANCTION_MESSAGES: Record<string, string> = {
+  suspended: "Your account has been suspended. Contact support if you think this is a mistake.",
+  banned: "Your account has been permanently banned.",
+}
+
+export default function SignInScreen({ reason }: Props) {
   const [identifier, setIdentifier] = useState("")
   const [password, setPassword] = useState("")
   const [passwordVisible, setPasswordVisible] = useState(false)
@@ -22,6 +31,13 @@ export default function SignInScreen() {
   return (
     <div className='mx-auto flex w-full max-w-sm animate-in flex-col justify-center px-4 py-12 font-sans duration-300 select-none fade-in slide-in-from-bottom-4'>
       <AuthHeader title={t("welcome")} subtitle={t("loginToContinue")} />
+
+      {reason && SANCTION_MESSAGES[reason] && (
+        <div className='mb-4 flex items-start gap-2 rounded-md border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive'>
+          <IconAlertTriangle size={16} className='mt-0.5 shrink-0' />
+          <span>{SANCTION_MESSAGES[reason]}</span>
+        </div>
+      )}
 
       <form action={action} className='flex w-full flex-col gap-4'>
         <FieldSet>

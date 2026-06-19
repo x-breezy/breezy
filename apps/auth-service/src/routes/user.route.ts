@@ -23,6 +23,29 @@ function createUserRouter(
   )
   router.get("/search", identity, searchLimit, userController.search)
   router.get(
+    "/sanctioned",
+    identity,
+    readLimit,
+    requirePermission(PERMISSIONS.USER_SUSPEND),
+    userController.listSanctioned
+  )
+  router.patch(
+    "/:id/unsuspend",
+    identity,
+    writeLimit,
+    requirePermission(PERMISSIONS.USER_SUSPEND),
+    validate(userIdParamSchema, "params"),
+    userController.unsuspendUser
+  )
+  router.patch(
+    "/:id/unban",
+    identity,
+    writeLimit,
+    requirePermission(PERMISSIONS.USER_BAN),
+    validate(userIdParamSchema, "params"),
+    userController.unbanUser
+  )
+  router.get(
     "/me",
     identity,
     readLimit,
