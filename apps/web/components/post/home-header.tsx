@@ -44,24 +44,7 @@ export function HomeHeader({ feed, onFeedChange }: HomeHeaderProps) {
             <IconPlus className='size-5' strokeWidth={2} />
           </Button>
         }
-        center={
-          <Select value={feed} onValueChange={(v) => v && onFeedChange(v)}>
-            <SelectTrigger className='border-transparent bg-transparent px-0 text-xl font-bold shadow-none focus-visible:ring-0'>
-              <span className='capitalize'>
-                {t(FEED_OPTIONS.find((o) => o.value === feed)?.labelKey || "feedForYou")}
-              </span>
-            </SelectTrigger>
-            <SelectContent side='bottom'>
-              <SelectGroup>
-                {FEED_OPTIONS.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {t(option.labelKey)}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        }
+        center={<p className='px-0 text-xl font-bold capitalize'>{t("feedForYou")}</p>}
         right={
           <Button
             variant='ghost'

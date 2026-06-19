@@ -11,12 +11,7 @@ import { IconChevronLeft } from "@tabler/icons-react"
 import type { PostDetail } from "@/lib/actions/post-detail"
 import { PageHeader, PageHeaderContent } from "@/components/layout/page-header"
 
-export function PostPageClient({
-  postId,
-}: {
-  username: string
-  postId: string
-}) {
+export function PostPageClient({ postId }: { username: string; postId: string }) {
   const router = useRouter()
   const toggleLike = usePostStore((s) => s.toggleLike)
   const cachePosts = usePostStore((s) => s.cachePosts)
