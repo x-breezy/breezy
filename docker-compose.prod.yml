@@ -1,0 +1,363 @@
+services:
+
+  # ── Infrastructure ──────────────────────────────────────────────────────────
+
+  postgres-user-service:
+    image: postgres:16
+    container_name: breezy-postgres-user-service
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_USER_PASSWORD}
+      POSTGRES_DB: user_service
+      POSTGRES_HOST_AUTH_METHOD: md5
+      POSTGRES_INITDB_ARGS: "--auth-host=md5 --auth-local=md5"
+    volumes:
+      - postgres-user-service-data:/var/lib/postgresql/data
+    networks:
+      - db-net
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-profile-service:
+    image: postgres:16
+    container_name: breezy-postgres-profile-service
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PROFILE_PASSWORD}
+      POSTGRES_DB: profile_service
+      POSTGRES_HOST_AUTH_METHOD: md5
+      POSTGRES_INITDB_ARGS: "--auth-host=md5 --auth-local=md5"
+    volumes:
+      - postgres-profile-service-data:/var/lib/postgresql/data
+    networks:
+      - db-net
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mongo-post-service:
+    image: mongo:8
+    container_name: breezy-mongo-post-service
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_DATABASE: post_service
+    volumes:
+      - mongo-post-service-data:/data/db
+    networks:
+      - db-net
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mongo-media-service:
+    image: mongo:8
+    container_name: breezy-mongo-media-service
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_DATABASE: media_service
+    volumes:
+      - mongo-media-service-data:/data/db
+    networks:
+      - db-net
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mongo-notifications-service:
+    image: mongo:8
+    container_name: breezy-mongo-notifications-service
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_DATABASE: notifications_service
+    volumes:
+      - mongo-notifications-service-data:/data/db
+    networks:
+      - db-net
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  rabbitmq:
+    image: rabbitmq:3
+    container_name: breezy-rabbitmq
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS}
+    networks:
+      - services-net
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: breezy-redis
+    restart: unless-stopped
+    command: redis-server --requirepass ${REDIS_PASSWORD}
+    networks:
+      - services-net
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Application services ─────────────────────────────────────────────────────
+
+  auth-service:
+    build:
+      context: .
+      dockerfile: apps/auth-service/Dockerfile
+    container_name: breezy-auth-service
+    restart: unless-stopped
+    volumes:
+      - shared-logs:/logs
+      - /etc/breezy/secrets/private.pem:/secrets/private.pem:ro
+      - /etc/breezy/secrets/public.pem:/secrets/public.pem:ro
+    environment:
+      NODE_ENV: production
+      PORT: 4020
+      DATABASE_URL: postgres://postgres:${POSTGRES_USER_PASSWORD}@postgres-user-service:5432/user_service
+      RABBITMQ_URL: amqp://${RABBITMQ_USER}:${RABBITMQ_PASS}@rabbitmq:5672
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+      FRONTEND_URL: https://${DOMAIN}
+      JWT_PRIVATE_KEY_PATH: /secrets/private.pem
+      JWT_PUBLIC_KEY_PATH: /secrets/public.pem
+      JWT_KID: ${JWT_KID}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN}
+      REFRESH_TOKEN_TTL_MS: ${REFRESH_TOKEN_TTL_MS}
+      PROFILE_SERVICE_GRPC_URL: profile-service:50051
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      GOOGLE_REDIRECT_URI: https://${DOMAIN}/api/auth/google/callback
+      LOG_FILE: /logs/auth-service.log
+      LOG_LEVEL: info
+    depends_on:
+      postgres-user-service:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - gateway-net
+      - services-net
+      - db-net
+
+  profile-service:
+    build:
+      context: .
+      dockerfile: apps/profile-service/Dockerfile
+    container_name: breezy-profile-service
+    restart: unless-stopped
+    volumes:
+      - shared-logs:/logs
+      - /etc/breezy/secrets/public.pem:/secrets/public.pem:ro
+    environment:
+      NODE_ENV: production
+      PORT: 4010
+      DATABASE_URL: postgres://postgres:${POSTGRES_PROFILE_PASSWORD}@postgres-profile-service:5432/profile_service
+      RABBITMQ_URL: amqp://${RABBITMQ_USER}:${RABBITMQ_PASS}@rabbitmq:5672
+      JWT_PUBLIC_KEY_PATH: /secrets/public.pem
+      PROFILE_SERVICE_GRPC_URL: profile-service:50051
+      LOG_FILE: /logs/profile-service.log
+      LOG_LEVEL: info
+    depends_on:
+      postgres-profile-service:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - gateway-net
+      - services-net
+      - db-net
+
+  post-service:
+    build:
+      context: .
+      dockerfile: apps/post-service/Dockerfile
+    container_name: breezy-post-service
+    restart: unless-stopped
+    volumes:
+      - shared-logs:/logs
+      - /etc/breezy/secrets/public.pem:/secrets/public.pem:ro
+    environment:
+      NODE_ENV: production
+      PORT: 4040
+      DATABASE_URL: mongodb://mongo-post-service:27017/post_service
+      RABBITMQ_URL: amqp://${RABBITMQ_USER}:${RABBITMQ_PASS}@rabbitmq:5672
+      JWT_PUBLIC_KEY_PATH: /secrets/public.pem
+      PROFILE_SERVICE_GRPC_URL: profile-service:50051
+      MEDIA_SERVICE_GRPC_URL: media-service:50052
+      LOG_FILE: /logs/post-service.log
+      LOG_LEVEL: info
+    depends_on:
+      mongo-post-service:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - gateway-net
+      - services-net
+      - db-net
+
+  media-service:
+    build:
+      context: .
+      dockerfile: apps/media-service/Dockerfile
+    container_name: breezy-media-service
+    restart: unless-stopped
+    volumes:
+      - shared-logs:/logs
+      - /etc/breezy/secrets/public.pem:/secrets/public.pem:ro
+    environment:
+      NODE_ENV: production
+      PORT: 4050
+      GRPC_PORT: 50052
+      DATABASE_URL: mongodb://mongo-media-service:27017/media_service
+      JWT_PUBLIC_KEY_PATH: /secrets/public.pem
+      LOG_FILE: /logs/media-service.log
+      LOG_LEVEL: info
+    depends_on:
+      mongo-media-service:
+        condition: service_healthy
+    networks:
+      - gateway-net
+      - services-net
+      - db-net
+
+  notifications-service:
+    build:
+      context: .
+      dockerfile: apps/notifications-service/Dockerfile
+    container_name: breezy-notifications-service
+    restart: unless-stopped
+    volumes:
+      - shared-logs:/logs
+      - /etc/breezy/secrets/public.pem:/secrets/public.pem:ro
+    environment:
+      NODE_ENV: production
+      PORT: 4060
+      DATABASE_URL: mongodb://mongo-notifications-service:27017/notifications_service
+      RABBITMQ_URL: amqp://${RABBITMQ_USER}:${RABBITMQ_PASS}@rabbitmq:5672
+      JWT_PUBLIC_KEY_PATH: /secrets/public.pem
+      PROFILE_SERVICE_GRPC_URL: profile-service:50051
+      FRONTEND_URL: https://${DOMAIN}
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASS: ${SMTP_PASS}
+      SMTP_FROM: ${SMTP_FROM}
+      LOG_FILE: /logs/notifications-service.log
+      LOG_LEVEL: info
+    depends_on:
+      mongo-notifications-service:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - gateway-net
+      - services-net
+      - db-net
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: https://${DOMAIN}
+        NEXT_PUBLIC_GIPHY_API_KEY: ${NEXT_PUBLIC_GIPHY_API_KEY}
+    container_name: breezy-web
+    restart: unless-stopped
+    environment:
+      # SSR server-side calls go directly to the gateway container
+      API_URL: http://gateway
+    depends_on:
+      - auth-service
+      - profile-service
+      - post-service
+      - media-service
+      - notifications-service
+    networks:
+      - gateway-net
+
+  swagger-ui:
+    image: swaggerapi/swagger-ui
+    container_name: breezy-swagger-ui
+    restart: unless-stopped
+    environment:
+      URL: /openapi.json
+      BASE_URL: /api-docs
+    networks:
+      - gateway-net
+
+  # ── Gateway (only port exposed to host) ──────────────────────────────────────
+
+  gateway:
+    build:
+      context: .
+      dockerfile: apps/gateway/Dockerfile
+    container_name: breezy-gateway
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./apps/gateway/nginx.prod.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - auth-service
+      - profile-service
+      - post-service
+      - media-service
+      - notifications-service
+      - web
+      - swagger-ui
+    networks:
+      - gateway-net
+
+  # ── Observability ────────────────────────────────────────────────────────────
+
+  filebeat:
+    build:
+      context: ./apps/filebeat
+      dockerfile: Dockerfile
+    container_name: breezy-filebeat
+    restart: unless-stopped
+    environment:
+      ELASTICSEARCH_HOSTS: ${ELASTICSEARCH_HOSTS}
+    volumes:
+      - shared-logs:/logs:ro
+    networks:
+      - services-net
+
+networks:
+  gateway-net:
+    driver: bridge
+  services-net:
+    driver: bridge
+  db-net:
+    driver: bridge
+
+volumes:
+  mongo-post-service-data:
+  mongo-media-service-data:
+  mongo-notifications-service-data:
+  postgres-user-service-data:
+  postgres-profile-service-data:
+  shared-logs:

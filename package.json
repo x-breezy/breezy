@@ -1,0 +1,40 @@
+{
+  "name": "breezy",
+  "private": true,
+  "scripts": {
+    "build": "npx --no turbo run build",
+    "dev": "npx --no turbo run dev",
+    "lint": "npx --no turbo run lint",
+    "test": "npx --no turbo run test",
+    "test:coverage": "npx --no turbo run test:coverage",
+    "format": "prettier --write \"**/*.{js,jsx,ts,tsx,md}\"",
+    "check-types": "npx --no turbo run check-types",
+    "generate:openapi": "tsx tools/generate-openapi.ts",
+    "test:api": "tsx tools/test-api.ts",
+    "seed": "tsx tools/seed.ts"
+  },
+  "devDependencies": {
+    "@breezy/eslint-config": "*",
+    "@breezy/typescript-config": "*",
+    "prettier": "^3.8.3",
+    "prettier-plugin-tailwindcss": "^0.8.0",
+    "tsx": "^4.22.4",
+    "turbo": "^2.9.16",
+    "typescript": "5.9.2"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "packageManager": "npm@11.12.1",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "optionalDependencies": {
+    "lightningcss-linux-x64-gnu": "1.32.0"
+  },
+  "overrides": {
+    "esbuild": ">=0.25.0",
+    "hono": ">=4.12.25"
+  }
+}

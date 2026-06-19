@@ -1,0 +1,28 @@
+{
+  "name": "@breezy/emails",
+  "version": "0.0.0",
+  "private": true,
+  "exports": {
+    ".": "./src/index.tsx"
+  },
+  "types": "./src/index.tsx",
+  "scripts": {
+    "email": "email dev --dir=src/templates",
+    "lint": "eslint src/",
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@react-email/render": "^2.0.8",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "react-email": "6.5.0"
+  },
+  "devDependencies": {
+    "@breezy/eslint-config": "*",
+    "@breezy/typescript-config": "*",
+    "@react-email/ui": "6.5.0",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "typescript": "^5"
+  }
+}
