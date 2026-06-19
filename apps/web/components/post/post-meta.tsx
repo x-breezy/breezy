@@ -15,11 +15,16 @@ export function PostMeta({ name, username, role, createdAt, compact }: PostMetaP
     return (
       <Link
         href={`/profile/${username}`}
-        className='flex min-w-0 items-center gap-1.5 truncate'
+        className='flex min-w-0 items-center gap-1.5'
         onClick={(e) => e.stopPropagation()}
       >
-        <UsernameDisplay name={name} role={role} nameClassName='truncate text-sm hover:underline' />
-        <span className='shrink-0 truncate text-xs text-muted-foreground'>@{username}</span>
+        <UsernameDisplay
+          name={name}
+          role={role}
+          nameClassName='truncate text-sm hover:underline'
+          badgeClassName='size-4'
+        />
+        <span className='min-w-0 truncate text-xs text-muted-foreground'>@{username}</span>
         {createdAt && (
           <>
             <span className='shrink-0 text-xs text-muted-foreground' aria-hidden='true'>
