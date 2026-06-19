@@ -204,7 +204,10 @@
     "biographyTitle": "Biografía",
     "tabPosts": "Publicaciones",
     "tabReplies": "Respuestas",
-    "tabMedias": "Medios"
+    "tabMedias": "Medios",
+    "unknownProfile": "Perfil desconocido",
+    "unknownProfileDesc": "Este perfil no existe.",
+    "backToHome": "Volver a Breezy."
   },
   "feed": {
     "emptyFollowing": "No hay publicaciones aún. Sigue a algunas personas para ver sus publicaciones aquí.",

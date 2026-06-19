@@ -205,7 +205,10 @@
     "biographyTitle": "Biographie",
     "tabPosts": "Publications",
     "tabReplies": "Réponses",
-    "tabMedias": "Médias"
+    "tabMedias": "Médias",
+    "unknownProfile": "Profil inconnu",
+    "unknownProfileDesc": "Ce profil n'existe pas.",
+    "backToHome": "Retourner à l'accueil."
   },
   "feed": {
     "emptyFollowing": "Aucune publication pour l'instant. Suivez des personnes pour voir leurs publications ici.",

@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useCallback, useMemo } from "react"
+import { useEffect, useCallback, useMemo, useState } from "react"
 import { notFound, useSearchParams } from "next/navigation"
 import { useTranslations } from "next-intl"
 import { ProfileHeader } from "@/components/profile/profile-header"
@@ -29,11 +29,11 @@ export function ProfilePageClient({ username }: { username: string }) {
   const searchParams = useSearchParams()
   const tab = parseProfileTab(searchParams.get("tab"))
 
+  const [notFoundState, setNotFoundState] = useState(false)
   const ownProfile = useUserStore((s) => s.profile)
   const fetchProfile = useProfileStore((s) => s.fetchByUsername)
   const loadingMap = useProfileStore((s) => s.loading)
   const profileLoading = username in loadingMap ? loadingMap[username] : false
-  const profileError = useProfileStore((s) => s.error)
   const toggleLike = usePostStore((s) => s.toggleLike)
 
   const cachedProfile = useProfileStore((s) => s.profiles[username])
@@ -43,7 +43,9 @@ export function ProfilePageClient({ username }: { username: string }) {
 
   useEffect(() => {
     if (isOwn) return
-    fetchProfile(username)
+    fetchProfile(username).then((p) => {
+      if (!p) setNotFoundState(true)
+    })
   }, [username, isOwn, fetchProfile])
 
   const isRepliesTab = tab === "replies"
@@ -88,7 +90,7 @@ export function ProfilePageClient({ username }: { username: string }) {
     [profile?.firstName, profile?.lastName].filter(Boolean).join(" ") || profile?.username || ""
 
   if (profileLoading) return <AppLoader />
-  if (profileError && !profile) notFound()
+  if (notFoundState) notFound()
   if (!profile) return null
 
   return (
