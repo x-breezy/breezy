@@ -71,13 +71,3 @@ export function buildEditorHTML(text: string): string {
     })
     .join("")
 }
-
-// Editor variant: plain color only, \n kept as text node chars (works with whitespace-pre-wrap)
-export function buildEditorHTML(text: string): string {
-  return buildPostTokens(text)
-    .map((token) => {
-      if (token.type === "text") return escapeHtml(token.value)
-      return `<span class="text-primary">${escapeHtml(token.value)}</span>`
-    })
-    .join("")
-}
