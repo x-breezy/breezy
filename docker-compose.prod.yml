@@ -91,7 +91,7 @@ services:
       retries: 5
 
   rabbitmq:
-    image: rabbitmq:3
+    image: rabbitmq:3-management
     container_name: breezy-rabbitmq
     restart: unless-stopped
     environment:
@@ -99,6 +99,7 @@ services:
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS}
     networks:
       - services-net
+      - gateway-net
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "ping"]
       interval: 10s
@@ -117,6 +118,37 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.15.0
+    container_name: breezy-elasticsearch
+    restart: unless-stopped
+    environment:
+      discovery.type: single-node
+      xpack.security.enabled: "false"
+      ES_JAVA_OPTS: "-Xms512m -Xmx512m"
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
+    networks:
+      - services-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9200"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.15.0
+    container_name: breezy-kibana
+    restart: unless-stopped
+    environment:
+      ELASTICSEARCH_HOSTS: http://elasticsearch:9200
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    networks:
+      - services-net
+      - gateway-net
 
   # ── Application services ─────────────────────────────────────────────────────
 
@@ -318,6 +350,7 @@ services:
     restart: unless-stopped
     volumes:
       - ./apps/gateway/nginx.prod.conf:/etc/nginx/nginx.conf:ro
+      - /etc/breezy/secrets/.htpasswd-kibana:/etc/nginx/.htpasswd-kibana:ro
     depends_on:
       - auth-service
       - profile-service
@@ -326,8 +359,10 @@ services:
       - notifications-service
       - web
       - swagger-ui
+      - kibana
     networks:
       - gateway-net
+      - dokploy-network
 
   # ── Observability ────────────────────────────────────────────────────────────
 
@@ -338,9 +373,12 @@ services:
     container_name: breezy-filebeat
     restart: unless-stopped
     environment:
-      ELASTICSEARCH_HOSTS: ${ELASTICSEARCH_HOSTS}
+      ELASTICSEARCH_HOSTS: http://elasticsearch:9200
     volumes:
       - shared-logs:/logs:ro
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
     networks:
       - services-net
 
@@ -351,6 +389,8 @@ networks:
     driver: bridge
   db-net:
     driver: bridge
+  dokploy-network:
+    external: true
 
 volumes:
   mongo-post-service-data:
@@ -358,4 +398,5 @@ volumes:
   mongo-notifications-service-data:
   postgres-user-service-data:
   postgres-profile-service-data:
+  elasticsearch-data:
   shared-logs:
