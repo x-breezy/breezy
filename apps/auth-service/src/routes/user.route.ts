@@ -5,7 +5,7 @@ import { validate } from "../middlewares/validate.middleware"
 import { identity } from "../middlewares/identity.middleware"
 import { requirePermission, requireSelfOrPermission } from "../middlewares/roles.middleware"
 import { PERMISSIONS } from "../constants/permissions"
-import { createUserSchema, updatePasswordSchema, userIdParamSchema } from "../schemas/user.schema"
+import { createUserSchema, updatePasswordSchema, userIdParamSchema, usernameParamSchema } from "../schemas/user.schema"
 import { readLimit, writeLimit, searchLimit } from "../middlewares/rate-limit.middleware"
 
 function createUserRouter(

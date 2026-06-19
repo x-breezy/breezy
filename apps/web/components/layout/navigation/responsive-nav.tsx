@@ -40,8 +40,12 @@ export function ResponsiveNav() {
 
   return (
     <>
-      {/* Mobile: Bottom bar - visible en dessous de lg */}
-      <nav className='fixed right-0 bottom-0 left-0 z-50 grid h-15 grid-cols-5 border-t bg-background pb-[env(safe-area-inset-bottom)] lg:hidden'>
+      {/* Mobile: Bottom bar - visible en dessous de lg.
+          Hidden on a conversation page so the chat input (which extends into
+          this fixed bar's space) stays visible. */}
+      <nav
+        className={`fixed right-0 bottom-0 left-0 z-50 h-15 grid-cols-5 border-t bg-background pb-[env(safe-area-inset-bottom)] ${isConversationPage ? "hidden" : "grid lg:hidden"}`}
+      >
         {navItems.map(({ href, icon, label }) => (
           <NavItem
             key={href}
