@@ -45,7 +45,7 @@ export function HomeHeader({ feed, onFeedChange }: HomeHeaderProps) {
           </Button>
         }
         center={
-          <Select value={feed} onValueChange={onFeedChange}>
+          <Select value={feed} onValueChange={(value) => value && onFeedChange(value)}>
             <SelectTrigger className='h-auto border-0 bg-transparent px-0 py-0 text-xl font-bold capitalize focus-visible:ring-0'>
               <SelectValue>
                 {t(

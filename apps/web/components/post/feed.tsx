@@ -19,7 +19,7 @@ export function Feed({ feedType = "forYou" }: { feedType?: string }) {
   const handleLike = usePostStore((s) => s.toggleLike)
   const queryClient = useQueryClient()
 
-  const sentinelRef = useRef<HTMLDivElement>(null)
+  const sentinelRef = useRef<HTMLLIElement>(null)
   const firstPostIdRef = useRef<string | null>(null)
   const [hasNewPosts, setHasNewPosts] = useState(false)
   const scrollKey = `feed-scroll-${feedType}`
