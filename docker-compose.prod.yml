@@ -357,6 +357,7 @@ services:
     environment:
       # SSR server-side calls go directly to the gateway container
       API_URL: http://gateway
+      HOSTNAME: "0.0.0.0"
     healthcheck:
       test: ["CMD", "node", "-e", "require('net').connect(3000,'127.0.0.1').on('connect',()=>process.exit(0)).on('error',()=>process.exit(1))"]
       interval: 10s
