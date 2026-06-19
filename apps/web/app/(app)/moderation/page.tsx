@@ -81,9 +81,6 @@ export default async function ModerationPage({ searchParams }: Props) {
       initialReports={enriched}
       total={data.total}
       pendingCount={pendingCount}
-      initialStatus={status}
-      initialPage={page}
-      limit={data.limit}
       sanctioned={sanctioned}
     />
   )

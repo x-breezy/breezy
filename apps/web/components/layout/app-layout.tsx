@@ -49,8 +49,10 @@ export async function AppLayout({ children, modal }: AppLayoutProps) {
         suggestedUsers = await getSuggestedProfiles(profile.profileId, 3)
       }
     }
-  } catch {
-    // render without store data
+  } catch (err) {
+    // Re-throw Next.js redirect/notFound internals so they are not swallowed
+    if (err instanceof Error && err.message === "NEXT_REDIRECT") throw err
+    // Otherwise render without store data
   }
 
   return (

@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { useUserStore } from "@/stores/user-store"
 import { useSettingsStore } from "@/stores/settings-store"
@@ -35,11 +35,15 @@ export function UserStoreProvider({ profile, user, following, children }: Props)
   }, [user?.id, user?.updatedAt, syncFromUser])
 
   // Poll sanction status while the user is active in the app
+  const redirectingRef = useRef(false)
   useEffect(() => {
     if (!user) return
+    redirectingRef.current = false
     const id = setInterval(async () => {
+      if (redirectingRef.current) return
       const reason = await checkSanctionStatus()
-      if (reason) {
+      if (reason && !redirectingRef.current) {
+        redirectingRef.current = true
         router.replace(`/sign-in?reason=${reason}`)
       }
     }, POLL_INTERVAL_MS)

@@ -1,10 +1,11 @@
 "use client"
 
 import { useEffect, useState, useTransition } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import {
   IconChevronLeft,
+  IconChevronDown,
+  IconChevronUp,
   IconCheck,
   IconClock,
   IconAlertTriangle,
@@ -30,29 +31,10 @@ interface Props {
   initialReports: EnrichedReport[]
   total: number
   pendingCount: number
-  limit: number
-  initialStatus?: string
-  initialPage: number
   sanctioned: SanctionedList
 }
 
-const STATUS_OPTIONS = [
-  { label: "All", value: "" },
-  { label: "Pending", value: "pending" },
-  { label: "Resolved", value: "resolved" },
-]
-
-export function ModerationClient({
-  initialReports,
-  total,
-  pendingCount,
-  limit,
-  initialStatus,
-  initialPage,
-  sanctioned,
-}: Props) {
-  const router = useRouter()
-  const searchParams = useSearchParams()
+export function ModerationClient({ initialReports, total, pendingCount, sanctioned }: Props) {
   const isAdmin = useUserStore((s) => s.user?.role) === "admin"
   const [activeTab, setActiveTab] = useState<"reports" | "sanctioned">("reports")
   const [isPending, startTransition] = useTransition()
@@ -74,24 +56,6 @@ export function ModerationClient({
     initSanctioned(sanctioned.users)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
-
-  const activeStatus = searchParams.get("status") ?? initialStatus ?? ""
-  const page = parseInt(searchParams.get("page") ?? String(initialPage)) || 1
-  const totalPages = Math.ceil(total / limit)
-
-  function changeFilter(status: string) {
-    const params = new URLSearchParams()
-    if (status) params.set("status", status)
-    params.set("page", "1")
-    router.push(`/moderation?${params.toString()}`)
-  }
-
-  function changePage(newPage: number) {
-    const params = new URLSearchParams()
-    if (activeStatus) params.set("status", activeStatus)
-    params.set("page", String(newPage))
-    router.push(`/moderation?${params.toString()}`)
-  }
 
   function runSanction(
     reportId: string,
@@ -184,135 +148,270 @@ export function ModerationClient({
         {activeTab === "sanctioned" && <SanctionedTab />}
 
         {activeTab === "reports" && (
-          <>
-            {/* Stats */}
-            <div className='mb-5 flex gap-3'>
-              <div className='flex items-center gap-2 rounded-lg border bg-yellow-50 px-4 py-2 dark:bg-yellow-900/20'>
-                <IconClock size={16} className='text-yellow-600 dark:text-yellow-400' />
-                <span className='text-sm font-semibold text-yellow-800 dark:text-yellow-300'>
-                  {pendingCount} pending
-                </span>
-              </div>
-              <div className='flex items-center gap-2 rounded-lg border bg-muted/50 px-4 py-2'>
-                <IconShield size={16} className='text-muted-foreground' />
-                <span className='text-sm font-semibold text-muted-foreground'>{total} total</span>
-              </div>
-            </div>
+          <ReportsByUser
+            reports={reports}
+            sanctions={sanctions}
+            isAdmin={isAdmin}
+            isPending={isPending}
+            actionId={actionId}
+            error={error}
+            pendingCount={pendingCount}
+            total={total}
+            runSanction={runSanction}
+            runResolve={runResolve}
+            runUnresolve={runUnresolve}
+          />
+        )}
+      </div>
+    </div>
+  )
+}
 
-            {/* Filter tabs */}
-            <div className='mb-4 flex gap-2 border-b'>
-              {STATUS_OPTIONS.map((opt) => (
-                <button
-                  key={opt.value}
-                  onClick={() => changeFilter(opt.value)}
-                  className={`pb-2 text-sm font-medium transition-colors ${
-                    activeStatus === opt.value
-                      ? "border-b-2 border-primary text-primary"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  {opt.label}
-                </button>
-              ))}
-            </div>
+// ---------------------------------------------------------------------------
+// Grouped-by-user reports view
+// ---------------------------------------------------------------------------
 
-            {/* Error banner */}
-            {error && (
-              <div className='mb-4 flex items-center gap-2 rounded-md border border-destructive/40 bg-destructive/10 px-4 py-2 text-sm text-destructive'>
-                <IconAlertTriangle size={16} />
-                {error}
+interface UserSanctionState {
+  isSuspended: boolean
+  isBanned: boolean
+}
+
+interface ReportsByUserProps {
+  reports: EnrichedReport[]
+  sanctions: Record<string, UserSanctionState>
+  isAdmin: boolean
+  isPending: boolean
+  actionId: string | null
+  error: string | null
+  pendingCount: number
+  total: number
+  runSanction: (
+    id: string,
+    userId: string,
+    fn: () => Promise<void>,
+    patch: { isSuspended?: boolean; isBanned?: boolean }
+  ) => void
+  runResolve: (reportId: string) => void
+  runUnresolve: (reportId: string) => void
+}
+
+function ReportsByUser({
+  reports,
+  sanctions,
+  isAdmin,
+  isPending,
+  actionId,
+  error,
+  pendingCount,
+  total,
+  runSanction,
+  runResolve,
+  runUnresolve,
+}: ReportsByUserProps) {
+  const [expandedUserId, setExpandedUserId] = useState<string | null>(null)
+
+  const grouped = reports.reduce<
+    Record<string, { userId: string; username: string | null; reports: EnrichedReport[] }>
+  >((acc, r) => {
+    if (!acc[r.reportedUserId]) {
+      acc[r.reportedUserId] = {
+        userId: r.reportedUserId,
+        username: r.reportedUsername,
+        reports: [],
+      }
+    }
+    acc[r.reportedUserId]!.reports.push(r)
+    return acc
+  }, {})
+
+  const groups = Object.values(grouped)
+
+  return (
+    <>
+      {/* Stats */}
+      <div className='mb-5 flex gap-3'>
+        <div className='flex items-center gap-2 rounded-lg border bg-yellow-50 px-4 py-2 dark:bg-yellow-900/20'>
+          <IconClock size={16} className='text-yellow-600 dark:text-yellow-400' />
+          <span className='text-sm font-semibold text-yellow-800 dark:text-yellow-300'>
+            {pendingCount} pending
+          </span>
+        </div>
+        <div className='flex items-center gap-2 rounded-lg border bg-muted/50 px-4 py-2'>
+          <IconShield size={16} className='text-muted-foreground' />
+          <span className='text-sm font-semibold text-muted-foreground'>{total} total</span>
+        </div>
+      </div>
+
+      {/* Error banner */}
+      {error && (
+        <div className='mb-4 flex items-center gap-2 rounded-md border border-destructive/40 bg-destructive/10 px-4 py-2 text-sm text-destructive'>
+          <IconAlertTriangle size={16} />
+          {error}
+        </div>
+      )}
+
+      {/* Empty state */}
+      {groups.length === 0 && (
+        <div className='flex flex-col items-center justify-center py-16 text-muted-foreground'>
+          <IconCheck size={40} className='mb-3 opacity-40' />
+          <p className='text-sm'>No reports found.</p>
+        </div>
+      )}
+
+      {/* Grouped list */}
+      <ul className='space-y-3'>
+        {groups.map(({ userId, username, reports: userReports }) => {
+          const sanction = sanctions[userId] ?? { isSuspended: false, isBanned: false }
+          const pendingReports = userReports.filter((r) => r.status === "pending")
+          const isExpanded = expandedUserId === userId
+
+          return (
+            <li key={userId} className='overflow-hidden rounded-lg border'>
+              {/* User card header */}
+              <div className='flex items-center justify-between gap-4 p-4'>
+                <div className='flex min-w-0 flex-1 flex-col gap-1'>
+                  <div className='flex flex-wrap items-center gap-2'>
+                    {username ? (
+                      <Link
+                        href={`/profile/${username}`}
+                        className='inline-flex items-center gap-1 font-semibold hover:underline'
+                      >
+                        @{username}
+                        <IconExternalLink size={13} />
+                      </Link>
+                    ) : (
+                      <span className='font-mono text-sm'>{userId.slice(0, 8)}…</span>
+                    )}
+                    {sanction.isSuspended && !sanction.isBanned && (
+                      <span className='inline-flex items-center gap-1 rounded-full bg-orange-100 px-2 py-0.5 text-xs font-medium text-orange-700 dark:bg-orange-900/30 dark:text-orange-400'>
+                        <IconUserOff size={11} />
+                        Suspended
+                      </span>
+                    )}
+                    {sanction.isBanned && (
+                      <span className='inline-flex items-center gap-1 rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700 dark:bg-red-900/30 dark:text-red-400'>
+                        <IconBan size={11} />
+                        Banned
+                      </span>
+                    )}
+                  </div>
+                  <div className='flex gap-3 text-xs text-muted-foreground'>
+                    <span>
+                      <span className='font-semibold text-foreground'>{userReports.length}</span>{" "}
+                      report{userReports.length > 1 ? "s" : ""}
+                    </span>
+                    {pendingReports.length > 0 && (
+                      <span className='font-semibold text-yellow-600 dark:text-yellow-400'>
+                        {pendingReports.length} pending
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Sanction actions + expand toggle */}
+                <div className='flex shrink-0 flex-wrap items-center gap-2'>
+                  {sanction.isSuspended && !sanction.isBanned && (
+                    <button
+                      onClick={() =>
+                        runSanction(userId, userId, () => unsuspendUser(userId), {
+                          isSuspended: false,
+                        })
+                      }
+                      disabled={isPending && actionId === userId}
+                      className='inline-flex items-center gap-1 rounded-md border border-green-300 px-3 py-1.5 text-xs font-medium text-green-700 transition-colors hover:bg-green-50 disabled:opacity-50 dark:border-green-700 dark:text-green-400 dark:hover:bg-green-900/20'
+                    >
+                      <IconLockOpen size={12} />
+                      {actionId === userId ? "…" : "Unsuspend"}
+                    </button>
+                  )}
+                  {!sanction.isSuspended && !sanction.isBanned && (
+                    <button
+                      onClick={() =>
+                        runSanction(userId, userId, () => suspendUser(userId), {
+                          isSuspended: true,
+                        })
+                      }
+                      disabled={isPending && actionId === userId}
+                      className='inline-flex items-center gap-1 rounded-md border border-orange-300 px-3 py-1.5 text-xs font-medium text-orange-700 transition-colors hover:bg-orange-50 disabled:opacity-50 dark:border-orange-700 dark:text-orange-400 dark:hover:bg-orange-900/20'
+                    >
+                      <IconUserOff size={12} />
+                      {actionId === userId ? "…" : "Suspend"}
+                    </button>
+                  )}
+                  {isAdmin && sanction.isBanned && (
+                    <button
+                      onClick={() =>
+                        runSanction(userId, userId, () => unbanUser(userId), { isBanned: false })
+                      }
+                      disabled={isPending && actionId === userId}
+                      className='inline-flex items-center gap-1 rounded-md border border-green-300 px-3 py-1.5 text-xs font-medium text-green-700 transition-colors hover:bg-green-50 disabled:opacity-50 dark:border-green-700 dark:text-green-400 dark:hover:bg-green-900/20'
+                    >
+                      <IconLockOpen size={12} />
+                      {actionId === userId ? "…" : "Unban"}
+                    </button>
+                  )}
+                  {isAdmin && !sanction.isBanned && (
+                    <button
+                      onClick={() =>
+                        runSanction(userId, userId, () => banUser(userId), { isBanned: true })
+                      }
+                      disabled={isPending && actionId === userId}
+                      className='inline-flex items-center gap-1 rounded-md border border-destructive/40 px-3 py-1.5 text-xs font-medium text-destructive transition-colors hover:bg-destructive/10 disabled:opacity-50'
+                    >
+                      <IconBan size={12} />
+                      {actionId === userId ? "…" : "Ban"}
+                    </button>
+                  )}
+                  <button
+                    onClick={() => setExpandedUserId(isExpanded ? null : userId)}
+                    className='inline-flex items-center gap-1 rounded-md border px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted'
+                  >
+                    {isExpanded ? <IconChevronUp size={12} /> : <IconChevronDown size={12} />}
+                    {isExpanded ? "Hide" : "Reports"}
+                  </button>
+                </div>
               </div>
-            )}
 
-            {/* Empty state */}
-            {reports.length === 0 && (
-              <div className='flex flex-col items-center justify-center py-16 text-muted-foreground'>
-                <IconCheck size={40} className='mb-3 opacity-40' />
-                <p className='text-sm'>No reports found.</p>
-              </div>
-            )}
-
-            {/* Report list */}
-            <ul className='space-y-3'>
-              {reports.map((report) => {
-                const sanction = sanctions[report.reportedUserId] ?? {
-                  isSuspended: report.reportedIsSuspended,
-                  isBanned: report.reportedIsBanned,
-                }
-                return (
-                  <li key={report.id} className='rounded-lg border p-4'>
-                    <div className='flex items-start justify-between gap-4'>
+              {/* Expanded: individual reports */}
+              {isExpanded && (
+                <ul className='divide-y border-t bg-muted/30'>
+                  {userReports.map((report) => (
+                    <li
+                      key={report.id}
+                      className='flex items-start justify-between gap-4 px-4 py-3'
+                    >
                       <div className='min-w-0 flex-1'>
-                        {/* Status + date */}
-                        <div className='mb-2 flex flex-wrap items-center gap-2'>
+                        <div className='mb-1 flex flex-wrap items-center gap-2'>
                           {report.status === "pending" ? (
                             <span className='inline-flex items-center gap-1 rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-medium text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400'>
-                              <IconClock size={12} />
+                              <IconClock size={11} />
                               Pending
                             </span>
                           ) : (
                             <span className='inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900/30 dark:text-green-400'>
-                              <IconCheck size={12} />
+                              <IconCheck size={11} />
                               Resolved
-                            </span>
-                          )}
-                          {sanction.isSuspended && !sanction.isBanned && (
-                            <span className='inline-flex items-center gap-1 rounded-full bg-orange-100 px-2 py-0.5 text-xs font-medium text-orange-700 dark:bg-orange-900/30 dark:text-orange-400'>
-                              <IconUserOff size={12} />
-                              Suspended
-                            </span>
-                          )}
-                          {sanction.isBanned && (
-                            <span className='inline-flex items-center gap-1 rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700 dark:bg-red-900/30 dark:text-red-400'>
-                              <IconBan size={12} />
-                              Banned
                             </span>
                           )}
                           <span className='text-xs text-muted-foreground'>
                             {new Date(report.createdAt).toLocaleDateString()}
                           </span>
                         </div>
-
-                        {/* Reason */}
-                        <p className='mb-2 text-sm'>{report.reason}</p>
-
-                        {/* Reporter / Reported */}
-                        <div className='flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground'>
-                          <span>
-                            Reporter:{" "}
-                            {report.reporterUsername ? (
-                              <Link
-                                href={`/profile/${report.reporterUsername}`}
-                                className='inline-flex items-center gap-0.5 font-medium text-foreground hover:underline'
-                              >
-                                @{report.reporterUsername}
-                                <IconExternalLink size={10} />
-                              </Link>
-                            ) : (
-                              <span className='font-mono'>{report.reporterId.slice(0, 8)}…</span>
-                            )}
-                          </span>
-                          <span>
-                            Reported:{" "}
-                            {report.reportedUsername ? (
-                              <Link
-                                href={`/profile/${report.reportedUsername}`}
-                                className='inline-flex items-center gap-0.5 font-medium text-foreground hover:underline'
-                              >
-                                @{report.reportedUsername}
-                                <IconExternalLink size={10} />
-                              </Link>
-                            ) : (
-                              <span className='font-mono'>
-                                {report.reportedUserId.slice(0, 8)}…
-                              </span>
-                            )}
-                          </span>
-                        </div>
+                        <p className='mb-1 text-sm'>{report.reason}</p>
+                        {report.reporterUsername && (
+                          <p className='text-xs text-muted-foreground'>
+                            By{" "}
+                            <Link
+                              href={`/profile/${report.reporterUsername}`}
+                              className='inline-flex items-center gap-0.5 font-medium text-foreground hover:underline'
+                            >
+                              @{report.reporterUsername}
+                              <IconExternalLink size={10} />
+                            </Link>
+                          </p>
+                        )}
                       </div>
-
-                      {/* Actions */}
-                      <div className='flex shrink-0 flex-col items-end gap-2'>
+                      <div className='shrink-0'>
                         {report.status === "pending" ? (
                           <button
                             onClick={() => runResolve(report.id)}
@@ -330,106 +429,15 @@ export function ModerationClient({
                             {actionId === report.id ? "…" : "Unresolve"}
                           </button>
                         )}
-                        {sanction.isSuspended && !sanction.isBanned && (
-                          <button
-                            onClick={() =>
-                              runSanction(
-                                report.id,
-                                report.reportedUserId,
-                                () => unsuspendUser(report.reportedUserId),
-                                { isSuspended: false }
-                              )
-                            }
-                            disabled={isPending && actionId === report.id}
-                            className='inline-flex items-center gap-1 rounded-md border border-green-300 px-3 py-1.5 text-xs font-medium text-green-700 transition-colors hover:bg-green-50 disabled:opacity-50 dark:border-green-700 dark:text-green-400 dark:hover:bg-green-900/20'
-                          >
-                            <IconLockOpen size={12} />
-                            Unsuspend
-                          </button>
-                        )}
-                        {!sanction.isSuspended && !sanction.isBanned && (
-                          <button
-                            onClick={() =>
-                              runSanction(
-                                report.id,
-                                report.reportedUserId,
-                                () => suspendUser(report.reportedUserId),
-                                { isSuspended: true }
-                              )
-                            }
-                            disabled={isPending && actionId === report.id}
-                            className='inline-flex items-center gap-1 rounded-md border border-orange-300 px-3 py-1.5 text-xs font-medium text-orange-700 transition-colors hover:bg-orange-50 disabled:opacity-50 dark:border-orange-700 dark:text-orange-400 dark:hover:bg-orange-900/20'
-                          >
-                            <IconUserOff size={12} />
-                            Suspend
-                          </button>
-                        )}
-                        {isAdmin && sanction.isBanned && (
-                          <button
-                            onClick={() =>
-                              runSanction(
-                                report.id,
-                                report.reportedUserId,
-                                () => unbanUser(report.reportedUserId),
-                                { isBanned: false }
-                              )
-                            }
-                            disabled={isPending && actionId === report.id}
-                            className='inline-flex items-center gap-1 rounded-md border border-green-300 px-3 py-1.5 text-xs font-medium text-green-700 transition-colors hover:bg-green-50 disabled:opacity-50 dark:border-green-700 dark:text-green-400 dark:hover:bg-green-900/20'
-                          >
-                            <IconLockOpen size={12} />
-                            Unban
-                          </button>
-                        )}
-                        {isAdmin && !sanction.isBanned && (
-                          <button
-                            onClick={() =>
-                              runSanction(
-                                report.id,
-                                report.reportedUserId,
-                                () => banUser(report.reportedUserId),
-                                { isBanned: true }
-                              )
-                            }
-                            disabled={isPending && actionId === report.id}
-                            className='inline-flex items-center gap-1 rounded-md border border-destructive/40 px-3 py-1.5 text-xs font-medium text-destructive transition-colors hover:bg-destructive/10 disabled:opacity-50'
-                          >
-                            <IconBan size={12} />
-                            Ban
-                          </button>
-                        )}
                       </div>
-                    </div>
-                  </li>
-                )
-              })}
-            </ul>
-
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className='mt-6 flex items-center justify-center gap-3'>
-                <button
-                  onClick={() => changePage(page - 1)}
-                  disabled={page <= 1}
-                  className='rounded-md border px-3 py-1.5 text-sm disabled:opacity-40'
-                >
-                  Previous
-                </button>
-                <span className='text-sm text-muted-foreground'>
-                  {page} / {totalPages}
-                </span>
-                <button
-                  onClick={() => changePage(page + 1)}
-                  disabled={page >= totalPages}
-                  className='rounded-md border px-3 py-1.5 text-sm disabled:opacity-40'
-                >
-                  Next
-                </button>
-              </div>
-            )}
-          </>
-        )}
-      </div>
-    </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </li>
+          )
+        })}
+      </ul>
+    </>
   )
 }
