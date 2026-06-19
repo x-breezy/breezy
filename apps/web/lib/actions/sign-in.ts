@@ -33,7 +33,10 @@ export async function signInAction(
       refreshToken = data.data?.refreshToken
     }
   } catch (err) {
-    if (isAxiosError(err)) return { error: err.response?.data?.message ?? "Something went wrong." }
+    if (isAxiosError(err)) {
+      const data = err.response?.data as Record<string, unknown> | undefined
+      return { error: (data?.message ?? data?.error ?? "Something went wrong.") as string }
+    }
     return { error: "Could not reach the server." }
   }
 

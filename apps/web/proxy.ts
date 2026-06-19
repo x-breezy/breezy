@@ -55,7 +55,9 @@ function getIsComplete(token: string): boolean {
   try {
     const part = token.split(".")[1]
     if (!part) return false
-    const payload = JSON.parse(Buffer.from(part, "base64url").toString()) as { isComplete?: boolean }
+    const payload = JSON.parse(Buffer.from(part, "base64url").toString()) as {
+      isComplete?: boolean
+    }
     return payload.isComplete === true
   } catch {
     return false

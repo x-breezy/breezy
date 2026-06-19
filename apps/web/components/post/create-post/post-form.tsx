@@ -6,7 +6,7 @@ import { searchProfiles } from "@/lib/actions/profiles"
 import { buildEditorHTML } from "@/lib/post-utils"
 import { mediaUrl } from "@/lib/utils"
 import type { SearchPostMedia } from "@/lib/actions/posts"
-import { PostBottomBar } from "./PostBottomBar"
+import { PostBottomBar } from "./post-bottom-bar"
 import { ProfileAvatar } from "@/components/profile"
 import { ProfileBadges } from "@/components/profile/profile-badge"
 import { UserRole } from "@/lib/auth/role"
@@ -98,6 +98,7 @@ export function PostForm({
 
   useEffect(() => {
     if (!mentionQuery) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSuggestions([])
       return
     }
@@ -278,6 +279,7 @@ export function PostForm({
             {existingMedia?.map((m, i) => (
               <div key={m.id} className='relative overflow-hidden rounded-lg'>
                 {m.type === "image" ? (
+                  // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={mediaUrl(`/api/media/images/${m.id}`)}
                     alt=''
@@ -302,6 +304,7 @@ export function PostForm({
             {mediaFiles.map((m, i) => (
               <div key={i} className='relative overflow-hidden rounded-lg'>
                 {m.type === "image" ? (
+                  // eslint-disable-next-line @next/next/no-img-element
                   <img src={m.previewUrl} alt='' className='h-32 w-full object-cover' />
                 ) : (
                   <video src={m.previewUrl} className='h-32 w-full object-cover' muted />

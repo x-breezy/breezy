@@ -1,6 +1,6 @@
 import { create } from "zustand"
 import type { Notification } from "@/types/notification"
-import * as actions from "@/app/(app)/notifications/actions"
+import * as actions from "@/lib/actions/notifications"
 
 interface NotificationState {
   notifications: Notification[]

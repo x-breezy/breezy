@@ -130,6 +130,33 @@ class ProfileService {
     return { count: countResult, following: rows.map((r) => r.id) }
   }
 
+  async getFollowSuggestions(profileId: string, limit: number = 3): Promise<Profile[]> {
+    const sequelize = Profile.sequelize!
+    const rows = await sequelize.query<Profile>(
+      `SELECT p.profile_id AS "profileId", p.username,
+              p.first_name AS "firstName", p.last_name AS "lastName",
+              p.avatar_url AS "avatarId", p.bio,
+              p.followers_count AS "followersCount", p.role,
+              p.deleted_at AS "deletedAt", p.created_at AS "createdAt",
+              p.updated_at AS "updatedAt"
+       FROM profiles p
+       WHERE p.deleted_at IS NULL
+         AND p.profile_id != :profileId
+         AND p.profile_id NOT IN (
+           SELECT following_id FROM follows WHERE follower_id = :profileId
+         )
+       ORDER BY
+         CASE WHEN EXISTS (
+           SELECT 1 FROM follows
+           WHERE follower_id = p.profile_id AND following_id = :profileId
+         ) THEN 0 ELSE 1 END,
+         p.followers_count DESC
+       LIMIT :limit`,
+      { replacements: { profileId, limit }, type: QueryTypes.SELECT }
+    )
+    return rows
+  }
+
   async getProfilesByIds(ids: string[]): Promise<Profile[]> {
     if (ids.length === 0) return []
     return Profile.findAll({ where: { profileId: ids } })

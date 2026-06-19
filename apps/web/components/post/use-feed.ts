@@ -2,7 +2,7 @@
 
 import { useInfiniteQuery } from "@tanstack/react-query"
 import { useMemo } from "react"
-import { listFeedPosts } from "@/app/(app)/(home)/feed-action"
+import { listFeedPosts } from "@/lib/actions/feed"
 import type { SearchPost } from "@/lib/actions/posts"
 import type { SearchProfile } from "@/lib/actions/profiles"
 

@@ -494,7 +494,9 @@ class AuthController {
       }
       const { accessToken, refreshToken: newRefreshToken } =
         await this.authService.markProfileCreated(refreshToken)
-      res.status(200).json({ success: true, data: { token: accessToken, refreshToken: newRefreshToken } })
+      res
+        .status(200)
+        .json({ success: true, data: { token: accessToken, refreshToken: newRefreshToken } })
     } catch (error) {
       if ((error as { code?: string }).code === "INVALID_REFRESH") {
         res.status(401).json({ success: false, message: "Invalid or expired refresh token" })

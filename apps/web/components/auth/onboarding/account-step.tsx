@@ -11,7 +11,7 @@ import OAuthButtons from "../oauth-buttons"
 import { InputGroup, InputGroupAddon, InputGroupInput } from "../../ui/input-group"
 import { IconAt, IconMail } from "@tabler/icons-react"
 import Link from "next/link"
-import { signUpAction } from "@/app/(auth)/sign-up/actions"
+import { signUpAction } from "@/lib/actions/sign-up"
 import { Checkbox } from "@/components/ui/checkbox"
 import { FieldLabel } from "@/components/ui/field"
 

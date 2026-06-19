@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils"
-import { ModeratorBadge } from "@/components/badges/moderator-badge"
-import { AdminBadge } from "@/components/badges/admin-badge"
+import { ModeratorBadge } from "@/components/shared/badges/moderator-badge"
+import { AdminBadge } from "@/components/shared/badges/admin-badge"
 import { UserRole } from "@/lib/auth/role"
 
 interface ProfileBadgesProps {

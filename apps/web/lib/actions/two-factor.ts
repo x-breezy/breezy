@@ -27,7 +27,10 @@ export async function twoFactorAction(
     token = data.data.token
     refreshToken = data.data.refreshToken
   } catch (err) {
-    if (isAxiosError(err)) return { error: err.response?.data?.message ?? "Invalid code." }
+    if (isAxiosError(err)) {
+      const data = err.response?.data as Record<string, unknown> | undefined
+      return { error: (data?.message ?? data?.error ?? "Invalid code.") as string }
+    }
     return { error: "Could not reach the server." }
   }
 

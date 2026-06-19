@@ -13,7 +13,6 @@ import {
   IconUserX,
 } from "@tabler/icons-react"
 import type { Profile } from "@/types/profile"
-import { followUserAction, unfollowUserAction } from "@/app/(app)/profile/follow-action"
 import { useProfileStore } from "@/stores/profile-store"
 import { useUserStore } from "@/stores/user-store"
 import { UnfollowDialog } from "../shared/unfollow-dialog"
@@ -28,7 +27,8 @@ export function ProfileActions({ className, profile, isOwn }: ProfileActionsProp
   const t = useTranslations("profilePage")
   const [open, setOpen] = useState(false)
   const [pending, setPending] = useState(false)
-  const updateProfile = useProfileStore((s) => s.update)
+  const profileFollow = useProfileStore((s) => s.follow)
+  const profileUnfollow = useProfileStore((s) => s.unfollow)
   const following = useUserStore((s) => s.following)
   const setRelation = useUserStore((s) => s.setRelation)
 
@@ -39,14 +39,10 @@ export function ProfileActions({ className, profile, isOwn }: ProfileActionsProp
     setPending(true)
     try {
       if (followed) {
-        await unfollowUserAction(profile.profileId)
-        updateProfile(profile.username, { followersCount: profile.followersCount - 1 })
+        await profileUnfollow(profile.profileId, profile.username)
         setRelation(profile.profileId, false)
       } else {
-        const res = await followUserAction(profile.profileId)
-        if (!res.alreadyFollowing) {
-          updateProfile(profile.username, { followersCount: profile.followersCount + 1 })
-        }
+        await profileFollow(profile.profileId, profile.username)
         setRelation(profile.profileId, true)
       }
     } finally {

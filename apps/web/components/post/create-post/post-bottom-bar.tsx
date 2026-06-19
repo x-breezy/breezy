@@ -3,7 +3,7 @@
 import { useRef, useState } from "react"
 import { IconPhoto, IconVideo } from "@tabler/icons-react"
 import { Button } from "@/components/ui/button"
-import { GifPicker } from "./GifPicker"
+import { GifPicker } from "./gif-picker"
 import { useTranslations } from "next-intl"
 
 const MAX_CHARS = 250

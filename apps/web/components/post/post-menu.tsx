@@ -17,7 +17,7 @@ import { reportProfile } from "@/lib/actions/reports"
 import { deletePost, updatePost, type SearchPostMedia } from "@/lib/actions/posts"
 import { uploadMediaAction } from "@/lib/actions/media"
 import { useUserStore } from "@/stores/user-store"
-import { PostComposeDialog } from "./create-post/PostComposeDialog"
+import { PostComposeDialog } from "./create-post/post-compose-dialog"
 import type { MediaPreview } from "./create-post/use-post-compose"
 
 interface PostMenuProps {

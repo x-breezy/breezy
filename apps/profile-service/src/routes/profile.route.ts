@@ -71,6 +71,14 @@ function createProfileRouter() {
     validate(profileIdParamSchema, "params"),
     profileController.getFollowing
   )
+  router.get(
+    "/:profileId/suggestions",
+    identity,
+    readLimit,
+    requirePermission(PERMISSIONS.PROFILE_READ),
+    validate(profileIdParamSchema, "params"),
+    profileController.getFollowSuggestions
+  )
   router.post(
     "/",
     identity,

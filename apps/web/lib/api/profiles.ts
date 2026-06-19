@@ -1,11 +1,10 @@
 import type { SearchProfile, RawProfile } from "@/lib/actions/profiles"
 export type { SearchProfile, RawProfile } from "@/lib/actions/profiles"
+export { searchProfiles, fetchProfilesByIds } from "@/lib/actions/profiles"
 export {
-  searchProfiles,
-  fetchProfilesByIds,
-  followProfile,
-  unfollowProfile,
-} from "@/lib/actions/profiles"
+  followUserAction as followProfile,
+  unfollowUserAction as unfollowProfile,
+} from "@/lib/actions/follow"
 
 export function normalizeProfile(p: RawProfile): SearchProfile {
   return {

@@ -188,6 +188,24 @@ class ProfileController {
     }
   }
 
+  getFollowSuggestions = async (
+    req: Request<{ profileId: string }>,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const limit = Math.min(10, Math.max(1, parseInt(req.query.limit as string) || 3))
+      const profiles = await this.profileService.getFollowSuggestions(req.params.profileId, limit)
+      res.status(200).json({
+        success: true,
+        data: profiles,
+        message: "Suggestions retrieved successfully",
+      })
+    } catch (err) {
+      next(err)
+    }
+  }
+
   batchGet = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const raw = (req.query.ids as string | undefined) ?? ""

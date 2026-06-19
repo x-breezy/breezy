@@ -13,8 +13,8 @@ import {
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import type { Notification } from "@/types/notification"
-import type { ActorInfo, NotificationView } from "@/lib/notifications/group"
-import { followUserAction, unfollowUserAction } from "@/app/(app)/profile/follow-action"
+import type { NotificationView } from "@/lib/notifications/group"
+import { followUserAction, unfollowUserAction } from "@/lib/actions/follow"
 import { useUserStore } from "@/stores/user-store"
 import { ProfileAvatar } from "../profile/profile-avatar"
 import { UnfollowDialog } from "@/components/shared/unfollow-dialog"
@@ -23,6 +23,7 @@ export function getActorId(notification: Notification): string {
   return notification.payload.actorId ?? notification.payload.followerId ?? ""
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function formatRelativeTime(dateStr: string, t: any): string {
   const now = Date.now()
   const date = new Date(dateStr).getTime()
@@ -44,12 +45,9 @@ export const notificationTypeMeta = {
   comment: { Icon: IconMessage, badge: "bg-amber-500", stroke: 2.3 },
 } as const
 
-function actorAvatarUrl(actor: ActorInfo): string {
-  return actor.avatarId ?? `https://api.dicebear.com/10.x/glyphs/svg?seed=${actor.id}`
-}
-
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function NotificationText({ view, t }: { view: NotificationView; t: any }) {
-  const uname = (chunks: any) => <span className='font-semibold'>{chunks}</span>
+  const uname = (chunks: React.ReactNode) => <span className='font-semibold'>{chunks}</span>
 
   if (view.kind === "follow") {
     return <>{t.rich("follow", { actorName: view.actor.username, actor: uname })}</>

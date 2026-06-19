@@ -42,7 +42,7 @@ export function UnfollowDialog({ username, onConfirm, trigger }: UnfollowDialogP
                   Unfollow @{username}?
                 </DialogPrimitive.Title>
                 <DialogPrimitive.Description className='text-sm text-muted-foreground'>
-                  Their posts won't appear in your feed anymore.
+                  Their posts won&apos;t appear in your feed anymore.
                 </DialogPrimitive.Description>
               </div>
               <div className='flex justify-center gap-2'>

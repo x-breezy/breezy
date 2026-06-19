@@ -20,9 +20,14 @@ async function getAuthHeaders(): Promise<Record<string, string>> {
   return token ? { Authorization: `Bearer ${token}` } : {}
 }
 
-export async function listProfilePosts(authorId: string, page = 1): Promise<PostsPage> {
+export async function listProfilePosts(
+  authorId: string,
+  page = 1,
+  type: string = "posts"
+): Promise<PostsPage> {
   const headers = await getAuthHeaders()
   const params = new URLSearchParams({ page: String(page), limit: String(LIMIT) })
+  if (type !== "posts") params.set("type", type)
   const res = await fetch(`${API_URL}/api/posts/users/${authorId}?${params}`, { headers })
   if (!res.ok) throw new Error(`Failed to fetch user posts: ${res.status}`)
   const json = await res.json()

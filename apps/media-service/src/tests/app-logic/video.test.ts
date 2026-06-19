@@ -49,7 +49,7 @@ describe("VideoService", () => {
       }
 
       storage.upload = jest.fn().mockResolvedValue(gridFsId)
-      storage.findById = jest.fn().mockResolvedValue({ length: 10 } as any)
+      storage.findById = jest.fn().mockResolvedValue({ length: 10 })
       ;(mockedModel.create as jest.Mock).mockResolvedValue(created)
 
       const result = await service.upload(source, {
@@ -76,7 +76,7 @@ describe("VideoService", () => {
     it("deletes GridFS file when VideoModel.create fails", async () => {
       const source = Readable.from(Buffer.from("videobytes"))
       storage.upload = jest.fn().mockResolvedValue("gridfs-abc")
-      storage.findById = jest.fn().mockResolvedValue({ length: 10 } as any)
+      storage.findById = jest.fn().mockResolvedValue({ length: 10 })
       ;(mockedModel.create as jest.Mock).mockRejectedValue(new Error("db error"))
       storage.delete = jest.fn().mockResolvedValue(true)
 
@@ -180,7 +180,7 @@ describe("VideoService", () => {
 
   describe("getGridFsFile", () => {
     it("delegates to storage.findById", async () => {
-      const file = { length: 100 } as any
+      const file = { length: 100 }
       storage.findById = jest.fn().mockResolvedValue(file)
 
       expect(await service.getGridFsFile("gfs-id")).toBe(file)

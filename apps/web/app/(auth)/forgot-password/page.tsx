@@ -10,7 +10,7 @@ import { Field, FieldGroup, FieldSet } from "@/components/ui/field"
 import { Label } from "@/components/ui/label"
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group"
 import { IconMail } from "@tabler/icons-react"
-import { forgotPasswordAction } from "./actions"
+import { forgotPasswordAction } from "@/lib/actions/forgot-password"
 
 export default function ForgotPasswordPage() {
   const [state, action, isPending] = useActionState(forgotPasswordAction, null)

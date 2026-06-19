@@ -182,7 +182,10 @@
     "saving": "Guardando…",
     "saveChanges": "Guardar cambios",
     "cancel": "Cancelar",
-    "biographyTitle": "Biografía"
+    "biographyTitle": "Biografía",
+    "tabPosts": "Publicaciones",
+    "tabReplies": "Respuestas",
+    "tabMedias": "Medios"
   },
   "composePost": {
     "posting": "Publicando…",
@@ -209,6 +212,13 @@
     "recentSearches": "Búsquedas recientes",
     "clearAll": "Borrar todo",
     "removeSearch": "Eliminar esta búsqueda"
+  },
+  "sidebar": {
+    "whoToFollow": "A quién seguir",
+    "trendsForYou": "Tendencias para ti",
+    "posts": "{count} publicaciones",
+    "showMore": "Mostrar más",
+    "follow": "Seguir"
   },
   "terms": {
     "title": "Términos y Condiciones",

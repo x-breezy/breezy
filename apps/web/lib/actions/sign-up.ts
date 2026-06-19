@@ -33,7 +33,10 @@ export async function signUpAction(
     const { token, refreshToken } = data.data as { token: string; refreshToken: string }
     await setSessionCookies(token, refreshToken)
   } catch (err) {
-    if (isAxiosError(err)) return { error: err.response?.data?.message ?? "Something went wrong." }
+    if (isAxiosError(err)) {
+      const data = err.response?.data as Record<string, unknown> | undefined
+      return { error: (data?.message ?? data?.error ?? "Something went wrong.") as string }
+    }
     return { error: "Could not reach the server." }
   }
 
@@ -105,7 +108,11 @@ export async function setupProfileAction(
       await createProfile(userId, { username, firstName, lastName, bio, avatarId }, authHeader)
     } catch (err) {
       if (isAxiosError(err) && err.response?.status !== 409) {
-        return { error: err.response?.data?.message ?? "Something went wrong.", success: false }
+        const data = err.response?.data as Record<string, unknown> | undefined
+        return {
+          error: (data?.message ?? data?.error ?? "Something went wrong.") as string,
+          success: false,
+        }
       }
       if (!isAxiosError(err)) return { error: "Could not reach the server.", success: false }
     }
@@ -118,13 +125,18 @@ export async function setupProfileAction(
         if (data?.token && data?.refreshToken) {
           await setSessionCookies(data.token, data.refreshToken)
         }
-      } catch (_) {
+      } catch {
+        /* no-op */
       }
     }
-
   } catch (err) {
-    if (isAxiosError(err))
-      return { error: err.response?.data?.message ?? "Something went wrong.", success: false }
+    if (isAxiosError(err)) {
+      const data = err.response?.data as Record<string, unknown> | undefined
+      return {
+        error: (data?.message ?? data?.error ?? "Something went wrong.") as string,
+        success: false,
+      }
+    }
     return { error: "Could not reach the server.", success: false }
   }
 

@@ -2,11 +2,13 @@
 
 import { usePathname } from "next/navigation"
 import { useTranslations } from "next-intl"
-import { HomeIcon, SearchIcon, GrodIcon, SendIcon, ProfileIcon } from "@/components/icons"
+import { HomeIcon, SearchIcon, GrodIcon, SendIcon, ProfileIcon } from "./icons"
 import { NavItem } from "./nav-item"
 import { useUserStore } from "@/stores/user-store"
 import type { NavItemData } from "./types"
+import Link from "next/link"
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getNavItems(t: any): NavItemData[] {
   return [
     { href: "/", icon: HomeIcon, label: t("home") },
@@ -60,11 +62,13 @@ export function ResponsiveNav() {
       </nav>
 
       {/* Desktop: Sidebar - visible à partir de lg */}
-      <aside className='fixed top-0 left-0 z-50 hidden h-screen w-64 flex-col border-r bg-background py-6 lg:flex'>
+      <aside className='hidden h-full min-w-64 shrink-0 flex-col bg-background py-6 lg:flex'>
         <div className='px-6 pb-6'>
-          <span className='font-geom text-xl font-bold'>Breezy</span>
+          <Link href='/' className='font-geom text-xl font-bold'>
+            Breezy
+          </Link>
         </div>
-        <nav className='flex flex-1 flex-col gap-1'>
+        <nav className='flex flex-1 flex-col gap-2 pr-2'>
           {navItems.map(({ href, icon, label }) => (
             <NavItem
               key={href}

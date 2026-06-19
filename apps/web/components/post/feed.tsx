@@ -1,15 +1,25 @@
 "use client"
 
-import { useCallback, useRef, useEffect } from "react"
+import { useRef, useEffect } from "react"
 import { useFeed } from "./use-feed"
 import Post from "./post"
-import { toggleLike } from "@/lib/actions/posts"
+import { usePostStore } from "@/stores/post-store"
 import { Skeleton } from "@/components/ui/skeleton"
 
 export function Feed() {
   const { posts, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useFeed()
+  const cachePosts = usePostStore((s) => s.cachePosts)
+  const cacheLikedIds = usePostStore((s) => s.cacheLikedIds)
+  const handleLike = usePostStore((s) => s.toggleLike)
 
   const sentinelRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (posts.length > 0) {
+      cachePosts(posts)
+      cacheLikedIds(posts.filter((p) => p.liked).map((p) => p._id))
+    }
+  }, [posts, cachePosts, cacheLikedIds])
 
   useEffect(() => {
     const sentinel = sentinelRef.current
@@ -27,11 +37,6 @@ export function Feed() {
     observer.observe(sentinel)
     return () => observer.disconnect()
   }, [hasNextPage, isFetchingNextPage, fetchNextPage])
-
-  const handleLike = useCallback(async (postId: string, liked: boolean) => {
-    const res = await toggleLike(postId, liked)
-    return res.likesCount
-  }, [])
 
   if (isLoading) {
     return (

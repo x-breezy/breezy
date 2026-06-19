@@ -56,8 +56,11 @@ export class PostController {
     try {
       const page = Math.max(1, parseInt(req.query.page as string) || 1)
       const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 20))
-      const includeReplies = req.query.replies === "true"
-      const result = await this.service.byUser(req.params.userId!, page, limit, includeReplies)
+      const rawType = req.query.type as string | undefined
+      const repliesLegacy = req.query.replies === "true"
+      const validTypes = ["posts", "replies", "media", "all"]
+      const type = validTypes.includes(rawType ?? "") ? rawType! : repliesLegacy ? "all" : "posts"
+      const result = await this.service.byUser(req.params.userId!, page, limit, type as any)
 
       res.json({ success: true, data: result, message: "User posts retrieved successfully" })
     } catch (err) {

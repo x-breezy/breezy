@@ -43,9 +43,9 @@ export async function sendVerificationEmailAction(): Promise<ActionState> {
     await resendVerificationEmail(meRes.data.data.email)
   } catch (err) {
     if (isAxiosError(err)) {
-      const d = err.response?.data as { message?: string; code?: string }
+      const d = err.response?.data as { message?: string; error?: string; code?: string }
       return {
-        error: d?.message ?? "Failed to send verification email.",
+        error: d?.message ?? d?.error ?? "Failed to send verification email.",
         code: d?.code,
         retryAfter: err.response?.status === 429 ? 60 : undefined,
       }
@@ -63,7 +63,10 @@ export async function verifyEmailTokenAction(
   try {
     await verifyEmail(token)
   } catch (err) {
-    if (isAxiosError(err)) return { error: err.response?.data?.message ?? "Verification failed." }
+    if (isAxiosError(err)) {
+      const d = err.response?.data as { message?: string; error?: string }
+      return { error: d?.message ?? d?.error ?? "Verification failed." }
+    }
     return { error: "Could not reach the server." }
   }
   redirect("/settings")
@@ -74,9 +77,9 @@ export async function twoFactorSendCodeAction(): Promise<ActionState> {
     await sendTwoFactorCode(await getServerAuthHeader())
   } catch (err) {
     if (isAxiosError(err)) {
-      const d = err.response?.data as { message?: string; code?: string }
+      const d = err.response?.data as { message?: string; error?: string; code?: string }
       return {
-        error: d?.message ?? "Failed to send code.",
+        error: d?.message ?? d?.error ?? "Failed to send code.",
         code: d?.code,
         retryAfter: err.response?.status === 429 ? 60 : undefined,
       }
@@ -94,7 +97,10 @@ export async function twoFactorEnableAction(
   try {
     await enableTwoFactor(code, await getServerAuthHeader())
   } catch (err) {
-    if (isAxiosError(err)) return { error: err.response?.data?.message ?? "Invalid code." }
+    if (isAxiosError(err)) {
+      const d = err.response?.data as { message?: string; error?: string }
+      return { error: d?.message ?? d?.error ?? "Invalid code." }
+    }
     return { error: "Could not reach the server." }
   }
   redirect("/settings")
@@ -104,7 +110,10 @@ export async function twoFactorDisableAction(): Promise<ActionState> {
   try {
     await disableTwoFactor(await getServerAuthHeader())
   } catch (err) {
-    if (isAxiosError(err)) return { error: err.response?.data?.message ?? "Failed to disable 2FA." }
+    if (isAxiosError(err)) {
+      const d = err.response?.data as { message?: string; error?: string }
+      return { error: d?.message ?? d?.error ?? "Failed to disable 2FA." }
+    }
     return { error: "Could not reach the server." }
   }
   redirect("/settings")
