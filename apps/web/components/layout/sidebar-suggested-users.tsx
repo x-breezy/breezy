@@ -18,7 +18,10 @@ export function SidebarSuggestedUsers({ users }: { users: SearchProfile[] }) {
   const profileFollow = useProfileStore((s) => s.follow)
   const t = useTranslations("sidebar")
 
-  const handleFollow = async (user: SearchProfile) => {
+  const handleFollow = async (e: React.MouseEvent, user: SearchProfile) => {
+    e.preventDefault()
+    e.stopPropagation()
+
     try {
       await profileFollow(user.profileId, user.username ?? user.profileId)
       setRelation(user.profileId, true)
@@ -42,11 +45,12 @@ export function SidebarSuggestedUsers({ users }: { users: SearchProfile[] }) {
       </div>
       <div className='flex flex-col'>
         {filteredUsers.map((user) => (
-          <div
+          <Link
+            href={`/profile/${user.username}`}
             key={user.profileId}
             className='flex items-center gap-3 px-4 py-2.5 transition-colors hover:bg-muted/50'
           >
-            <Link href={`/profile/${user.username}`} className='shrink-0'>
+            <div className='shrink-0'>
               <Avatar size='sm'>
                 {user.avatarUrl ? (
                   <AvatarImage
@@ -60,17 +64,17 @@ export function SidebarSuggestedUsers({ users }: { users: SearchProfile[] }) {
                   {(user.firstName?.[0] ?? user.username?.[0] ?? "?").toUpperCase()}
                 </AvatarFallback>
               </Avatar>
-            </Link>
-            <Link href={`/profile/${user.username}`} className='min-w-0 flex-1'>
+            </div>
+            <div className='min-w-0 flex-1'>
               <p className='truncate text-sm font-semibold'>
                 {[user.firstName, user.lastName].filter(Boolean).join(" ") || user.username}
               </p>
               <p className='truncate text-xs text-muted-foreground'>@{user.username}</p>
-            </Link>
-            <Button variant='outline' size='xs' onClick={() => handleFollow(user)}>
+            </div>
+            <Button variant='outline' size='xs' onClick={(e) => handleFollow(e, user)}>
               {t("follow")}
             </Button>
-          </div>
+          </Link>
         ))}
       </div>
     </div>
