@@ -1,26 +1,27 @@
 "use client"
 
-import { useState } from "react"
+import { useLocale } from "next-intl"
 import {
   SettingsLanguageSelect,
   SettingsThemeSelect,
   SettingsLogoutButton,
   SettingsTwoFactor,
 } from "."
-import { logoutAction } from "@/app/(app)/settings/actions"
+import { logoutAction } from "@/lib/actions/settings"
 import { SettingsEmailVerification } from "./settings-email-verification"
+import type { Language } from "@/lib/language"
 
 export default function SettingsScreen() {
-  const [language, setLanguage] = useState<string | null>("fr")
+  const locale = useLocale() as Language
 
   async function handleLogout() {
     await logoutAction()
   }
 
   return (
-    <div className='mx-auto flex w-full max-w-4xl flex-col bg-background p-4 font-sans select-none'>
+    <div className='container-center flex w-full flex-col bg-background p-4 font-sans select-none'>
       <div className='mt-2 flex w-full flex-col gap-3.5'>
-        <SettingsLanguageSelect value={language} onChange={setLanguage} />
+        <SettingsLanguageSelect value={locale} />
 
         <SettingsThemeSelect />
 

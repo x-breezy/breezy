@@ -1,11 +1,12 @@
 "use client"
 
 import { useActionState } from "react"
+import { useTranslations } from "next-intl"
 import { useSearchParams } from "next/navigation"
 import { useCooldown } from "@/hooks/use-cooldown"
 import { AuthHeader } from "@/components/auth/auth-header"
 import { Button } from "@/components/ui/button"
-import { verifyEmailAction, resendVerificationAction } from "./actions"
+import { verifyEmailAction, resendVerificationAction } from "@/lib/actions/verify-email"
 
 export default function VerifyEmailPage() {
   const searchParams = useSearchParams()
@@ -14,18 +15,15 @@ export default function VerifyEmailPage() {
   const [state, action, isPending] = useActionState(verifyEmailAction, null)
   const [resendState, resendAction, resendPending] = useActionState(resendVerificationAction, null)
   const resendCooldown = useCooldown(resendState?.retryAfter, resendState)
+  const t = useTranslations("auth")
 
   const hasToken = token.length > 0
 
   return (
     <div className='mx-auto flex w-full max-w-sm animate-in flex-col justify-center px-4 py-12 text-center font-sans duration-300 select-none fade-in slide-in-from-bottom-4'>
       <AuthHeader
-        title='Verify your email'
-        subtitle={
-          hasToken
-            ? "Click below to confirm your email address."
-            : "Check your inbox for a verification link."
-        }
+        title={t("verifyEmailTitle")}
+        subtitle={hasToken ? t("verifyEmailSubtitleToken") : t("verifyEmailSubtitleNoToken")}
       />
 
       {hasToken && (
@@ -35,31 +33,31 @@ export default function VerifyEmailPage() {
             <div className='mb-4 text-sm text-destructive'>
               <p>{state.error}</p>
               {state.code && (
-                <p className='mt-1 text-xs text-muted-foreground'>Code: {state.code}</p>
+                <p className='mt-1 text-xs text-muted-foreground'>
+                  {t("codePrefix")}: {state.code}
+                </p>
               )}
             </div>
           )}
           <Button type='submit' size='lg' disabled={isPending} className='w-full'>
-            {isPending ? "Verifying…" : "Confirm email"}
+            {isPending ? t("verifyEmailVerifying") : t("verifyEmailBtn")}
           </Button>
         </form>
       )}
 
       {!hasToken && (
         <div className='mt-6'>
-          <p className='text-sm text-muted-foreground'>
-            Didn&apos;t receive an email? Check your spam folder or resend it.
-          </p>
+          <p className='text-sm text-muted-foreground'>{t("verifyEmailDidntReceive")}</p>
           {resendState?.success && (
-            <p className='mt-3 text-sm text-muted-foreground'>
-              If that account needs verification, a new email is on its way.
-            </p>
+            <p className='mt-3 text-sm text-muted-foreground'>{t("verifyEmailNewEmailSent")}</p>
           )}
           {resendState?.error && (
             <div className='mt-3 text-sm text-destructive'>
               <p>{resendState.error}</p>
               {resendState.code && (
-                <p className='mt-1 text-xs text-muted-foreground'>Code: {resendState.code}</p>
+                <p className='mt-1 text-xs text-muted-foreground'>
+                  {t("codePrefix")}: {resendState.code}
+                </p>
               )}
             </div>
           )}
@@ -73,10 +71,10 @@ export default function VerifyEmailPage() {
               className='w-full'
             >
               {resendPending
-                ? "Sending…"
+                ? t("sending")
                 : resendCooldown > 0
-                  ? `Try again in ${resendCooldown}s`
-                  : "Resend verification email"}
+                  ? t("tryAgainIn", { seconds: resendCooldown })
+                  : t("verifyEmailResendBtn")}
             </Button>
           </form>
         </div>

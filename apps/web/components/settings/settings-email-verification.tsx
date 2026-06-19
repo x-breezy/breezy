@@ -1,16 +1,18 @@
 "use client"
 
 import { useActionState } from "react"
+import { useTranslations } from "next-intl"
 import { useCooldown } from "@/hooks/use-cooldown"
 import { Button } from "@/components/ui/button"
 import { Field, FieldGroup, FieldSet } from "@/components/ui/field"
 import { Label } from "@/components/ui/label"
 import { InputGroup, InputGroupInput } from "@/components/ui/input-group"
-import { sendVerificationEmailAction, verifyEmailTokenAction } from "@/app/(app)/settings/actions"
+import { sendVerificationEmailAction, verifyEmailTokenAction } from "@/lib/actions/settings"
 import { IconCheckFilled, IconMailFilled } from "@tabler/icons-react"
 import { useUserStore } from "@/stores/user-store"
 
 export function SettingsEmailVerification() {
+  const t = useTranslations("settings")
   const enabled = useUserStore((s) => s.user)?.isEmailVerified
 
   const [sendState, sendAction, sendPending] = useActionState(sendVerificationEmailAction, null)
@@ -23,12 +25,10 @@ export function SettingsEmailVerification() {
         <div>
           <div className='flex items-center gap-2'>
             <IconMailFilled className='h-5 w-5 shrink-0 text-muted-foreground' />
-            <p className='text-sm font-semibold'>Email verified</p>
+            <p className='text-sm font-semibold'>{t("emailVerified")}</p>
             <IconCheckFilled className='h-3 w-3 shrink-0 text-muted-foreground' />
           </div>
-          <p className='mt-0.5 text-xs text-muted-foreground'>
-            Your email is currently verified on your account.
-          </p>
+          <p className='mt-0.5 text-xs text-muted-foreground'>{t("emailVerifiedDesc")}</p>
         </div>
       </div>
     )
@@ -41,11 +41,9 @@ export function SettingsEmailVerification() {
       <div className='mb-3'>
         <div className='flex items-center gap-2'>
           <IconMailFilled className='h-5 w-5 shrink-0 text-muted-foreground' />
-          <p className='text-sm font-semibold'>Email verification</p>
+          <p className='text-sm font-semibold'>{t("emailVerification")}</p>
         </div>
-        <p className='mt-0.5 text-xs text-muted-foreground'>
-          Verify your email to secure your account.
-        </p>
+        <p className='mt-0.5 text-xs text-muted-foreground'>{t("emailVerifyDesc")}</p>
       </div>
 
       {!emailSent ? (
@@ -62,10 +60,10 @@ export function SettingsEmailVerification() {
             disabled={sendPending || sendCooldown > 0}
           >
             {sendPending
-              ? "Sending…"
+              ? t("2faSending")
               : sendCooldown > 0
-                ? `Try again in ${sendCooldown}s`
-                : "Send verification email"}
+                ? t("2faTryAgain", { seconds: sendCooldown })
+                : t("emailSendBtn")}
           </Button>
         </form>
       ) : (
@@ -73,13 +71,13 @@ export function SettingsEmailVerification() {
           <FieldSet>
             <FieldGroup>
               <Field>
-                <Label htmlFor='verify-token'>Paste the verification token from the email</Label>
+                <Label htmlFor='verify-token'>{t("emailPasteToken")}</Label>
                 <InputGroup>
                   <InputGroupInput
                     id='verify-token'
                     name='token'
                     type='text'
-                    placeholder='Paste token here'
+                    placeholder={t("emailPasteTokenPlaceholder")}
                     required
                   />
                 </InputGroup>
@@ -91,7 +89,7 @@ export function SettingsEmailVerification() {
               )}
               <Field>
                 <Button type='submit' size='lg' disabled={verifyPending}>
-                  {verifyPending ? "Verifying…" : "Verify email"}
+                  {verifyPending ? t("emailVerifying") : t("emailVerifyBtn")}
                 </Button>
               </Field>
             </FieldGroup>

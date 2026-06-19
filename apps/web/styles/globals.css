@@ -145,6 +145,11 @@
   html {
     @apply font-sans;
   }
+
+  .container-center {
+    max-width: var(--container-3xl);
+    margin: 0 auto;
+  }
 }
 
 @keyframes ring {
@@ -176,4 +181,12 @@
   100% {
     transform: rotate(0deg);
   }
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  transition: background-color 9999s ease-in-out 0s;
+  -webkit-text-fill-color: #0f172a; /* Aligné sur la couleur de ton texte (ex: text-slate-900) */
 }

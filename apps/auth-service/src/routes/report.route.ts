@@ -6,6 +6,7 @@ import { requirePermission } from "../middlewares/roles.middleware"
 import { validate } from "../middlewares/validate.middleware"
 import { PERMISSIONS } from "../constants/permissions"
 import { createReportSchema, reportIdParamSchema } from "../schemas/report.schema"
+import { writeLimit } from "../middlewares/rate-limit.middleware"
 
 function createReportRouter(
   reportController: ReportController = new ReportController(new ReportService())
@@ -15,6 +16,7 @@ function createReportRouter(
   router.post(
     "/",
     identity,
+    writeLimit,
     requirePermission(PERMISSIONS.REPORT_CREATE),
     validate(createReportSchema),
     reportController.createReport
@@ -23,6 +25,7 @@ function createReportRouter(
   router.patch(
     "/:id/resolve",
     identity,
+    writeLimit,
     requirePermission(PERMISSIONS.REPORT_RESOLVE),
     validate(reportIdParamSchema, "params"),
     reportController.resolveReport

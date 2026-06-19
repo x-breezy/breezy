@@ -1,3 +1,4 @@
+import React from "react"
 import { Button, Section, Text } from "react-email"
 import { Layout } from "../layouts/layout"
 

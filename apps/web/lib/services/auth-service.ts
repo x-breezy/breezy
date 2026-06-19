@@ -51,3 +51,15 @@ export function disableTwoFactor(authHeader: Record<string, string>) {
 export function getMe(authHeader: Record<string, string>) {
   return serverClient.get("/api/users/me", { headers: authHeader })
 }
+
+export function googleAuth(code: string, codeVerifier: string, redirectUri: string) {
+  return serverClient.post("/api/auth/google", { code, codeVerifier, redirectUri })
+}
+
+export function completeGoogleAuth(pendingToken: string, username: string) {
+  return serverClient.post("/api/auth/google/complete", { pendingToken, username })
+}
+
+export function notifyProfileCreated(refreshToken: string) {
+  return serverClient.post("/api/auth/profile-created", { refreshToken })
+}

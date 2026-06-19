@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils"
 import Link from "next/link"
+import { useTranslations } from "next-intl"
 
 interface BioMentionProps {
   username: string
@@ -14,15 +15,15 @@ function BioMention({ username }: BioMentionProps) {
 }
 
 interface ProfileBioProps {
-  title?: string
   children: React.ReactNode
   className?: string
 }
 
-export function ProfileBio({ title = "Biography", children, className }: ProfileBioProps) {
+export function ProfileBio({ children, className }: ProfileBioProps) {
+  const t = useTranslations("profilePage")
   return (
     <section className={cn("space-y-2", className)}>
-      <h2 className='text-lg font-semibold'>{title}</h2>
+      <h2 className='text-lg font-semibold'>{t("biographyTitle")}</h2>
       <p className='leading-relaxed text-muted-foreground'>{children}</p>
     </section>
   )

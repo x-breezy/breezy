@@ -1,19 +1,21 @@
 "use client"
 
 import { useRouter, useSearchParams } from "next/navigation"
+import { useTranslations } from "next-intl"
 import { IconFileText, IconUser, IconPhoto } from "@tabler/icons-react"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { parseTab, type Tab } from "./types"
 
-const TABS: { key: Tab; label: string; icon: React.ReactNode }[] = [
-  { key: "posts", label: "Posts", icon: <IconFileText size={16} /> },
-  { key: "people", label: "People", icon: <IconUser size={16} /> },
-  { key: "media", label: "Media", icon: <IconPhoto size={16} /> },
+const TABS: { key: Tab; labelKey: string; icon: React.ReactNode }[] = [
+  { key: "posts", labelKey: "tabPosts", icon: <IconFileText size={16} /> },
+  { key: "people", labelKey: "tabPeople", icon: <IconUser size={16} /> },
+  { key: "media", labelKey: "tabMedia", icon: <IconPhoto size={16} /> },
 ]
 
 export function SearchTabs() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const t = useTranslations("search")
   const activeTab = parseTab(searchParams.get("tab"))
 
   function setTab(tab: string) {
@@ -23,12 +25,16 @@ export function SearchTabs() {
   }
 
   return (
-    <Tabs value={activeTab} onValueChange={setTab} className='sticky top-15 z-10 bg-background'>
+    <Tabs
+      value={activeTab}
+      onValueChange={setTab}
+      className='container-center sticky top-15 z-10 bg-background'
+    >
       <TabsList variant='line' className='w-full'>
-        {TABS.map((t) => (
-          <TabsTrigger key={t.key} value={t.key} className='flex-1'>
-            {t.icon}
-            {t.label}
+        {TABS.map((tabItem) => (
+          <TabsTrigger key={tabItem.key} value={tabItem.key} className='flex-1'>
+            {tabItem.icon}
+            {t(tabItem.labelKey)}
           </TabsTrigger>
         ))}
       </TabsList>

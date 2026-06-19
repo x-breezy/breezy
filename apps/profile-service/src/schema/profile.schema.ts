@@ -1,7 +1,6 @@
 import { z } from "zod"
 
 export const createProfileSchema = z.object({
-  profileId: z.string().uuid(),
   username: z.string().max(100),
   firstName: z.string().max(100).nullable().optional(),
   lastName: z.string().max(100).nullable().optional(),
@@ -22,6 +21,10 @@ export const followSchema = z.object({
 
 export const profileIdParamSchema = z.object({
   profileId: z.string().uuid(),
+})
+
+export const usernameParamSchema = z.object({
+  username: z.string().max(100),
 })
 
 export type CreateProfileDTO = z.infer<typeof createProfileSchema>

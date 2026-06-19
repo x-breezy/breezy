@@ -1,6 +1,7 @@
 import { LikeModel } from "../models/like.model"
 import { PostModel } from "../models/post.model"
 import { publish } from "../clients/rabbitmq"
+import { getActorProfile } from "../clients/grpc.client"
 
 export class LikeService {
   async like(postId: string, userId: string): Promise<{ alreadyLiked: boolean; nb: number }> {
@@ -17,13 +18,28 @@ export class LikeService {
     ).exec()
     if (!post) throw Object.assign(new Error("Post not found"), { code: "POST_NOT_FOUND" })
     if (post.authorId !== userId) {
-      void publish("content.like", { actorId: userId, targetUserId: post.authorId, postId })
+      const [actorProfile, authorProfile] = await Promise.all([
+        getActorProfile(userId),
+        getActorProfile(post.authorId),
+      ])
+      if (authorProfile?.role === "moderator" || authorProfile?.role === "admin") {
+        return { alreadyLiked: false, nb: post.likesCount }
+      }
+      void publish("content.like", {
+        actorId: userId,
+        targetUserId: post.authorId,
+        postId,
+        username: actorProfile?.username,
+        avatarId: actorProfile?.avatarId,
+      })
     }
     return { alreadyLiked: false, nb: post.likesCount }
   }
 
   async getLikedPostIds(userId: string, postIds: string[]): Promise<string[]> {
-    const docs = await LikeModel.find({ userId, postId: { $in: postIds } }).select("postId").exec()
+    const docs = await LikeModel.find({ userId, postId: { $in: postIds } })
+      .select("postId")
+      .exec()
     return docs.map((d) => d.postId)
   }
 

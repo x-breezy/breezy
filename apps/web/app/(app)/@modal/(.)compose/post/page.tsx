@@ -1,7 +1,7 @@
 "use client"
 
+import { PostComposeDialog } from "@/components/post/create-post/post-compose-dialog"
 import { useRouter } from "next/navigation"
-import { PostComposeDialog } from "@/components/post/PostComposeDialog"
 
 export default function PostModal() {
   const router = useRouter()

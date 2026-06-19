@@ -1,6 +1,7 @@
 "use client"
 
 import { useRef, useActionState, useState, useEffect } from "react"
+import { useTranslations } from "next-intl"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -10,7 +11,7 @@ import { Field, FieldGroup, FieldSet } from "@/components/ui/field"
 import { IconCamera, IconUpload } from "@tabler/icons-react"
 import { ProfileAvatar } from "@/components/profile/profile-avatar"
 import { useUserStore } from "@/stores/user-store"
-import { updateProfileAction, type UpdateProfileState } from "@/app/(app)/my-profile/actions"
+import { updateProfileAction, type UpdateProfileState } from "@/lib/actions/profile"
 import type { Profile } from "@/types/profile"
 
 interface ProfileEditScreenProps {
@@ -19,6 +20,7 @@ interface ProfileEditScreenProps {
 }
 
 export default function ProfileEditScreen({ profile, onClose }: ProfileEditScreenProps) {
+  const t = useTranslations("profilePage")
   const [state, formAction, isPending] = useActionState<UpdateProfileState | null, FormData>(
     updateProfileAction,
     null
@@ -30,6 +32,7 @@ export default function ProfileEditScreen({ profile, onClose }: ProfileEditScree
       setProfile(state.profile)
       onClose()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state?.success])
 
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -54,7 +57,7 @@ export default function ProfileEditScreen({ profile, onClose }: ProfileEditScree
           type='button'
           onClick={() => fileInputRef.current?.click()}
           className='group relative h-24 w-24 overflow-hidden rounded-full border-2 border-dashed border-border bg-muted transition-colors hover:border-foreground/40 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none'
-          aria-label='Upload profile photo'
+          aria-label={t("uploadPhoto")}
         >
           {preview ? (
             <Image src={preview} alt='Avatar preview' fill className='object-cover' />
@@ -68,14 +71,14 @@ export default function ProfileEditScreen({ profile, onClose }: ProfileEditScree
           ) : (
             <span className='flex h-full w-full flex-col items-center justify-center gap-1 text-muted-foreground'>
               <IconCamera size={24} />
-              <span className='text-[10px] font-medium'>Add photo</span>
+              <span className='text-[10px] font-medium'>{t("addPhoto")}</span>
             </span>
           )}
           <span className='absolute inset-0 flex items-center justify-center rounded-full bg-black/50 opacity-0 transition-opacity group-hover:opacity-100'>
             <IconUpload size={20} className='text-white' />
           </span>
         </button>
-        <p className='text-xs text-muted-foreground'>Change photo</p>
+        <p className='text-xs text-muted-foreground'>{t("changePhoto")}</p>
       </div>
 
       <form action={formAction} className='flex flex-col gap-6'>
@@ -93,24 +96,24 @@ export default function ProfileEditScreen({ profile, onClose }: ProfileEditScree
           <FieldGroup>
             <div className='grid grid-cols-2 gap-3'>
               <Field>
-                <Label htmlFor='firstName'>First name</Label>
+                <Label htmlFor='firstName'>{t("firstName")}</Label>
                 <Input
                   id='firstName'
                   name='firstName'
                   type='text'
-                  placeholder='Sam'
+                  placeholder={t("firstNamePlaceholder")}
                   autoComplete='given-name'
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
                 />
               </Field>
               <Field>
-                <Label htmlFor='lastName'>Last name</Label>
+                <Label htmlFor='lastName'>{t("lastName")}</Label>
                 <Input
                   id='lastName'
                   name='lastName'
                   type='text'
-                  placeholder='Altman'
+                  placeholder={t("lastNamePlaceholder")}
                   autoComplete='family-name'
                   value={lastName}
                   onChange={(e) => setLastName(e.target.value)}
@@ -119,11 +122,11 @@ export default function ProfileEditScreen({ profile, onClose }: ProfileEditScree
             </div>
 
             <Field>
-              <Label htmlFor='bio'>Bio</Label>
+              <Label htmlFor='bio'>{t("bio")}</Label>
               <Textarea
                 id='bio'
                 name='bio'
-                placeholder='Tell people a little about yourself…'
+                placeholder={t("bioPlaceholder")}
                 rows={3}
                 className='resize-none'
                 value={bio}
@@ -137,10 +140,10 @@ export default function ProfileEditScreen({ profile, onClose }: ProfileEditScree
 
         <div className='flex flex-col gap-3'>
           <Button type='submit' size='lg' disabled={isPending}>
-            {isPending ? "Saving…" : "Save changes"}
+            {isPending ? t("saving") : t("saveChanges")}
           </Button>
           <Button type='button' variant='outline' size='lg' onClick={onClose}>
-            Cancel
+            {t("cancel")}
           </Button>
         </div>
       </form>

@@ -7,7 +7,7 @@ import type {
 } from "../schemas/notification.schema"
 
 // sseService is injected here rather than into NotificationService to keep the service
-// layer free of HTTP concerns — notifications push on create, stream registers on request
+// layer free of HTTP concerns, notifications push on create, stream registers on request
 
 class NotificationController {
   private notificationService: NotificationService

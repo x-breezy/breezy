@@ -18,7 +18,7 @@ function createTransport() {
 }
 
 const FROM = process.env.SMTP_FROM ?? "Breezy <noreply@breezy.clementomnes.dev>"
-const APP_URL = process.env.APP_URL ?? "http://localhost:3000"
+const FRONTEND_URL = process.env.FRONTEND_URL ?? "http://localhost:3000"
 
 /** Best-effort display name: explicit username, else the local-part of the email. */
 function displayName(event: { username?: string; email: string }): string {
@@ -27,10 +27,10 @@ function displayName(event: { username?: string; email: string }): string {
 
 class EmailService {
   async sendEmailVerification(event: AuthEmailVerificationEvent): Promise<void> {
-    const url = event.verifyUrl ?? `${APP_URL}/verify-email?token=${event.token}`
+    const url = event.verifyUrl ?? `${FRONTEND_URL}/verify-email?token=${event.token}`
     const html = await renderVerificationEmail({
       url,
-      appUrl: APP_URL,
+      appUrl: FRONTEND_URL,
       user: { name: displayName(event) },
     })
     await createTransport().sendMail({
@@ -42,10 +42,10 @@ class EmailService {
   }
 
   async sendForgotPassword(event: AuthForgotPasswordEvent): Promise<void> {
-    const url = event.resetUrl ?? `${APP_URL}/reset-password?token=${event.resetToken}`
+    const url = event.resetUrl ?? `${FRONTEND_URL}/reset-password?token=${event.resetToken}`
     const html = await renderResetPasswordEmail({
       url,
-      appUrl: APP_URL,
+      appUrl: FRONTEND_URL,
       user: { name: displayName(event) },
     })
     await createTransport().sendMail({
@@ -59,7 +59,7 @@ class EmailService {
   async send2FACode(event: Auth2FAEvent): Promise<void> {
     const html = await renderOTPEmail({
       otp: event.code,
-      appUrl: APP_URL,
+      appUrl: FRONTEND_URL,
       user: { name: displayName(event) },
     })
     await createTransport().sendMail({

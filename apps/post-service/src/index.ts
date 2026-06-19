@@ -1,9 +1,10 @@
-import { createLogger } from "@breezy/logger"
+import { createLogger, registerProcessHandlers } from "@breezy/logger"
 import { createApp } from "./app"
 import { connect } from "./config/database"
 import { connectRabbitMQ } from "./clients/rabbitmq"
 
 const logger = createLogger({ service: "post-service" })
+registerProcessHandlers(logger)
 
 const app = createApp()
 const port = process.env.PORT ?? 4040
@@ -15,8 +16,12 @@ async function start(): Promise<void> {
 
   await connectRabbitMQ()
 
-  app.listen(port, () => {
+  const server = app.listen(port, () => {
     logger.info({ port }, "Post service listening")
+  })
+
+  process.on("SIGTERM", () => {
+    server.close(() => process.exit(0))
   })
 }
 

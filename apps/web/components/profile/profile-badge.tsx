@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils"
-import { ModeratorBadge } from "@/components/badges/moderator-badge"
-import { AdminBadge } from "@/components/badges/admin-badge"
+import { ModeratorBadge } from "@/components/shared/badges/moderator-badge"
+import { AdminBadge } from "@/components/shared/badges/admin-badge"
 import { UserRole } from "@/lib/auth/role"
 
 interface ProfileBadgesProps {
@@ -18,13 +18,13 @@ export function ProfileBadges({ role, className }: ProfileBadgesProps) {
   }
 
   return (
-    <div className='flex items-center'>
-      <div className='z-20'>
+    <span className='inline-flex items-center'>
+      <span className='z-20'>
         <AdminBadge className={cn("size-6", className)} />
-      </div>
-      <div className='z-10 -ml-3'>
+      </span>
+      <span className='z-10 -ml-3'>
         <ModeratorBadge className={cn("size-6", className)} />
-      </div>
-    </div>
+      </span>
+    </span>
   )
 }

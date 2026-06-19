@@ -2,10 +2,15 @@
 
 import { useActionState, useEffect, useTransition } from "react"
 import { useRouter } from "next/navigation"
+import { useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { IconUserFilled } from "@tabler/icons-react"
-import { setupProfileAction } from "@/app/(auth)/sign-up/actions"
+
+interface ActionState {
+  error: string | null
+  success?: boolean
+}
 
 interface WelcomeStepProps {
   avatar: File | null
@@ -13,12 +18,21 @@ interface WelcomeStepProps {
   firstName: string
   lastName: string
   bio: string
+  setupAction: (_prev: ActionState | null, formData: FormData) => Promise<ActionState>
 }
 
-export function WelcomeStep({ avatar, avatarPreview, firstName, lastName, bio }: WelcomeStepProps) {
-  const [state, action, isPending] = useActionState(setupProfileAction, null)
+export function WelcomeStep({
+  avatar,
+  avatarPreview,
+  firstName,
+  lastName,
+  bio,
+  setupAction,
+}: WelcomeStepProps) {
+  const [state, action, isPending] = useActionState(setupAction, null)
   const [, startTransition] = useTransition()
   const router = useRouter()
+  const t = useTranslations("auth")
 
   const displayName = [firstName, lastName].filter(Boolean).join(" ") || null
 
@@ -54,11 +68,9 @@ export function WelcomeStep({ avatar, avatarPreview, firstName, lastName, bio }:
 
         <div className='flex flex-col gap-1.5'>
           <p className='text-xl font-semibold tracking-tight text-foreground'>
-            {displayName ? `Welcome to Breezy, ${displayName}` : "Welcome to Breezy"}
+            {displayName ? `${t("welcome")}, ${displayName}` : t("welcome")}
           </p>
-          <p className='text-sm text-muted-foreground'>
-            Your account is ready. Start exploring and share your world.
-          </p>
+          <p className='text-sm text-muted-foreground'>{t("accountReadyDesc")}</p>
         </div>
       </div>
 
@@ -66,7 +78,7 @@ export function WelcomeStep({ avatar, avatarPreview, firstName, lastName, bio }:
 
       <form onSubmit={handleSubmit} className='flex w-full flex-col gap-2'>
         <Button size='lg' className='w-full' type='submit' disabled={isPending}>
-          {isPending ? "Setting up…" : "Get started"}
+          {isPending ? t("settingUp") : t("getStarted")}
         </Button>
       </form>
     </div>

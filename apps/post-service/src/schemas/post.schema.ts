@@ -6,9 +6,17 @@ const mediaRefSchema = z.object({
 })
 
 export const createPostSchema = z.object({
-  content: z.string().min(1),
+  content: z.string().min(1).max(250),
   tags: z.array(z.string()).optional(),
+  mentions: z.array(z.string().uuid()).optional(),
+  media: z.array(mediaRefSchema).optional(),
+  parentId: z.string().optional(),
+})
+
+export const updatePostSchema = z.object({
+  content: z.string().min(1).max(250),
   media: z.array(mediaRefSchema).optional(),
 })
 
 export type CreatePostDTO = z.infer<typeof createPostSchema>
+export type UpdatePostDTO = z.infer<typeof updatePostSchema>

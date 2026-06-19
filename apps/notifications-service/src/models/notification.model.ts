@@ -1,6 +1,6 @@
 import { Schema, model, type Document } from "mongoose"
 
-export type NotificationType = "follow" | "like" | "mention"
+export type NotificationType = "follow" | "like" | "mention" | "comment" | "reply"
 
 export interface INotification extends Document {
   userId: string
@@ -13,7 +13,7 @@ export interface INotification extends Document {
 const notificationSchema = new Schema<INotification>(
   {
     userId: { type: String, required: true },
-    type: { type: String, enum: ["follow", "like", "mention"], required: true },
+    type: { type: String, enum: ["follow", "like", "mention", "comment"], required: true },
     read: { type: Boolean, default: false },
     payload: { type: Schema.Types.Mixed, required: true },
   },

@@ -25,12 +25,16 @@ export interface Auth2FAEvent {
 export interface SocialFollowEvent {
   followerId: string
   followingId: string
+  username?: string
+  avatarId?: string
 }
 
 export interface ContentLikeEvent {
   actorId: string
   targetUserId: string
   postId: string
+  username?: string
+  avatarId?: string
 }
 
 export interface ContentMentionEvent {
@@ -38,6 +42,17 @@ export interface ContentMentionEvent {
   targetUserId: string
   postId: string
   commentId?: string
+  username?: string
+  avatarId?: string
+}
+
+export interface ContentReplyEvent {
+  actorId: string
+  targetUserId: string
+  postId: string
+  replyPostId: string
+  username?: string
+  avatarId?: string
 }
 
 export type BreezyEvent =
@@ -47,3 +62,4 @@ export type BreezyEvent =
   | SocialFollowEvent
   | ContentLikeEvent
   | ContentMentionEvent
+  | ContentReplyEvent

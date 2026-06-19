@@ -3,10 +3,12 @@ import AuthController from "../controllers/auth.controller"
 import UserService from "../services/user.service"
 import AuthService from "../services/auth.service"
 import { validate } from "../middlewares/validate.middleware"
+import { identity } from "../middlewares/identity.middleware"
 import {
   emailSendRateLimit,
   authenticatedEmailRateLimit,
 } from "../middlewares/email-rate-limit.middleware"
+import { strictLimit, authWriteLimit } from "../middlewares/rate-limit.middleware"
 import {
   signInSchema,
   signUpSchema,
@@ -19,6 +21,7 @@ import {
   twoFactorVerifyLoginSchema,
   twoFactorResendLoginSchema,
   twoFactorEnableSchema,
+  googleCompleteSchema,
 } from "../schemas/auth.schema"
 
 function createAuthRouter(
@@ -26,13 +29,13 @@ function createAuthRouter(
 ): Router {
   const router = Router()
 
-  router.post("/sign-in", validate(signInSchema), authController.signIn)
-  router.post("/sign-up", validate(signUpSchema), authController.signUp)
+  router.post("/sign-in", strictLimit, validate(signInSchema), authController.signIn)
+  router.post("/sign-up", strictLimit, validate(signUpSchema), authController.signUp)
   router.get("/validate", authController.validate)
-  router.post("/refresh", validate(refreshSchema), authController.refresh)
-  router.post("/logout", validate(logoutSchema), authController.logout)
+  router.post("/refresh", authWriteLimit, validate(refreshSchema), authController.refresh)
+  router.post("/logout", authWriteLimit, validate(logoutSchema), authController.logout)
 
-  router.post("/verify-email", validate(verifyEmailSchema), authController.verifyEmail)
+  router.post("/verify-email", strictLimit, validate(verifyEmailSchema), authController.verifyEmail)
   router.post(
     "/resend-verification",
     emailSendRateLimit,
@@ -45,10 +48,24 @@ function createAuthRouter(
     validate(forgotPasswordSchema),
     authController.forgotPassword
   )
-  router.post("/reset-password", validate(resetPasswordSchema), authController.resetPassword)
+  router.post(
+    "/reset-password",
+    authenticatedEmailRateLimit,
+    validate(resetPasswordSchema),
+    authController.resetPassword
+  )
+  router.get("/google", authWriteLimit, authController.googleRedirect)
+  router.get("/google/callback", authWriteLimit, authController.googleCallback)
+  router.post(
+    "/google/complete",
+    authWriteLimit,
+    validate(googleCompleteSchema),
+    authController.googleComplete
+  )
 
   router.post(
     "/2fa/verify-login",
+    strictLimit,
     validate(twoFactorVerifyLoginSchema),
     authController.twoFactorVerifyLogin
   )
@@ -58,9 +75,24 @@ function createAuthRouter(
     validate(twoFactorResendLoginSchema),
     authController.twoFactorResendLoginCode
   )
-  router.post("/2fa/send-code", authenticatedEmailRateLimit, authController.twoFactorSendCode)
-  router.post("/2fa/enable", validate(twoFactorEnableSchema), authController.twoFactorEnable)
-  router.post("/2fa/disable", authController.twoFactorDisable)
+  router.post(
+    "/2fa/send-code",
+    identity,
+    authenticatedEmailRateLimit,
+    authController.twoFactorSendCode
+  )
+  router.post(
+    "/2fa/enable",
+    identity,
+    strictLimit,
+    validate(twoFactorEnableSchema),
+    authController.twoFactorEnable
+  )
+  router.post("/2fa/disable", identity, strictLimit, authController.twoFactorDisable)
+
+  router.post("/profile-created", authController.profileCreated)
+
+  router.post("/profile-created", authController.profileCreated)
 
   return router
 }

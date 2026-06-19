@@ -31,7 +31,7 @@ class VideoController {
 
   /**
    * Stream the raw video bytes with HTTP range support.
-   * Sends raw bytes (not ApiResponse) — same pattern as image GET.
+   * Sends raw bytes (not ApiResponse), same pattern as image GET.
    */
   getStream = async (
     req: Request<{ id: string }>,

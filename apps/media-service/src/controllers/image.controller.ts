@@ -36,8 +36,7 @@ class ImageController {
         ownerId: req.user.id,
       })
 
-      // Strip bytes from response; clients fetch raw bytes via GET /:id.
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      // Remove binary data from response
       const { data: _bytes, ...meta } = image
       res.status(201).json({ success: true, data: meta, message: "Image uploaded successfully" })
     } catch (err) {
@@ -78,7 +77,7 @@ class ImageController {
         return
       }
 
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      // Remove binary data from response
       const { data: _bytes, ...meta } = image
       res
         .status(200)

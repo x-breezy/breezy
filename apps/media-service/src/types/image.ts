@@ -12,7 +12,7 @@ export interface Image {
   updatedAt: Date
 }
 
-/** IImage without the raw bytes — safe to serialize as JSON. */
+/** IImage without the raw bytes, safe to serialize as JSON. */
 export type ImageMeta = Omit<Image, "data">
 
 export interface ImageUploadDTO {

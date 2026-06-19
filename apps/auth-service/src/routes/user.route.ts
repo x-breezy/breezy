@@ -5,7 +5,8 @@ import { validate } from "../middlewares/validate.middleware"
 import { identity } from "../middlewares/identity.middleware"
 import { requirePermission, requireSelfOrPermission } from "../middlewares/roles.middleware"
 import { PERMISSIONS } from "../constants/permissions"
-import { createUserSchema, updatePasswordSchema, userIdParamSchema, usernameParamSchema } from "../schemas/user.schema"
+import { createUserSchema, updatePasswordSchema, userIdParamSchema } from "../schemas/user.schema"
+import { readLimit, writeLimit, searchLimit } from "../middlewares/rate-limit.middleware"
 
 function createUserRouter(
   userController: UserController = new UserController(new UserService())
@@ -15,12 +16,19 @@ function createUserRouter(
   router.post(
     "/",
     identity,
+    writeLimit,
     requirePermission(PERMISSIONS.USER_CREATE),
     validate(createUserSchema),
     userController.createUser
   )
-  router.get("/search", identity, userController.search)
-  router.get("/me", identity, requirePermission(PERMISSIONS.USER_ME), userController.getMe)
+  router.get("/search", identity, searchLimit, userController.search)
+  router.get(
+    "/me",
+    identity,
+    readLimit,
+    requirePermission(PERMISSIONS.USER_ME),
+    userController.getMe
+  )
   router.get(
     "/by-username/:username",
     identity,
@@ -31,6 +39,7 @@ function createUserRouter(
   router.get(
     "/:id",
     identity,
+    readLimit,
     requirePermission(PERMISSIONS.USER_READ),
     validate(userIdParamSchema, "params"),
     userController.getUserById
@@ -38,6 +47,7 @@ function createUserRouter(
   router.patch(
     "/:id/ban",
     identity,
+    writeLimit,
     requirePermission(PERMISSIONS.USER_BAN),
     validate(userIdParamSchema, "params"),
     userController.banUser
@@ -45,6 +55,7 @@ function createUserRouter(
   router.patch(
     "/:id/suspend",
     identity,
+    writeLimit,
     requirePermission(PERMISSIONS.USER_SUSPEND),
     validate(userIdParamSchema, "params"),
     userController.suspendUser
@@ -52,6 +63,7 @@ function createUserRouter(
   router.patch(
     "/:id/password",
     identity,
+    writeLimit,
     requireSelfOrPermission("id"),
     validate(userIdParamSchema, "params"),
     validate(updatePasswordSchema),

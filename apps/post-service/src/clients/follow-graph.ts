@@ -4,7 +4,10 @@ import * as grpc from "@grpc/grpc-js"
 import * as protoLoader from "@grpc/proto-loader"
 import path from "path"
 
-const PROTO_PATH = path.resolve(__dirname, "../config/data/post.service.proto")
+const PROTO_PATH = path.resolve(
+  __dirname,
+  "../../../profile-service/src/config/data/profile.data.proto"
+)
 const packageDefinition = protoLoader.loadSync(PROTO_PATH, {
   keepCase: true,
   longs: String,

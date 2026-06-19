@@ -2,13 +2,13 @@ import { Router } from "express"
 import { PostController } from "../controllers/post.controller"
 import { PostService } from "../services/post.service"
 import { identity } from "../middlewares/identity.middleware"
-import { requireSelfOrPermission, requireOwnership } from "../middlewares/roles.middleware"
+import { requireOwnership } from "../middlewares/roles.middleware"
 import { validate } from "../middlewares/validate.middleware"
-import { createPostSchema } from "../schemas/post.schema"
+import { createPostSchema, updatePostSchema } from "../schemas/post.schema"
+import { readLimit, writeLimit, searchLimit } from "../middlewares/rate-limit.middleware"
 import { PERMISSIONS } from "../constants/permissions"
 import { PostModel } from "../models/post.model"
 import { createLikeRouter } from "./like.route"
-import { createCommentRouter } from "./comment.route"
 import { LikeController } from "../controllers/like.controller"
 import { LikeService } from "../services/like.service"
 
@@ -19,21 +19,30 @@ export function createPostRouter(
   const router = Router()
 
   // Static routes BEFORE /:id to avoid param-route swallowing
-  router.post("/", identity, validate(createPostSchema), controller.create)
-  router.get("/feed", identity, controller.getFeed)
-  router.get("/search", identity, controller.search)
-  router.get("/trending-tags", identity, controller.trendingTags)
-  router.get("/liked-by-me", identity, likeController.getMyLikes)
-  router.get(
-    "/users/:userId",
+  router.post("/", identity, writeLimit, validate(createPostSchema), controller.create)
+  router.get("/feed", identity, readLimit, controller.getFeed)
+  router.get("/search", identity, searchLimit, controller.search)
+  router.get("/trending-tags", identity, readLimit, controller.trendingTags)
+  router.get("/liked-by-me", identity, readLimit, likeController.getMyLikes)
+  router.get("/users/:userId", identity, readLimit, controller.getUserPosts)
+  router.get("/:id/detail", identity, readLimit, controller.getDetail)
+  router.get("/:id/replies", identity, readLimit, controller.getReplies)
+  router.get("/:id", identity, readLimit, controller.getOne)
+  router.patch(
+    "/:id",
     identity,
-    requireSelfOrPermission("userId", PERMISSIONS.POST_READ_ANY),
-    controller.getUserPosts
+    writeLimit,
+    requireOwnership(
+      (req) => PostModel.findById(req.params.id).exec(),
+      PERMISSIONS.POST_UPDATE_ANY
+    ),
+    validate(updatePostSchema),
+    controller.update
   )
-  router.get("/:id", identity, controller.getOne)
   router.delete(
     "/:id",
     identity,
+    writeLimit,
     requireOwnership(
       (req) => PostModel.findById(req.params.id).exec(),
       PERMISSIONS.POST_DELETE_ANY
@@ -41,9 +50,8 @@ export function createPostRouter(
     controller.delete
   )
 
-  // Sub-resources — mergeParams in child routers gives them access to :postId
+  // Sub-resources, mergeParams in child routers gives them access to :postId
   router.use("/:postId/likes", createLikeRouter())
-  router.use("/:postId/comments", createCommentRouter())
 
   return router
 }
@@ -116,7 +124,7 @@ export function createPostRouter(
  *       Returns posts from users the authenticated viewer follows, sorted newest first, paginated.
  *       The viewer's own posts are always included. Follow graph is resolved server-side from
  *       user-service (GET /users/:id/following). Falls back to a global chronological feed when
- *       user-service is unavailable — the endpoint never errors due to follow-graph failures.
+ *       user-service is unavailable, the endpoint never errors due to follow-graph failures.
  *     tags: [Posts]
  *     parameters:
  *       - in: query

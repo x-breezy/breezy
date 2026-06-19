@@ -1,6 +1,7 @@
 "use client"
 
 import { useActionState } from "react"
+import { useTranslations } from "next-intl"
 import { useCooldown } from "@/hooks/use-cooldown"
 import { Button } from "@/components/ui/button"
 import { Field, FieldGroup, FieldSet } from "@/components/ui/field"
@@ -10,11 +11,12 @@ import {
   twoFactorSendCodeAction,
   twoFactorEnableAction,
   twoFactorDisableAction,
-} from "@/app/(app)/settings/actions"
+} from "@/lib/actions/settings"
 import { IconShieldLockFilled } from "@tabler/icons-react"
 import { useUserStore } from "@/stores/user-store"
 
 export function SettingsTwoFactor() {
+  const t = useTranslations("settings")
   const enabled = useUserStore((s) => s.user)?.twoFactorEnabled
 
   const [sendState, sendAction, sendPending] = useActionState(twoFactorSendCodeAction, null)
@@ -28,11 +30,9 @@ export function SettingsTwoFactor() {
         <div className='mb-3'>
           <div className='flex items-center gap-2'>
             <IconShieldLockFilled className='h-5 w-5 shrink-0 text-muted-foreground' />
-            <p className='text-sm font-semibold'>Two-factor authentication</p>
+            <p className='text-sm font-semibold'>{t("2faTitle")}</p>
           </div>
-          <p className='mt-0.5 text-xs text-muted-foreground'>
-            2FA is currently enabled on your account.
-          </p>
+          <p className='mt-0.5 text-xs text-muted-foreground'>{t("2faEnabledDesc")}</p>
         </div>
         <form action={disableAction}>
           {disableState?.error && (
@@ -41,7 +41,7 @@ export function SettingsTwoFactor() {
             </div>
           )}
           <Button type='submit' variant='destructive' size='lg' disabled={disablePending}>
-            {disablePending ? "Disabling…" : "Disable 2FA"}
+            {disablePending ? t("2faDisabling") : t("2faDisable")}
           </Button>
         </form>
       </div>
@@ -55,11 +55,9 @@ export function SettingsTwoFactor() {
       <div className='mb-3'>
         <div className='flex items-center gap-2'>
           <IconShieldLockFilled className='h-5 w-5 shrink-0 text-muted-foreground' />
-          <p className='text-sm font-semibold'>Two-factor authentication</p>
+          <p className='text-sm font-semibold'>{t("2faTitle")}</p>
         </div>
-        <p className='mt-0.5 text-xs text-muted-foreground'>
-          Add an extra layer of security to your account.
-        </p>
+        <p className='mt-0.5 text-xs text-muted-foreground'>{t("2faDesc")}</p>
       </div>
 
       {!codeSent ? (
@@ -76,10 +74,10 @@ export function SettingsTwoFactor() {
             disabled={sendPending || sendCooldown > 0}
           >
             {sendPending
-              ? "Sending…"
+              ? t("2faSending")
               : sendCooldown > 0
-                ? `Try again in ${sendCooldown}s`
-                : "Enable 2FA"}
+                ? t("2faTryAgain", { seconds: sendCooldown })
+                : t("2faEnable")}
           </Button>
         </form>
       ) : (
@@ -87,7 +85,7 @@ export function SettingsTwoFactor() {
           <FieldSet>
             <FieldGroup>
               <Field>
-                <Label htmlFor='2fa-code'>Enter the code sent to your email</Label>
+                <Label htmlFor='2fa-code'>{t("2faEnterCode")}</Label>
                 <InputGroup>
                   <InputGroupInput
                     id='2fa-code'
@@ -108,7 +106,7 @@ export function SettingsTwoFactor() {
               )}
               <Field>
                 <Button type='submit' size='lg' disabled={enablePending}>
-                  {enablePending ? "Confirming…" : "Confirm"}
+                  {enablePending ? t("2faConfirming") : t("2faConfirm")}
                 </Button>
               </Field>
             </FieldGroup>

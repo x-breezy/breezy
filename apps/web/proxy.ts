@@ -5,18 +5,21 @@ import { ACCESS_COOKIE, REFRESH_COOKIE } from "@/lib/auth/auth-cookies"
 const API_URL = process.env.API_URL ?? "http://localhost"
 
 const MAX_AGE = 60 * 60 * 24 * 7
-const AUTH_PATHS = ["/sign-in", "/sign-up", "/verify-email", "/forgot-password", "/reset-password"]
 
-async function validateToken(token: string): Promise<boolean> {
-  try {
-    const res = await fetch(`${API_URL}/api/auth/validate`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-    return res.ok
-  } catch {
-    return false
-  }
-}
+// Authenticated users are redirected away from these paths (unless server action)
+const AUTH_ONLY_PATHS = [
+  "/sign-in",
+  "/sign-up",
+  "/forgot-password",
+  "/two-factor",
+  "/google-username",
+]
+
+// Always accessible regardless of auth state (token-based flows work for both auth states)
+const ALWAYS_ACCESSIBLE = ["/verify-email", "/reset-password", "/terms", "/privacy"]
+
+// Paths that require auth but are accessible even without a profile (to avoid redirect loops)
+const ONBOARDING_PATHS = ["/onboarding"]
 
 async function refreshTokens(
   refreshToken: string
@@ -37,6 +40,30 @@ async function refreshTokens(
   }
 }
 
+function isTokenExpired(token: string): boolean {
+  try {
+    const part = token.split(".")[1]
+    if (!part) return true
+    const payload = JSON.parse(Buffer.from(part, "base64url").toString()) as { exp?: number }
+    return !payload.exp || payload.exp * 1000 < Date.now()
+  } catch {
+    return true
+  }
+}
+
+function getIsComplete(token: string): boolean {
+  try {
+    const part = token.split(".")[1]
+    if (!part) return false
+    const payload = JSON.parse(Buffer.from(part, "base64url").toString()) as {
+      isComplete?: boolean
+    }
+    return payload.isComplete === true
+  } catch {
+    return false
+  }
+}
+
 function setSession(res: NextResponse, token: string, refreshToken: string) {
   const opts = {
     path: "/",
@@ -53,7 +80,10 @@ export default async function proxy(request: NextRequest) {
   const token = request.cookies.get(ACCESS_COOKIE)?.value
   const refreshToken = request.cookies.get(REFRESH_COOKIE)?.value
   const { pathname } = request.nextUrl
-  const isAuthPath = AUTH_PATHS.some((p) => pathname.startsWith(p))
+
+  const isAuthOnlyPath = AUTH_ONLY_PATHS.some((p) => pathname.startsWith(p))
+  const isAlwaysAccessible = ALWAYS_ACCESSIBLE.some((p) => pathname.startsWith(p))
+  const isOnboardingPath = ONBOARDING_PATHS.some((p) => pathname.startsWith(p))
 
   const redirectToSignIn = () => {
     const res = NextResponse.redirect(new URL("/sign-in", request.url))
@@ -62,29 +92,43 @@ export default async function proxy(request: NextRequest) {
     return res
   }
 
-  const valid = token ? await validateToken(token) : false
+  const redirectToOnboarding = () => NextResponse.redirect(new URL("/onboarding", request.url))
+
+  const valid = token ? !isTokenExpired(token) : false
 
   if (!valid && refreshToken) {
     const refreshed = await refreshTokens(refreshToken)
     if (refreshed) {
-      const res = isAuthPath
-        ? NextResponse.redirect(new URL("/", request.url))
-        : NextResponse.next()
+      const isComplete = getIsComplete(refreshed.token)
+      let res: NextResponse
+      if (isAuthOnlyPath) {
+        res = NextResponse.redirect(new URL(isComplete ? "/" : "/onboarding", request.url))
+      } else if (!isComplete && !isOnboardingPath && !isAlwaysAccessible) {
+        res = redirectToOnboarding()
+      } else {
+        res = NextResponse.next()
+      }
       setSession(res, refreshed.token, refreshed.refreshToken)
       return res
     }
-    return isAuthPath ? NextResponse.next() : redirectToSignIn()
+    if (!isAuthOnlyPath && !isAlwaysAccessible) return redirectToSignIn()
+    return NextResponse.next()
   }
 
   if (!valid) {
-    if (!isAuthPath) return redirectToSignIn()
+    if (!isAuthOnlyPath && !isAlwaysAccessible) return redirectToSignIn()
     return NextResponse.next()
   }
 
   const isServerAction = request.headers.has("next-action")
+  if (isAuthOnlyPath && !isServerAction) {
+    const isComplete = getIsComplete(token!)
+    return NextResponse.redirect(new URL(isComplete ? "/" : "/onboarding", request.url))
+  }
 
-  if (isAuthPath && !isServerAction) {
-    return NextResponse.redirect(new URL("/", request.url))
+  if (!isServerAction && !isOnboardingPath && !isAlwaysAccessible) {
+    const isComplete = getIsComplete(token!)
+    if (!isComplete) return redirectToOnboarding()
   }
 
   return NextResponse.next()
