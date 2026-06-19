@@ -184,6 +184,7 @@ services:
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN}
       REFRESH_TOKEN_TTL_MS: ${REFRESH_TOKEN_TTL_MS}
       PROFILE_SERVICE_GRPC_URL: profile-service:50051
+      PROFILE_SERVICE_URL: http://profile-service:4010
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
       GOOGLE_REDIRECT_URI: https://${DOMAIN}/api/auth/google/callback

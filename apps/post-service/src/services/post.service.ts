@@ -54,14 +54,23 @@ export class PostService {
       await PostModel.findByIdAndUpdate(data.parentId, { $inc: { commentsCount: 1 } }).exec()
     }
 
-    for (const targetUserId of mentions.filter((id) => id !== data.authorId)) {
-      void publish("content.mention", { actorId: data.authorId, targetUserId, postId })
+    const filteredMentions = mentions.filter((id) => id !== data.authorId)
+    const profile =
+      filteredMentions.length > 0 || data.parentId ? await getActorProfile(data.authorId) : null
+
+    for (const targetUserId of filteredMentions) {
+      void publish("content.mention", {
+        actorId: data.authorId,
+        targetUserId,
+        postId,
+        username: profile?.username,
+        avatarId: profile?.avatarId,
+      })
     }
 
     if (data.parentId) {
       const parent = await PostModel.findById(data.parentId).exec()
       if (parent && parent.authorId !== data.authorId) {
-        const profile = await getActorProfile(data.authorId)
         void publish("content.reply", {
           actorId: data.authorId,
           targetUserId: parent.authorId,

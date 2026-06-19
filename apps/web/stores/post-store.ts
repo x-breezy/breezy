@@ -20,6 +20,8 @@ interface PostStoreState {
   clear: () => void
 }
 
+const _detailInFlight = new Set<string>()
+
 export const usePostStore = create<PostStoreState>((set, get) => ({
   postsById: {},
   likedPostIds: new Set<string>(),
@@ -27,6 +29,8 @@ export const usePostStore = create<PostStoreState>((set, get) => ({
   error: null,
 
   fetchDetail: async (postId) => {
+    if (_detailInFlight.has(postId)) return null
+    _detailInFlight.add(postId)
     set((s) => ({ loading: { ...s.loading, [postId]: true }, error: null }))
     try {
       const detail = await postDetailActions.getPostDetail(postId)
@@ -46,6 +50,8 @@ export const usePostStore = create<PostStoreState>((set, get) => ({
         loading: { ...s.loading, [postId]: false },
       }))
       return null
+    } finally {
+      _detailInFlight.delete(postId)
     }
   },
 
@@ -130,6 +136,7 @@ export const usePostStore = create<PostStoreState>((set, get) => ({
   },
 
   clear: () => {
+    _detailInFlight.clear()
     set({ postsById: {}, likedPostIds: new Set(), loading: {}, error: null })
   },
 }))

@@ -26,8 +26,8 @@ export function PostContent({ content }: PostContentProps) {
             <a
               key={i}
               href={token.value}
-              target="_blank"
-              rel="noopener noreferrer"
+              target='_blank'
+              rel='noopener noreferrer'
               className={token.className}
               onClick={(e) => e.stopPropagation()}
             >

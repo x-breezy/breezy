@@ -148,6 +148,7 @@
     "lastWeek": "Last week",
     "lastMonth": "Last month",
     "follow": "<actor>{actorName}</actor> started following you.",
+    "followBack": "<actor>{actorName}</actor> followed you back.",
     "mention": "<actor>{actorName}</actor> mentioned you in a post.",
     "comment": "<actor>{actorName}</actor> commented on your post.",
     "like1": "<actor>{actorName}</actor> liked your post.",

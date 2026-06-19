@@ -13,6 +13,7 @@ export async function handleFollow(payload: unknown): Promise<void> {
         actorId: event.followerId,
         username: event.username,
         avatarId: event.avatarId,
+        isFollowBack: event.isFollowBack ? "true" : undefined,
       },
     },
     { "payload.actorId": event.followerId }

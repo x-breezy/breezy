@@ -31,7 +31,8 @@ export function ProfilePageClient({ username }: { username: string }) {
 
   const ownProfile = useUserStore((s) => s.profile)
   const fetchProfile = useProfileStore((s) => s.fetchByUsername)
-  const profileLoading = useProfileStore((s) => s.loading)
+  const loadingMap = useProfileStore((s) => s.loading)
+  const profileLoading = username in loadingMap ? loadingMap[username] : false
   const profileError = useProfileStore((s) => s.error)
   const toggleLike = usePostStore((s) => s.toggleLike)
 

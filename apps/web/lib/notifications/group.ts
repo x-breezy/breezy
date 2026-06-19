@@ -7,7 +7,14 @@ export interface ActorInfo {
 }
 
 export type NotificationView =
-  | { kind: "follow"; ids: string[]; actor: ActorInfo; read: boolean; createdAt: string }
+  | {
+      kind: "follow"
+      ids: string[]
+      actor: ActorInfo
+      isFollowBack: boolean
+      read: boolean
+      createdAt: string
+    }
   | {
       kind: "mention"
       ids: string[]
@@ -51,7 +58,13 @@ export function groupNotifications(list: Notification[]): NotificationView[] {
     createdAt: string
   }
 
-  type FollowGroup = { ids: string[]; actor: ActorInfo; read: boolean; createdAt: string }
+  type FollowGroup = {
+    ids: string[]
+    actor: ActorInfo
+    isFollowBack: boolean
+    read: boolean
+    createdAt: string
+  }
 
   const likesByPost = new Map<string, LikeGroup>()
   const followsByActor = new Map<string, FollowGroup>()
@@ -83,15 +96,23 @@ export function groupNotifications(list: Notification[]): NotificationView[] {
     } else if (n.type === "follow") {
       const actor = toActorInfo(n.payload)
       if (!actor.id) continue
+      const isFollowBack = n.payload.isFollowBack === "true"
       const existing = followsByActor.get(actor.id)
       if (!existing) {
-        followsByActor.set(actor.id, { ids: [n._id], actor, read: n.read, createdAt: n.createdAt })
+        followsByActor.set(actor.id, {
+          ids: [n._id],
+          actor,
+          isFollowBack,
+          read: n.read,
+          createdAt: n.createdAt,
+        })
       } else {
         existing.ids.push(n._id)
         if (!n.read) existing.read = false
         if (n.createdAt > existing.createdAt) {
           existing.createdAt = n.createdAt
           existing.actor = actor
+          existing.isFollowBack = isFollowBack
         }
       }
     } else if (n.type === "mention") {
@@ -120,6 +141,7 @@ export function groupNotifications(list: Notification[]): NotificationView[] {
       kind: "follow",
       ids: data.ids,
       actor: data.actor,
+      isFollowBack: data.isFollowBack,
       read: data.read,
       createdAt: data.createdAt,
     })

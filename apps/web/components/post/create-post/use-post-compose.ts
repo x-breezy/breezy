@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useCallback, useEffect } from "react"
+import { useQueryClient } from "@tanstack/react-query"
 import { createPost } from "@/lib/actions/posts"
 import { uploadMediaAction } from "@/lib/actions/media"
 import type { SearchPostMedia } from "@/lib/actions/posts"
@@ -28,6 +29,7 @@ function parseTags(content: string): string[] {
 }
 
 export function usePostCompose(parentId?: string, initialContent = "") {
+  const queryClient = useQueryClient()
   const [content, setContent] = useState(initialContent)
   const [mediaFiles, setMediaFiles] = useState<MediaPreview[]>([])
   const [resolvedMentions, setResolvedMentions] = useState<ResolvedMention[]>([])
@@ -90,6 +92,10 @@ export function usePostCompose(parentId?: string, initialContent = "") {
       setContent("")
       setMediaFiles([])
       setResolvedMentions([])
+      queryClient.invalidateQueries({ queryKey: ["feed"] })
+      if (parentId) {
+        queryClient.invalidateQueries({ queryKey: ["profile-posts"] })
+      }
       return true
     } catch {
       // Cleanup uploaded media on error, but keep previews for retry
@@ -101,7 +107,7 @@ export function usePostCompose(parentId?: string, initialContent = "") {
     } finally {
       setSubmitting(false)
     }
-  }, [content, mediaFiles, resolvedMentions, parentId])
+  }, [content, mediaFiles, resolvedMentions, parentId, queryClient])
 
   // Cleanup object URLs on unmount
   useEffect(() => {

@@ -148,6 +148,7 @@
     "lastWeek": "La semaine dernière",
     "lastMonth": "Le mois dernier",
     "follow": "<actor>{actorName}</actor> a commencé à vous suivre.",
+    "followBack": "<actor>{actorName}</actor> vous suit en retour.",
     "mention": "<actor>{actorName}</actor> vous a mentionné dans une publication.",
     "comment": "<actor>{actorName}</actor> a commenté votre publication.",
     "like1": "<actor>{actorName}</actor> a aimé votre publication.",

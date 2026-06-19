@@ -7,15 +7,14 @@ import { usePostStore } from "@/stores/post-store"
 import Post from "@/components/post/post"
 import { CommentTree } from "@/components/post/comment-tree"
 import { AppLoader } from "@/components/layout/app-loader"
-import { IconChevronLeft } from "@tabler/icons-react"
+import { Button } from "@/components/ui/button"
+import { IconChevronLeft, IconRefresh } from "@tabler/icons-react"
 import type { PostDetail } from "@/lib/actions/post-detail"
 import { PageHeader, PageHeaderContent } from "@/components/layout/page-header"
 
 export function PostPageClient({ postId }: { username: string; postId: string }) {
   const router = useRouter()
   const toggleLike = usePostStore((s) => s.toggleLike)
-  const cachePosts = usePostStore((s) => s.cachePosts)
-  const cacheLikedIds = usePostStore((s) => s.cacheLikedIds)
 
   const [detail, setDetail] = useState<PostDetail | null>(null)
   const [initialLoading, setInitialLoading] = useState(true)
@@ -27,15 +26,19 @@ export function PostPageClient({ postId }: { username: string; postId: string })
       .then((d) => {
         if (d) {
           setDetail(d)
-          cachePosts([d.post])
-          if (d.likedByMe) cacheLikedIds([postId])
+          usePostStore.setState((s) => ({
+            postsById: { ...s.postsById, [postId]: d.post },
+            likedPostIds: d.likedByMe
+              ? new Set([...s.likedPostIds, postId])
+              : new Set([...s.likedPostIds].filter((id) => id !== postId)),
+          }))
         } else {
           setNotFoundState(true)
         }
         setInitialLoading(false)
       })
       .catch(() => setInitialLoading(false))
-  }, [postId, refreshKey, cachePosts, cacheLikedIds])
+  }, [postId, refreshKey])
 
   const handleReplyCreated = useCallback(() => {
     setRefreshKey((k) => k + 1)
@@ -64,14 +67,25 @@ export function PostPageClient({ postId }: { username: string; postId: string })
       <PageHeader>
         <PageHeaderContent
           left={
-            <button
+            <Button
+              variant='ghost'
+              size='icon-lg'
               onClick={() => router.back()}
               aria-label='Go back'
-              className='flex items-center gap-2'
             >
               <IconChevronLeft size={22} strokeWidth={2} />
-              <h1 className='text-lg font-bold'>Post</h1>
-            </button>
+            </Button>
+          }
+          center={<h1 className='text-lg font-bold'>Post</h1>}
+          right={
+            <Button
+              variant='ghost'
+              size='icon-lg'
+              onClick={() => setRefreshKey((k) => k + 1)}
+              aria-label='Refresh'
+            >
+              <IconRefresh size={18} strokeWidth={2} />
+            </Button>
           }
         />
       </PageHeader>
