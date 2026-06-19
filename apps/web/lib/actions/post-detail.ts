@@ -1,8 +1,6 @@
 "use server"
 
-import { cookies } from "next/headers"
-
-const API_URL = process.env.API_URL ?? "http://localhost"
+import { authenticatedFetch } from "@/lib/auth/authenticated-fetch"
 
 export interface MediaItem {
   id: string
@@ -52,17 +50,10 @@ export interface PostDetail {
   replies: ReplyData[]
 }
 
-async function getAuthHeaders(): Promise<Record<string, string>> {
-  const cookieStore = await cookies()
-  const token = cookieStore.get("breezy-token")?.value
-  return token ? { Authorization: `Bearer ${token}` } : {}
-}
-
 export async function getPostDetail(postId: string): Promise<PostDetail | null> {
   if (!/^[a-f0-9]{24}$/i.test(postId)) return null
 
-  const headers = await getAuthHeaders()
-  const res = await fetch(`${API_URL}/api/posts/${postId}/detail`, { headers })
+  const res = await authenticatedFetch(`/api/posts/${postId}/detail`)
   if (!res.ok) {
     if (res.status === 404) return null
     throw new Error(`Failed to fetch post detail: ${res.status}`)

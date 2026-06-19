@@ -1,8 +1,6 @@
 "use server"
 
-import { cookies } from "next/headers"
-
-const API_URL = process.env.API_URL ?? "http://localhost"
+import { authenticatedFetch } from "@/lib/auth/authenticated-fetch"
 
 export interface SearchProfile {
   profileId: string
@@ -39,22 +37,13 @@ function normalizeProfile(p: RawProfile): SearchProfile {
   }
 }
 
-async function getAuthHeaders(): Promise<Record<string, string>> {
-  const cookieStore = await cookies()
-  const token = cookieStore.get("breezy-token")?.value
-  return token ? { Authorization: `Bearer ${token}` } : {}
-}
-
 export async function searchProfiles(
   q: string,
   page = 1,
   limit = 20
 ): Promise<{ profiles: SearchProfile[]; total: number; page: number; limit: number }> {
-  const headers = await getAuthHeaders()
-  const res = await fetch(
-    `${API_URL}/api/profiles/search?q=${encodeURIComponent(q)}&page=${page}&limit=${limit}`,
-    { headers }
-  )
+  const params = new URLSearchParams({ q, page: String(page), limit: String(limit) })
+  const res = await authenticatedFetch(`/api/profiles/search?${params}`)
   if (!res.ok) throw new Error(`Failed to search profiles: ${res.status}`)
   const data = await res.json()
   const raw = data.data as { profiles: RawProfile[]; total: number; page: number; limit: number }
@@ -63,8 +52,7 @@ export async function searchProfiles(
 
 export async function fetchProfilesByIds(ids: string[]): Promise<SearchProfile[]> {
   if (ids.length === 0) return []
-  const headers = await getAuthHeaders()
-  const res = await fetch(`${API_URL}/api/profiles/batch?ids=${ids.join(",")}`, { headers })
+  const res = await authenticatedFetch(`/api/profiles/batch?ids=${ids.join(",")}`)
   if (!res.ok) throw new Error(`Failed to fetch profiles: ${res.status}`)
   const data = await res.json()
   return (data.data as RawProfile[]).map(normalizeProfile)
@@ -72,14 +60,12 @@ export async function fetchProfilesByIds(ids: string[]): Promise<SearchProfile[]
 
 export async function getSuggestedProfiles(profileId: string, limit = 3): Promise<SearchProfile[]> {
   try {
-    const headers = await getAuthHeaders()
-    const res = await fetch(`${API_URL}/api/profiles/${profileId}/suggestions?limit=${limit}`, {
-      headers,
-    })
+    const res = await authenticatedFetch(`/api/profiles/${profileId}/suggestions?limit=${limit}`)
     if (!res.ok) return []
     const data = await res.json()
     return (data.data as RawProfile[]).map(normalizeProfile)
-  } catch {
+  } catch (err) {
+    if (typeof err === "object" && err !== null && "digest" in err) throw err
     return []
   }
 }

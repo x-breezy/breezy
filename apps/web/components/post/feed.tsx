@@ -5,19 +5,9 @@ import { useFeed } from "./use-feed"
 import Post from "./post"
 import { usePostStore } from "@/stores/post-store"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Button } from "@/components/ui/button"
-import { IconRefresh } from "@tabler/icons-react"
 
 export function Feed() {
-  const {
-    posts,
-    isLoading,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-    refetch,
-    isRefetching,
-  } = useFeed()
+  const { posts, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useFeed()
   const cachePosts = usePostStore((s) => s.cachePosts)
   const cacheLikedIds = usePostStore((s) => s.cacheLikedIds)
   const handleLike = usePostStore((s) => s.toggleLike)
@@ -86,17 +76,6 @@ export function Feed() {
   return (
     <ul className='space-y-1'>
       <li>
-        <div className='flex justify-end px-3.5 py-1'>
-          <Button
-            variant='ghost'
-            size='icon-sm'
-            onClick={() => refetch()}
-            disabled={isRefetching}
-            aria-label='Refresh feed'
-          >
-            <IconRefresh className={`size-4 ${isRefetching ? "animate-spin" : ""}`} />
-          </Button>
-        </div>
         {posts.map((post) => (
           <Post
             key={post._id}

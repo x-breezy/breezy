@@ -20,6 +20,12 @@ export function PostPageClient({ postId }: { username: string; postId: string })
   const [initialLoading, setInitialLoading] = useState(true)
   const [notFoundState, setNotFoundState] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
+  const [showRefresh, setShowRefresh] = useState(false)
+
+  useEffect(() => {
+    const timer = setTimeout(() => setShowRefresh(true), 60_000)
+    return () => clearTimeout(timer)
+  }, [])
 
   useEffect(() => {
     getPostDetail(postId)
@@ -77,18 +83,21 @@ export function PostPageClient({ postId }: { username: string; postId: string })
             </Button>
           }
           center={<h1 className='text-lg font-bold'>Post</h1>}
-          right={
-            <Button
-              variant='ghost'
-              size='icon-lg'
-              onClick={() => setRefreshKey((k) => k + 1)}
-              aria-label='Refresh'
-            >
-              <IconRefresh size={18} strokeWidth={2} />
-            </Button>
-          }
         />
       </PageHeader>
+
+      {showRefresh && (
+        <div className='sticky top-0 z-10 flex justify-center py-1'>
+          <Button
+            variant='ghost'
+            size='icon-sm'
+            onClick={() => setRefreshKey((k) => k + 1)}
+            aria-label='Refresh'
+          >
+            <IconRefresh size={18} strokeWidth={2} />
+          </Button>
+        </div>
+      )}
 
       <div className='container-center'>
         <Post
@@ -117,7 +126,7 @@ export function PostPageClient({ postId }: { username: string; postId: string })
         {replies.length === 0 ? (
           <p className='py-8 text-center text-sm text-muted-foreground'>No replies yet.</p>
         ) : (
-          <CommentTree comments={replies} onReplyCreated={handleReplyCreated} />
+          <CommentTree comments={replies} onReplyCreated={handleReplyCreated} postAuthorId={post.authorId} />
         )}
       </section>
     </>

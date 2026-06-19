@@ -31,17 +31,20 @@ function PostRow({
   border,
   threadLineTop,
   onReplyCreated,
+  postAuthorId,
 }: {
   comment: CommentNode
   threadLine: "solid" | "dashed" | "none"
   border?: boolean
   threadLineTop?: boolean
   onReplyCreated?: () => void
+  postAuthorId?: string
 }) {
   const authorName =
     [comment.author?.firstName, comment.author?.lastName].filter(Boolean).join(" ") ||
     comment.author?.username ||
     comment.authorId
+  const isPostAuthor = postAuthorId !== undefined && comment.authorId === postAuthorId
 
   return (
     <div className={border ? "border-b border-border" : ""}>
@@ -63,6 +66,7 @@ function PostRow({
         onReplyCreated={onReplyCreated}
         threadLine={threadLine !== "none" ? threadLine : undefined}
         threadLineTop={threadLineTop}
+        isPostAuthor={isPostAuthor}
       />
     </div>
   )
@@ -72,10 +76,12 @@ function CommentThread({
   comment,
   onReplyCreated,
   isLastThread,
+  postAuthorId,
 }: {
   comment: CommentNode
   onReplyCreated?: () => void
   isLastThread?: boolean
+  postAuthorId?: string
 }) {
   const ownerReplies = comment.replies
   const hasReplies = ownerReplies.length > 0
@@ -87,6 +93,7 @@ function CommentThread({
         threadLine={hasReplies ? "solid" : "none"}
         border={!hasReplies && !isLastThread}
         onReplyCreated={onReplyCreated}
+        postAuthorId={postAuthorId}
       />
 
       {ownerReplies.map((reply, i) => {
@@ -102,6 +109,7 @@ function CommentThread({
               border={isLast && !isLastThread}
               threadLineTop
               onReplyCreated={onReplyCreated}
+              postAuthorId={postAuthorId}
             />
             {showRepliesLink && (
               <div className='flex gap-3'>
@@ -124,9 +132,11 @@ function CommentThread({
 export function CommentTree({
   comments,
   onReplyCreated,
+  postAuthorId,
 }: {
   comments: CommentNode[]
   onReplyCreated?: () => void
+  postAuthorId?: string
 }) {
   if (comments.length === 0) return null
 
@@ -138,6 +148,7 @@ export function CommentTree({
           comment={comment}
           onReplyCreated={onReplyCreated}
           isLastThread={i === comments.length - 1}
+          postAuthorId={postAuthorId}
         />
       ))}
     </div>

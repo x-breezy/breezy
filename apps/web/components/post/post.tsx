@@ -34,6 +34,7 @@ interface HomePostProps {
   threadLine?: "solid" | "dashed"
   threadLineTop?: boolean
   className?: string
+  isPostAuthor?: boolean
 }
 
 function Post({
@@ -57,6 +58,7 @@ function Post({
   threadLine,
   threadLineTop,
   className,
+  isPostAuthor = false,
 }: HomePostProps) {
   const router = useRouter()
   const pathname = usePathname()
@@ -165,6 +167,7 @@ function Post({
                 role={authorRole as UserRole | undefined}
                 createdAt={compact ? formattedTime : undefined}
                 compact={compact}
+                isPostAuthor={isPostAuthor}
               />
             </div>
             <PostMenu

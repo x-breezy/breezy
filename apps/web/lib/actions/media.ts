@@ -1,24 +1,16 @@
 "use server"
 
-import { cookies } from "next/headers"
-
-const API_URL = process.env.API_URL ?? "http://localhost"
+import { authenticatedFetch } from "@/lib/auth/authenticated-fetch"
 
 export async function uploadMediaAction(
   file: File
 ): Promise<{ id: string; type: "image" | "video" }> {
-  const cookieStore = await cookies()
-  const token = cookieStore.get("breezy-token")?.value
-
   const isVideo = file.type.startsWith("video/")
   const endpoint = isVideo ? "/api/media/videos" : "/api/media/images"
 
-  const res = await fetch(`${API_URL}${endpoint}`, {
+  const res = await authenticatedFetch(endpoint, {
     method: "POST",
-    headers: {
-      "Content-Type": file.type,
-      ...(token && { Authorization: `Bearer ${token}` }),
-    },
+    headers: { "Content-Type": file.type },
     body: file,
   })
 
