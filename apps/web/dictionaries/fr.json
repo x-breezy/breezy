@@ -137,7 +137,16 @@
     "verifyEmailBannerSent": "E-mail de vérification envoyé ! Vérifiez votre boîte de réception.",
     "verifyEmailBannerText": "Vérifiez votre adresse e-mail pour débloquer toutes les fonctionnalités.",
     "verifyEmailBannerSending": "Envoi en cours…",
-    "verifyEmailBannerRetry": "Réessayez dans {seconds}s"
+    "verifyEmailBannerRetry": "Réessayez dans {seconds}s",
+    "chooseUsername": "Choisissez votre nom d'utilisateur",
+    "pickUsername": "Choisissez un nom d'utilisateur pour finaliser la création de votre compte.",
+    "welcomeName": "Bienvenue, {name} ! Choisissez un nom d'utilisateur pour finaliser la création de votre compte.",
+    "usernameMinLength": "Le nom d'utilisateur doit comporter au moins 3 caractères",
+    "usernameMaxLength": "Le nom d'utilisateur doit comporter au plus 50 caractères",
+    "usernameInvalidChars": "Le nom d'utilisateur ne peut contenir que des lettres minuscules, des chiffres, des tirets et des underscores",
+    "nameMinLength": "Le nom doit comporter au moins 1 caractère",
+    "nameMaxLength": "Le nom doit comporter au plus 100 caractères",
+    "nameInvalidChars": "Le nom ne peut contenir que des lettres minuscules, des chiffres, des tirets et des underscores"
   },
   "notifications": {
     "title": "Notifications",
@@ -183,10 +192,20 @@
     "saving": "Enregistrement…",
     "saveChanges": "Enregistrer",
     "cancel": "Annuler",
+    "usernameInvalidChars": "Le nom d'utilisateur ne peut contenir que des lettres minuscules, des chiffres, des tirets et des underscores",
+    "usernameMinLength": "Le nom d'utilisateur doit comporter au moins 3 caractères",
+    "usernameMaxLength": "Le nom d'utilisateur doit comporter au plus 50 caractères",
+    "nameInvalidChars": "Le nom ne peut contenir que des lettres minuscules, des chiffres, des tirets et des underscores",
+    "nameMinLength": "Le nom doit comporter au moins 1 caractère",
+    "nameMaxLength": "Le nom doit comporter au plus 100 caractères",
     "biographyTitle": "Biographie",
     "tabPosts": "Publications",
     "tabReplies": "Réponses",
     "tabMedias": "Médias"
+  },
+  "feed": {
+    "emptyFollowing": "Aucune publication pour l'instant. Suivez des personnes pour voir leurs publications ici.",
+    "emptyDefault": "Aucune publication trouvée."
   },
   "composePost": {
     "posting": "Publication…",
@@ -194,7 +213,10 @@
     "placeholder": "Quoi de neuf ?",
     "addPhoto": "Ajouter une photo",
     "addVideo": "Ajouter une vidéo",
-    "addGif": "Ajouter un GIF"
+    "addGif": "Ajouter un GIF",
+    "tooLarge": "{type} est trop volumineux. Taille maximale : {size} Mo.",
+    "failedToPost": "Échec de la publication. Veuillez réessayer.",
+    "failedToSave": "Échec de l'enregistrement. Veuillez réessayer."
   },
   "search": {
     "placeholder": "Rechercher",

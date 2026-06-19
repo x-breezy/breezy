@@ -4,10 +4,10 @@ import { useState } from "react"
 import { Dialog as DialogPrimitive } from "@base-ui/react/dialog"
 import { Dialog, DialogContent, DialogPortal } from "@/components/ui/dialog"
 import { useIsMobile } from "@/hooks/use-is-mobile"
+import { useTranslations } from "next-intl"
 import { PostForm } from "./post-form"
 import { PostHeader } from "./post-header"
-import { usePostCompose } from "./use-post-compose"
-import type { MediaPreview } from "./use-post-compose"
+import { usePostCompose, type MediaPreview } from "./use-post-compose"
 import type { SearchPostMedia } from "@/lib/actions/posts"
 
 const CLOSE_ANIMATION_DURATION = 100 // ms for dialog close animation
@@ -33,8 +33,10 @@ export function PostComposeDialog({
 }: PostComposeDialogProps) {
   const [open, setOpen] = useState(true)
   const [keptExisting, setKeptExisting] = useState<SearchPostMedia[]>(initialMedia ?? [])
+  const [editError, setEditError] = useState<string | null>(null)
   const isMobile = useIsMobile()
   const compose = usePostCompose(undefined, initialContent ?? "")
+  const t = useTranslations("composePost")
 
   function handleClose() {
     if (isMobile) {
@@ -46,10 +48,21 @@ export function PostComposeDialog({
   }
 
   async function handlePost() {
-    const ok = onSubmit
-      ? await onSubmit(compose.content, compose.mediaFiles, keptExisting)
-      : await compose.submit()
-    if (ok) handleClose()
+    if (onSubmit) {
+      try {
+        const ok = await onSubmit(compose.content, compose.mediaFiles, keptExisting)
+        if (ok) handleClose()
+      } catch (e) {
+        if (e instanceof Error && (e.message === "FILE_TOO_LARGE" || e.message.includes("413"))) {
+          setEditError(t("tooLarge", { type: "File", size: 10 }))
+        } else {
+          setEditError(t("failedToSave"))
+        }
+      }
+    } else {
+      const ok = await compose.submit()
+      if (ok) handleClose()
+    }
   }
 
   const formProps = {
@@ -77,6 +90,9 @@ export function PostComposeDialog({
               disabled={compose.content.length > 250}
               label={postLabel}
             />
+            {(compose.error ?? editError) && (
+              <p className='px-4 pt-2 text-sm text-destructive'>{compose.error ?? editError}</p>
+            )}
             <PostForm {...formProps} />
           </DialogPrimitive.Popup>
         </DialogPortal>
@@ -97,6 +113,9 @@ export function PostComposeDialog({
           disabled={compose.content.length > 250}
           label={postLabel}
         />
+        {(compose.error ?? editError) && (
+          <p className='px-4 pt-2 text-sm text-destructive'>{compose.error ?? editError}</p>
+        )}
         <PostForm {...formProps} />
       </DialogContent>
     </Dialog>

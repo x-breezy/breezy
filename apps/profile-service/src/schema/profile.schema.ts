@@ -1,16 +1,30 @@
 import { z } from "zod"
 
+const nameRegex = /^[a-z0-9_-]+$/
+const nameMessage = "Can only contain lowercase letters, numbers, underscores, and hyphens"
+
+const nameField = z
+  .string()
+  .min(1, "Must be at least 1 character")
+  .max(100)
+  .regex(nameRegex, nameMessage)
+  .nullable()
+  .optional()
+
 export const createProfileSchema = z.object({
-  username: z.string().max(100),
-  firstName: z.string().max(100).nullable().optional(),
-  lastName: z.string().max(100).nullable().optional(),
+  username: z
+    .string()
+    .max(100)
+    .regex(/^[a-z0-9_-]+$/, nameMessage),
+  firstName: nameField,
+  lastName: nameField,
   bio: z.string().nullable().optional(),
   avatarId: z.string().url().max(500).nullable().optional(),
 })
 
 export const updateProfileSchema = z.object({
-  firstName: z.string().max(100).nullable().optional(),
-  lastName: z.string().max(100).nullable().optional(),
+  firstName: nameField,
+  lastName: nameField,
   bio: z.string().nullable().optional(),
   avatarId: z.string().url().max(500).nullable().optional(),
 })
@@ -24,7 +38,10 @@ export const profileIdParamSchema = z.object({
 })
 
 export const usernameParamSchema = z.object({
-  username: z.string().max(100),
+  username: z
+    .string()
+    .max(100)
+    .regex(/^[a-z0-9_-]+$/, nameMessage),
 })
 
 export type CreateProfileDTO = z.infer<typeof createProfileSchema>

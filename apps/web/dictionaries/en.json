@@ -137,7 +137,16 @@
     "verifyEmailBannerSent": "Verification email sent! Check your inbox.",
     "verifyEmailBannerText": "Verify your email address to unlock all features.",
     "verifyEmailBannerSending": "Sending…",
-    "verifyEmailBannerRetry": "Retry in {seconds}s"
+    "verifyEmailBannerRetry": "Retry in {seconds}s",
+    "chooseUsername": "Choose your username",
+    "pickUsername": "Pick a username to finish setting up your account.",
+    "welcomeName": "Welcome, {name}! Pick a username to finish setting up your account.",
+    "usernameMinLength": "Username must be at least 3 characters",
+    "usernameMaxLength": "Username must be at most 50 characters",
+    "usernameInvalidChars": "Username can only contain lowercase letters, numbers, underscores, and hyphens",
+    "nameMinLength": "Name must be at least 1 character",
+    "nameMaxLength": "Name must be at most 100 characters",
+    "nameInvalidChars": "Name can only contain lowercase letters, numbers, underscores, and hyphens"
   },
   "notifications": {
     "title": "Notifications",
@@ -183,10 +192,20 @@
     "saving": "Saving…",
     "saveChanges": "Save changes",
     "cancel": "Cancel",
+    "usernameInvalidChars": "Username can only contain lowercase letters, numbers, underscores, and hyphens",
+    "usernameMinLength": "Username must be at least 3 characters",
+    "usernameMaxLength": "Username must be at most 50 characters",
+    "nameInvalidChars": "Name can only contain lowercase letters, numbers, underscores, and hyphens",
+    "nameMinLength": "Name must be at least 1 character",
+    "nameMaxLength": "Name must be at most 100 characters",
     "biographyTitle": "Biography",
     "tabPosts": "Posts",
     "tabReplies": "Replies",
     "tabMedias": "Medias"
+  },
+  "feed": {
+    "emptyFollowing": "No posts yet. Follow some people to see their posts here.",
+    "emptyDefault": "No posts found."
   },
   "composePost": {
     "posting": "Posting…",
@@ -194,7 +213,10 @@
     "placeholder": "What's happening?",
     "addPhoto": "Add photo",
     "addVideo": "Add video",
-    "addGif": "Add GIF"
+    "addGif": "Add GIF",
+    "tooLarge": "{type} is too large. Maximum size is {size} MB.",
+    "failedToPost": "Failed to post. Please try again.",
+    "failedToSave": "Failed to save. Please try again."
   },
   "search": {
     "placeholder": "Search",

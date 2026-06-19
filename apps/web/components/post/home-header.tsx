@@ -11,13 +11,13 @@ import {
   SelectGroup,
   SelectItem,
   SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select"
 import { useNotificationStore } from "@/stores/notification-store"
 
 const FEED_OPTIONS = [
   { value: "forYou", labelKey: "feedForYou" },
   { value: "following", labelKey: "feedFollowing" },
-  { value: "trending", labelKey: "feedTrending" },
 ]
 
 interface HomeHeaderProps {
@@ -44,7 +44,27 @@ export function HomeHeader({ feed, onFeedChange }: HomeHeaderProps) {
             <IconPlus className='size-5' strokeWidth={2} />
           </Button>
         }
-        center={<p className='px-0 text-xl font-bold capitalize'>{t("feedForYou")}</p>}
+        center={
+          <Select value={feed} onValueChange={onFeedChange}>
+            <SelectTrigger className='h-auto border-0 bg-transparent px-0 py-0 text-xl font-bold capitalize focus-visible:ring-0'>
+              <SelectValue>
+                {t(
+                  (FEED_OPTIONS.find((o) => o.value === feed)?.labelKey ??
+                    "feedForYou") as Parameters<typeof t>[0]
+                )}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                {FEED_OPTIONS.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {t(opt.labelKey as Parameters<typeof t>[0])}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+        }
         right={
           <Button
             variant='ghost'

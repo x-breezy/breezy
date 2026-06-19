@@ -44,8 +44,11 @@ export class PostController {
     try {
       const page = Math.max(1, parseInt(req.query.page as string) || 1)
       const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 20))
-      const result = await this.service.feed(req.user!.id, page, limit)
-
+      const type = req.query.type === "forYou" ? "forYou" : "following"
+      const result =
+        type === "forYou"
+          ? await this.service.forYouFeed(req.user!.id, page, limit)
+          : await this.service.feed(req.user!.id, page, limit)
       res.json({ success: true, data: result, message: "Feed retrieved successfully" })
     } catch (err) {
       next(err)

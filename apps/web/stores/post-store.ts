@@ -57,11 +57,23 @@ export const usePostStore = create<PostStoreState>((set, get) => ({
 
   toggleLike: async (postId, liked) => {
     const prev = get().likedPostIds.has(postId)
+    const prevCount = get().postsById[postId]?.likesCount
     set((s) => {
       const next = new Set(s.likedPostIds)
       if (liked) next.add(postId)
       else next.delete(postId)
-      return { likedPostIds: next }
+      return {
+        likedPostIds: next,
+        postsById: s.postsById[postId]
+          ? {
+              ...s.postsById,
+              [postId]: {
+                ...s.postsById[postId],
+                likesCount: (s.postsById[postId].likesCount ?? 0) + (liked ? 1 : -1),
+              },
+            }
+          : s.postsById,
+      }
     })
     try {
       const { likesCount } = await postsActions.toggleLike(postId, liked)
@@ -76,7 +88,13 @@ export const usePostStore = create<PostStoreState>((set, get) => ({
         const rollback = new Set(s.likedPostIds)
         if (prev) rollback.add(postId)
         else rollback.delete(postId)
-        return { likedPostIds: rollback }
+        return {
+          likedPostIds: rollback,
+          postsById:
+            s.postsById[postId] && prevCount !== undefined
+              ? { ...s.postsById, [postId]: { ...s.postsById[postId], likesCount: prevCount } }
+              : s.postsById,
+        }
       })
       const status = (e as { response?: { status?: number } })?.response?.status
       if (status === 409 || status === 404) return

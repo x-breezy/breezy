@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef } from "react"
+import { useRef, useState } from "react"
 import Image from "next/image"
 import { useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { IconCamera, IconUpload } from "@tabler/icons-react"
+import { nameFieldSchema } from "@/lib/schemas/user-validation"
 
 interface ProfileStepProps {
   preview: string | null
@@ -30,12 +31,34 @@ export function PhotoStep({
   onNext,
 }: ProfileStepProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const [firstNameError, setFirstNameError] = useState<string | null>(null)
+  const [lastNameError, setLastNameError] = useState<string | null>(null)
   const t = useTranslations("auth")
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
     onAvatarChange(file, URL.createObjectURL(file))
+  }
+
+  function validateField(field: "firstName" | "lastName", value: string) {
+    const result = nameFieldSchema.safeParse(value || null)
+    const error = result.success ? null : t(result.error.issues[0]!.message)
+    if (field === "firstName") setFirstNameError(error)
+    else setLastNameError(error)
+    return result.success
+  }
+
+  function handleNext() {
+    const firstNameOk = validateField("firstName", firstName)
+    const lastNameOk = validateField("lastName", lastName)
+    if (firstNameOk && lastNameOk) onNext()
+  }
+
+  function handleFieldChange(field: "firstName" | "lastName" | "bio", value: string) {
+    onChange(field, value)
+    if (field === "firstName" && firstNameError) setFirstNameError(null)
+    if (field === "lastName" && lastNameError) setLastNameError(null)
   }
 
   return (
@@ -82,8 +105,10 @@ export function PhotoStep({
                 autoComplete='given-name'
                 required
                 value={firstName}
-                onChange={(e) => onChange("firstName", e.target.value)}
+                onChange={(e) => handleFieldChange("firstName", e.target.value)}
+                onBlur={(e) => validateField("firstName", e.target.value)}
               />
+              {firstNameError && <p className='text-xs text-destructive'>{firstNameError}</p>}
             </Field>
             <Field>
               <Label htmlFor='lastName'>{t("lastName")}</Label>
@@ -94,8 +119,10 @@ export function PhotoStep({
                 autoComplete='family-name'
                 required
                 value={lastName}
-                onChange={(e) => onChange("lastName", e.target.value)}
+                onChange={(e) => handleFieldChange("lastName", e.target.value)}
+                onBlur={(e) => validateField("lastName", e.target.value)}
               />
+              {lastNameError && <p className='text-xs text-destructive'>{lastNameError}</p>}
             </Field>
           </div>
 
@@ -114,7 +141,7 @@ export function PhotoStep({
       </FieldSet>
 
       <div className='flex flex-col gap-3'>
-        <Button size='lg' onClick={onNext} disabled={!firstName || !lastName}>
+        <Button size='lg' onClick={handleNext}>
           {t("continue")}
         </Button>
       </div>

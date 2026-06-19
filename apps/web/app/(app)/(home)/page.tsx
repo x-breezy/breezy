@@ -11,7 +11,7 @@ export default function HomePage() {
     <div>
       <HomeHeader feed={feed} onFeedChange={setFeed} />
       <div className='container-center w-full py-2'>
-        <Feed />
+        <Feed feedType={feed} />
       </div>
     </div>
   )

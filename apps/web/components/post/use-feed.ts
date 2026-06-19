@@ -11,15 +11,17 @@ export interface FeedPost extends SearchPost {
   author: SearchProfile | undefined
 }
 
-export function useFeed() {
+export function useFeed(type = "forYou") {
   const query = useInfiniteQuery({
-    queryKey: ["feed"],
-    queryFn: ({ pageParam = 1 }) => listFeedPosts(pageParam as number),
+    queryKey: ["feed", type],
+    queryFn: ({ pageParam = 1 }) => listFeedPosts(pageParam as number, type),
     initialPageParam: 1,
     getNextPageParam: (lastPage) => {
+      if (lastPage.posts.length < lastPage.limit) return undefined
       const loaded = (lastPage.page - 1) * lastPage.limit + lastPage.posts.length
       return loaded < lastPage.total ? lastPage.page + 1 : undefined
     },
+    refetchOnMount: false,
   })
 
   const posts = useMemo<FeedPost[]>(

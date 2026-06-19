@@ -275,7 +275,10 @@ describe("GET /posts/feed", () => {
 
     await request(app).get("/posts/feed").set("Authorization", "Bearer fake-token")
 
-    expect(mockedModel.find).toHaveBeenCalledWith({ authorId: { $ne: USER1_UUID }, parentId: null })
+    expect(mockedModel.find).toHaveBeenCalledWith({
+      authorId: { $ne: USER1_UUID },
+      $or: [{ parentId: null }, { $expr: { $eq: ["$parentId", "$rootParentId"] } }],
+    })
   })
 
   it("returns 401 without auth", async () => {

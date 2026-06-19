@@ -8,7 +8,7 @@ import Post from "@/components/post/post"
 import { CommentTree } from "@/components/post/comment-tree"
 import { AppLoader } from "@/components/layout/app-loader"
 import { Button } from "@/components/ui/button"
-import { IconChevronLeft, IconRefresh } from "@tabler/icons-react"
+import { IconChevronLeft } from "@tabler/icons-react"
 import type { PostDetail } from "@/lib/actions/post-detail"
 import { PageHeader, PageHeaderContent } from "@/components/layout/page-header"
 
@@ -20,12 +20,6 @@ export function PostPageClient({ postId }: { username: string; postId: string })
   const [initialLoading, setInitialLoading] = useState(true)
   const [notFoundState, setNotFoundState] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
-  const [showRefresh, setShowRefresh] = useState(false)
-
-  useEffect(() => {
-    const timer = setTimeout(() => setShowRefresh(true), 60_000)
-    return () => clearTimeout(timer)
-  }, [])
 
   useEffect(() => {
     getPostDetail(postId)
@@ -86,19 +80,6 @@ export function PostPageClient({ postId }: { username: string; postId: string })
         />
       </PageHeader>
 
-      {showRefresh && (
-        <div className='sticky top-0 z-10 flex justify-center py-1'>
-          <Button
-            variant='ghost'
-            size='icon-sm'
-            onClick={() => setRefreshKey((k) => k + 1)}
-            aria-label='Refresh'
-          >
-            <IconRefresh size={18} strokeWidth={2} />
-          </Button>
-        </div>
-      )}
-
       <div className='container-center'>
         <Post
           id={post._id}
@@ -126,7 +107,11 @@ export function PostPageClient({ postId }: { username: string; postId: string })
         {replies.length === 0 ? (
           <p className='py-8 text-center text-sm text-muted-foreground'>No replies yet.</p>
         ) : (
-          <CommentTree comments={replies} onReplyCreated={handleReplyCreated} postAuthorId={post.authorId} />
+          <CommentTree
+            comments={replies}
+            onReplyCreated={handleReplyCreated}
+            postAuthorId={post.authorId}
+          />
         )}
       </section>
     </>

@@ -137,7 +137,16 @@
     "verifyEmailBannerSent": "¡Correo de verificación enviado! Revisa tu bandeja de entrada.",
     "verifyEmailBannerText": "Verifica tu dirección de correo electrónico para desbloquear todas las funciones.",
     "verifyEmailBannerSending": "Enviando…",
-    "verifyEmailBannerRetry": "Reintentar en {seconds}s"
+    "verifyEmailBannerRetry": "Reintentar en {seconds}s",
+    "chooseUsername": "Elige tu nombre de usuario",
+    "pickUsername": "Elige un nombre de usuario para terminar de configurar tu cuenta.",
+    "welcomeName": "¡Bienvenido, {name}! Elige un nombre de usuario para terminar de configurar tu cuenta.",
+    "usernameMinLength": "El nombre de usuario debe tener al menos 3 caracteres",
+    "usernameMaxLength": "El nombre de usuario debe tener como máximo 50 caracteres",
+    "usernameInvalidChars": "El nombre de usuario solo puede contener letras minúsculas, números, guiones y guiones bajos",
+    "nameMinLength": "El nombre debe tener al menos 1 carácter",
+    "nameMaxLength": "El nombre debe tener como máximo 100 caracteres",
+    "nameInvalidChars": "El nombre solo puede contener letras minúsculas, números, guiones y guiones bajos"
   },
   "notifications": {
     "title": "Notificaciones",
@@ -182,10 +191,20 @@
     "saving": "Guardando…",
     "saveChanges": "Guardar cambios",
     "cancel": "Cancelar",
+    "usernameInvalidChars": "El nombre de usuario solo puede contener letras minúsculas, números, guiones y guiones bajos",
+    "usernameMinLength": "El nombre de usuario debe tener al menos 3 caracteres",
+    "usernameMaxLength": "El nombre de usuario debe tener como máximo 50 caracteres",
+    "nameInvalidChars": "El nombre solo puede contener letras minúsculas, números, guiones y guiones bajos",
+    "nameMinLength": "El nombre debe tener al menos 1 carácter",
+    "nameMaxLength": "El nombre debe tener como máximo 100 caracteres",
     "biographyTitle": "Biografía",
     "tabPosts": "Publicaciones",
     "tabReplies": "Respuestas",
     "tabMedias": "Medios"
+  },
+  "feed": {
+    "emptyFollowing": "No hay publicaciones aún. Sigue a algunas personas para ver sus publicaciones aquí.",
+    "emptyDefault": "No se encontraron publicaciones."
   },
   "composePost": {
     "posting": "Publicando…",
@@ -193,7 +212,10 @@
     "placeholder": "¿Qué está pasando?",
     "addPhoto": "Añadir foto",
     "addVideo": "Añadir video",
-    "addGif": "Añadir GIF"
+    "addGif": "Añadir GIF",
+    "tooLarge": "{type} es demasiado grande. Tamaño máximo: {size} MB.",
+    "failedToPost": "Error al publicar. Inténtalo de nuevo.",
+    "failedToSave": "Error al guardar. Inténtalo de nuevo."
   },
   "search": {
     "placeholder": "Buscar",

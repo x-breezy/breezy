@@ -13,6 +13,7 @@ import { ProfileAvatar } from "@/components/profile/profile-avatar"
 import { useUserStore } from "@/stores/user-store"
 import { updateProfileAction, type UpdateProfileState } from "@/lib/actions/profile"
 import type { Profile } from "@/types/profile"
+import { nameFieldSchema } from "@/lib/schemas/user-validation"
 
 interface ProfileEditScreenProps {
   profile: Profile
@@ -42,11 +43,29 @@ export default function ProfileEditScreen({ profile, onClose }: ProfileEditScree
   const [firstName, setFirstName] = useState(profile.firstName ?? "")
   const [lastName, setLastName] = useState(profile.lastName ?? "")
   const [bio, setBio] = useState(profile.bio ?? "")
+  const [firstNameError, setFirstNameError] = useState<string | null>(null)
+  const [lastNameError, setLastNameError] = useState<string | null>(null)
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
     setPreview(URL.createObjectURL(file))
+  }
+
+  function validateField(field: "firstName" | "lastName", value: string): boolean {
+    const result = nameFieldSchema.safeParse(value || null)
+    const error = result.success ? null : t(result.error.issues[0]!.message)
+    if (field === "firstName") setFirstNameError(error)
+    else setLastNameError(error)
+    return result.success
+  }
+
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    const firstNameOk = validateField("firstName", firstName)
+    const lastNameOk = validateField("lastName", lastName)
+    if (!firstNameOk || !lastNameOk) {
+      e.preventDefault()
+    }
   }
 
   return (
@@ -81,7 +100,7 @@ export default function ProfileEditScreen({ profile, onClose }: ProfileEditScree
         <p className='text-xs text-muted-foreground'>{t("changePhoto")}</p>
       </div>
 
-      <form action={formAction} className='flex flex-col gap-6'>
+      <form action={formAction} onSubmit={handleSubmit} className='flex flex-col gap-6'>
         <input type='hidden' name='profileId' value={profileId} />
         <input
           ref={fileInputRef}
@@ -104,8 +123,13 @@ export default function ProfileEditScreen({ profile, onClose }: ProfileEditScree
                   placeholder={t("firstNamePlaceholder")}
                   autoComplete='given-name'
                   value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
+                  onChange={(e) => {
+                    setFirstName(e.target.value)
+                    if (firstNameError) setFirstNameError(null)
+                  }}
+                  onBlur={(e) => validateField("firstName", e.target.value)}
                 />
+                {firstNameError && <p className='text-xs text-destructive'>{firstNameError}</p>}
               </Field>
               <Field>
                 <Label htmlFor='lastName'>{t("lastName")}</Label>
@@ -116,8 +140,13 @@ export default function ProfileEditScreen({ profile, onClose }: ProfileEditScree
                   placeholder={t("lastNamePlaceholder")}
                   autoComplete='family-name'
                   value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
+                  onChange={(e) => {
+                    setLastName(e.target.value)
+                    if (lastNameError) setLastNameError(null)
+                  }}
+                  onBlur={(e) => validateField("lastName", e.target.value)}
                 />
+                {lastNameError && <p className='text-xs text-destructive'>{lastNameError}</p>}
               </Field>
             </div>
 

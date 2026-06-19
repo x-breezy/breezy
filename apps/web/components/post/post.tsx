@@ -11,6 +11,7 @@ import { MediaViewer } from "../shared/medias/media-viewer"
 import { AutoplayVideo } from "../shared/medias/autoplay-video"
 import { MediaImage } from "../shared/medias/media-image"
 import { mediaUrl, timeAgo, formatFullDate, cn } from "@/lib/utils"
+import { usePostStore } from "@/stores/post-store"
 import { UserRole } from "@/lib/auth/role"
 
 interface HomePostProps {
@@ -63,9 +64,18 @@ function Post({
   const router = useRouter()
   const pathname = usePathname()
   const isDetailPage = pathname.startsWith("/post/")
-  const [likes, setLikes] = useState(initialLikes)
-  const [comments, setComments] = useState(initialComments)
-  const [isLiked, setIsLiked] = useState(initialLiked)
+  const storePost = usePostStore((s) => s.postsById[id])
+  const storeIsLiked = usePostStore((s) => s.likedPostIds.has(id))
+
+  const [localLikes, setLocalLikes] = useState(initialLikes)
+  const [localComments, setLocalComments] = useState(initialComments)
+  const [localIsLiked, setLocalIsLiked] = useState(initialLiked)
+
+  // ponytail: store is source of truth when cached; local state for optimistic fallback (posts not in store)
+  const likes = storePost?.likesCount ?? localLikes
+  const isLiked = storePost !== undefined ? storeIsLiked : localIsLiked
+  // max: local handles inline-reply increment, store handles navigation-back-from-detail
+  const comments = storePost ? Math.max(storePost.commentsCount ?? 0, localComments) : localComments
   const [postContent, setPostContent] = useState(content)
   const [postMedia, setPostMedia] = useState(media)
   const [deleted, setDeleted] = useState(false)
@@ -77,17 +87,15 @@ function Post({
     async (e: React.MouseEvent) => {
       e.stopPropagation()
       const newIsLiked = !isLiked
-      // Optimistic update
-      setIsLiked(newIsLiked)
-      setLikes((prev) => (newIsLiked ? prev + 1 : prev - 1))
+      setLocalIsLiked(newIsLiked)
+      setLocalLikes((prev) => (newIsLiked ? prev + 1 : prev - 1))
       if (onLike) {
         try {
           const serverCount = await onLike(id, newIsLiked)
-          if (typeof serverCount === "number") setLikes(serverCount)
+          if (typeof serverCount === "number") setLocalLikes(serverCount)
         } catch {
-          // Rollback on error
-          setIsLiked((prev) => !prev)
-          setLikes((prev) => (newIsLiked ? prev - 1 : prev + 1))
+          setLocalIsLiked((prev) => !prev)
+          setLocalLikes((prev) => (newIsLiked ? prev - 1 : prev + 1))
         }
       }
     },
@@ -246,7 +254,7 @@ function Post({
           parentAvatarUrl={avatarUrl}
           parentContent={content}
           onSuccess={() => {
-            setComments((prev) => prev + 1)
+            setLocalComments((prev) => prev + 1)
             onReplyCreated?.()
           }}
           onDismiss={() => setReplyOpen(false)}

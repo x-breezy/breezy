@@ -15,8 +15,8 @@ export interface FeedPage {
   limit: number
 }
 
-export async function listFeedPosts(page = 1): Promise<FeedPage> {
-  const params = new URLSearchParams({ page: String(page), limit: String(LIMIT) })
+export async function listFeedPosts(page = 1, type = "forYou", limit?: number): Promise<FeedPage> {
+  const params = new URLSearchParams({ page: String(page), limit: String(limit ?? LIMIT), type })
   const res = await authenticatedFetch(`/api/posts/feed?${params}`)
   if (!res.ok) throw new Error(`Failed to fetch feed: ${res.status}`)
   const json = await res.json()

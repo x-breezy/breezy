@@ -1,5 +1,6 @@
 import { PostModel } from "../models/post.model"
 import { LikeModel } from "../models/like.model"
+import { forYouFeed } from "./for-you.algorithm"
 import { getActorProfile } from "../clients/grpc.client"
 import type { CreatePostDTO } from "../schemas/post.schema"
 import type { Post } from "../types/post"
@@ -151,15 +152,26 @@ export class PostService {
     }
   }
 
+  async forYouFeed(
+    viewerId: string,
+    page: number,
+    limit: number
+  ): Promise<PaginatedResponse<Post>> {
+    return forYouFeed(viewerId, page, limit)
+  }
+
   async feed(viewerId: string, page: number, limit: number): Promise<PaginatedResponse<Post>> {
     const following = await this.follow.getFollowing(viewerId)
-    const filter: Record<string, unknown> =
-      following === null
-        ? { authorId: { $ne: viewerId }, parentId: null }
-        : {
-            authorId: { $in: [...new Set(following)], $ne: viewerId },
-            parentId: null,
-          }
+    if (following !== null && following.length === 0) {
+      return { data: [], total: 0, page, limit }
+    }
+    const authorFilter =
+      following === null ? { $ne: viewerId } : { $in: [...new Set(following)], $ne: viewerId }
+    const filter = {
+      authorId: authorFilter,
+      // top-level posts or direct replies only (parentId === rootParentId means depth-1)
+      $or: [{ parentId: null }, { $expr: { $eq: ["$parentId", "$rootParentId"] } }],
+    }
     const skip = (page - 1) * limit
     const [data, total] = await Promise.all([
       PostModel.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).exec(),

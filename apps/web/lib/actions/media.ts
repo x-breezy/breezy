@@ -14,6 +14,10 @@ export async function uploadMediaAction(
     body: file,
   })
 
+  if (res.status === 413) {
+    throw new Error("FILE_TOO_LARGE")
+  }
+
   if (!res.ok) {
     throw new Error(`Upload failed: ${res.status}`)
   }

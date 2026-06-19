@@ -14,6 +14,7 @@ import { REFRESH_COOKIE } from "@/lib/auth/auth-cookies"
 import { signUp, getMe, notifyProfileCreated } from "@/lib/services/auth-service"
 import { createProfile } from "@/lib/services/profile-service"
 import { uploadImage } from "@/lib/services/image-service"
+import { usernameSchema, nameFieldSchema } from "@/lib/schemas/user-validation"
 
 export interface ActionState {
   error: string | null
@@ -27,6 +28,11 @@ export async function signUpAction(
   const username = formData.get("username") as string
   const email = formData.get("email") as string
   const password = formData.get("password") as string
+
+  const usernameResult = usernameSchema.safeParse(username)
+  if (!usernameResult.success) {
+    return { error: usernameResult.error.issues[0]!.message }
+  }
 
   try {
     const { data } = await signUp(username, email, password)
@@ -60,9 +66,21 @@ export async function setupProfileAction(
 
   const authHeader = await getServerAuthHeader()
 
-  const firstName = (formData.get("firstName") as string) || null
-  const lastName = (formData.get("lastName") as string) || null
+  const firstNameRaw = (formData.get("firstName") as string) || null
+  const lastNameRaw = (formData.get("lastName") as string) || null
   const bio = (formData.get("bio") as string) || null
+
+  const firstNameResult = nameFieldSchema.safeParse(firstNameRaw)
+  if (!firstNameResult.success) {
+    return { error: firstNameResult.error.issues[0]!.message, success: false }
+  }
+  const lastNameResult = nameFieldSchema.safeParse(lastNameRaw)
+  if (!lastNameResult.success) {
+    return { error: lastNameResult.error.issues[0]!.message, success: false }
+  }
+
+  const firstName = firstNameResult.data
+  const lastName = lastNameResult.data
   const avatarFile = formData.get("avatar") as File | null
 
   let avatarId: string | null = null

@@ -19,7 +19,14 @@ function AuthorBadge() {
   )
 }
 
-export function PostMeta({ name, username, role, createdAt, compact, isPostAuthor }: PostMetaProps) {
+export function PostMeta({
+  name,
+  username,
+  role,
+  createdAt,
+  compact,
+  isPostAuthor,
+}: PostMetaProps) {
   if (compact) {
     return (
       <Link
@@ -53,11 +60,7 @@ export function PostMeta({ name, username, role, createdAt, compact, isPostAutho
       className='flex min-w-0 flex-col'
       onClick={(e) => e.stopPropagation()}
     >
-      <UsernameDisplay
-        name={name}
-        role={role}
-        nameClassName='truncate text-sm hover:underline'
-      />
+      <UsernameDisplay name={name} role={role} nameClassName='truncate text-sm hover:underline' />
       <p className='flex items-center gap-1.5 truncate text-xs text-muted-foreground'>
         @{username}
         {isPostAuthor && <AuthorBadge />}

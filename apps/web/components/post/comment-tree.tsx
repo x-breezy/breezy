@@ -1,7 +1,7 @@
 "use client"
 
 import Post from "./post"
-import { toggleLike } from "@/lib/actions/posts"
+import { usePostStore } from "@/stores/post-store"
 import type { MediaItem, ProfileRef } from "@/lib/actions/post-detail"
 
 export interface CommentNode {
@@ -20,26 +20,20 @@ export interface CommentNode {
   replies: CommentNode[]
 }
 
-async function handleReplyLike(postId: string, liked: boolean) {
-  const res = await toggleLike(postId, liked)
-  return res.likesCount
-}
-
 function PostRow({
   comment,
   threadLine,
-  border,
   threadLineTop,
   onReplyCreated,
   postAuthorId,
 }: {
   comment: CommentNode
   threadLine: "solid" | "dashed" | "none"
-  border?: boolean
   threadLineTop?: boolean
   onReplyCreated?: () => void
   postAuthorId?: string
 }) {
+  const toggleLike = usePostStore((s) => s.toggleLike)
   const authorName =
     [comment.author?.firstName, comment.author?.lastName].filter(Boolean).join(" ") ||
     comment.author?.username ||
@@ -47,7 +41,7 @@ function PostRow({
   const isPostAuthor = postAuthorId !== undefined && comment.authorId === postAuthorId
 
   return (
-    <div className={border ? "border-b border-border" : ""}>
+    <div>
       <Post
         id={comment._id}
         name={authorName}
@@ -62,7 +56,7 @@ function PostRow({
         initialComments={comment.commentsCount}
         initialLiked={comment.likedByMe}
         href={`/post/${comment.author?.username ?? comment.authorId}/${comment._id}`}
-        onLike={handleReplyLike}
+        onLike={toggleLike}
         onReplyCreated={onReplyCreated}
         threadLine={threadLine !== "none" ? threadLine : undefined}
         threadLineTop={threadLineTop}
@@ -91,7 +85,6 @@ function CommentThread({
       <PostRow
         comment={comment}
         threadLine={hasReplies ? "solid" : "none"}
-        border={!hasReplies && !isLastThread}
         onReplyCreated={onReplyCreated}
         postAuthorId={postAuthorId}
       />
@@ -106,7 +99,6 @@ function CommentThread({
             <PostRow
               comment={reply}
               threadLine={threadLine}
-              border={isLast && !isLastThread}
               threadLineTop
               onReplyCreated={onReplyCreated}
               postAuthorId={postAuthorId}
