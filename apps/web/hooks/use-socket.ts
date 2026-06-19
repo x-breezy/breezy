@@ -12,7 +12,15 @@ export function useSocket(userId: string | undefined) {
     // Ensure we don't create multiple connections
     if (socketRef.current) return
 
-    const socketInstance = io(process.env.NEXT_PUBLIC_MESSAGE_WS_URL || "http://localhost:4030", {
+    // Connect through the gateway, which proxies /socket.io/ to message-service.
+    // - prod: the app is served BY the gateway → same origin ("") routes to /socket.io/.
+    // - dev:  Next runs on :3000 but the gateway is :80, so same-origin would 404 →
+    //         target the gateway origin explicitly.
+    // NEXT_PUBLIC_WS_URL overrides both when set (e.g. a dedicated WS domain).
+    const isDevSplitOrigin =
+      typeof window !== "undefined" && window.location.port === "3000"
+    const wsUrl = process.env.NEXT_PUBLIC_WS_URL ?? (isDevSplitOrigin ? "http://localhost" : "")
+    const socketInstance = io(wsUrl, {
       auth: { userId },
       reconnection: true,
       reconnectionAttempts: 5,

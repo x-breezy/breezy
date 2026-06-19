@@ -137,7 +137,7 @@ class AuthController {
       }
 
       res.set("X-User-Id", payload.sub)
-      res.set("X-Role", payload.role)
+      res.set("X-Roles", payload.role)
       res.status(200).json({ success: true })
     } catch {
       res.status(401).json({ success: false, message: "Invalid or expired token" })

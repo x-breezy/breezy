@@ -5,6 +5,7 @@ import { useParams } from "next/navigation"
 import { ConversationSidebar, type ConversationMeta } from "@/components/messages/conversation-sidebar"
 import { useCurrentUser } from "@/hooks/use-current-user"
 import { useSocket } from "@/hooks/use-socket"
+import apiClient from "@/lib/api/client"
 
 export default function MessagesLayout({ children }: { children: React.ReactNode }) {
   const [conversations, setConversations] = useState<ConversationMeta[]>([])
@@ -17,14 +18,8 @@ export default function MessagesLayout({ children }: { children: React.ReactNode
     if (!currentUserId) return;
     
     // Fetch conversations list
-    const API_URL = process.env.NEXT_PUBLIC_MESSAGE_API_URL || "http://localhost:4030"
-    fetch(`${API_URL}/conversations`, {
-      headers: {
-        "x-user-id": currentUserId,
-        "x-roles": "user",
-      },
-    })
-      .then((res) => res.json())
+    apiClient.get(`/api/conversations/`)
+      .then((res) => res.data)
       .then((data) => {
         if (data.success && data.data) {
           setConversations(data.data.map((c: any) => 
@@ -57,11 +52,8 @@ export default function MessagesLayout({ children }: { children: React.ReactNode
           return [updatedConv, ...filtered]
         } else {
           // Refetch conversations if it's a completely new one we don't know about yet
-          const API_URL = process.env.NEXT_PUBLIC_MESSAGE_API_URL || "http://localhost:4030"
-          fetch(`${API_URL}/conversations`, {
-            headers: { "x-user-id": currentUserId, "x-roles": "user" }
-          })
-            .then(r => r.json())
+          apiClient.get(`/api/conversations/`)
+            .then(r => r.data)
             .then(data => {
               if (data.success && data.data) {
                 setConversations(data.data.map((c: any) => 

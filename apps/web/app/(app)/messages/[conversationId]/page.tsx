@@ -11,6 +11,7 @@ import Link from "next/link"
 import { useUserCache } from "@/hooks/use-user-cache"
 import { useSocket } from "@/hooks/use-socket"
 import { Button } from "@/components/ui/button"
+import apiClient from "@/lib/api/client"
 import { TagInput } from "@/components/ui/tag-input"
 import { Input } from "@/components/ui/input"
 import {
@@ -37,6 +38,10 @@ export default function ConversationPage({
   )
 
   const bottomRef = useRef<HTMLDivElement>(null)
+  // Keep latest messages accessible to effects without making them a dependency
+  // (avoids refetching the conversation list on every new message → 429s).
+  const messagesRef = useRef(messages)
+  messagesRef.current = messages
   const [avatarUrl, setAvatarUrl] = useState<string | undefined>(undefined)
   const [username, setUsername] = useState<string | null>(null)
   const [isGroupConv, setIsGroupConv] = useState(false)
@@ -67,11 +72,8 @@ export default function ConversationPage({
       let groupName = null;
 
       try {
-        const MESSAGE_API_URL = process.env.NEXT_PUBLIC_MESSAGE_API_URL || "http://localhost:4030"
-        const convRes = await fetch(`${MESSAGE_API_URL}/conversations`, {
-          headers: { "x-user-id": currentUserId, "x-roles": "user" },
-        })
-        const convData = await convRes.json()
+        const convRes = await apiClient.get(`/api/conversations/`)
+        const convData = convRes.data
         if (convData.success && convData.data) {
           const conv = convData.data.find((c: any) => c._id === conversationId)
           if (conv) {
@@ -96,7 +98,7 @@ export default function ConversationPage({
       }
 
       if (!resolvedId) {
-        resolvedId = messages.find((m) => m.senderId !== currentUserId)?.senderId
+        resolvedId = messagesRef.current.find((m) => m.senderId !== currentUserId)?.senderId
       }
 
       if (!resolvedId || resolvedId === "Unknown") {
@@ -119,11 +121,8 @@ export default function ConversationPage({
       let fetchedAvatarUrl = undefined;
 
       try {
-        const AUTH_URL = process.env.NEXT_PUBLIC_AUTH_API_URL || "http://localhost:4000"
-        const authRes = await fetch(`${AUTH_URL}/users/${resolvedId}`, {
-          headers: { "x-user-id": currentUserId, "x-roles": "user" },
-        })
-        const authData = await authRes.json()
+        const authRes = await apiClient.get(`/api/users/${resolvedId}`)
+        const authData = authRes.data
         if (authData.success && authData.data) {
           authUsername = authData.data.username
         }
@@ -132,11 +131,8 @@ export default function ConversationPage({
       }
 
       try {
-        const PROFILE_URL = process.env.NEXT_PUBLIC_PROFILE_API_URL || "http://localhost:4010"
-        const profileRes = await fetch(`${PROFILE_URL}/profiles/${resolvedId}`, {
-          headers: { "x-user-id": currentUserId, "x-roles": "user" },
-        })
-        const profileData = await profileRes.json()
+        const profileRes = await apiClient.get(`/api/profiles/${resolvedId}`)
+        const profileData = profileRes.data
         if (profileData.success && profileData.data) {
           profileFirstName = profileData.data.firstName
           profileLastName = profileData.data.lastName
@@ -162,7 +158,7 @@ export default function ConversationPage({
     }
 
     fetchOtherUser()
-  }, [messages, currentUserId, conversationId, cachedUsers, setUser])
+  }, [currentUserId, conversationId, cachedUsers, setUser])
 
   useEffect(() => {
     if (!socket) return
@@ -188,17 +184,8 @@ export default function ConversationPage({
     }
 
     try {
-      const MESSAGE_API_URL = process.env.NEXT_PUBLIC_MESSAGE_API_URL || "http://localhost:4030"
-      const res = await fetch(`${MESSAGE_API_URL}/conversations/${conversationId}/name`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          "x-user-id": currentUserId!,
-          "x-roles": "user",
-        },
-        body: JSON.stringify({ name: editNameValue.trim() }),
-      })
-      const data = await res.json()
+      const res = await apiClient.patch(`/api/conversations/${conversationId}/name`, { name: editNameValue.trim() })
+      const data = res.data
       if (data.success && data.data) {
         setUsername(data.data.name)
       } else {
@@ -222,16 +209,18 @@ export default function ConversationPage({
 
     setAddingMember(true)
     try {
-      const AUTH_URL = process.env.NEXT_PUBLIC_AUTH_API_URL || "http://localhost:4000"
-      
       const newMemberIds: string[] = []
       for (const uname of usernamesToFetch) {
-        const authRes = await fetch(`${AUTH_URL}/users/by-username/${uname}`, {
-          headers: { "x-user-id": currentUserId, "x-roles": "user" }
-        })
-        const authData = await authRes.json()
+        // axios throws on 404 (unlike fetch), so a missing username lands here.
+        let authData
+        try {
+          const authRes = await apiClient.get(`/api/users/by-username/${uname}`)
+          authData = authRes.data
+        } catch {
+          authData = null
+        }
 
-        if (!authData.success || !authData.data) {
+        if (!authData?.success || !authData?.data) {
           alert(`User not found: ${uname}`)
           setAddingMember(false)
           return
@@ -239,20 +228,10 @@ export default function ConversationPage({
         newMemberIds.push(authData.data.id)
       }
 
-      const API_URL = process.env.NEXT_PUBLIC_MESSAGE_API_URL || "http://localhost:4030"
-      
       if (isGroupConv) {
         // Add to existing group
-        const res = await fetch(`${API_URL}/conversations/${conversationId}/members`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "x-user-id": currentUserId,
-            "x-roles": "user",
-          },
-          body: JSON.stringify({ memberIds: newMemberIds }),
-        })
-        const data = await res.json()
+        const res = await apiClient.post(`/api/conversations/${conversationId}/members`, { memberIds: newMemberIds })
+        const data = res.data
         if (data.success) {
           setAddMemberOpen(false)
           setNewMemberUsernames([])
@@ -265,16 +244,8 @@ export default function ConversationPage({
         const existingMembers = participantIds.filter(id => id !== currentUserId)
         const allRecipientIds = [...existingMembers, ...newMemberIds]
         
-        const res = await fetch(`${API_URL}/conversations`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "x-user-id": currentUserId,
-            "x-roles": "user",
-          },
-          body: JSON.stringify({ recipientIds: allRecipientIds }),
-        })
-        const data = await res.json()
+        const res = await apiClient.post(`/api/conversations/`, { recipientIds: allRecipientIds })
+        const data = res.data
         
         if (data.success && data.data) {
           setAddMemberOpen(false)

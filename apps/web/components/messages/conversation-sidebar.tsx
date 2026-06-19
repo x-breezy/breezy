@@ -7,6 +7,7 @@ import { IconPlus, IconTrash } from "@tabler/icons-react"
 import { useUserCache } from "@/hooks/use-user-cache"
 import { Button } from "@/components/ui/button"
 import { TagInput } from "@/components/ui/tag-input"
+import apiClient from "@/lib/api/client"
 import { Input } from "@/components/ui/input"
 import {
   Dialog,
@@ -76,11 +77,8 @@ function SidebarItem({
       let profileLastName = null;
 
       try {
-        const AUTH_URL = process.env.NEXT_PUBLIC_AUTH_API_URL || "http://localhost:4000"
-        const authRes = await fetch(`${AUTH_URL}/users/${otherUserId}`, {
-          headers: { "x-user-id": currentUserId, "x-roles": "user" },
-        })
-        const authData = await authRes.json()
+        const authRes = await apiClient.get(`/api/users/${otherUserId}`)
+        const authData = authRes.data
         if (authData.success && authData.data) {
           authUsername = authData.data.username
         }
@@ -89,11 +87,8 @@ function SidebarItem({
       }
 
       try {
-        const PROFILE_URL = process.env.NEXT_PUBLIC_PROFILE_API_URL || "http://localhost:4010"
-        const profileRes = await fetch(`${PROFILE_URL}/profiles/${otherUserId}`, {
-          headers: { "x-user-id": currentUserId, "x-roles": "user" },
-        })
-        const profileData = await profileRes.json()
+        const profileRes = await apiClient.get(`/api/profiles/${otherUserId}`)
+        const profileData = profileRes.data
         if (profileData.success && profileData.data) {
           profileFirstName = profileData.data.firstName
           profileLastName = profileData.data.lastName
@@ -180,16 +175,9 @@ export function ConversationSidebar({ conversations, currentUserId, activeId, on
     if (!window.confirm(confirmMessage)) return
 
     const conversationId = conv._id
-    const API_URL = process.env.NEXT_PUBLIC_MESSAGE_API_URL || "http://localhost:4030"
     try {
-      const res = await fetch(`${API_URL}/conversations/${conversationId}`, {
-        method: "DELETE",
-        headers: {
-          "x-user-id": currentUserId!,
-          "x-roles": "user",
-        },
-      })
-      if (res.ok) {
+      const res = await apiClient.delete(`/api/conversations/${conversationId}`)
+      if (res.status === 200 || res.status === 204) {
         if (onConversationDeleted) {
           onConversationDeleted(conversationId)
         }
@@ -215,16 +203,18 @@ export function ConversationSidebar({ conversations, currentUserId, activeId, on
 
     setLoading(true)
     try {
-      const AUTH_URL = process.env.NEXT_PUBLIC_AUTH_API_URL || "http://localhost:4000"
-      
       const recipientIds: string[] = []
       for (const uname of usernamesToFetch) {
-        const authRes = await fetch(`${AUTH_URL}/users/by-username/${uname}`, {
-          headers: { "x-user-id": currentUserId, "x-roles": "user" }
-        })
-        const authData = await authRes.json()
+        // axios throws on 404 (unlike fetch), so a missing username lands here.
+        let authData
+        try {
+          const authRes = await apiClient.get(`/api/users/by-username/${uname}`)
+          authData = authRes.data
+        } catch {
+          authData = null
+        }
 
-        if (!authData.success || !authData.data) {
+        if (!authData?.success || !authData?.data) {
           alert(`User not found: ${uname}`)
           setLoading(false)
           return
@@ -237,17 +227,8 @@ export function ConversationSidebar({ conversations, currentUserId, activeId, on
         conversationData.name = usernamesToFetch.join(", ")
       }
 
-      const API_URL = process.env.NEXT_PUBLIC_MESSAGE_API_URL || "http://localhost:4030"
-      const res = await fetch(`${API_URL}/conversations`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-user-id": currentUserId,
-          "x-roles": "user",
-        },
-        body: JSON.stringify(conversationData),
-      })
-      const data = await res.json()
+      const res = await apiClient.post(`/api/conversations/`, conversationData)
+      const data = res.data
       
       if (data.success && data.data) {
         setOpen(false)

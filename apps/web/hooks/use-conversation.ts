@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from "react"
 import { useSocket } from "./use-socket"
+import apiClient from "../lib/api/client"
 
 export interface Message {
   _id: string
@@ -23,16 +24,10 @@ export function useConversation(conversationId: string, userId: string | undefin
 
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true)
-    const API_URL = process.env.NEXT_PUBLIC_MESSAGE_API_URL || "http://localhost:4030"
     
-    fetch(`${API_URL}/conversations/${conversationId}/messages`, {
-      headers: {
-        "x-user-id": userId,
-        "x-roles": "user",
-      },
-    })
-      .then((res) => res.json())
-      .then((data) => {
+    apiClient.get(`/api/conversations/${conversationId}/messages`)
+      .then((res) => {
+        const data = res.data
         if (data.success && data.data) {
           // APIs return paginated, usually newest first. We reverse them for chat view.
           setMessages([...data.data].reverse())
@@ -66,17 +61,9 @@ export function useConversation(conversationId: string, userId: string | undefin
   useEffect(() => {
     if (!conversationId || !userId || messages.length === 0) return
 
-    const API_URL = process.env.NEXT_PUBLIC_MESSAGE_API_URL || "http://localhost:4030"
-    
     const markRead = async () => {
       try {
-        await fetch(`${API_URL}/conversations/${conversationId}/read`, {
-          method: "PATCH",
-          headers: {
-            "x-user-id": userId,
-            "x-roles": "user",
-          },
-        })
+        await apiClient.patch(`/api/conversations/${conversationId}/read`)
       } catch (err) {
         console.error("Failed to mark as read", err)
       }
@@ -89,19 +76,9 @@ export function useConversation(conversationId: string, userId: string | undefin
     async (content: string) => {
       if (!conversationId || !userId) return
 
-      const API_URL = process.env.NEXT_PUBLIC_MESSAGE_API_URL || "http://localhost:4030"
-      
       try {
-        const res = await fetch(`${API_URL}/conversations/${conversationId}/messages`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "x-user-id": userId,
-            "x-roles": "user",
-          },
-          body: JSON.stringify({ content }),
-        })
-        const data = await res.json()
+        const res = await apiClient.post(`/api/conversations/${conversationId}/messages`, { content })
+        const data = res.data
         
         if (data.success && data.data) {
           // Optimistically we could add it before API responds, 
