@@ -208,7 +208,10 @@
     "noMedia": "No media found",
     "fallbackUser": "User",
     "following": "Following",
-    "follow": "Follow"
+    "follow": "Follow",
+    "recentSearches": "Recent searches",
+    "clearAll": "Clear all",
+    "removeSearch": "Remove this search"
   },
   "sidebar": {
     "whoToFollow": "Who to follow",

@@ -208,7 +208,10 @@
     "noMedia": "Aucun média trouvé",
     "fallbackUser": "Utilisateur",
     "following": "Abonné",
-    "follow": "S'abonner"
+    "follow": "S'abonner",
+    "recentSearches": "Recherches récentes",
+    "clearAll": "Effacer tout",
+    "removeSearch": "Supprimer cette recherche"
   },
   "sidebar": {
     "whoToFollow": "Qui suivre",

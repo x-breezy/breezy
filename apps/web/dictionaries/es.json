@@ -208,7 +208,10 @@
     "noMedia": "No se encontró multimedia",
     "fallbackUser": "Usuario",
     "following": "Siguiendo",
-    "follow": "Seguir"
+    "follow": "Seguir",
+    "recentSearches": "Búsquedas recientes",
+    "clearAll": "Borrar todo",
+    "removeSearch": "Eliminar esta búsqueda"
   },
   "sidebar": {
     "whoToFollow": "A quién seguir",
