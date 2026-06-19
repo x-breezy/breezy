@@ -233,7 +233,7 @@ export class PostService {
       })) as unknown as ReplyPost[]
     }
 
-    const ids = posts.map((p) => String(p.id))
+    const ids = posts.map((p) => String((p as unknown as Record<string, unknown>)._id ?? p.id))
     // depth=1 fetches level-2 replies only show root author's responses
     const childFilter: Record<string, unknown> = { parentId: { $in: ids } }
     if (depth === 1 && rootAuthorId) childFilter.authorId = rootAuthorId
@@ -254,7 +254,7 @@ export class PostService {
     }
 
     return posts.map((p) => {
-      const id = String(p.id)
+      const id = String((p as unknown as Record<string, unknown>)._id ?? p.id)
       return { ...p, author: null, likedByMe: false, replies: repliesByParent.get(id) ?? [] }
     }) as unknown as ReplyPost[]
   }
