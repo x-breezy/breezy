@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { IconCamera, IconUpload } from "@tabler/icons-react"
+import { AvatarCropper } from "@/components/shared/avatar-cropper"
 import { nameFieldSchema, bioSchema } from "@/lib/schemas/user-validation"
 
 interface ProfileStepProps {
@@ -34,11 +35,18 @@ export function PhotoStep({
   const [firstNameError, setFirstNameError] = useState<string | null>(null)
   const [lastNameError, setLastNameError] = useState<string | null>(null)
   const [bioError, setBioError] = useState<string | null>(null)
+  const [cropDialogOpen, setCropDialogOpen] = useState(false)
+  const [cropFileUrl, setCropFileUrl] = useState<string | null>(null)
   const t = useTranslations("auth")
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
+    setCropFileUrl(URL.createObjectURL(file))
+    setCropDialogOpen(true)
+  }
+
+  function handleCrop(file: File) {
     onAvatarChange(file, URL.createObjectURL(file))
   }
 
@@ -101,6 +109,17 @@ export function PhotoStep({
         accept='image/*'
         className='hidden'
         onChange={handleFileChange}
+      />
+
+      <AvatarCropper
+        open={cropDialogOpen}
+        imageUrl={cropFileUrl ?? ""}
+        onCrop={handleCrop}
+        onClose={() => {
+          setCropDialogOpen(false)
+          URL.revokeObjectURL(cropFileUrl ?? "")
+          setCropFileUrl(null)
+        }}
       />
 
       <FieldSet>

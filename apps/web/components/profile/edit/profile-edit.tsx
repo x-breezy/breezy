@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, useActionState, useState, useEffect } from "react"
+import { useRef, useActionState, useState, useEffect, useTransition } from "react"
 import { useTranslations } from "next-intl"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label"
 import { Field, FieldGroup, FieldSet } from "@/components/ui/field"
 import { IconCamera, IconUpload } from "@tabler/icons-react"
 import { ProfileAvatar } from "@/components/profile/profile-avatar"
+import { AvatarCropper } from "@/components/shared/avatar-cropper"
 import { useUserStore } from "@/stores/user-store"
 import { updateProfileAction, type UpdateProfileState } from "@/lib/actions/profile"
 import type { Profile } from "@/types/profile"
@@ -22,6 +23,7 @@ interface ProfileEditScreenProps {
 
 export default function ProfileEditScreen({ profile, onClose }: ProfileEditScreenProps) {
   const t = useTranslations("profilePage")
+  const [, startTransition] = useTransition()
   const [state, formAction, isPending] = useActionState<UpdateProfileState | null, FormData>(
     updateProfileAction,
     null
@@ -38,6 +40,9 @@ export default function ProfileEditScreen({ profile, onClose }: ProfileEditScree
 
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [preview, setPreview] = useState<string | null>(null)
+  const [cropDialogOpen, setCropDialogOpen] = useState(false)
+  const [cropFileUrl, setCropFileUrl] = useState<string | null>(null)
+  const croppedFileRef = useRef<File | null>(null)
 
   const [profileId] = useState(profile.profileId)
   const [firstName, setFirstName] = useState(profile.firstName ?? "")
@@ -50,6 +55,12 @@ export default function ProfileEditScreen({ profile, onClose }: ProfileEditScree
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
+    setCropFileUrl(URL.createObjectURL(file))
+    setCropDialogOpen(true)
+  }
+
+  function handleCrop(file: File) {
+    croppedFileRef.current = file
     setPreview(URL.createObjectURL(file))
   }
 
@@ -69,12 +80,19 @@ export default function ProfileEditScreen({ profile, onClose }: ProfileEditScree
   }
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
     const firstNameOk = validateField("firstName", firstName)
     const lastNameOk = validateField("lastName", lastName)
     const bioOk = validateBio(bio)
-    if (!firstNameOk || !lastNameOk || !bioOk) {
-      e.preventDefault()
-    }
+    if (!firstNameOk || !lastNameOk || !bioOk) return
+
+    const fd = new FormData()
+    fd.set("profileId", profileId)
+    fd.set("firstName", firstName)
+    fd.set("lastName", lastName)
+    fd.set("bio", bio)
+    if (croppedFileRef.current) fd.set("avatar", croppedFileRef.current)
+    startTransition(() => formAction(fd))
   }
 
   return (
@@ -114,10 +132,20 @@ export default function ProfileEditScreen({ profile, onClose }: ProfileEditScree
         <input
           ref={fileInputRef}
           type='file'
-          name='avatar'
           accept='image/*'
           className='hidden'
           onChange={handleFileChange}
+        />
+
+        <AvatarCropper
+          open={cropDialogOpen}
+          imageUrl={cropFileUrl ?? ""}
+          onCrop={handleCrop}
+          onClose={() => {
+            setCropDialogOpen(false)
+            URL.revokeObjectURL(cropFileUrl ?? "")
+            setCropFileUrl(null)
+          }}
         />
 
         <FieldSet>
