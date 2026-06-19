@@ -25,7 +25,7 @@ export async function signUpAction(
   _prev: ActionState | null,
   formData: FormData
 ): Promise<ActionState> {
-  const username = formData.get("username") as string
+  const username = (formData.get("username") as string).toLowerCase()
   const email = formData.get("email") as string
   const password = formData.get("password") as string
 

@@ -42,7 +42,7 @@ export async function searchProfiles(
   page = 1,
   limit = 20
 ): Promise<{ profiles: SearchProfile[]; total: number; page: number; limit: number }> {
-  const params = new URLSearchParams({ q, page: String(page), limit: String(limit) })
+  const params = new URLSearchParams({ q: q.toLowerCase(), page: String(page), limit: String(limit) })
   const res = await authenticatedFetch(`/api/profiles/search?${params}`)
   if (!res.ok) throw new Error(`Failed to search profiles: ${res.status}`)
   const data = await res.json()

@@ -10,7 +10,7 @@ export type PostToken =
   | { type: "link"; value: string; className: string }
 
 const URL_PATTERN = /https?:\/\/[^\s<]+/g
-const MENTION_HASHTAG_PATTERN = /[@#][a-zA-Z0-9_À-ÿ]+/g
+const MENTION_HASHTAG_PATTERN = /[@#][a-zA-Z0-9_À-ÿ-]+/g
 
 function tokenizeText(tokens: PostToken[], text: string): void {
   let last = 0
