@@ -232,31 +232,35 @@ export function Feed({ feedType = "forYou" }: { feedType?: string }) {
         </Button>
       </div>
       <ul
-        className='space-y-1'
         onClick={() => sessionStorage.setItem(scrollKey, String(window.scrollY))}
       >
         {feedItems.map((item) => {
           if (item.type === "reply-group") {
-            return <CommentTree key={`ct-${item.commentNode._id}`} comments={[item.commentNode]} />
+            return (
+              <li key={`ct-${item.commentNode._id}`} className='border-b border-border'>
+                <CommentTree comments={[item.commentNode]} />
+              </li>
+            )
           }
           const post = item.post
           return (
-            <Post
-              key={post._id}
-              id={post._id}
-              name={authorName(post)}
-              username={post.author?.username ?? post.authorId}
-              authorId={post.authorId}
-              avatarUrl={post.author?.avatarUrl ?? undefined}
-              content={post.content}
-              media={post.media}
-              createdAt={post.createdAt}
-              initialLikes={post.likesCount}
-              initialComments={post.commentsCount}
-              initialLiked={post.liked}
-              onLike={handleLike}
-              href={`/post/${post.author?.username ?? post.authorId}/${post._id}`}
-            />
+            <li key={post._id} className='border-b border-border'>
+              <Post
+                id={post._id}
+                name={authorName(post)}
+                username={post.author?.username ?? post.authorId}
+                authorId={post.authorId}
+                avatarUrl={post.author?.avatarUrl ?? undefined}
+                content={post.content}
+                media={post.media}
+                createdAt={post.createdAt}
+                initialLikes={post.likesCount}
+                initialComments={post.commentsCount}
+                initialLiked={post.liked}
+                onLike={handleLike}
+                href={`/post/${post.author?.username ?? post.authorId}/${post._id}`}
+              />
+            </li>
           )
         })}
         {hasNextPage && (

@@ -147,7 +147,7 @@
   }
 
   .container-center {
-    max-width: var(--container-3xl);
+    max-width: var(--container-6xl);
     margin: 0 auto;
   }
 }
