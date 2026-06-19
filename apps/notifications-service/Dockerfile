@@ -4,7 +4,6 @@ COPY package.json package-lock.json ./
 COPY packages/ ./packages/
 COPY apps/notifications-service/ ./apps/notifications-service/
 RUN npm ci --workspace=notifications-service --workspace=@breezy/emails
-RUN npm run build --workspace=@breezy/emails
 RUN npm run build --workspace=notifications-service
 
 FROM node:22-alpine
