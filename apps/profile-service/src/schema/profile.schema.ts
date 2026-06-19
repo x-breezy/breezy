@@ -1,7 +1,7 @@
 import { z } from "zod"
 
-const nameRegex = /^[\p{L}\s'.-]+$/u
-const nameMessage = "Name can only contain letters, spaces, apostrophes, hyphens, and periods"
+const nameRegex = /^[\p{L}\s'.0-9-]+$/u
+const nameMessage = "Name can only contain letters, numbers, spaces, apostrophes, hyphens, and periods"
 const usernameMessage = "Can only contain lowercase letters, numbers, underscores, and hyphens"
 
 const nameField = z

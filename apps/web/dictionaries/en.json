@@ -148,7 +148,7 @@
     "usernameInvalidChars": "Username can only contain lowercase letters, numbers, underscores, and hyphens",
     "nameMinLength": "Name must be at least 1 character",
     "nameMaxLength": "Name must be at most 100 characters",
-    "nameInvalidChars": "Name can only contain letters, spaces, apostrophes, hyphens, and periods"
+    "nameInvalidChars": "Name can only contain letters, numbers, spaces, apostrophes, hyphens, and periods"
   },
   "notifications": {
     "title": "Notifications",
@@ -199,7 +199,7 @@
     "usernameInvalidChars": "Username can only contain lowercase letters, numbers, underscores, and hyphens",
     "usernameMinLength": "Username must be at least 3 characters",
     "usernameMaxLength": "Username must be at most 50 characters",
-    "nameInvalidChars": "Name can only contain letters, spaces, apostrophes, hyphens, and periods",
+    "nameInvalidChars": "Name can only contain letters, numbers, spaces, apostrophes, hyphens, and periods",
     "nameMinLength": "Name must be at least 1 character",
     "nameMaxLength": "Name must be at most 100 characters",
     "biographyTitle": "Biography",

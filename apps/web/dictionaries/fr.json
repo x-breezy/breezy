@@ -148,7 +148,7 @@
     "usernameInvalidChars": "Le nom d'utilisateur ne peut contenir que des lettres minuscules, des chiffres, des tirets et des underscores",
     "nameMinLength": "Le nom doit comporter au moins 1 caractère",
     "nameMaxLength": "Le nom doit comporter au plus 100 caractères",
-    "nameInvalidChars": "Le nom ne peut contenir que des lettres, des espaces, des apostrophes, des tirets et des points"
+    "nameInvalidChars": "Le nom ne peut contenir que des lettres, des chiffres, des espaces, des apostrophes, des tirets et des points"
   },
   "notifications": {
     "title": "Notifications",
@@ -199,7 +199,7 @@
     "usernameInvalidChars": "Le nom d'utilisateur ne peut contenir que des lettres minuscules, des chiffres, des tirets et des underscores",
     "usernameMinLength": "Le nom d'utilisateur doit comporter au moins 3 caractères",
     "usernameMaxLength": "Le nom d'utilisateur doit comporter au plus 50 caractères",
-    "nameInvalidChars": "Le nom ne peut contenir que des lettres, des espaces, des apostrophes, des tirets et des points",
+    "nameInvalidChars": "Le nom ne peut contenir que des lettres, des chiffres, des espaces, des apostrophes, des tirets et des points",
     "nameMinLength": "Le nom doit comporter au moins 1 caractère",
     "nameMaxLength": "Le nom doit comporter au plus 100 caractères",
     "biographyTitle": "Biographie",
