@@ -14,7 +14,7 @@ import { REFRESH_COOKIE } from "@/lib/auth/auth-cookies"
 import { signUp, getMe, notifyProfileCreated } from "@/lib/services/auth-service"
 import { createProfile } from "@/lib/services/profile-service"
 import { uploadImage } from "@/lib/services/image-service"
-import { usernameSchema, nameFieldSchema } from "@/lib/schemas/user-validation"
+import { usernameSchema, nameFieldSchema, bioSchema } from "@/lib/schemas/user-validation"
 
 export interface ActionState {
   error: string | null
@@ -68,7 +68,7 @@ export async function setupProfileAction(
 
   const firstNameRaw = (formData.get("firstName") as string) || null
   const lastNameRaw = (formData.get("lastName") as string) || null
-  const bio = (formData.get("bio") as string) || null
+  const bioRaw = (formData.get("bio") as string) || null
 
   const firstNameResult = nameFieldSchema.safeParse(firstNameRaw)
   if (!firstNameResult.success) {
@@ -78,9 +78,14 @@ export async function setupProfileAction(
   if (!lastNameResult.success) {
     return { error: lastNameResult.error.issues[0]!.message, success: false }
   }
+  const bioResult = bioSchema.safeParse(bioRaw)
+  if (!bioResult.success) {
+    return { error: bioResult.error.issues[0]!.message, success: false }
+  }
 
   const firstName = firstNameResult.data
   const lastName = lastNameResult.data
+  const bio = bioResult.data
   const avatarFile = formData.get("avatar") as File | null
 
   let avatarId: string | null = null

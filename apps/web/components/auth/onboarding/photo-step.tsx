@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { IconCamera, IconUpload } from "@tabler/icons-react"
-import { nameFieldSchema } from "@/lib/schemas/user-validation"
+import { nameFieldSchema, bioSchema } from "@/lib/schemas/user-validation"
 
 interface ProfileStepProps {
   preview: string | null
@@ -33,6 +33,7 @@ export function PhotoStep({
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [firstNameError, setFirstNameError] = useState<string | null>(null)
   const [lastNameError, setLastNameError] = useState<string | null>(null)
+  const [bioError, setBioError] = useState<string | null>(null)
   const t = useTranslations("auth")
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -49,16 +50,25 @@ export function PhotoStep({
     return result.success
   }
 
+  function validateBio(value: string): boolean {
+    const result = bioSchema.safeParse(value || null)
+    const error = result.success ? null : t(result.error.issues[0]!.message)
+    setBioError(error)
+    return result.success
+  }
+
   function handleNext() {
     const firstNameOk = validateField("firstName", firstName)
     const lastNameOk = validateField("lastName", lastName)
-    if (firstNameOk && lastNameOk) onNext()
+    const bioOk = validateBio(bio)
+    if (firstNameOk && lastNameOk && bioOk) onNext()
   }
 
   function handleFieldChange(field: "firstName" | "lastName" | "bio", value: string) {
     onChange(field, value)
     if (field === "firstName" && firstNameError) setFirstNameError(null)
     if (field === "lastName" && lastNameError) setLastNameError(null)
+    if (field === "bio" && bioError) setBioError(null)
   }
 
   return (
@@ -135,7 +145,12 @@ export function PhotoStep({
               className='resize-none'
               value={bio}
               onChange={(e) => onChange("bio", e.target.value)}
+              onBlur={(e) => validateBio(e.target.value)}
             />
+            {bioError && <p className='text-xs text-destructive'>{bioError}</p>}
+            <p className='text-right text-xs text-muted-foreground'>
+              {bio.length}/200 · {(bio.match(/\n/g) || []).length + 1}/5
+            </p>
           </Field>
         </FieldGroup>
       </FieldSet>

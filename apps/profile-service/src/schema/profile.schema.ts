@@ -12,6 +12,19 @@ const nameField = z
   .nullable()
   .optional()
 
+const bioField = z
+  .string()
+  .trim()
+  .transform((val) => val.replace(/\n{2,}/g, "\n"))
+  .pipe(
+    z
+      .string()
+      .max(200, "Bio must be 200 characters or fewer")
+      .refine((val) => (val.match(/\n/g) || []).length < 4, "Bio must be fewer than 5 lines")
+  )
+  .nullable()
+  .optional()
+
 export const createProfileSchema = z.object({
   username: z
     .string()
@@ -19,14 +32,14 @@ export const createProfileSchema = z.object({
     .regex(/^[a-z0-9_-]+$/, usernameMessage),
   firstName: nameField,
   lastName: nameField,
-  bio: z.string().nullable().optional(),
+  bio: bioField,
   avatarId: z.string().url().max(500).nullable().optional(),
 })
 
 export const updateProfileSchema = z.object({
   firstName: nameField,
   lastName: nameField,
-  bio: z.string().nullable().optional(),
+  bio: bioField,
   avatarId: z.string().url().max(500).nullable().optional(),
 })
 

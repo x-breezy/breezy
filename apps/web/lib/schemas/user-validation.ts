@@ -17,3 +17,16 @@ export const nameFieldSchema = z
   .regex(nameRegex, "nameInvalidChars")
   .nullable()
   .optional()
+
+export const bioSchema = z
+  .string()
+  .trim()
+  .transform((val) => val.replace(/\n{2,}/g, "\n"))
+  .pipe(
+    z
+      .string()
+      .max(200, "bioMaxLength")
+      .refine((val) => (val.match(/\n/g) || []).length < 4, "bioMaxLines")
+  )
+  .nullable()
+  .optional()

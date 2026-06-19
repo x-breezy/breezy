@@ -13,7 +13,7 @@ import { ProfileAvatar } from "@/components/profile/profile-avatar"
 import { useUserStore } from "@/stores/user-store"
 import { updateProfileAction, type UpdateProfileState } from "@/lib/actions/profile"
 import type { Profile } from "@/types/profile"
-import { nameFieldSchema } from "@/lib/schemas/user-validation"
+import { nameFieldSchema, bioSchema } from "@/lib/schemas/user-validation"
 
 interface ProfileEditScreenProps {
   profile: Profile
@@ -45,6 +45,7 @@ export default function ProfileEditScreen({ profile, onClose }: ProfileEditScree
   const [bio, setBio] = useState(profile.bio ?? "")
   const [firstNameError, setFirstNameError] = useState<string | null>(null)
   const [lastNameError, setLastNameError] = useState<string | null>(null)
+  const [bioError, setBioError] = useState<string | null>(null)
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -60,10 +61,18 @@ export default function ProfileEditScreen({ profile, onClose }: ProfileEditScree
     return result.success
   }
 
+  function validateBio(value: string): boolean {
+    const result = bioSchema.safeParse(value || null)
+    const error = result.success ? null : t(result.error.issues[0]!.message)
+    setBioError(error)
+    return result.success
+  }
+
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     const firstNameOk = validateField("firstName", firstName)
     const lastNameOk = validateField("lastName", lastName)
-    if (!firstNameOk || !lastNameOk) {
+    const bioOk = validateBio(bio)
+    if (!firstNameOk || !lastNameOk || !bioOk) {
       e.preventDefault()
     }
   }
@@ -159,13 +168,21 @@ export default function ProfileEditScreen({ profile, onClose }: ProfileEditScree
                 rows={3}
                 className='resize-none'
                 value={bio}
-                onChange={(e) => setBio(e.target.value)}
+                onChange={(e) => {
+                  setBio(e.target.value)
+                  if (bioError) setBioError(null)
+                }}
+                onBlur={(e) => validateBio(e.target.value)}
               />
+              {bioError && <p className='text-xs text-destructive'>{bioError}</p>}
+              <p className='text-right text-xs text-muted-foreground'>
+                {bio.length}/200 · {(bio.match(/\n/g) || []).length + 1}/5
+              </p>
             </Field>
           </FieldGroup>
         </FieldSet>
 
-        {state?.error && <p className='text-sm text-destructive'>{state.error}</p>}
+        {state?.error && <p className='text-sm text-destructive'>{t(state.error)}</p>}
 
         <div className='flex flex-col gap-3'>
           <Button type='submit' size='lg' disabled={isPending}>

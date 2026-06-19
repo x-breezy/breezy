@@ -5,7 +5,7 @@ import { getServerAuthHeader, API_URL } from "@/lib/auth/session"
 import { updateProfile } from "@/lib/services/profile-service"
 import { uploadImage } from "@/lib/services/image-service"
 import type { Profile } from "@/types/profile"
-import { nameFieldSchema } from "@/lib/schemas/user-validation"
+import { nameFieldSchema, bioSchema } from "@/lib/schemas/user-validation"
 
 export interface UpdateProfileState {
   error: string | null
@@ -52,11 +52,17 @@ export async function updateProfileAction(
     return { error: lastNameResult.error.issues[0]!.message, success: false }
   }
 
+  const bioRaw = (formData.get("bio") as string) || null
+  const bioResult = bioSchema.safeParse(bioRaw)
+  if (!bioResult.success) {
+    return { error: bioResult.error.issues[0]!.message, success: false }
+  }
+
   const payload = {
     firstName: firstNameResult.data,
     lastName: lastNameResult.data,
     username: formData.get("username") as string,
-    bio: (formData.get("bio") as string) || null,
+    bio: bioResult.data,
     ...(avatarId !== undefined && { avatarId }),
   }
 
