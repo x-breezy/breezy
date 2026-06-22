@@ -14,6 +14,7 @@ import {
   getMe,
 } from "@/lib/services/auth-service"
 
+
 export async function logoutAction() {
   const cookieStore = await cookies()
   const refreshToken = cookieStore.get(REFRESH_COOKIE)?.value

@@ -2,11 +2,16 @@
 
 import { usePathname } from "next/navigation"
 import { useTranslations } from "next-intl"
+import { IconShield } from "@tabler/icons-react"
 import { HomeIcon, SearchIcon, GrodIcon, SendIcon, ProfileIcon } from "./icons"
 import { NavItem } from "./nav-item"
 import { useUserStore } from "@/stores/user-store"
 import type { NavItemData } from "./types"
 import Link from "next/link"
+
+function ModerationIcon({ active, className }: { active?: boolean; className?: string }) {
+  return <IconShield size={24} strokeWidth={active ? 2.5 : 1.5} className={className} />
+}
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getNavItems(t: any): NavItemData[] {
@@ -31,15 +36,20 @@ export function ResponsiveNav() {
   const pathname = usePathname()
   const t = useTranslations("nav")
   const profile = useUserStore((s) => s.profile)
+  const user = useUserStore((s) => s.user)
   const ProfileNavIcon = makeProfileIcon(profile?.avatarId ?? null)
   const isProfileActive = pathname === `/profile/${profile?.username}`
+  const isModerator = user?.role === "moderator" || user?.role === "admin"
 
   const navItems = getNavItems(t)
 
   return (
     <>
       {/* Mobile: Bottom bar - visible en dessous de lg */}
-      <nav className='fixed right-0 bottom-0 left-0 z-50 grid h-15 grid-cols-5 border-t bg-background pb-[env(safe-area-inset-bottom)] lg:hidden'>
+      <nav
+        className='fixed right-0 bottom-0 left-0 z-50 grid h-15 border-t bg-background pb-[env(safe-area-inset-bottom)] lg:hidden'
+        style={{ gridTemplateColumns: `repeat(${isModerator ? 6 : 5}, 1fr)` }}
+      >
         {navItems.map(({ href, icon, label }) => (
           <NavItem
             key={href}
@@ -51,16 +61,24 @@ export function ResponsiveNav() {
             iconClassName='block size-6'
           />
         ))}
-        {profile && (
+        {isModerator && (
           <NavItem
-            href={`/profile/${profile.username}`}
-            icon={ProfileNavIcon}
-            label={t("profile")}
-            isActive={isProfileActive}
+            href='/moderation'
+            icon={ModerationIcon}
+            label='Moderation'
+            isActive={pathname === "/moderation"}
             showLabel={false}
             iconClassName='block size-6'
           />
         )}
+        <NavItem
+          href={`/profile/${profile?.username}`}
+          icon={ProfileNavIcon}
+          label={t("profile")}
+          isActive={isProfileActive}
+          showLabel={false}
+          iconClassName='block size-6'
+        />
       </nav>
 
       {/* Desktop: Sidebar - visible à partir de lg */}
@@ -82,16 +100,24 @@ export function ResponsiveNav() {
               iconClassName='block size-7'
             />
           ))}
-          {profile && (
+          {isModerator && (
             <NavItem
-              href={`/profile/${profile.username}`}
-              icon={ProfileNavIcon}
-              label={t("profile")}
-              isActive={isProfileActive}
+              href='/moderation'
+              icon={ModerationIcon}
+              label='Moderation'
+              isActive={pathname === "/moderation"}
               showLabel={true}
               iconClassName='block size-7'
             />
           )}
+          <NavItem
+            href={`/profile/${profile?.username}`}
+            icon={ProfileNavIcon}
+            label={t("profile")}
+            isActive={isProfileActive}
+            showLabel={true}
+            iconClassName='block size-7'
+          />
         </nav>
       </aside>
     </>

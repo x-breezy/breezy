@@ -19,7 +19,6 @@ const mockService = {
   updatePassword: jest.fn(),
   searchByUsername: jest.fn(),
   banUser: jest.fn(),
-  suspendUser: jest.fn(),
 }
 
 function buildApp() {
@@ -281,7 +280,7 @@ describe("GET /users/me", () => {
   })
 
   it("handles service error with 500", async () => {
-    jest.spyOn(console, "error").mockImplementation(() => {})
+    jest.spyOn(console, "error").mockImplementation(() => { })
     mockService.getUser.mockRejectedValue(new Error("db error"))
     const res = await request(app).get("/users/me").set("Authorization", "Bearer fake-token")
     expect(res.status).toBe(500)
@@ -326,48 +325,11 @@ describe("PATCH /users/:id/ban", () => {
   })
 
   it("handles service error with 500", async () => {
-    jest.spyOn(console, "error").mockImplementation(() => {})
+    jest.spyOn(console, "error").mockImplementation(() => { })
     mockService.banUser.mockRejectedValue(new Error("db error"))
     mockVerifyToken.mockReturnValueOnce({ sub: ADMIN_ID, role: "admin", jti: "x" })
     const res = await request(app)
       .patch(`/users/${UUID}/ban`)
-      .set("Authorization", "Bearer fake-token")
-    expect(res.status).toBe(500)
-  })
-})
-
-// ── PATCH /users/:id/suspend ────────────────────────────────────────────────
-
-describe("PATCH /users/:id/suspend", () => {
-  const UUID = "11111111-1111-1111-1111-111111111111"
-
-  it("returns 200 on suspend", async () => {
-    mockService.suspendUser.mockResolvedValue({ id: UUID, isSuspended: true })
-    mockVerifyToken.mockReturnValueOnce({ sub: ADMIN_ID, role: "admin", jti: "x" })
-    const res = await request(app)
-      .patch(`/users/${UUID}/suspend`)
-      .set("Authorization", "Bearer fake-token")
-    expect(res.status).toBe(200)
-  })
-
-  it("returns 403 for non-admin", async () => {
-    const res = await request(app)
-      .patch(`/users/${UUID}/suspend`)
-      .set("Authorization", "Bearer fake-token")
-    expect(res.status).toBe(403)
-  })
-
-  it("returns 401 without auth", async () => {
-    const res = await request(app).patch(`/users/${UUID}/suspend`)
-    expect(res.status).toBe(401)
-  })
-
-  it("handles service error with 500", async () => {
-    jest.spyOn(console, "error").mockImplementation(() => {})
-    mockService.suspendUser.mockRejectedValue(new Error("db error"))
-    mockVerifyToken.mockReturnValueOnce({ sub: ADMIN_ID, role: "admin", jti: "x" })
-    const res = await request(app)
-      .patch(`/users/${UUID}/suspend`)
       .set("Authorization", "Bearer fake-token")
     expect(res.status).toBe(500)
   })

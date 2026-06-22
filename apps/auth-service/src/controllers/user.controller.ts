@@ -79,23 +79,6 @@ class UserController {
     }
   }
 
-  suspendUser = async (
-    req: Request<{ id: string }>,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> => {
-    try {
-      await this.userService.suspendUser(req.params.id)
-      res.status(200).json({ success: true, message: "User suspended successfully" })
-    } catch (error) {
-      if ((error as { code?: string }).code === "USER_NOT_FOUND") {
-        res.status(404).json({ success: false, message: "User not found" })
-        return
-      }
-      next(error)
-    }
-  }
-
   updatePassword = async (
     req: Request<{ id: string }, unknown, UpdatePasswordDTO>,
     res: Response,
@@ -124,6 +107,51 @@ class UserController {
       next(error)
     }
   }
+  listAll = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const page = Math.max(1, parseInt(req.query.page as string) || 1)
+      const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 20))
+      const result = await this.userService.listAll(page, limit)
+      res.status(200).json({
+        success: true,
+        data: { users: result.users, total: result.count, page, limit },
+      })
+    } catch (error) {
+      next(error)
+    }
+  }
+
+  listSanctioned = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const page = Math.max(1, parseInt(req.query.page as string) || 1)
+      const limit = Math.min(50, Math.max(1, parseInt(req.query.limit as string) || 20))
+      const result = await this.userService.listSanctioned(page, limit)
+      res.status(200).json({
+        success: true,
+        data: { users: result.users, total: result.count, page, limit },
+      })
+    } catch (error) {
+      next(error)
+    }
+  }
+
+  unbanUser = async (
+    req: Request<{ id: string }>,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      await this.userService.unbanUser(req.params.id)
+      res.status(200).json({ success: true, message: "User unbanned successfully" })
+    } catch (error) {
+      if ((error as { code?: string }).code === "USER_NOT_FOUND") {
+        res.status(404).json({ success: false, message: "User not found" })
+        return
+      }
+      next(error)
+    }
+  }
+
   search = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const q = (req.query.q as string | undefined)?.trim() ?? ""

@@ -18,7 +18,6 @@ export function UserStoreProvider({ profile, user, following, children }: Props)
   const initialize = useUserStore((s) => s.initialize)
   const initialized = useUserStore((s) => s.initialized)
   const syncFromUser = useSettingsStore((s) => s.syncFromUser)
-
   useEffect(() => {
     initialize(profile, user, following)
     // eslint-disable-next-line react-hooks/exhaustive-deps

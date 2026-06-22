@@ -9,14 +9,13 @@ describe("getPermissions", () => {
     expect(perms).toContain(PERMISSIONS.USER_ME)
     expect(perms).toContain(PERMISSIONS.REPORT_CREATE)
     expect(perms).not.toContain(PERMISSIONS.USER_READ)
-    expect(perms).not.toContain(PERMISSIONS.USER_SUSPEND)
     expect(perms).not.toContain(PERMISSIONS.USER_BAN)
     expect(perms).not.toContain(PERMISSIONS.REPORT_RESOLVE)
   })
 
-  it("grants moderator suspension and report resolution but not ban", () => {
+  it("grants moderator report resolution but not ban", () => {
     const perms = getPermissions(ROLES.MODERATOR)
-    expect(perms).toContain(PERMISSIONS.USER_SUSPEND)
+    expect(perms).toContain(PERMISSIONS.USER_READ)
     expect(perms).toContain(PERMISSIONS.REPORT_RESOLVE)
     expect(perms).not.toContain(PERMISSIONS.USER_BAN)
     expect(perms).not.toContain(PERMISSIONS.USER_CREATE)

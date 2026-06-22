@@ -21,7 +21,29 @@ function createUserRouter(
     validate(createUserSchema),
     userController.createUser
   )
+  router.get(
+    "/",
+    identity,
+    readLimit,
+    requirePermission(PERMISSIONS.USER_READ),
+    userController.listAll
+  )
   router.get("/search", identity, searchLimit, userController.search)
+  router.get(
+    "/sanctioned",
+    identity,
+    readLimit,
+    requirePermission(PERMISSIONS.USER_BAN),
+    userController.listSanctioned
+  )
+  router.patch(
+    "/:id/unban",
+    identity,
+    writeLimit,
+    requirePermission(PERMISSIONS.USER_BAN),
+    validate(userIdParamSchema, "params"),
+    userController.unbanUser
+  )
   router.get(
     "/me",
     identity,
@@ -44,14 +66,6 @@ function createUserRouter(
     requirePermission(PERMISSIONS.USER_BAN),
     validate(userIdParamSchema, "params"),
     userController.banUser
-  )
-  router.patch(
-    "/:id/suspend",
-    identity,
-    writeLimit,
-    requirePermission(PERMISSIONS.USER_SUSPEND),
-    validate(userIdParamSchema, "params"),
-    userController.suspendUser
   )
   router.patch(
     "/:id/password",
@@ -150,27 +164,6 @@ export { createUserRouter }
  *     responses:
  *       200:
  *         description: User banned.
- *       403:
- *         description: Insufficient permissions.
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ApiError'
- *
- * /api/auth/users/{id}/suspend:
- *   patch:
- *     summary: Suspend a user
- *     tags: [Users]
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *           format: uuid
- *     responses:
- *       200:
- *         description: User suspended.
  *       403:
  *         description: Insufficient permissions.
  *         content:

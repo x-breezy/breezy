@@ -41,11 +41,6 @@ class AuthController {
         res.status(403).json({ success: false, message: "Account is banned" })
         return
       }
-      if (user.isSuspended) {
-        res.status(403).json({ success: false, message: "Account is suspended" })
-        return
-      }
-
       if (user.twoFactorEnabled) {
         const { code, expiresAt } = await this.authService.createTwoFactorCode(user.id)
         void publish("auth.2fa_code", {
@@ -89,7 +84,7 @@ class AuthController {
         return
       }
 
-      const user = await this.userService.addUser(req.body)
+      const user = await this.userService.addUser({ ...req.body, role: "user" as const })
 
       const { token, verifyUrl } = await this.authService.createEmailVerificationToken(user.id)
       void publish("auth.email_verification", {
@@ -127,13 +122,6 @@ class AuthController {
         res.status(403).json({ success: false, message: "User is banned", code: "USER_BANNED" })
         return
       }
-      if (user?.isSuspended) {
-        res
-          .status(403)
-          .json({ success: false, message: "User is suspended", code: "USER_SUSPENDED" })
-        return
-      }
-
       res.set("X-User-Id", payload.sub)
       res.set("X-Role", payload.role)
       res.status(200).json({ success: true })
