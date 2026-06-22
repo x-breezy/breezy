@@ -22,6 +22,7 @@ export function useSocket(userId: string | undefined) {
     const wsUrl = process.env.NEXT_PUBLIC_WS_URL ?? (isDevSplitOrigin ? "http://localhost" : "")
     const socketInstance = io(wsUrl, {
       auth: { userId },
+      withCredentials: true, // send breezy-token cookie on WS handshake for gateway auth
       reconnection: true,
       reconnectionAttempts: 5,
       reconnectionDelay: 1000,

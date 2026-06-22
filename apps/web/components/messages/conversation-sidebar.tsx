@@ -1,14 +1,18 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useState, useMemo } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { IconPlus, IconTrash } from "@tabler/icons-react"
 import { useUserCache } from "@/hooks/use-user-cache"
+import { useConversationStore, type ConversationMeta } from "@/stores/conversation-store"
+import {
+  getUserByUsername,
+  getUserById,
+  getProfileById,
+} from "@/lib/actions/conversations"
 import { Button } from "@/components/ui/button"
 import { TagInput } from "@/components/ui/tag-input"
-import apiClient from "@/lib/api/client"
-import { Input } from "@/components/ui/input"
 import {
   Dialog,
   DialogContent,
@@ -17,28 +21,8 @@ import {
   DialogDescription,
   DialogFooter,
   DialogTrigger,
-  DialogClose
+  DialogClose,
 } from "@/components/ui/dialog"
-
-export interface ConversationMeta {
-  _id: string
-  participantIds: string[]
-  isGroup?: boolean
-  name?: string
-  lastMessage?: string
-  lastMessageAt?: string
-  hasUnread?: boolean
-  unreadCount?: number
-}
-
-interface SidebarProps {
-  conversations: ConversationMeta[]
-  currentUserId: string | undefined
-  activeId?: string
-  onConversationCreated?: (conv: ConversationMeta) => void
-  onConversationDeleted?: (id: string) => void
-  className?: string
-}
 
 function SidebarItem({
   conv,
@@ -64,47 +48,40 @@ function SidebarItem({
     }
 
     if (otherUserId === "Unknown" || !currentUserId) return
-    
-    // If we already have it in cache, just use it
+
     if (cachedUser) {
       setUsername(cachedUser.displayName)
       return
     }
 
     const fetchDetails = async () => {
-      let authUsername = null;
-      let profileFirstName = null;
-      let profileLastName = null;
+      let authUsername: string | null = null
+      let firstName: string | null = null
+      let lastName: string | null = null
 
       try {
-        const authRes = await apiClient.get(`/api/users/${otherUserId}`)
-        const authData = authRes.data
-        if (authData.success && authData.data) {
-          authUsername = authData.data.username
-        }
+        const user = await getUserById(otherUserId)
+        authUsername = user.username
       } catch (err) {
         console.error(err)
       }
 
       try {
-        const profileRes = await apiClient.get(`/api/profiles/${otherUserId}`)
-        const profileData = profileRes.data
-        if (profileData.success && profileData.data) {
-          profileFirstName = profileData.data.firstName
-          profileLastName = profileData.data.lastName
-        }
+        const profile = await getProfileById(otherUserId)
+        firstName = profile.firstName
+        lastName = profile.lastName
       } catch (err) {
         console.error(err)
       }
 
       const nameParts = []
-      if (profileFirstName) nameParts.push(profileFirstName)
-      if (profileLastName) nameParts.push(profileLastName)
-      
+      if (firstName) nameParts.push(firstName)
+      if (lastName) nameParts.push(lastName)
+
       const fullName = nameParts.join(" ")
       const uname = authUsername || `User ${otherUserId.slice(0, 8)}`
       const display = fullName ? `${fullName} @${uname}` : `@${uname}`
-      
+
       setUsername(display)
       setUser(otherUserId, { displayName: display })
     }
@@ -123,14 +100,16 @@ function SidebarItem({
         }`}
       >
         <div className="flex justify-between items-baseline mb-1">
-          <div className={`font-semibold text-sm truncate pr-2 ${isActive ? "text-foreground" : "text-foreground"}`}>
-            {username ? username : (
-              <div className="h-4 w-24 bg-foreground/10 animate-pulse rounded"></div>
+          <div className="font-semibold text-sm truncate pr-2 text-foreground">
+            {username ? (
+              username
+            ) : (
+              <div className="h-4 w-24 bg-foreground/10 animate-pulse rounded" />
             )}
           </div>
           <div className="flex items-center gap-2 shrink-0">
             {conv.hasUnread && !isActive && (
-              <span className="h-2 w-2 rounded-full bg-blue-500 inline-block"></span>
+              <span className="h-2 w-2 rounded-full bg-blue-500 inline-block" />
             )}
             {conv.lastMessageAt && (
               <span className="text-xs opacity-70">
@@ -140,9 +119,7 @@ function SidebarItem({
           </div>
         </div>
         {conv.lastMessage && (
-          <p className="text-xs opacity-70 truncate">
-            {conv.lastMessage}
-          </p>
+          <p className="text-xs opacity-70 truncate">{conv.lastMessage}</p>
         )}
       </Link>
       <button
@@ -156,38 +133,50 @@ function SidebarItem({
   )
 }
 
-export function ConversationSidebar({ conversations, currentUserId, activeId, onConversationCreated, onConversationDeleted, className = "" }: SidebarProps) {
+interface SidebarProps {
+  currentUserId: string | undefined
+  activeId?: string
+  className?: string
+}
+
+export function ConversationSidebar({ currentUserId, activeId, className = "" }: SidebarProps) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [usernames, setUsernames] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
+
+  const conversations = useConversationStore((s) => s.conversations)
+  const createConversation = useConversationStore((s) => s.createConversation)
+  const deleteConversation = useConversationStore((s) => s.deleteConversation)
+
+  const sortedConversations = useMemo(
+    () =>
+      [...conversations]
+        .filter((c) => c.lastMessage)
+        .sort((a, b) => {
+          const dateA = a.lastMessageAt ? new Date(a.lastMessageAt).getTime() : 0
+          const dateB = b.lastMessageAt ? new Date(b.lastMessageAt).getTime() : 0
+          return dateB - dateA
+        }),
+    [conversations]
+  )
 
   const totalUnreadCount = conversations.reduce((acc, conv) => acc + (conv.unreadCount || 0), 0)
 
   const handleDeleteConversation = async (e: React.MouseEvent, conv: ConversationMeta) => {
     e.preventDefault()
     e.stopPropagation()
-    
-    const confirmMessage = conv.isGroup 
-      ? "Êtes-vous sûr de vouloir quitter ce groupe ?" 
+
+    const confirmMessage = conv.isGroup
+      ? "Êtes-vous sûr de vouloir quitter ce groupe ?"
       : "Êtes-vous sûr de vouloir supprimer cette conversation ?"
-      
+
     if (!window.confirm(confirmMessage)) return
 
-    const conversationId = conv._id
     try {
-      const res = await apiClient.delete(`/api/conversations/${conversationId}`)
-      if (res.status === 200 || res.status === 204) {
-        if (onConversationDeleted) {
-          onConversationDeleted(conversationId)
-        }
-        if (activeId === conversationId) {
-          router.push("/messages")
-        }
-        router.refresh()
-      } else {
-        alert("Erreur lors de la suppression")
-      }
+      await deleteConversation(conv._id)
+      if (activeId === conv._id) router.push("/messages")
+      router.refresh()
     } catch (err) {
       console.error(err)
       alert("Erreur lors de la suppression")
@@ -198,50 +187,27 @@ export function ConversationSidebar({ conversations, currentUserId, activeId, on
     e.preventDefault()
     if (usernames.length === 0 || !currentUserId) return
 
-    const usernamesToFetch = usernames
-    if (usernamesToFetch.length === 0) return
-
     setLoading(true)
     try {
       const recipientIds: string[] = []
-      for (const uname of usernamesToFetch) {
-        // axios throws on 404 (unlike fetch), so a missing username lands here.
-        let authData
+      for (const uname of usernames) {
         try {
-          const authRes = await apiClient.get(`/api/users/by-username/${uname}`)
-          authData = authRes.data
+          const user = await getUserByUsername(uname)
+          recipientIds.push(user.id)
         } catch {
-          authData = null
-        }
-
-        if (!authData?.success || !authData?.data) {
-          alert(`User not found: ${uname}`)
+          alert(`User not found: @${uname}`)
           setLoading(false)
           return
         }
-        recipientIds.push(authData.data.id)
       }
 
-      const conversationData: any = { recipientIds }
-      if (usernamesToFetch.length > 1) {
-        conversationData.name = usernamesToFetch.join(", ")
-      }
+      const name = usernames.length > 1 ? usernames.join(", ") : undefined
+      const conv = await createConversation(recipientIds, name)
 
-      const res = await apiClient.post(`/api/conversations/`, conversationData)
-      const data = res.data
-      
-      if (data.success && data.data) {
-        setOpen(false)
-        setUsernames([])
-        if (onConversationCreated) {
-          onConversationCreated(data.data)
-        }
-        router.push(`/messages/${data.data._id}`)
-        // Force refresh the layout to fetch the updated conversation list
-        router.refresh()
-      } else {
-        alert(data.message || "Error creating conversation")
-      }
+      setOpen(false)
+      setUsernames([])
+      router.push(`/messages/${conv._id}`)
+      router.refresh()
     } catch (err) {
       console.error(err)
       alert("Failed to create conversation")
@@ -251,7 +217,9 @@ export function ConversationSidebar({ conversations, currentUserId, activeId, on
   }
 
   return (
-    <aside className={`w-full md:w-80 border-r border-border bg-background/50 backdrop-blur-md flex-col h-full ${className}`}>
+    <aside
+      className={`w-full md:w-80 border-r border-border bg-background/50 backdrop-blur-md flex-col h-full ${className}`}
+    >
       <div className="p-4 border-b border-border flex items-center justify-between">
         <div className="flex items-center gap-2">
           <h2 className="text-xl font-bold tracking-tight">Messages</h2>
@@ -262,16 +230,18 @@ export function ConversationSidebar({ conversations, currentUserId, activeId, on
           )}
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger render={
-            <Button size="icon" variant="ghost" className="rounded-full" title="New conversation">
-              <IconPlus size={20} />
-            </Button>
-          } />
+          <DialogTrigger
+            render={
+              <Button size="icon" variant="ghost" className="rounded-full" title="New conversation">
+                <IconPlus size={20} />
+              </Button>
+            }
+          />
           <DialogContent>
             <DialogHeader>
               <DialogTitle>New Conversation</DialogTitle>
               <DialogDescription>
-                Tapez le nom d'utilisateur et appuyez sur Entrée.
+                Tapez le nom d&apos;utilisateur et appuyez sur Entrée.
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4 pt-4">
@@ -292,10 +262,10 @@ export function ConversationSidebar({ conversations, currentUserId, activeId, on
         </Dialog>
       </div>
       <div className="flex-1 overflow-y-auto">
-        {conversations.length === 0 ? (
+        {sortedConversations.length === 0 ? (
           <p className="text-sm text-muted-foreground p-4 text-center">No conversations yet.</p>
         ) : (
-          conversations.map((conv) => (
+          sortedConversations.map((conv) => (
             <SidebarItem
               key={conv._id}
               conv={conv}

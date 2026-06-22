@@ -1,50 +1,41 @@
-import { useEffect, useState } from "react"
+import { useEffect } from "react"
 import { usePathname } from "next/navigation"
 import { useSocket } from "@/hooks/use-socket"
-import apiClient from "@/lib/api/client"
 import { useUserStore } from "@/stores/user-store"
+import { useConversationStore } from "@/stores/conversation-store"
 
 export function useUnreadMessages() {
   const pathname = usePathname()
-  const profile = useUserStore((s) => s.profile)
-  const { socket } = useSocket(profile?.id)
-  const [hasUnreadMessages, setHasUnreadMessages] = useState(false)
+  const profileId = useUserStore((s) => s.profile?.profileId) // was profile?.id — bug fix
+  const { socket } = useSocket(profileId)
 
+  const fetchConversations = useConversationStore((s) => s.fetchConversations)
+  const hasUnread = useConversationStore((s) => s.conversations.some((c) => c.hasUnread))
+
+  // Populate store when not on /messages (layout handles it there).
+  // Read state imperatively — depending reactively on conversations.length would re-trigger
+  // the effect after every fetch that returns [], creating an infinite loop.
   useEffect(() => {
-    if (!profile) return
-    apiClient
-      .get("/api/conversations/")
-      .then((res) => {
-        if (res.data?.success) {
-          const conversations = res.data.data
-          const unread = conversations.some((c: any) => c.hasUnread)
-          setHasUnreadMessages(unread)
-        }
-      })
-      .catch((err) => {
-        if (err.response?.status !== 401) {
-          console.error("Error fetching conversations:", err)
-        }
-      })
-  }, [profile, pathname]) // Re-fetch when pathname changes to clear the badge if they visit the conversation
+    if (!profileId) return
+    const { conversations, loading } = useConversationStore.getState()
+    if (conversations.length > 0 || loading) return
+    void fetchConversations()
+  }, [profileId, fetchConversations])
 
+  // Socket: incoming message on another page → refetch so store unread flag stays accurate
+  // ponytail: refetch is heavier than a local flag; add store.markHasUnread() if this causes perf issues
   useEffect(() => {
     if (!socket) return
-    const handleNewMessage = (message: any) => {
-      // If we are currently reading this exact conversation, it's automatically marked as read
-      // by the conversation page. So it doesn't trigger the unread badge.
-      if (pathname === `/messages/${message.conversationId}`) {
-        return
+    const handle = (msg: { conversationId: string }) => {
+      if (pathname !== `/messages/${msg.conversationId}`) {
+        fetchConversations()
       }
-
-      // For any other page (including the messages list or other conversations), it's unread!
-      setHasUnreadMessages(true)
     }
-    socket.on("message:new", handleNewMessage)
+    socket.on("message:new", handle)
     return () => {
-      socket.off("message:new", handleNewMessage)
+      socket.off("message:new", handle)
     }
   }, [socket, pathname])
 
-  return hasUnreadMessages
+  return hasUnread
 }

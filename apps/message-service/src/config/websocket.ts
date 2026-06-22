@@ -7,10 +7,15 @@ const logger = createLogger({ service: "message-service-ws" })
 let io: SocketIOServer | null = null
 
 export function setupWebSocket(server: HTTPServer): void {
+  // withCredentials on the client requires a specific origin (not "*") + credentials: true.
+  // FRONTEND_URL can be a comma-separated list for multi-origin setups.
+  const allowedOrigins = (process.env.FRONTEND_URL ?? "http://localhost:3000").split(",")
+
   io = new SocketIOServer(server, {
     cors: {
-      origin: "*", // Or specific frontend domains
+      origin: allowedOrigins,
       methods: ["GET", "POST"],
+      credentials: true,
     },
   })
 

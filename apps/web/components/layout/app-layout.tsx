@@ -11,6 +11,7 @@ import { Profile } from "@/types/profile"
 import { User } from "@/types/user"
 import { NotificationStoreProvider } from "../providers/notification-store-provider"
 import { NotificationToast } from "../notifications/notifications-toast"
+import { MessageNotificationToast } from "../messages/message-notification-toast"
 
 interface AppLayoutProps {
   children: React.ReactNode
@@ -59,6 +60,7 @@ export async function AppLayout({ children, modal }: AppLayoutProps) {
     <UserStoreProvider profile={profile} user={user} following={following}>
       <NotificationStoreProvider>
         <NotificationToast />
+        <MessageNotificationToast />
         <div className='flex h-dvh'>
           <div className='flex min-w-0 flex-1'>
             <div className='mx-auto flex w-full max-w-[1400px]'>
