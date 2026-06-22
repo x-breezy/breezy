@@ -462,7 +462,7 @@ describe("POST /auth/2fa/disable", () => {
 
 describe("auth controller error handling", () => {
   beforeEach(() => {
-    jest.spyOn(console, "error").mockImplementation(() => { })
+    jest.spyOn(console, "error").mockImplementation(() => {})
   })
 
   it("returns 500 when signIn service throws unexpected error", async () => {

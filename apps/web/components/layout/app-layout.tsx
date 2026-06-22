@@ -11,6 +11,7 @@ import { Profile } from "@/types/profile"
 import { User } from "@/types/user"
 import { NotificationStoreProvider } from "../providers/notification-store-provider"
 import { NotificationToast } from "../notifications/notifications-toast"
+import { ScrollArea } from "../ui/scroll-area"
 
 interface AppLayoutProps {
   children: React.ReactNode
@@ -63,7 +64,7 @@ export async function AppLayout({ children, modal }: AppLayoutProps) {
           <div className='flex min-w-0 flex-1'>
             <div className='mx-auto flex w-full max-w-[1400px]'>
               <NavBar />
-              <main className='min-w-0 flex-1 overflow-y-auto border-x pb-15 lg:pb-0'>
+              <main className='min-w-0 flex-1 overflow-y-hidden border-x pb-15 lg:pb-0'>
                 {children}
               </main>
               <aside className='hidden w-[350px] shrink-0 overflow-y-auto xl:block'>

@@ -56,7 +56,12 @@ export function ReportItem({ report, isPending, actionId, runResolve, runUnresol
             {loading ? "…" : "Resolve"}
           </Button>
         ) : (
-          <Button size='xs' variant='outline' onClick={() => runUnresolve(report.id)} disabled={loading}>
+          <Button
+            size='xs'
+            variant='outline'
+            onClick={() => runUnresolve(report.id)}
+            disabled={loading}
+          >
             {loading ? "…" : "Unresolve"}
           </Button>
         )}

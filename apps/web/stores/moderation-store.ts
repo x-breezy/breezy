@@ -74,9 +74,7 @@ export const useModerationStore = create<ModerationState>((set) => ({
 
   addUser: (user) =>
     set((s) => ({
-      allUsers: s.allUsers.some((u) => u.id === user.id)
-        ? s.allUsers
-        : [user, ...s.allUsers],
+      allUsers: s.allUsers.some((u) => u.id === user.id) ? s.allUsers : [user, ...s.allUsers],
       allUsersTotal: s.allUsersTotal + 1,
       sanctions: { ...s.sanctions, [user.id]: { isBanned: user.isBanned } },
     })),
@@ -108,9 +106,7 @@ export const useModerationStore = create<ModerationState>((set) => ({
         sanctionedUsers = sanctionedUsers.filter((u) => u.id !== userId)
       } else {
         // Update in place
-        sanctionedUsers = sanctionedUsers.map((u) =>
-          u.id === userId ? { ...u, ...patch } : u
-        )
+        sanctionedUsers = sanctionedUsers.map((u) => (u.id === userId ? { ...u, ...patch } : u))
       }
       const sanctionedCount = isStillSanctioned
         ? wasSanctioned
@@ -134,8 +130,6 @@ export const useModerationStore = create<ModerationState>((set) => ({
 
   unresolveReport: (reportId) =>
     set((s) => ({
-      reports: s.reports.map((r) =>
-        r.id === reportId ? { ...r, status: "pending" as const } : r
-      ),
+      reports: s.reports.map((r) => (r.id === reportId ? { ...r, status: "pending" as const } : r)),
     })),
 }))

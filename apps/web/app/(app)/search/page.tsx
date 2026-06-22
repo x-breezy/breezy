@@ -9,6 +9,7 @@ export const metadata: Metadata = {
 import { SearchTabs } from "@/components/search/search-tabs"
 import { TagList } from "@/components/search/tag-list"
 import { SearchResults } from "@/components/search/search-results"
+import { ScrollArea } from "@/components/ui/scroll-area"
 
 interface SearchPageProps {
   searchParams: Promise<{ q?: string }>
@@ -19,7 +20,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
   const query = q?.trim() ?? ""
 
   return (
-    <div>
+    <ScrollArea className='h-full'>
       <Suspense>
         <SearchHeader />
       </Suspense>
@@ -33,6 +34,6 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
       ) : (
         <TagList />
       )}
-    </div>
+    </ScrollArea>
   )
 }

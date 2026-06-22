@@ -47,10 +47,7 @@ export interface SanctionedList {
   limit: number
 }
 
-export async function listSanctionedUsers(
-  page = 1,
-  limit = 20
-): Promise<SanctionedList> {
+export async function listSanctionedUsers(page = 1, limit = 20): Promise<SanctionedList> {
   const authHeader = await getAuthHeaders()
   const params = new URLSearchParams({ page: String(page), limit: String(limit) })
   const res = await fetch(`${API_URL}/api/users/sanctioned?${params}`, { headers: authHeader })
@@ -59,10 +56,7 @@ export async function listSanctionedUsers(
   return json.data as SanctionedList
 }
 
-export async function listAllUsers(
-  page = 1,
-  limit = 100
-): Promise<SanctionedList> {
+export async function listAllUsers(page = 1, limit = 100): Promise<SanctionedList> {
   const authHeader = await getAuthHeaders()
   const params = new URLSearchParams({ page: String(page), limit: String(limit) })
   const res = await fetch(`${API_URL}/api/users/?${params}`, { headers: authHeader })

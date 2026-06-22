@@ -239,9 +239,7 @@ describe("GET /reports", () => {
     mockVerifyToken.mockReturnValue({ sub: ADMIN_ID, role: "admin", jti: "x" } as never)
     mockReportService.listReports.mockResolvedValue({ reports: [], total: 0, page: 1, limit: 20 })
 
-    await request(app)
-      .get("/reports?status=pending")
-      .set("Authorization", "Bearer admin-token")
+    await request(app).get("/reports?status=pending").set("Authorization", "Bearer admin-token")
 
     expect(mockReportService.listReports).toHaveBeenCalledWith(1, 20, "pending")
   })
