@@ -8,19 +8,22 @@ export class ChatService {
 
   async getOrCreateConversation(participantIds: string[], name?: string): Promise<Conversation> {
     const participants = [...participantIds].sort() // ordre stable
-    const existing = await ConversationModel.findOne({
-      participantIds: { $all: participants, $size: participants.length },
-    }).exec()
-    
-    if (existing) {
-      if (existing.deletedBy && existing.deletedBy.length > 0) {
-        await ConversationModel.findByIdAndUpdate(existing._id, { deletedBy: [] }).exec()
-        existing.deletedBy = []
-      }
-      return existing as unknown as Conversation
-    }
-
     const isGroup = participants.length > 2 || !!name
+
+    if (!isGroup) {
+      const existing = await ConversationModel.findOne({
+        participantIds: { $all: participants, $size: participants.length },
+        isGroup: false
+      }).exec()
+      
+      if (existing) {
+        if (existing.deletedBy && existing.deletedBy.length > 0) {
+          await ConversationModel.findByIdAndUpdate(existing._id, { deletedBy: [] }).exec()
+          existing.deletedBy = []
+        }
+        return existing as unknown as Conversation
+      }
+    }
 
     return ConversationModel.create({
       participantIds: participants,
