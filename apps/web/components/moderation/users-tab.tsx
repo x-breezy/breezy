@@ -37,8 +37,9 @@ import type { SanctionedUser, CreateUserPayload } from "@/lib/actions/users"
 type Filter = "all" | "banned"
 
 export function UsersTab() {
-  const isAdmin = useUserStore((s) => s.user?.role) === "admin"
-  const users = useModerationStore((s) => s.allUsers)
+  const currentUser = useUserStore((s) => s.user)
+  const isAdmin = currentUser?.role === "admin"
+  const users = useModerationStore((s) => s.allUsers).filter((u) => u.id !== currentUser?.id)
   const sanctions = useModerationStore((s) => s.sanctions)
   const setSanction = useModerationStore((s) => s.setSanction)
   const addUser = useModerationStore((s) => s.addUser)
@@ -160,7 +161,7 @@ function UserCard({ user, sanction, isAdmin, isPending, actionId, runAction }: U
 
   return (
     <li className='flex items-center gap-3 rounded-xl py-2'>
-      <ProfileAvatar size='2xs' />
+      <ProfileAvatar size='2xs' src={user.avatarUrl ?? undefined} />
 
       <div className='min-w-0 flex-1'>
         <div className='mb-0.5 flex flex-wrap items-center gap-2'>

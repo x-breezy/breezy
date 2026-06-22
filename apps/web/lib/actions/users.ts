@@ -29,6 +29,7 @@ export interface SanctionedUser {
   role: string
   isBanned: boolean
   updatedAt: string
+  avatarUrl?: string | null
 }
 
 export interface SanctionedList {

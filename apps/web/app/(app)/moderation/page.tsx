@@ -70,6 +70,8 @@ export default async function ModerationPage({ searchParams }: Props) {
   // Resolve unique user IDs to usernames and profiles in parallel
   const uniqueIds = [...new Set(data.reports.flatMap((r) => [r.reporterId, r.reportedUserId]))]
   const reportedIds = [...new Set(data.reports.map((r) => r.reportedUserId))]
+  const allUserIds = [...new Set(allUsers.map((u) => u.id))]
+  const sanctionedIds = [...new Set(sanctioned.users.map((u) => u.id))]
 
   const usersMap = new Map<string, User>()
   const profilesMap = new Map<string, RawProfile>()
@@ -81,7 +83,9 @@ export default async function ModerationPage({ searchParams }: Props) {
     }),
     (async () => {
       try {
-        const res = await getProfilesByIds(reportedIds, authHeader)
+        const batchIds = [...new Set([...reportedIds, ...allUserIds, ...sanctionedIds])]
+        if (batchIds.length === 0) return
+        const res = await getProfilesByIds(batchIds, authHeader)
         for (const p of (res.data as { data: RawProfile[] }).data) {
           profilesMap.set(p.profileId, p)
         }
@@ -90,6 +94,15 @@ export default async function ModerationPage({ searchParams }: Props) {
       }
     })(),
   ])
+
+  allUsers = allUsers.map((u) => ({ ...u, avatarUrl: profilesMap.get(u.id)?.avatarId ?? null }))
+  sanctioned = {
+    ...sanctioned,
+    users: sanctioned.users.map((u) => ({
+      ...u,
+      avatarUrl: profilesMap.get(u.id)?.avatarId ?? null,
+    })),
+  }
 
   const enriched: EnrichedReport[] = data.reports.map((r) => ({
     ...r,
