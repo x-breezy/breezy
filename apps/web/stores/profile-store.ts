@@ -17,7 +17,7 @@ interface ProfileStoreState {
   clear: () => void
 }
 
-const _inFlight = new Set<string>()
+const _inFlight = new Map<string, Promise<Profile | null>>()
 
 export const useProfileStore = create<ProfileStoreState>((set, get) => ({
   profiles: {},
@@ -36,30 +36,34 @@ export const useProfileStore = create<ProfileStoreState>((set, get) => ({
   fetchByUsername: async (username) => {
     const cached = get().profiles[username]
     if (cached) return cached
-    if (_inFlight.has(username)) return null
+    if (_inFlight.has(username)) return _inFlight.get(username)!
 
-    _inFlight.add(username)
-    set((s) => ({ loading: { ...s.loading, [username]: true }, error: null }))
-    try {
-      const profile = await getProfileByUsernameAction(username)
-      if (profile) {
+    const promise = getProfileByUsernameAction(username)
+      .then((profile) => {
+        if (profile) {
+          set((s) => ({
+            profiles: { ...s.profiles, [username]: profile },
+            loading: { ...s.loading, [username]: false },
+          }))
+        } else {
+          set((s) => ({ loading: { ...s.loading, [username]: false } }))
+        }
+        return profile
+      })
+      .catch((e) => {
         set((s) => ({
-          profiles: { ...s.profiles, [username]: profile },
+          error: (e as Error).message,
           loading: { ...s.loading, [username]: false },
         }))
-      } else {
-        set((s) => ({ loading: { ...s.loading, [username]: false } }))
-      }
-      return profile
-    } catch (e) {
-      set((s) => ({
-        error: (e as Error).message,
-        loading: { ...s.loading, [username]: false },
-      }))
-      return null
-    } finally {
-      _inFlight.delete(username)
-    }
+        return null
+      })
+      .finally(() => {
+        _inFlight.delete(username)
+      })
+
+    set((s) => ({ loading: { ...s.loading, [username]: true }, error: null }))
+    _inFlight.set(username, promise)
+    return promise
   },
 
   fetchIsFollowing: async (profileId) => {

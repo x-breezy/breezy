@@ -136,7 +136,7 @@ function Post({
         aria-label={`Post by ${name}`}
         onClick={href ? handleArticleClick : undefined}
         className={cn(
-          `relative flex w-full items-start gap-2.5 rounded-lg bg-background px-3.5 pt-3.5 pb-3.5 text-left transition-colors ${href ? "cursor-pointer active:bg-accent/50" : ""}`,
+          `relative flex w-full items-start gap-2.5 bg-background px-3.5 pt-3.5 pb-3.5 text-left transition-colors ${href ? "cursor-pointer active:bg-accent/50" : ""}`,
           className
         )}
       >
