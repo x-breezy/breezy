@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useTransition } from "react"
+import { useState, useTransition, useEffect, useRef, useCallback } from "react"
 import Link from "next/link"
 import {
   IconBan,
@@ -29,7 +29,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { ProfileAvatar } from "@/components/profile/profile-avatar"
-import { banUser, unbanUser, createUser } from "@/lib/actions/users"
+import { banUser, unbanUser, createUser, listAllUsers } from "@/lib/actions/users"
 import { useUserStore } from "@/stores/user-store"
 import { useModerationStore } from "@/stores/moderation-store"
 import type { SanctionedUser, CreateUserPayload } from "@/lib/actions/users"
@@ -39,17 +39,26 @@ type Filter = "all" | "banned"
 export function UsersTab() {
   const currentUser = useUserStore((s) => s.user)
   const isAdmin = currentUser?.role === "admin"
-  const users = useModerationStore((s) => s.allUsers).filter((u) => u.id !== currentUser?.id)
+  const allUsersRaw = useModerationStore((s) => s.allUsers)
+  const users = allUsersRaw.filter((u) => u.id !== currentUser?.id)
   const sanctions = useModerationStore((s) => s.sanctions)
   const setSanction = useModerationStore((s) => s.setSanction)
   const addUser = useModerationStore((s) => s.addUser)
-
   const [isPending, startTransition] = useTransition()
   const [actionId, setActionId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [dialogOpen, setDialogOpen] = useState(false)
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
 
   const validUsers = users.filter((u) => !!u.id)
+  const loadMore = useModerationStore((s) => s.loadMoreUsers)
+  const allUsersPage = useModerationStore((s) => s.allUsersPage)
+  const allUsersLimit = useModerationStore((s) => s.allUsersLimit)
+  const allUsersTotal = useModerationStore((s) => s.allUsersTotal)
+  // Compare raw (unfiltered) count against backend total to avoid off-by-one with currentUser exclusion
+  const hasMore = allUsersRaw.length < allUsersTotal
+
+  const sentinelRef = useRef<HTMLDivElement | null>(null)
 
   function runAction(id: string, fn: () => Promise<void>, patch: { isBanned?: boolean }) {
     setActionId(id)
@@ -77,6 +86,35 @@ export function UsersTab() {
   const bannedCount = validUsers.filter(
     (u) => (sanctions[u.id] ?? { isBanned: u.isBanned }).isBanned
   ).length
+
+  const handleLoadMore = useCallback(() => {
+    if (isLoadingMore || !hasMore) return
+    const nextPage = allUsersPage + 1
+    setIsLoadingMore(true)
+    startTransition(async () => {
+      try {
+        const res = await listAllUsers(nextPage, allUsersLimit)
+        loadMore(res.users, res.total, res.page)
+      } catch {
+        setError("Failed to load more users. Please try again.")
+      } finally {
+        setIsLoadingMore(false)
+      }
+    })
+  }, [isLoadingMore, hasMore, allUsersPage, allUsersLimit, loadMore])
+
+  useEffect(() => {
+    const sentinel = sentinelRef.current
+    if (!sentinel) return
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) handleLoadMore()
+      },
+      { threshold: 0.1 }
+    )
+    observer.observe(sentinel)
+    return () => observer.disconnect()
+  }, [handleLoadMore])
 
   return (
     <div>
@@ -129,6 +167,15 @@ export function UsersTab() {
             </TabsContent>
           )
         })}
+
+        {hasMore && (
+          <div
+            ref={sentinelRef}
+            className='mt-4 flex justify-center py-2 text-sm text-muted-foreground'
+          >
+            {isLoadingMore ? "Loading…" : ""}
+          </div>
+        )}
       </Tabs>
 
       {isAdmin && (

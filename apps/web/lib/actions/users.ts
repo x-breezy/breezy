@@ -1,11 +1,11 @@
 "use server"
 
-import { getServerAuthHeader } from "@/lib/auth/session"
+import { getAuthHeaders } from "@/lib/auth/authenticated-fetch"
 
 const API_URL = process.env.API_URL ?? "http://localhost"
 
 export async function banUser(userId: string): Promise<void> {
-  const authHeader = await getServerAuthHeader()
+  const authHeader = await getAuthHeaders()
   const res = await fetch(`${API_URL}/api/users/${userId}/ban`, {
     method: "PATCH",
     headers: authHeader,
@@ -14,7 +14,7 @@ export async function banUser(userId: string): Promise<void> {
 }
 
 export async function unbanUser(userId: string): Promise<void> {
-  const authHeader = await getServerAuthHeader()
+  const authHeader = await getAuthHeaders()
   const res = await fetch(`${API_URL}/api/users/${userId}/unban`, {
     method: "PATCH",
     headers: authHeader,
@@ -43,7 +43,7 @@ export async function listSanctionedUsers(
   page = 1,
   limit = 20
 ): Promise<SanctionedList> {
-  const authHeader = await getServerAuthHeader()
+  const authHeader = await getAuthHeaders()
   const params = new URLSearchParams({ page: String(page), limit: String(limit) })
   const res = await fetch(`${API_URL}/api/users/sanctioned?${params}`, { headers: authHeader })
   if (!res.ok) throw new Error(`Failed to list sanctioned users: ${res.status}`)
@@ -55,7 +55,7 @@ export async function listAllUsers(
   page = 1,
   limit = 100
 ): Promise<SanctionedList> {
-  const authHeader = await getServerAuthHeader()
+  const authHeader = await getAuthHeaders()
   const params = new URLSearchParams({ page: String(page), limit: String(limit) })
   const res = await fetch(`${API_URL}/api/users/?${params}`, { headers: authHeader })
   if (!res.ok) throw new Error(`Failed to list users: ${res.status}`)
@@ -71,23 +71,16 @@ export interface CreateUserPayload {
 }
 
 export async function createUser(payload: CreateUserPayload): Promise<SanctionedUser> {
-  const authHeader = await getServerAuthHeader()
-  const url = `${API_URL}/api/users/`
-  const res = await fetch(url, {
+  const authHeader = await getAuthHeaders()
+  const res = await fetch(`${API_URL}/api/users/`, {
     method: "POST",
     headers: { ...authHeader, "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   })
-  const raw = await res.text()
-  console.log("[createUser] →", res.status, url, "body:", raw.slice(0, 300))
   if (!res.ok) {
-    let message: string | undefined
-    try {
-      message = (JSON.parse(raw) as { message?: string }).message
-    } catch {
-      message = undefined
-    }
-    throw new Error(message ?? `Failed to create user: ${res.status}`)
+    const json = (await res.json().catch(() => null)) as { message?: string } | null
+    throw new Error(json?.message ?? `Failed to create user: ${res.status}`)
   }
-  return (JSON.parse(raw) as { data: SanctionedUser }).data
+  const json = (await res.json()) as { data: SanctionedUser }
+  return json.data
 }

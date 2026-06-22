@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation"
 import { getServerAuthHeader } from "@/lib/auth/session"
-import { getReports } from "@/lib/services/report-service"
+import { listReports } from "@/lib/actions/reports"
 import {
   listSanctionedUsers,
   listAllUsers,
@@ -51,18 +51,24 @@ export default async function ModerationPage({ searchParams }: Props) {
   let pendingCount = 0
   let sanctioned: SanctionedList = { users: [], total: 0, page: 1, limit: 50 }
   let allUsers: SanctionedUser[] = []
+  let allUsersTotal = 0
+  let allUsersPage = 1
+  let allUsersLimit = 100
 
   try {
     const [mainRes, pendingRes, sanctionedRes, allUsersRes] = await Promise.all([
-      getReports(authHeader, { status, page, limit: 20 }),
-      getReports(authHeader, { status: "pending", page: 1, limit: 1 }),
+      listReports(page, 20, status),
+      listReports(1, 1, "pending"),
       listSanctionedUsers(1, 50),
       listAllUsers(1, 100),
     ])
-    data = (mainRes.data as { data: PaginatedReports }).data
-    pendingCount = (pendingRes.data as { data: PaginatedReports }).data.total
+    data = mainRes
+    pendingCount = pendingRes.total
     sanctioned = sanctionedRes
     allUsers = allUsersRes.users
+    allUsersTotal = allUsersRes.total
+    allUsersPage = allUsersRes.page
+    allUsersLimit = allUsersRes.limit
   } catch {
     // unauthorised or fetch error — client will show empty state
   }
@@ -120,6 +126,9 @@ export default async function ModerationPage({ searchParams }: Props) {
       pendingCount={pendingCount}
       sanctioned={sanctioned}
       allUsers={allUsers}
+      allUsersTotal={allUsersTotal}
+      allUsersPage={allUsersPage}
+      allUsersLimit={allUsersLimit}
     />
   )
 }

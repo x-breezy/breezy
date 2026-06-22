@@ -12,12 +12,16 @@ interface ModerationState {
   reports: EnrichedReport[]
   sanctionedUsers: SanctionedUser[]
   allUsers: SanctionedUser[]
+  allUsersPage: number
+  allUsersLimit: number
+  allUsersTotal: number
   /** Derived: number of users still sanctioned (suspended or banned) */
   sanctionedCount: number
 
   initReports: (reports: EnrichedReport[]) => void
   initSanctioned: (users: SanctionedUser[]) => void
-  initAllUsers: (users: SanctionedUser[]) => void
+  initAllUsers: (users: SanctionedUser[], total: number, page: number, limit: number) => void
+  loadMoreUsers: (users: SanctionedUser[], total: number, page: number) => void
   addUser: (user: SanctionedUser) => void
 
   setSanction: (userId: string, patch: Partial<UserSanctionState>) => void
@@ -30,6 +34,9 @@ export const useModerationStore = create<ModerationState>((set) => ({
   reports: [],
   sanctionedUsers: [],
   allUsers: [],
+  allUsersPage: 1,
+  allUsersLimit: 100,
+  allUsersTotal: 0,
   sanctionedCount: 0,
 
   initReports: (reports) => {
@@ -42,14 +49,26 @@ export const useModerationStore = create<ModerationState>((set) => ({
     set((s) => ({ reports, sanctions: { ...s.sanctions, ...sanctions } }))
   },
 
-  initAllUsers: (users) => {
+  initAllUsers: (users, total, page, limit) => {
     const valid = users.filter((u) => !!u.id)
     set((s) => ({
       allUsers: valid,
+      allUsersPage: page,
+      allUsersLimit: limit,
+      allUsersTotal: total,
       sanctions: {
         ...s.sanctions,
         ...Object.fromEntries(valid.map((u) => [u.id, { isBanned: u.isBanned }])),
       },
+    }))
+  },
+
+  loadMoreUsers: (users, total, page) => {
+    const valid = users.filter((u) => !!u.id)
+    set((s) => ({
+      allUsers: [...s.allUsers, ...valid.filter((u) => !s.allUsers.some((x) => x.id === u.id))],
+      allUsersPage: page,
+      allUsersTotal: total,
     }))
   },
 
@@ -58,6 +77,7 @@ export const useModerationStore = create<ModerationState>((set) => ({
       allUsers: s.allUsers.some((u) => u.id === user.id)
         ? s.allUsers
         : [user, ...s.allUsers],
+      allUsersTotal: s.allUsersTotal + 1,
       sanctions: { ...s.sanctions, [user.id]: { isBanned: user.isBanned } },
     })),
 

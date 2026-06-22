@@ -29,6 +29,9 @@ interface Props {
   pendingCount: number
   sanctioned: SanctionedList
   allUsers: SanctionedUser[]
+  allUsersTotal: number
+  allUsersPage: number
+  allUsersLimit: number
 }
 
 export function ModerationClient({
@@ -37,6 +40,9 @@ export function ModerationClient({
   pendingCount,
   sanctioned,
   allUsers,
+  allUsersTotal,
+  allUsersPage,
+  allUsersLimit,
 }: Props) {
   const isAdmin = useUserStore((s) => s.user?.role) === "admin"
   const [isPending, startTransition] = useTransition()
@@ -55,7 +61,7 @@ export function ModerationClient({
   useEffect(() => {
     initReports(initialReports)
     initSanctioned(sanctioned.users)
-    initAllUsers(allUsers)
+    initAllUsers(allUsers, allUsersTotal, allUsersPage, allUsersLimit)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
