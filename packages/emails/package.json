@@ -3,12 +3,11 @@
   "version": "0.0.0",
   "private": true,
   "exports": {
-    ".": "./dist/index.js"
+    ".": "./src/index.tsx"
   },
   "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "types": "./src/index.tsx",
   "scripts": {
-    "prepare": "tsc -p tsconfig.build.json",
     "build": "tsc -p tsconfig.build.json",
     "email": "email dev --dir=src/templates",
     "lint": "eslint src/",
