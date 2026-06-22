@@ -5,8 +5,10 @@
   "exports": {
     ".": "./src/index.tsx"
   },
+  "main": "./dist/index.js",
   "types": "./src/index.tsx",
   "scripts": {
+    "build": "tsc -p tsconfig.build.json",
     "email": "email dev --dir=src/templates",
     "lint": "eslint src/",
     "check-types": "tsc --noEmit"

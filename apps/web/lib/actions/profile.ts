@@ -5,6 +5,7 @@ import { getServerAuthHeader, API_URL } from "@/lib/auth/session"
 import { updateProfile } from "@/lib/services/profile-service"
 import { uploadImage } from "@/lib/services/image-service"
 import type { Profile } from "@/types/profile"
+import { nameFieldSchema, bioSchema } from "@/lib/schemas/user-validation"
 
 export interface UpdateProfileState {
   error: string | null
@@ -39,11 +40,29 @@ export async function updateProfileAction(
     }
   }
 
+  const firstNameRaw = (formData.get("firstName") as string) || null
+  const lastNameRaw = (formData.get("lastName") as string) || null
+
+  const firstNameResult = nameFieldSchema.safeParse(firstNameRaw)
+  if (!firstNameResult.success) {
+    return { error: firstNameResult.error.issues[0]!.message, success: false }
+  }
+  const lastNameResult = nameFieldSchema.safeParse(lastNameRaw)
+  if (!lastNameResult.success) {
+    return { error: lastNameResult.error.issues[0]!.message, success: false }
+  }
+
+  const bioRaw = (formData.get("bio") as string) || null
+  const bioResult = bioSchema.safeParse(bioRaw)
+  if (!bioResult.success) {
+    return { error: bioResult.error.issues[0]!.message, success: false }
+  }
+
   const payload = {
-    firstName: (formData.get("firstName") as string) || null,
-    lastName: (formData.get("lastName") as string) || null,
+    firstName: firstNameResult.data,
+    lastName: lastNameResult.data,
     username: formData.get("username") as string,
-    bio: (formData.get("bio") as string) || null,
+    bio: bioResult.data,
     ...(avatarId !== undefined && { avatarId }),
   }
 

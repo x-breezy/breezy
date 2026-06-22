@@ -128,7 +128,7 @@ export function PostForm({
   }, [mentionQuery])
 
   function detectMentionQuery(text: string, cursorPos: number): string | null {
-    const match = text.slice(0, cursorPos).match(/@([a-zA-Z0-9_]*)$/)
+    const match = text.slice(0, cursorPos).match(/@([a-zA-Z0-9_-]*)$/)
     return match ? match[1]! : null
   }
 

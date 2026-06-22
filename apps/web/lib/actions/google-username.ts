@@ -5,6 +5,7 @@ import { cookies } from "next/headers"
 import { isAxiosError } from "axios"
 import { completeGoogleAuth } from "@/lib/services/auth-service"
 import { setSessionCookies } from "@/lib/auth/session"
+import { usernameSchema } from "@/lib/schemas/user-validation"
 
 interface ActionState {
   error: string | null
@@ -16,6 +17,11 @@ export async function googleUsernameAction(
 ): Promise<ActionState> {
   const username = formData.get("username") as string
   const pendingToken = formData.get("pendingToken") as string
+
+  const usernameResult = usernameSchema.safeParse(username)
+  if (!usernameResult.success) {
+    return { error: usernameResult.error.issues[0]!.message }
+  }
 
   if (!pendingToken) {
     return { error: "Session expired. Please sign in with Google again." }

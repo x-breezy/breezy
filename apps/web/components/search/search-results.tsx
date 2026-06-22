@@ -45,7 +45,7 @@ export function SearchResults({ q }: SearchResultsProps) {
 
   return (
     <div>
-      <ul className='container-center w-full py-2 [&>li:last-child_.person-card]:border-b-0 [&>li:last-child_article]:border-b-0'>
+      <ul className='container-center w-full py-2'>
         {loading && (
           <li className='flex justify-center py-12'>
             <IconLoader2 size={24} className='animate-spin text-muted-foreground' />
@@ -85,7 +85,7 @@ function renderPosts(
     const displayName = [profile?.firstName, profile?.lastName].filter(Boolean).join(" ") || null
     const name = displayName ?? profile?.username ?? t("fallbackUser")
     return (
-      <li key={post._id} className='w-full'>
+      <li key={post._id} className='w-full border-b border-border last:border-b-0'>
         <Post
           id={post._id}
           avatarUrl={profile?.avatarUrl || undefined}

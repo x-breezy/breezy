@@ -50,9 +50,10 @@ class ProfileService {
         transaction: t,
       })
     })
-    const [follower, followingProfile] = await Promise.all([
+    const [follower, followingProfile, isFollowBack] = await Promise.all([
       Profile.findOne({ where: { profileId: followerId } }),
       Profile.findOne({ where: { profileId: followingId } }),
+      this.isFollowing(followingId, followerId),
     ])
     if (followingProfile?.role === "moderator" || followingProfile?.role === "admin") {
       return
@@ -62,6 +63,7 @@ class ProfileService {
       followingId,
       username: follower?.username,
       avatarId: follower?.avatarId ?? undefined,
+      isFollowBack,
     })
   }
 

@@ -7,6 +7,7 @@ interface UsernameDisplayProps {
   role?: UserRole
   className?: string
   nameClassName?: string
+  badgeClassName?: string
 }
 
 export function UsernameDisplay({
@@ -14,11 +15,12 @@ export function UsernameDisplay({
   role = UserRole.User,
   className,
   nameClassName,
+  badgeClassName,
 }: UsernameDisplayProps) {
   return (
     <span className={cn("flex items-center gap-1", className)}>
       <span className={cn("font-semibold", nameClassName)}>{name}</span>
-      <ProfileBadges role={role} />
+      <ProfileBadges role={role} className={badgeClassName} />
     </span>
   )
 }

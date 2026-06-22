@@ -27,6 +27,7 @@ export interface SocialFollowEvent {
   followingId: string
   username?: string
   avatarId?: string
+  isFollowBack?: boolean
 }
 
 export interface ContentLikeEvent {

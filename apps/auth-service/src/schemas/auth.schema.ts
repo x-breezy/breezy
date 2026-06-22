@@ -18,8 +18,16 @@ export const signInSchema = z.object({
 })
 export type SignInDTO = z.infer<typeof signInSchema>
 
+const usernameRegex = /^[a-z0-9_-]+$/
+const usernameMessage =
+  "Username can only contain lowercase letters, numbers, underscores, and hyphens"
+
 export const signUpSchema = z.object({
-  username: z.string().min(3).max(50),
+  username: z
+    .string()
+    .min(3, "Username must be at least 3 characters")
+    .max(50)
+    .regex(usernameRegex, usernameMessage),
   email: z.string().email(),
   password: passwordSchema,
 })
@@ -71,6 +79,6 @@ export const googleCompleteSchema = z.object({
     .string()
     .min(3, "Username must be at least 3 characters")
     .max(50)
-    .regex(/^[a-zA-Z0-9_]+$/, "Username can only contain letters, numbers, and underscores"),
+    .regex(usernameRegex, usernameMessage),
 })
 export type GoogleCompleteDTO = z.infer<typeof googleCompleteSchema>

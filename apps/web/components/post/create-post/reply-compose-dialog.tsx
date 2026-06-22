@@ -66,6 +66,7 @@ export function ReplyComposeDialog({
 
   const dialogContent = (
     <div className='flex flex-1 flex-col overflow-hidden'>
+      {compose.error && <p className='px-4 pt-2 text-sm text-destructive'>{compose.error}</p>}
       <div className='flex flex-1 flex-col overflow-y-auto'>
         <div className='flex gap-2.5 px-4 pt-2 pb-1'>
           <div className='flex shrink-0 flex-col items-center'>

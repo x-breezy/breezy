@@ -18,7 +18,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
   const { username } = await params
   return (
     <Suspense>
-      <ProfilePageClient username={username} />
+      <ProfilePageClient username={username.toLowerCase()} />
     </Suspense>
   )
 }

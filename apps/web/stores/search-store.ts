@@ -45,6 +45,8 @@ interface SearchStoreState {
   clear: () => void
 }
 
+let _searchGen = 0
+
 export const useSearchStore = create<SearchStoreState>((set, get) => ({
   postsCache: null,
   peopleCache: null,
@@ -56,6 +58,7 @@ export const useSearchStore = create<SearchStoreState>((set, get) => ({
   search: async (q, tab) => {
     if (!q) return
 
+    const gen = ++_searchGen
     set({ loading: true, error: null })
 
     try {
@@ -66,12 +69,14 @@ export const useSearchStore = create<SearchStoreState>((set, get) => ({
           return
         }
         const postsRes: PaginatedResult<SearchPost> = await searchPosts(q)
+        if (_searchGen !== gen) return
         const authorIds = [...new Set(postsRes.data.map((p) => p.authorId))]
         const postIds = postsRes.data.map((p) => p._id)
         const [profiles, likedIds] = await Promise.all([
           fetchProfilesByIds(authorIds),
           getLikedPostIds(postIds).catch(() => [] as string[]),
         ])
+        if (_searchGen !== gen) return
         const profileMap = new Map(profiles.map((p) => [p.profileId, p]))
         set({
           postsCache: {
@@ -91,6 +96,7 @@ export const useSearchStore = create<SearchStoreState>((set, get) => ({
           return
         }
         const profilesRes = await searchProfiles(q)
+        if (_searchGen !== gen) return
         const people = profilesToPeople(profilesRes.profiles)
         set({ peopleCache: { people, total: profilesRes.total, fetchedQ: q }, loading: false })
       } else if (tab === "media") {
@@ -105,10 +111,12 @@ export const useSearchStore = create<SearchStoreState>((set, get) => ({
           return
         }
         const postsRes = await searchPosts(q)
+        if (_searchGen !== gen) return
         const media = collectMedia(postsRes.data)
         set({ mediaCache: { media, total: media.length, fetchedQ: q }, loading: false })
       }
     } catch (err: unknown) {
+      if (_searchGen !== gen) return
       const msg = err instanceof Error ? err.message : "Error during search"
       set({ error: msg, loading: false })
       if (tab === "posts") {

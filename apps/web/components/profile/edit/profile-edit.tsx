@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, useActionState, useState, useEffect } from "react"
+import { useRef, useActionState, useState, useEffect, useTransition } from "react"
 import { useTranslations } from "next-intl"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
@@ -10,9 +10,11 @@ import { Label } from "@/components/ui/label"
 import { Field, FieldGroup, FieldSet } from "@/components/ui/field"
 import { IconCamera, IconUpload } from "@tabler/icons-react"
 import { ProfileAvatar } from "@/components/profile/profile-avatar"
+import { AvatarCropper } from "@/components/shared/avatar-cropper"
 import { useUserStore } from "@/stores/user-store"
 import { updateProfileAction, type UpdateProfileState } from "@/lib/actions/profile"
 import type { Profile } from "@/types/profile"
+import { nameFieldSchema, bioSchema } from "@/lib/schemas/user-validation"
 
 interface ProfileEditScreenProps {
   profile: Profile
@@ -21,6 +23,7 @@ interface ProfileEditScreenProps {
 
 export default function ProfileEditScreen({ profile, onClose }: ProfileEditScreenProps) {
   const t = useTranslations("profilePage")
+  const [, startTransition] = useTransition()
   const [state, formAction, isPending] = useActionState<UpdateProfileState | null, FormData>(
     updateProfileAction,
     null
@@ -37,16 +40,59 @@ export default function ProfileEditScreen({ profile, onClose }: ProfileEditScree
 
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [preview, setPreview] = useState<string | null>(null)
+  const [cropDialogOpen, setCropDialogOpen] = useState(false)
+  const [cropFileUrl, setCropFileUrl] = useState<string | null>(null)
+  const croppedFileRef = useRef<File | null>(null)
 
   const [profileId] = useState(profile.profileId)
   const [firstName, setFirstName] = useState(profile.firstName ?? "")
   const [lastName, setLastName] = useState(profile.lastName ?? "")
   const [bio, setBio] = useState(profile.bio ?? "")
+  const [firstNameError, setFirstNameError] = useState<string | null>(null)
+  const [lastNameError, setLastNameError] = useState<string | null>(null)
+  const [bioError, setBioError] = useState<string | null>(null)
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
+    setCropFileUrl(URL.createObjectURL(file))
+    setCropDialogOpen(true)
+  }
+
+  function handleCrop(file: File) {
+    croppedFileRef.current = file
     setPreview(URL.createObjectURL(file))
+  }
+
+  function validateField(field: "firstName" | "lastName", value: string): boolean {
+    const result = nameFieldSchema.safeParse(value || null)
+    const error = result.success ? null : t(result.error.issues[0]!.message)
+    if (field === "firstName") setFirstNameError(error)
+    else setLastNameError(error)
+    return result.success
+  }
+
+  function validateBio(value: string): boolean {
+    const result = bioSchema.safeParse(value || null)
+    const error = result.success ? null : t(result.error.issues[0]!.message)
+    setBioError(error)
+    return result.success
+  }
+
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    const firstNameOk = validateField("firstName", firstName)
+    const lastNameOk = validateField("lastName", lastName)
+    const bioOk = validateBio(bio)
+    if (!firstNameOk || !lastNameOk || !bioOk) return
+
+    const fd = new FormData()
+    fd.set("profileId", profileId)
+    fd.set("firstName", firstName)
+    fd.set("lastName", lastName)
+    fd.set("bio", bio)
+    if (croppedFileRef.current) fd.set("avatar", croppedFileRef.current)
+    startTransition(() => formAction(fd))
   }
 
   return (
@@ -81,15 +127,25 @@ export default function ProfileEditScreen({ profile, onClose }: ProfileEditScree
         <p className='text-xs text-muted-foreground'>{t("changePhoto")}</p>
       </div>
 
-      <form action={formAction} className='flex flex-col gap-6'>
+      <form action={formAction} onSubmit={handleSubmit} className='flex flex-col gap-6'>
         <input type='hidden' name='profileId' value={profileId} />
         <input
           ref={fileInputRef}
           type='file'
-          name='avatar'
           accept='image/*'
           className='hidden'
           onChange={handleFileChange}
+        />
+
+        <AvatarCropper
+          open={cropDialogOpen}
+          imageUrl={cropFileUrl ?? ""}
+          onCrop={handleCrop}
+          onClose={() => {
+            setCropDialogOpen(false)
+            URL.revokeObjectURL(cropFileUrl ?? "")
+            setCropFileUrl(null)
+          }}
         />
 
         <FieldSet>
@@ -104,8 +160,13 @@ export default function ProfileEditScreen({ profile, onClose }: ProfileEditScree
                   placeholder={t("firstNamePlaceholder")}
                   autoComplete='given-name'
                   value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
+                  onChange={(e) => {
+                    setFirstName(e.target.value)
+                    if (firstNameError) setFirstNameError(null)
+                  }}
+                  onBlur={(e) => validateField("firstName", e.target.value)}
                 />
+                {firstNameError && <p className='text-xs text-destructive'>{firstNameError}</p>}
               </Field>
               <Field>
                 <Label htmlFor='lastName'>{t("lastName")}</Label>
@@ -116,8 +177,13 @@ export default function ProfileEditScreen({ profile, onClose }: ProfileEditScree
                   placeholder={t("lastNamePlaceholder")}
                   autoComplete='family-name'
                   value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
+                  onChange={(e) => {
+                    setLastName(e.target.value)
+                    if (lastNameError) setLastNameError(null)
+                  }}
+                  onBlur={(e) => validateField("lastName", e.target.value)}
                 />
+                {lastNameError && <p className='text-xs text-destructive'>{lastNameError}</p>}
               </Field>
             </div>
 
@@ -130,13 +196,21 @@ export default function ProfileEditScreen({ profile, onClose }: ProfileEditScree
                 rows={3}
                 className='resize-none'
                 value={bio}
-                onChange={(e) => setBio(e.target.value)}
+                onChange={(e) => {
+                  setBio(e.target.value)
+                  if (bioError) setBioError(null)
+                }}
+                onBlur={(e) => validateBio(e.target.value)}
               />
+              {bioError && <p className='text-xs text-destructive'>{bioError}</p>}
+              <p className='text-right text-xs text-muted-foreground'>
+                {bio.length}/200 · {(bio.match(/\n/g) || []).length + 1}/5
+              </p>
             </Field>
           </FieldGroup>
         </FieldSet>
 
-        {state?.error && <p className='text-sm text-destructive'>{state.error}</p>}
+        {state?.error && <p className='text-sm text-destructive'>{t(state.error)}</p>}
 
         <div className='flex flex-col gap-3'>
           <Button type='submit' size='lg' disabled={isPending}>

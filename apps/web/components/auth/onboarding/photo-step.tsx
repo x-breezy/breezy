@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef } from "react"
+import { useRef, useState } from "react"
 import Image from "next/image"
 import { useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
@@ -9,6 +9,8 @@ import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { IconCamera, IconUpload } from "@tabler/icons-react"
+import { AvatarCropper } from "@/components/shared/avatar-cropper"
+import { nameFieldSchema, bioSchema } from "@/lib/schemas/user-validation"
 
 interface ProfileStepProps {
   preview: string | null
@@ -30,12 +32,51 @@ export function PhotoStep({
   onNext,
 }: ProfileStepProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const [firstNameError, setFirstNameError] = useState<string | null>(null)
+  const [lastNameError, setLastNameError] = useState<string | null>(null)
+  const [bioError, setBioError] = useState<string | null>(null)
+  const [cropDialogOpen, setCropDialogOpen] = useState(false)
+  const [cropFileUrl, setCropFileUrl] = useState<string | null>(null)
   const t = useTranslations("auth")
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
+    setCropFileUrl(URL.createObjectURL(file))
+    setCropDialogOpen(true)
+  }
+
+  function handleCrop(file: File) {
     onAvatarChange(file, URL.createObjectURL(file))
+  }
+
+  function validateField(field: "firstName" | "lastName", value: string) {
+    const result = nameFieldSchema.safeParse(value || null)
+    const error = result.success ? null : t(result.error.issues[0]!.message)
+    if (field === "firstName") setFirstNameError(error)
+    else setLastNameError(error)
+    return result.success
+  }
+
+  function validateBio(value: string): boolean {
+    const result = bioSchema.safeParse(value || null)
+    const error = result.success ? null : t(result.error.issues[0]!.message)
+    setBioError(error)
+    return result.success
+  }
+
+  function handleNext() {
+    const firstNameOk = validateField("firstName", firstName)
+    const lastNameOk = validateField("lastName", lastName)
+    const bioOk = validateBio(bio)
+    if (firstNameOk && lastNameOk && bioOk) onNext()
+  }
+
+  function handleFieldChange(field: "firstName" | "lastName" | "bio", value: string) {
+    onChange(field, value)
+    if (field === "firstName" && firstNameError) setFirstNameError(null)
+    if (field === "lastName" && lastNameError) setLastNameError(null)
+    if (field === "bio" && bioError) setBioError(null)
   }
 
   return (
@@ -70,6 +111,17 @@ export function PhotoStep({
         onChange={handleFileChange}
       />
 
+      <AvatarCropper
+        open={cropDialogOpen}
+        imageUrl={cropFileUrl ?? ""}
+        onCrop={handleCrop}
+        onClose={() => {
+          setCropDialogOpen(false)
+          URL.revokeObjectURL(cropFileUrl ?? "")
+          setCropFileUrl(null)
+        }}
+      />
+
       <FieldSet>
         <FieldGroup>
           <div className='grid grid-cols-2 gap-3'>
@@ -82,8 +134,10 @@ export function PhotoStep({
                 autoComplete='given-name'
                 required
                 value={firstName}
-                onChange={(e) => onChange("firstName", e.target.value)}
+                onChange={(e) => handleFieldChange("firstName", e.target.value)}
+                onBlur={(e) => validateField("firstName", e.target.value)}
               />
+              {firstNameError && <p className='text-xs text-destructive'>{firstNameError}</p>}
             </Field>
             <Field>
               <Label htmlFor='lastName'>{t("lastName")}</Label>
@@ -94,8 +148,10 @@ export function PhotoStep({
                 autoComplete='family-name'
                 required
                 value={lastName}
-                onChange={(e) => onChange("lastName", e.target.value)}
+                onChange={(e) => handleFieldChange("lastName", e.target.value)}
+                onBlur={(e) => validateField("lastName", e.target.value)}
               />
+              {lastNameError && <p className='text-xs text-destructive'>{lastNameError}</p>}
             </Field>
           </div>
 
@@ -108,13 +164,18 @@ export function PhotoStep({
               className='resize-none'
               value={bio}
               onChange={(e) => onChange("bio", e.target.value)}
+              onBlur={(e) => validateBio(e.target.value)}
             />
+            {bioError && <p className='text-xs text-destructive'>{bioError}</p>}
+            <p className='text-right text-xs text-muted-foreground'>
+              {bio.length}/200 · {(bio.match(/\n/g) || []).length + 1}/5
+            </p>
           </Field>
         </FieldGroup>
       </FieldSet>
 
       <div className='flex flex-col gap-3'>
-        <Button size='lg' onClick={onNext} disabled={!firstName || !lastName}>
+        <Button size='lg' onClick={handleNext}>
           {t("continue")}
         </Button>
       </div>
