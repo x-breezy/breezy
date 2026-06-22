@@ -106,7 +106,7 @@ export class PostService {
 
     const [likedDoc, repliesResult] = await Promise.all([
       LikeModel.findOne({ postId, userId: viewerId }).exec(),
-      this.getReplies(postId, 1, 999, viewerId, true),
+      this.getReplies(postId, 1, 999, viewerId, true, viewerRole),
     ])
 
     const likedByMe = likedDoc !== null
@@ -172,9 +172,11 @@ export class PostService {
     const replies = result.data.filter((p) => p.parentId)
     const parentIds = [...new Set(replies.map((r) => r.parentId!))]
 
+    const banned = viewerRole === "admin" ? new Set<string>() : await getBannedUserIds()
     let parentPosts: Post[] = []
     if (parentIds.length > 0) {
-      parentPosts = (await PostModel.find({ _id: { $in: parentIds } })
+      const bannedParentFilter = banned.size > 0 ? { authorId: { $nin: [...banned] } } : {}
+      parentPosts = (await PostModel.find({ _id: { $in: parentIds }, ...bannedParentFilter })
         .lean({ virtuals: true })
         .exec()) as Post[]
     }
@@ -210,8 +212,8 @@ export class PostService {
     const allowedIds = following === null ? null : [...new Set(following)].filter((id) => !banned.has(id))
     const authorFilter =
       allowedIds === null
-        ? { $ne: viewerId, ...(banned.size > 0 ? { $nin: [...banned] } : {}) }
-        : { $in: allowedIds, $ne: viewerId }
+        ? { $nin: [...banned, viewerId] }
+        : { $in: allowedIds.filter((id) => id !== viewerId) }
     const filter = {
       authorId: authorFilter,
       // top-level posts or direct replies only (parentId === rootParentId means depth-1)
@@ -284,10 +286,12 @@ export class PostService {
     posts: Post[],
     depth: number,
     rootAuthorId?: string,
-    viewerId?: string
+    viewerId?: string,
+    banned?: Set<string>
   ): Promise<ReplyPost[]> {
-    if (posts.length === 0 || depth >= NEST_DEPTH) {
-      return posts.map((p) => ({
+    const filteredPosts = banned?.size ? posts.filter((p) => !banned.has(p.authorId)) : posts
+    if (filteredPosts.length === 0 || depth >= NEST_DEPTH) {
+      return filteredPosts.map((p) => ({
         ...p,
         author: null,
         likedByMe: false,
@@ -295,7 +299,7 @@ export class PostService {
       })) as unknown as ReplyPost[]
     }
 
-    const ids = posts.map((p) => String((p as unknown as Record<string, unknown>)._id ?? p.id))
+    const ids = filteredPosts.map((p) => String((p as unknown as Record<string, unknown>)._id ?? p.id))
     // depth=1 fetches level-2 replies only show root author's responses
     const childFilter: Record<string, unknown> = { parentId: { $in: ids } }
     if (depth === 1 && rootAuthorId) childFilter.authorId = rootAuthorId
@@ -304,7 +308,7 @@ export class PostService {
       .lean({ virtuals: true })
       .exec()) as Post[]
     this.sortByOwnerFirst(children, rootAuthorId, viewerId)
-    const nestedChildren = await this.attachReplies(children, depth + 1, rootAuthorId, viewerId)
+    const nestedChildren = await this.attachReplies(children, depth + 1, rootAuthorId, viewerId, banned)
 
     const repliesByParent = new Map<string, ReplyPost[]>()
     for (const child of nestedChildren) {
@@ -315,7 +319,7 @@ export class PostService {
       repliesByParent.set(childParentId, bucket)
     }
 
-    return posts.map((p) => {
+    return filteredPosts.map((p) => {
       const id = String((p as unknown as Record<string, unknown>)._id ?? p.id)
       return { ...p, author: null, likedByMe: false, replies: repliesByParent.get(id) ?? [] }
     }) as unknown as ReplyPost[]
@@ -355,8 +359,11 @@ export class PostService {
     page: number,
     limit: number,
     viewerId?: string,
-    skipPagination?: boolean
+    skipPagination?: boolean,
+    viewerRole?: string
   ): Promise<PaginatedResponse<ReplyPost>> {
+    const banned = viewerRole === "admin" ? new Set<string>() : await getBannedUserIds()
+
     const [rootPost, roots, total] = await Promise.all([
       PostModel.findById(postId).exec(),
       (() => {
@@ -368,9 +375,10 @@ export class PostService {
     ])
 
     const rootAuthorId = rootPost?.authorId
-    this.sortByOwnerFirst(roots as Post[], rootAuthorId, viewerId)
+    const filteredRoots = (roots as Post[]).filter((p) => !banned.has(p.authorId))
+    this.sortByOwnerFirst(filteredRoots, rootAuthorId, viewerId)
 
-    const nested = await this.attachReplies(roots as Post[], 1, rootAuthorId, viewerId)
+    const nested = await this.attachReplies(filteredRoots, 1, rootAuthorId, viewerId, banned)
 
     if (viewerId) {
       const allIds = this.collectReplyIds(nested)
@@ -384,7 +392,8 @@ export class PostService {
     return { data: nested, total, page, limit }
   }
 
-  async getThread(postId: string): Promise<Post[]> {
+  async getThread(postId: string, viewerRole?: string): Promise<Post[]> {
+    const banned = viewerRole === "admin" ? new Set<string>() : await getBannedUserIds()
     const thread: Post[] = []
     let current = (await PostModel.findById(postId).lean({ virtuals: true }).exec()) as Post | null
     while (current?.parentId) {
@@ -392,7 +401,7 @@ export class PostService {
         .lean({ virtuals: true })
         .exec()) as Post | null
       if (!parent) break
-      thread.unshift(parent)
+      if (!banned.has(parent.authorId)) thread.unshift(parent)
       current = parent
     }
     return thread
@@ -488,13 +497,17 @@ export class PostService {
       return trendingCache.data.slice(0, limit)
     }
 
-    const results = await PostModel.aggregate([
+    const banned = await getBannedUserIds()
+    const pipeline: import("mongoose").PipelineStage[] = []
+    if (banned.size > 0) pipeline.push({ $match: { authorId: { $nin: [...banned] } } })
+    pipeline.push(
       { $unwind: "$tags" },
       { $group: { _id: "$tags", count: { $sum: 1 } } },
       { $sort: { count: -1 } },
       { $limit: limit },
-      { $project: { _id: 0, tag: "$_id", count: 1 } },
-    ])
+      { $project: { _id: 0, tag: "$_id", count: 1 } }
+    )
+    const results = await PostModel.aggregate(pipeline)
 
     trendingCache = {
       data: results as { tag: string; count: number }[],

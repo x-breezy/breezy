@@ -75,7 +75,7 @@ export class PostController {
     try {
       const page = Math.max(1, parseInt(req.query.page as string) || 1)
       const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 20))
-      const result = await this.service.getReplies(req.params.id!, page, limit)
+      const result = await this.service.getReplies(req.params.id!, page, limit, req.user?.id, false, req.user?.role)
 
       res.json({ success: true, data: result, message: "Replies retrieved successfully" })
     } catch (err) {
