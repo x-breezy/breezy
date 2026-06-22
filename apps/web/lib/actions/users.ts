@@ -4,7 +4,14 @@ import { getAuthHeaders } from "@/lib/auth/authenticated-fetch"
 
 const API_URL = process.env.API_URL ?? "http://localhost"
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+function assertUuid(value: string, label = "id"): void {
+  if (!UUID_RE.test(value)) throw new Error(`Invalid ${label}`)
+}
+
 export async function banUser(userId: string): Promise<void> {
+  assertUuid(userId, "userId")
   const authHeader = await getAuthHeaders()
   const res = await fetch(`${API_URL}/api/users/${userId}/ban`, {
     method: "PATCH",
@@ -14,6 +21,7 @@ export async function banUser(userId: string): Promise<void> {
 }
 
 export async function unbanUser(userId: string): Promise<void> {
+  assertUuid(userId, "userId")
   const authHeader = await getAuthHeaders()
   const res = await fetch(`${API_URL}/api/users/${userId}/unban`, {
     method: "PATCH",
