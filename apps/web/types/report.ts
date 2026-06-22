@@ -14,6 +14,7 @@ export interface Report {
 export interface EnrichedReport extends Report {
   reporterUsername: string | null
   reportedUsername: string | null
+  reportedAvatarUrl: string | null
   reportedIsSuspended: boolean
   reportedIsBanned: boolean
   reportedRole: string | null

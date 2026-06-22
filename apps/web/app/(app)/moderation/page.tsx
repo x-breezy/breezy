@@ -7,6 +7,8 @@ import * as authService from "@/lib/services/auth-service"
 import type { PaginatedReports, EnrichedReport } from "@/types/report"
 import type { User } from "@/types/user"
 import type { Metadata } from "next"
+import { getProfilesByIds } from "@/lib/services/profile-service"
+import type { RawProfile } from "@/lib/api/profiles"
 
 export const metadata: Metadata = {
   title: "Moderation",
@@ -57,20 +59,35 @@ export default async function ModerationPage({ searchParams }: Props) {
     // unauthorised or fetch error — client will show empty state
   }
 
-  // Resolve unique user IDs to usernames in parallel
+  // Resolve unique user IDs to usernames and profiles in parallel
   const uniqueIds = [...new Set(data.reports.flatMap((r) => [r.reporterId, r.reportedUserId]))]
+  const reportedIds = [...new Set(data.reports.map((r) => r.reportedUserId))]
+
   const usersMap = new Map<string, User>()
-  await Promise.all(
-    uniqueIds.map(async (id) => {
+  const profilesMap = new Map<string, RawProfile>()
+
+  await Promise.all([
+    ...uniqueIds.map(async (id) => {
       const user = await safeGetUser(id, authHeader)
       if (user) usersMap.set(id, user)
-    })
-  )
+    }),
+    (async () => {
+      try {
+        const res = await getProfilesByIds(reportedIds, authHeader)
+        for (const p of (res.data as { data: RawProfile[] }).data) {
+          profilesMap.set(p.profileId, p)
+        }
+      } catch {
+        // profiles unavailable — avatars will be empty
+      }
+    })(),
+  ])
 
   const enriched: EnrichedReport[] = data.reports.map((r) => ({
     ...r,
     reporterUsername: usersMap.get(r.reporterId)?.username ?? null,
     reportedUsername: usersMap.get(r.reportedUserId)?.username ?? null,
+    reportedAvatarUrl: profilesMap.get(r.reportedUserId)?.avatarId ?? null,
     reportedIsSuspended: usersMap.get(r.reportedUserId)?.isSuspended ?? false,
     reportedIsBanned: usersMap.get(r.reportedUserId)?.isBanned ?? false,
     reportedRole: usersMap.get(r.reportedUserId)?.role ?? null,

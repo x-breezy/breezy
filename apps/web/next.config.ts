@@ -5,12 +5,14 @@ const withNextIntl = createNextIntlPlugin("./i18n/request.ts")
 
 const nextConfig: NextConfig = {
   async rewrites() {
-    return [
-      {
-        source: "/api/:path*",
-        destination: "http://127.0.0.1/api/:path*",
-      },
-    ]
+    return {
+      afterFiles: [
+        {
+          source: "/api/:path*",
+          destination: "http://127.0.0.1/api/:path*",
+        },
+      ],
+    }
   },
   experimental: {
     serverActions: {

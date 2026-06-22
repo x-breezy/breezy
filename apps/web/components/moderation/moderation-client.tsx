@@ -182,12 +182,21 @@ function ReportsByUser({
   runUnresolve,
 }: ReportsByUserProps) {
   const grouped = reports.reduce<
-    Record<string, { userId: string; username: string | null; reports: EnrichedReport[] }>
+    Record<
+      string,
+      {
+        userId: string
+        username: string | null
+        avatarUrl: string | null
+        reports: EnrichedReport[]
+      }
+    >
   >((acc, r) => {
     if (!acc[r.reportedUserId]) {
       acc[r.reportedUserId] = {
         userId: r.reportedUserId,
         username: r.reportedUsername,
+        avatarUrl: r.reportedAvatarUrl,
         reports: [],
       }
     }
@@ -227,11 +236,12 @@ function ReportsByUser({
       )}
 
       <ul className='space-y-3'>
-        {groups.map(({ userId, username, reports: userReports }) => (
+        {groups.map(({ userId, username, avatarUrl, reports: userReports }) => (
           <ReportedUserCard
             key={userId}
             userId={userId}
             username={username}
+            avatarUrl={avatarUrl}
             userReports={userReports}
             sanction={sanctions[userId] ?? { isSuspended: false, isBanned: false }}
             isAdmin={isAdmin}

@@ -4,7 +4,7 @@ import { useState } from "react"
 import Link from "next/link"
 import { IconChevronDown, IconChevronUp, IconExternalLink } from "@tabler/icons-react"
 import { Button } from "@/components/ui/button"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { ProfileAvatar } from "@/components/profile/profile-avatar"
 import { SanctionBadge } from "./sanction-badge"
 import { SanctionActions } from "./sanction-actions"
 import { ReportItem } from "./report-item"
@@ -14,6 +14,7 @@ import type { SanctionState, RunSanction } from "./sanction-actions"
 interface Props {
   userId: string
   username: string | null
+  avatarUrl: string | null
   userReports: EnrichedReport[]
   sanction: SanctionState
   isAdmin: boolean
@@ -27,6 +28,7 @@ interface Props {
 export function ReportedUserCard({
   userId,
   username,
+  avatarUrl,
   userReports,
   sanction,
   isAdmin,
@@ -38,15 +40,10 @@ export function ReportedUserCard({
 }: Props) {
   const [expanded, setExpanded] = useState(false)
   const pendingCount = userReports.filter((r) => r.status === "pending").length
-  const initials = username ? username.slice(0, 2).toUpperCase() : "??"
-
   return (
     <li className='overflow-hidden rounded-xl border bg-card'>
       <div className='flex items-center gap-3 p-4'>
-        <Avatar>
-          <AvatarFallback>{initials}</AvatarFallback>
-        </Avatar>
-
+        <ProfileAvatar size='2xs' src={avatarUrl ?? undefined} />
         <div className='min-w-0 flex-1'>
           <div className='flex flex-wrap items-center gap-2'>
             {username ? (
@@ -63,8 +60,8 @@ export function ReportedUserCard({
             <SanctionBadge {...sanction} />
           </div>
           <p className='mt-0.5 text-xs text-muted-foreground'>
-            <span className='font-medium text-foreground'>{userReports.length}</span>{" "}
-            report{userReports.length > 1 ? "s" : ""}
+            <span className='font-medium text-foreground'>{userReports.length}</span> report
+            {userReports.length > 1 ? "s" : ""}
             {pendingCount > 0 && (
               <span className='ml-2 font-semibold text-yellow-600 dark:text-yellow-400'>
                 · {pendingCount} pending
