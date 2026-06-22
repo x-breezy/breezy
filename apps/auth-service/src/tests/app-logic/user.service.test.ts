@@ -49,7 +49,6 @@ const MOCK_USER = {
   passwordHash: "salt:hash",
   role: "user",
   isBanned: false,
-  isSuspended: false,
   isEmailVerified: false,
   twoFactorEnabled: false,
   createdAt: new Date("2026-01-01"),
@@ -61,7 +60,6 @@ const MOCK_USER = {
       email: this.email,
       role: this.role,
       isBanned: this.isBanned,
-      isSuspended: this.isSuspended,
       isEmailVerified: this.isEmailVerified,
       twoFactorEnabled: this.twoFactorEnabled,
       createdAt: this.createdAt,
@@ -143,18 +141,6 @@ describe("banUser", () => {
     ;(mockedUser.findByPk as jest.Mock).mockResolvedValue(null)
 
     await expect(service.banUser("missing")).rejects.toMatchObject({ code: "USER_NOT_FOUND" })
-  })
-})
-
-describe("suspendUser", () => {
-  it("suspends user and revokes sessions", async () => {
-    const updateMock = jest.fn().mockResolvedValue(undefined)
-    ;(mockedUser.findByPk as jest.Mock).mockResolvedValue({ ...MOCK_USER, update: updateMock })
-    mockRedis.smembers.mockResolvedValue(["h1"])
-
-    await service.suspendUser("user-1")
-
-    expect(updateMock).toHaveBeenCalledWith({ isSuspended: true })
   })
 })
 

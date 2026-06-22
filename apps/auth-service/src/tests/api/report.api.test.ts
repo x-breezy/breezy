@@ -12,6 +12,8 @@ const mockVerifyToken = verifyToken as jest.MockedFunction<typeof verifyToken>
 const mockReportService = {
   createReport: jest.fn(),
   resolveReport: jest.fn(),
+  listReports: jest.fn(),
+  getReport: jest.fn(),
 }
 
 const controller = new ReportController(mockReportService as never)
@@ -208,5 +210,95 @@ describe("PATCH /reports/:id/resolve", () => {
       .set("Authorization", "Bearer admin-token")
 
     expect(res.status).toBe(500)
+  })
+})
+
+// ── GET /reports ─────────────────────────────────────────────────────────────
+
+describe("GET /reports", () => {
+  const MODERATOR_ID = "44444444-4444-4444-4444-444444444444"
+
+  it("returns 200 with paginated reports for moderator", async () => {
+    mockVerifyToken.mockReturnValue({ sub: MODERATOR_ID, role: "moderator", jti: "x" } as never)
+    mockReportService.listReports.mockResolvedValue({
+      reports: [{ id: "r1", reason: "Spam", status: "pending" }],
+      total: 1,
+      page: 1,
+      limit: 20,
+    })
+
+    const res = await request(app).get("/reports").set("Authorization", "Bearer mod-token")
+
+    expect(res.status).toBe(200)
+    expect(res.body.success).toBe(true)
+    expect(res.body.data.reports).toHaveLength(1)
+    expect(mockReportService.listReports).toHaveBeenCalledWith(1, 20, undefined)
+  })
+
+  it("filters by status when query param is provided", async () => {
+    mockVerifyToken.mockReturnValue({ sub: ADMIN_ID, role: "admin", jti: "x" } as never)
+    mockReportService.listReports.mockResolvedValue({ reports: [], total: 0, page: 1, limit: 20 })
+
+    await request(app).get("/reports?status=pending").set("Authorization", "Bearer admin-token")
+
+    expect(mockReportService.listReports).toHaveBeenCalledWith(1, 20, "pending")
+  })
+
+  it("returns 403 for regular user", async () => {
+    mockVerifyToken.mockReturnValue({ sub: USER_ID, role: "user", jti: "x" } as never)
+
+    const res = await request(app).get("/reports").set("Authorization", "Bearer user-token")
+
+    expect(res.status).toBe(403)
+    expect(mockReportService.listReports).not.toHaveBeenCalled()
+  })
+
+  it("returns 401 without auth", async () => {
+    const res = await request(app).get("/reports")
+    expect(res.status).toBe(401)
+  })
+})
+
+// ── GET /reports/:id ─────────────────────────────────────────────────────────
+
+describe("GET /reports/:id", () => {
+  const REPORT_UUID = "33333333-3333-3333-3333-333333333333"
+
+  it("returns 200 with the report for admin", async () => {
+    mockVerifyToken.mockReturnValue({ sub: ADMIN_ID, role: "admin", jti: "x" } as never)
+    mockReportService.getReport.mockResolvedValue({
+      id: REPORT_UUID,
+      reason: "Spam",
+      status: "pending",
+    })
+
+    const res = await request(app)
+      .get(`/reports/${REPORT_UUID}`)
+      .set("Authorization", "Bearer admin-token")
+
+    expect(res.status).toBe(200)
+    expect(res.body.data.id).toBe(REPORT_UUID)
+  })
+
+  it("returns 404 when report does not exist", async () => {
+    mockVerifyToken.mockReturnValue({ sub: ADMIN_ID, role: "admin", jti: "x" } as never)
+    mockReportService.getReport.mockResolvedValue(null)
+
+    const res = await request(app)
+      .get(`/reports/${REPORT_UUID}`)
+      .set("Authorization", "Bearer admin-token")
+
+    expect(res.status).toBe(404)
+  })
+
+  it("returns 403 for regular user", async () => {
+    mockVerifyToken.mockReturnValue({ sub: USER_ID, role: "user", jti: "x" } as never)
+
+    const res = await request(app)
+      .get(`/reports/${REPORT_UUID}`)
+      .set("Authorization", "Bearer user-token")
+
+    expect(res.status).toBe(403)
+    expect(mockReportService.getReport).not.toHaveBeenCalled()
   })
 })

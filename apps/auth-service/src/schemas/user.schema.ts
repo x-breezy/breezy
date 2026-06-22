@@ -14,6 +14,7 @@ export const createUserSchema = z.object({
     ),
   email: z.string().email(),
   password: z.string().min(8).max(128),
+  role: z.enum(["user", "moderator", "admin"]).optional().default("user"),
 })
 export type CreateUserDTO = z.infer<typeof createUserSchema>
 

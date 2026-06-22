@@ -8,6 +8,7 @@ import { useUserStore } from "@/stores/user-store"
 import type { NavItemData } from "./types"
 import Link from "next/link"
 import { useUnreadMessages } from "@/hooks/use-unread-messages"
+import { ModerationIcon } from "./icons/moderation-icon"
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getNavItems(t: any, hasUnreadMessages: boolean): NavItemData[] {
@@ -32,23 +33,23 @@ export function ResponsiveNav() {
   const pathname = usePathname()
   const t = useTranslations("nav")
   const profile = useUserStore((s) => s.profile)
+  const user = useUserStore((s) => s.user)
   const ProfileNavIcon = makeProfileIcon(profile?.avatarId ?? null)
   const isProfileActive = pathname === `/profile/${profile?.username}`
   const isConversationPage = pathname.startsWith("/messages/")
 
   const hasUnreadMessages = useUnreadMessages()
   const navItems = getNavItems(t, hasUnreadMessages)
-
+  const isModerator = user?.role === "moderator" || user?.role === "admin"
 
   return (
     <>
-      {/* Mobile: Bottom bar - visible en dessous de lg.
-          Hidden on a conversation page so the chat input (which extends into
-          this fixed bar's space) stays visible. */}
+      {/* Mobile: Bottom bar - visible en dessous de lg */}
       <nav
-        className={`fixed right-0 bottom-0 left-0 z-50 h-15 grid-cols-5 border-t bg-background pb-[env(safe-area-inset-bottom)] ${isConversationPage ? "hidden" : "grid lg:hidden"}`}
+        className='fixed right-0 bottom-0 left-0 z-50 grid h-15 border-t bg-background pb-[env(safe-area-inset-bottom)] lg:hidden'
+        style={{ gridTemplateColumns: `repeat(${isModerator ? 6 : 5}, 1fr)` }}
       >
-        {navItems.map(({ href, icon, label, hasBadge }) => (
+        {navItems.map(({ href, icon, label }) => (
           <NavItem
             key={href}
             href={href}
@@ -60,6 +61,16 @@ export function ResponsiveNav() {
             hasBadge={hasBadge}
           />
         ))}
+        {isModerator && (
+          <NavItem
+            href='/moderation'
+            icon={ModerationIcon}
+            label='Moderation'
+            isActive={pathname === "/moderation"}
+            showLabel={false}
+            iconClassName='block size-6'
+          />
+        )}
         <NavItem
           href={`/profile/${profile?.username}`}
           icon={ProfileNavIcon}
@@ -90,6 +101,16 @@ export function ResponsiveNav() {
               hasBadge={hasBadge}
             />
           ))}
+          {isModerator && (
+            <NavItem
+              href='/moderation'
+              icon={ModerationIcon}
+              label='Moderation'
+              isActive={pathname === "/moderation"}
+              showLabel={true}
+              iconClassName='block size-7'
+            />
+          )}
           <NavItem
             href={`/profile/${profile?.username}`}
             icon={ProfileNavIcon}

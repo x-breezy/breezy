@@ -1,7 +1,8 @@
+import { redirect } from "next/navigation"
 import { NavBar } from "./navigation/nav-bar"
 import { RightSidebar } from "./right-sidebar"
 import { UserStoreProvider } from "../providers/user-store-provider"
-import { getServerAuthHeader, getUserId } from "@/lib/auth/session"
+import { clearSessionCookies, getServerAuthHeader, getUserId } from "@/lib/auth/session"
 import { getMe } from "@/lib/services/auth-service"
 import { getFollowing, getProfile } from "@/lib/services/profile-service"
 import { getSuggestedProfiles } from "@/lib/actions/profiles"
@@ -31,6 +32,11 @@ export async function AppLayout({ children, modal }: AppLayoutProps) {
       if (res.status === 200) profile = res.data.data as Profile
       if (meRes.status === 200) user = meRes.data.data as User
 
+      if (user?.isBanned) {
+        await clearSessionCookies()
+        redirect("/sign-in?reason=banned")
+      }
+
       if (profile) {
         const relRes = await getFollowing(profile.profileId, authHeader)
 
@@ -43,8 +49,10 @@ export async function AppLayout({ children, modal }: AppLayoutProps) {
         suggestedUsers = await getSuggestedProfiles(profile.profileId, 3)
       }
     }
-  } catch {
-    // render without store data
+  } catch (err) {
+    // Re-throw Next.js redirect/notFound internals so they are not swallowed
+    if (err instanceof Error && err.message === "NEXT_REDIRECT") throw err
+    // Otherwise render without store data
   }
 
   return (
@@ -55,7 +63,7 @@ export async function AppLayout({ children, modal }: AppLayoutProps) {
           <div className='flex min-w-0 flex-1'>
             <div className='mx-auto flex w-full max-w-[1400px]'>
               <NavBar />
-              <main className='min-w-0 flex-1 overflow-y-auto border-x pb-15 lg:pb-0'>
+              <main className='min-w-0 flex-1 overflow-y-hidden border-x pb-15 lg:pb-0'>
                 {children}
               </main>
               <aside className='hidden w-[350px] shrink-0 overflow-y-auto xl:block'>

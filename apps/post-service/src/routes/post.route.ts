@@ -1,8 +1,8 @@
-import { Router } from "express"
+import { Router, type Request, type Response, type NextFunction } from "express"
 import { PostController } from "../controllers/post.controller"
 import { PostService } from "../services/post.service"
 import { identity } from "../middlewares/identity.middleware"
-import { requireOwnership } from "../middlewares/roles.middleware"
+import { requireOwnership, requireSelfOrPermission } from "../middlewares/roles.middleware"
 import { validate } from "../middlewares/validate.middleware"
 import { createPostSchema, updatePostSchema } from "../schemas/post.schema"
 import { readLimit, writeLimit, searchLimit } from "../middlewares/rate-limit.middleware"
@@ -12,6 +12,23 @@ import { createLikeRouter } from "./like.route"
 import { LikeController } from "../controllers/like.controller"
 import { LikeService } from "../services/like.service"
 
+function requireCreatePermission() {
+  return (req: Request, res: Response, next: NextFunction): void => {
+    if (!req.user) {
+      res.status(401).json({ success: false, error: "Unauthorized" })
+      return
+    }
+    const body = req.body as { parentId?: string | null }
+    const isComment = !!body.parentId
+    const permission = isComment ? PERMISSIONS.COMMENT_CREATE : PERMISSIONS.POST_CREATE
+    if (!req.user.permissions.includes(permission)) {
+      res.status(403).json({ success: false, error: "Forbidden", required: permission })
+      return
+    }
+    next()
+  }
+}
+
 export function createPostRouter(
   controller: PostController = new PostController(new PostService()),
   likeController: LikeController = new LikeController(new LikeService())
@@ -19,12 +36,25 @@ export function createPostRouter(
   const router = Router()
 
   // Static routes BEFORE /:id to avoid param-route swallowing
-  router.post("/", identity, writeLimit, validate(createPostSchema), controller.create)
+  router.post(
+    "/",
+    identity,
+    writeLimit,
+    requireCreatePermission(),
+    validate(createPostSchema),
+    controller.create
+  )
   router.get("/feed", identity, readLimit, controller.getFeed)
   router.get("/search", identity, searchLimit, controller.search)
   router.get("/trending-tags", identity, readLimit, controller.trendingTags)
   router.get("/liked-by-me", identity, readLimit, likeController.getMyLikes)
-  router.get("/users/:userId", identity, readLimit, controller.getUserPosts)
+  router.get(
+    "/users/:userId",
+    identity,
+    readLimit,
+    requireSelfOrPermission("userId", PERMISSIONS.POST_READ_ANY),
+    controller.getUserPosts
+  )
   router.get("/:id/detail", identity, readLimit, controller.getDetail)
   router.get("/:id/replies", identity, readLimit, controller.getReplies)
   router.get("/:id", identity, readLimit, controller.getOne)
@@ -45,7 +75,7 @@ export function createPostRouter(
     writeLimit,
     requireOwnership(
       (req) => PostModel.findById(req.params.id).exec(),
-      PERMISSIONS.POST_DELETE_ANY
+      (post) => (post.parentId ? PERMISSIONS.COMMENT_DELETE_ANY : PERMISSIONS.POST_DELETE_ANY)
     ),
     controller.delete
   )

@@ -118,7 +118,6 @@ const MOCK_USER = {
   passwordHash: "salt:hash",
   role: "user",
   isBanned: false,
-  isSuspended: false,
   isEmailVerified: false,
   twoFactorEnabled: false,
   createdAt: new Date(),

@@ -11,6 +11,7 @@ class UserService {
       username: input.username,
       email: input.email,
       passwordHash,
+      ...(input.role ? { role: input.role } : {}),
     })
     const safe = user.toJSON()
     return safe
@@ -44,13 +45,6 @@ class UserService {
     await this.revokeAllSessions(id)
   }
 
-  async suspendUser(id: string): Promise<void> {
-    const user = await User.findByPk(id)
-    if (!user) throw Object.assign(new Error("User not found"), { code: "USER_NOT_FOUND" })
-    await user.update({ isSuspended: true })
-    await this.revokeAllSessions(id)
-  }
-
   private async revokeAllSessions(userId: string): Promise<void> {
     const redis = getRedis()
     const hashes = await redis.smembers(`session:${userId}`)
@@ -65,6 +59,40 @@ class UserService {
     await pipeline.exec()
   }
 
+  async listAll(
+    page: number = 1,
+    limit: number = 20
+  ): Promise<{ count: number; users: SafeUser[] }> {
+    const offset = (page - 1) * limit
+    const { count, rows } = await User.findAndCountAll({
+      order: [["createdAt", "DESC"]],
+      limit,
+      offset,
+    })
+    return { count, users: rows.map((u) => u.toJSON()) }
+  }
+
+  async listSanctioned(
+    page: number = 1,
+    limit: number = 20
+  ): Promise<{ count: number; users: SafeUser[] }> {
+    const offset = (page - 1) * limit
+    const where = { isBanned: true }
+    const { count, rows } = await User.findAndCountAll({
+      where,
+      order: [["updatedAt", "DESC"]],
+      limit,
+      offset,
+    })
+    return { count, users: rows.map((u) => u.toJSON()) }
+  }
+
+  async unbanUser(id: string): Promise<void> {
+    const user = await User.findByPk(id)
+    if (!user) throw Object.assign(new Error("User not found"), { code: "USER_NOT_FOUND" })
+    await user.update({ isBanned: false })
+  }
+
   async searchByUsername(
     q: string,
     page: number = 1,
@@ -72,19 +100,23 @@ class UserService {
     excludeUserId?: string
   ): Promise<{ count: number; users: Pick<SafeUser, "id" | "username">[] }> {
     const offset = (page - 1) * limit
-    
+
     const whereClause: any = {
       username: { [Op.iLike]: `%${q}%` },
       isBanned: false,
       isSuspended: false,
     }
-    
+
     if (excludeUserId) {
       whereClause.id = { [Op.ne]: excludeUserId }
     }
 
     const { count, rows } = await User.findAndCountAll({
-      where: whereClause,
+      where: {
+        username: { [Op.iLike]: `%${q}%` },
+        isBanned: false,
+        ...whereClause,
+      },
       attributes: ["id", "username"],
       limit,
       offset,

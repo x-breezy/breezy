@@ -6,6 +6,11 @@ export const metadata: Metadata = {
   description: "Sign in to your Breezy account.",
 }
 
-export default function LoginPage() {
-  return <SignInScreen />
+interface Props {
+  searchParams: Promise<{ reason?: string }>
+}
+
+export default async function LoginPage({ searchParams }: Props) {
+  const { reason } = await searchParams
+  return <SignInScreen reason={reason} />
 }
