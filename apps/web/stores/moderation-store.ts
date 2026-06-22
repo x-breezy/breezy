@@ -11,11 +11,14 @@ interface ModerationState {
   sanctions: Record<string, UserSanctionState>
   reports: EnrichedReport[]
   sanctionedUsers: SanctionedUser[]
+  allUsers: SanctionedUser[]
   /** Derived: number of users still sanctioned (suspended or banned) */
   sanctionedCount: number
 
   initReports: (reports: EnrichedReport[]) => void
   initSanctioned: (users: SanctionedUser[]) => void
+  initAllUsers: (users: SanctionedUser[]) => void
+  addUser: (user: SanctionedUser) => void
 
   setSanction: (userId: string, patch: Partial<UserSanctionState>) => void
   resolveReport: (reportId: string) => void
@@ -26,6 +29,7 @@ export const useModerationStore = create<ModerationState>((set) => ({
   sanctions: {},
   reports: [],
   sanctionedUsers: [],
+  allUsers: [],
   sanctionedCount: 0,
 
   initReports: (reports) => {
@@ -37,6 +41,22 @@ export const useModerationStore = create<ModerationState>((set) => ({
     }
     set((s) => ({ reports, sanctions: { ...s.sanctions, ...sanctions } }))
   },
+
+  initAllUsers: (users) => {
+    set((s) => ({
+      allUsers: users,
+      sanctions: {
+        ...s.sanctions,
+        ...Object.fromEntries(users.map((u) => [u.id, { isBanned: u.isBanned }])),
+      },
+    }))
+  },
+
+  addUser: (user) =>
+    set((s) => ({
+      allUsers: [user, ...s.allUsers],
+      sanctions: { ...s.sanctions, [user.id]: { isBanned: user.isBanned } },
+    })),
 
   initSanctioned: (users) => {
     const sanctions: Record<string, UserSanctionState> = {}

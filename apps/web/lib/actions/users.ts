@@ -49,3 +49,32 @@ export async function listSanctionedUsers(
   const json = await res.json()
   return json.data as SanctionedList
 }
+
+export async function listAllUsers(
+  page = 1,
+  limit = 100
+): Promise<SanctionedList> {
+  const authHeader = await getServerAuthHeader()
+  const params = new URLSearchParams({ page: String(page), limit: String(limit) })
+  const res = await fetch(`${API_URL}/api/users?${params}`, { headers: authHeader })
+  if (!res.ok) throw new Error(`Failed to list users: ${res.status}`)
+  const json = await res.json()
+  return json.data as SanctionedList
+}
+
+export interface CreateUserPayload {
+  username: string
+  email: string
+  password: string
+  role?: "user" | "moderator" | "admin"
+}
+
+export async function createUser(payload: CreateUserPayload): Promise<void> {
+  const authHeader = await getServerAuthHeader()
+  const res = await fetch(`${API_URL}/api/users`, {
+    method: "POST",
+    headers: { ...authHeader, "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  })
+  if (!res.ok) throw new Error(`Failed to create user: ${res.status}`)
+}

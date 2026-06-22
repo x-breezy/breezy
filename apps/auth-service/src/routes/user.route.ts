@@ -21,6 +21,13 @@ function createUserRouter(
     validate(createUserSchema),
     userController.createUser
   )
+  router.get(
+    "/",
+    identity,
+    readLimit,
+    requirePermission(PERMISSIONS.USER_READ),
+    userController.listAll
+  )
   router.get("/search", identity, searchLimit, userController.search)
   router.get(
     "/sanctioned",

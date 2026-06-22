@@ -41,8 +41,8 @@ export function ReportedUserCard({
   const [expanded, setExpanded] = useState(false)
   const pendingCount = userReports.filter((r) => r.status === "pending").length
   return (
-    <li className='overflow-hidden rounded-xl border bg-card'>
-      <div className='flex items-center gap-3 p-4'>
+    <li className='overflow-hidden rounded-xl py-2'>
+      <div className='flex items-center gap-3'>
         <ProfileAvatar size='2xs' src={avatarUrl ?? undefined} />
         <div className='min-w-0 flex-1'>
           <div className='flex flex-wrap items-center gap-2'>

@@ -1,7 +1,12 @@
 import { redirect } from "next/navigation"
 import { getServerAuthHeader } from "@/lib/auth/session"
 import { getReports } from "@/lib/services/report-service"
-import { listSanctionedUsers, type SanctionedList } from "@/lib/actions/users"
+import {
+  listSanctionedUsers,
+  listAllUsers,
+  type SanctionedList,
+  type SanctionedUser,
+} from "@/lib/actions/users"
 import { ModerationClient } from "@/components/moderation/moderation-client"
 import * as authService from "@/lib/services/auth-service"
 import type { PaginatedReports, EnrichedReport } from "@/types/report"
@@ -45,16 +50,19 @@ export default async function ModerationPage({ searchParams }: Props) {
   let data: PaginatedReports = { reports: [], total: 0, page, limit: 20 }
   let pendingCount = 0
   let sanctioned: SanctionedList = { users: [], total: 0, page: 1, limit: 50 }
+  let allUsers: SanctionedUser[] = []
 
   try {
-    const [mainRes, pendingRes, sanctionedRes] = await Promise.all([
+    const [mainRes, pendingRes, sanctionedRes, allUsersRes] = await Promise.all([
       getReports(authHeader, { status, page, limit: 20 }),
       getReports(authHeader, { status: "pending", page: 1, limit: 1 }),
       listSanctionedUsers(1, 50),
+      listAllUsers(1, 100),
     ])
     data = (mainRes.data as { data: PaginatedReports }).data
     pendingCount = (pendingRes.data as { data: PaginatedReports }).data.total
     sanctioned = sanctionedRes
+    allUsers = allUsersRes.users
   } catch {
     // unauthorised or fetch error — client will show empty state
   }
@@ -98,6 +106,7 @@ export default async function ModerationPage({ searchParams }: Props) {
       total={data.total}
       pendingCount={pendingCount}
       sanctioned={sanctioned}
+      allUsers={allUsers}
     />
   )
 }

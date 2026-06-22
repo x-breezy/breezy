@@ -53,6 +53,19 @@ class UserService {
     await pipeline.exec()
   }
 
+  async listAll(
+    page: number = 1,
+    limit: number = 20
+  ): Promise<{ count: number; users: SafeUser[] }> {
+    const offset = (page - 1) * limit
+    const { count, rows } = await User.findAndCountAll({
+      order: [["createdAt", "DESC"]],
+      limit,
+      offset,
+    })
+    return { count, users: rows.map((u) => u.toJSON()) }
+  }
+
   async listSanctioned(
     page: number = 1,
     limit: number = 20

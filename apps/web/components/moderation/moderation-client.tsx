@@ -17,10 +17,10 @@ import {
 } from "@/lib/actions/reports"
 import { useUserStore } from "@/stores/user-store"
 import { useModerationStore } from "@/stores/moderation-store"
-import { SanctionedTab } from "./sanctioned-tab"
+import { UsersTab } from "./users-tab"
 import { ReportedUserCard } from "./reported-user-card"
 import type { EnrichedReport } from "@/types/report"
-import type { SanctionedList } from "@/lib/actions/users"
+import type { SanctionedList, SanctionedUser } from "@/lib/actions/users"
 import type { RunSanction, SanctionState } from "./sanction-actions"
 
 interface Props {
@@ -28,9 +28,16 @@ interface Props {
   total: number
   pendingCount: number
   sanctioned: SanctionedList
+  allUsers: SanctionedUser[]
 }
 
-export function ModerationClient({ initialReports, total, pendingCount, sanctioned }: Props) {
+export function ModerationClient({
+  initialReports,
+  total,
+  pendingCount,
+  sanctioned,
+  allUsers,
+}: Props) {
   const isAdmin = useUserStore((s) => s.user?.role) === "admin"
   const [isPending, startTransition] = useTransition()
   const [actionId, setActionId] = useState<string | null>(null)
@@ -38,16 +45,17 @@ export function ModerationClient({ initialReports, total, pendingCount, sanction
 
   const initReports = useModerationStore((s) => s.initReports)
   const initSanctioned = useModerationStore((s) => s.initSanctioned)
+  const initAllUsers = useModerationStore((s) => s.initAllUsers)
   const setSanction = useModerationStore((s) => s.setSanction)
   const resolveReportStore = useModerationStore((s) => s.resolveReport)
   const unresolveReportStore = useModerationStore((s) => s.unresolveReport)
   const reports = useModerationStore((s) => s.reports)
   const sanctions = useModerationStore((s) => s.sanctions)
-  const sanctionedCount = useModerationStore((s) => s.sanctionedCount)
 
   useEffect(() => {
     initReports(initialReports)
     initSanctioned(sanctioned.users)
+    initAllUsers(allUsers)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -120,8 +128,8 @@ export function ModerationClient({ initialReports, total, pendingCount, sanction
             <TabsTrigger value='reports' className='flex-1'>
               Reports
             </TabsTrigger>
-            <TabsTrigger value='sanctioned' className='flex-1'>
-              Sanctioned ({sanctionedCount})
+            <TabsTrigger value='users' className='flex-1'>
+              Users
             </TabsTrigger>
           </TabsList>
 
@@ -141,8 +149,8 @@ export function ModerationClient({ initialReports, total, pendingCount, sanction
             />
           </TabsContent>
 
-          <TabsContent value='sanctioned'>
-            <SanctionedTab />
+          <TabsContent value='users'>
+            <UsersTab />
           </TabsContent>
         </Tabs>
       </div>
