@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState, useTransition } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { IconChevronLeft } from "@tabler/icons-react"
 import { PageHeader, PageHeaderContent } from "@/components/layout/page-header"
@@ -37,6 +38,10 @@ export function ModerationClient({
   allUsersPage,
   allUsersLimit,
 }: Props) {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const activeTab = (searchParams.get("tab") ?? "reports") as "reports" | "users"
+
   const isAdmin = useUserStore((s) => s.user?.role) === "admin"
   const [isPending, startTransition] = useTransition()
   const [actionId, setActionId] = useState<string | null>(null)
@@ -122,7 +127,7 @@ export function ModerationClient({
       </PageHeader>
 
       <div className='container-center px-4 py-4'>
-        <Tabs defaultValue='reports'>
+        <Tabs value={activeTab} onValueChange={(v) => router.replace(`?tab=${v}`)}>
           <TabsList className='mb-5 w-full'>
             <TabsTrigger value='reports' className='flex-1'>
               Reports
