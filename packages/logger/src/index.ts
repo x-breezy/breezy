@@ -44,10 +44,17 @@ export function createLogger(options: CreateLoggerOptions): Logger {
   const logFile = isProd ? process.env.LOG_FILE : undefined
 
   if (logFile) {
-    const stream = createWriteStream(logFile, { flags: "a" })
-    stream.on("error", (err) => {
+    const fileStream = createWriteStream(logFile, { flags: "a" })
+    fileStream.on("error", (err) => {
       console.error("[Logger] Failed to write to log file:", err.message)
     })
+    // Write to both file and stdout so docker logs / Dokploy log viewer captures errors
+    const multiStream = {
+      write(msg: string) {
+        fileStream.write(msg)
+        process.stdout.write(msg)
+      },
+    }
     return pino(
       {
         level: options.level ?? process.env.LOG_LEVEL ?? "info",
@@ -55,7 +62,7 @@ export function createLogger(options: CreateLoggerOptions): Logger {
         timestamp: pino.stdTimeFunctions.isoTime,
         redact: { paths: sensitiveFields, censor: "[REDACTED]" },
       },
-      stream
+      multiStream as ReturnType<typeof createWriteStream>
     )
   }
 

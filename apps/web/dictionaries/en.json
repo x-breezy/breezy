@@ -99,6 +99,8 @@
     "firstNamePlaceholder": "Sam",
     "lastNamePlaceholder": "Altman",
     "bioPlaceholder": "Tell people a little about yourself…",
+    "bioMaxLength": "Bio must be 200 characters or fewer",
+    "bioMaxLines": "Bio must be fewer than 5 lines",
     "forgotPasswordTitle": "Forgot password",
     "forgotSubtitle": "Enter your email to receive a reset link",
     "sendResetLink": "Send reset link",
@@ -137,7 +139,16 @@
     "verifyEmailBannerSent": "Verification email sent! Check your inbox.",
     "verifyEmailBannerText": "Verify your email address to unlock all features.",
     "verifyEmailBannerSending": "Sending…",
-    "verifyEmailBannerRetry": "Retry in {seconds}s"
+    "verifyEmailBannerRetry": "Retry in {seconds}s",
+    "chooseUsername": "Choose your username",
+    "pickUsername": "Pick a username to finish setting up your account.",
+    "welcomeName": "Welcome, {name}! Pick a username to finish setting up your account.",
+    "usernameMinLength": "Username must be at least 3 characters",
+    "usernameMaxLength": "Username must be at most 50 characters",
+    "usernameInvalidChars": "Username can only contain lowercase letters, numbers, underscores, and hyphens",
+    "nameMinLength": "Name must be at least 1 character",
+    "nameMaxLength": "Name must be at most 100 characters",
+    "nameInvalidChars": "Name can only contain letters, numbers, spaces, apostrophes, hyphens, and periods"
   },
   "notifications": {
     "title": "Notifications",
@@ -148,6 +159,7 @@
     "lastWeek": "Last week",
     "lastMonth": "Last month",
     "follow": "<actor>{actorName}</actor> started following you.",
+    "followBack": "<actor>{actorName}</actor> followed you back.",
     "mention": "<actor>{actorName}</actor> mentioned you in a post.",
     "comment": "<actor>{actorName}</actor> commented on your post.",
     "like1": "<actor>{actorName}</actor> liked your post.",
@@ -179,13 +191,28 @@
     "lastNamePlaceholder": "Altman",
     "bio": "Bio",
     "bioPlaceholder": "Tell people a little about yourself…",
+    "bioMaxLength": "Bio must be 200 characters or fewer",
+    "bioMaxLines": "Bio must be fewer than 5 lines",
     "saving": "Saving…",
     "saveChanges": "Save changes",
     "cancel": "Cancel",
+    "usernameInvalidChars": "Username can only contain lowercase letters, numbers, underscores, and hyphens",
+    "usernameMinLength": "Username must be at least 3 characters",
+    "usernameMaxLength": "Username must be at most 50 characters",
+    "nameInvalidChars": "Name can only contain letters, numbers, spaces, apostrophes, hyphens, and periods",
+    "nameMinLength": "Name must be at least 1 character",
+    "nameMaxLength": "Name must be at most 100 characters",
     "biographyTitle": "Biography",
     "tabPosts": "Posts",
     "tabReplies": "Replies",
-    "tabMedias": "Medias"
+    "tabMedias": "Medias",
+    "unknownProfile": "Unknown profile",
+    "unknownProfileDesc": "This profile doesn't exist.",
+    "backToHome": "Go back to Breezy."
+  },
+  "feed": {
+    "emptyFollowing": "No posts yet. Follow some people to see their posts here.",
+    "emptyDefault": "No posts found."
   },
   "composePost": {
     "posting": "Posting…",
@@ -193,7 +220,10 @@
     "placeholder": "What's happening?",
     "addPhoto": "Add photo",
     "addVideo": "Add video",
-    "addGif": "Add GIF"
+    "addGif": "Add GIF",
+    "tooLarge": "{type} is too large. Maximum size is {size} MB.",
+    "failedToPost": "Failed to post. Please try again.",
+    "failedToSave": "Failed to save. Please try again."
   },
   "search": {
     "placeholder": "Search",

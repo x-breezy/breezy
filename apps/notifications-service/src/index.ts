@@ -15,7 +15,8 @@ async function start(): Promise<void> {
   await connect(mongoUri)
   logger.info("Connected to MongoDB")
 
-  await startConsuming(handleEvent)
+  // Run consumer in background — connectWithRetry handles reconnection
+  startConsuming(handleEvent).catch((err) => logger.error({ err }, "RabbitMQ consumer failed"))
 
   const server = app.listen(port, () => {
     logger.info({ port }, "Notifications service listening")

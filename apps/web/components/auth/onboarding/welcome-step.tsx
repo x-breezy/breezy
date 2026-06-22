@@ -74,7 +74,7 @@ export function WelcomeStep({
         </div>
       </div>
 
-      {error && <p className='text-sm text-destructive'>{error}</p>}
+      {error && <p className='text-sm text-destructive'>{t(error)}</p>}
 
       <form onSubmit={handleSubmit} className='flex w-full flex-col gap-2'>
         <Button size='lg' className='w-full' type='submit' disabled={isPending}>

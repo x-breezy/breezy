@@ -1,14 +1,14 @@
 "use server"
 
-import { cookies } from "next/headers"
 import { getLikedPostIds, type SearchPost } from "@/lib/actions/posts"
 import { fetchProfilesByIds, type SearchProfile } from "@/lib/actions/profiles"
+import { authenticatedFetch } from "@/lib/auth/authenticated-fetch"
 
-const API_URL = process.env.API_URL ?? "http://localhost"
 const LIMIT = 20
 
 export interface FeedPage {
   posts: SearchPost[]
+  parentPosts: Record<string, SearchPost>
   likedIds: string[]
   authors: Record<string, SearchProfile>
   total: number
@@ -16,22 +16,22 @@ export interface FeedPage {
   limit: number
 }
 
-async function getAuthHeaders(): Promise<Record<string, string>> {
-  const cookieStore = await cookies()
-  const token = cookieStore.get("breezy-token")?.value
-  return token ? { Authorization: `Bearer ${token}` } : {}
-}
-
-export async function listFeedPosts(page = 1): Promise<FeedPage> {
-  const headers = await getAuthHeaders()
-  const params = new URLSearchParams({ page: String(page), limit: String(LIMIT) })
-  const res = await fetch(`${API_URL}/api/posts/feed?${params}`, { headers })
+export async function listFeedPosts(page = 1, type = "forYou", limit?: number): Promise<FeedPage> {
+  const params = new URLSearchParams({ page: String(page), limit: String(limit ?? LIMIT), type })
+  const res = await authenticatedFetch(`/api/posts/feed?${params}`)
   if (!res.ok) throw new Error(`Failed to fetch feed: ${res.status}`)
   const json = await res.json()
-  const result = json.data as { data: SearchPost[]; total: number; page: number; limit: number }
+  const result = json.data as {
+    data: SearchPost[]
+    parentPosts: Record<string, SearchPost>
+    total: number
+    page: number
+    limit: number
+  }
 
-  const postIds = result.data.map((p) => p._id)
-  const authorIds = [...new Set(result.data.map((p) => p.authorId))]
+  const allPosts = [...result.data, ...Object.values(result.parentPosts ?? {})]
+  const postIds = allPosts.map((p) => p._id)
+  const authorIds = [...new Set(allPosts.map((p) => p.authorId))]
 
   const [likedIds, profiles] = await Promise.all([
     getLikedPostIds(postIds),
@@ -43,6 +43,7 @@ export async function listFeedPosts(page = 1): Promise<FeedPage> {
 
   return {
     posts: result.data,
+    parentPosts: result.parentPosts ?? {},
     likedIds,
     authors,
     total: result.total,

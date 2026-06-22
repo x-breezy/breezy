@@ -35,6 +35,8 @@ export function useProfilePosts(authorId: string, type: string = "posts", enable
     hasNextPage: query.hasNextPage,
     isFetchingNextPage: query.isFetchingNextPage,
     isLoading: query.isLoading,
+    isRefetching: query.isRefetching,
+    refetch: query.refetch,
     error: query.error,
   }
 }

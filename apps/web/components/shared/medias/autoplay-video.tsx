@@ -201,7 +201,7 @@ export function AutoplayVideo({
         loop
         playsInline
         preload='metadata'
-        className='block w-full rounded-xl border'
+        className='block h-full w-full rounded-xl border object-cover'
         onClick={togglePlay}
       />
 

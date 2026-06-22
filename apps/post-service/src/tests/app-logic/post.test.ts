@@ -131,7 +131,10 @@ describe("PostService", () => {
       const svc = new PostService(makeFollow(null))
       const result = await svc.feed("user1", 1, 20)
 
-      expect(mockedModel.find).toHaveBeenCalledWith({ authorId: { $ne: "user1" }, parentId: null })
+      expect(mockedModel.find).toHaveBeenCalledWith({
+        authorId: { $ne: "user1" },
+        $or: [{ parentId: null }, { $expr: { $eq: ["$parentId", "$rootParentId"] } }],
+      })
       expect(mockQuery.sort).toHaveBeenCalledWith({ createdAt: -1 })
       expect(mockQuery.skip).toHaveBeenCalledWith(0)
       expect(mockQuery.limit).toHaveBeenCalledWith(20)
@@ -148,22 +151,16 @@ describe("PostService", () => {
 
       expect(mockedModel.find).toHaveBeenCalledWith({
         authorId: { $in: expect.arrayContaining(["user2", "user3"]), $ne: "user1" },
-        parentId: null,
+        $or: [{ parentId: null }, { $expr: { $eq: ["$parentId", "$rootParentId"] } }],
       })
     })
 
-    it("includes only viewer when following is empty", async () => {
-      const mockQuery = makeQuery([])
-      ;(mockedModel.find as jest.Mock).mockReturnValue(mockQuery)
-      ;(mockedModel.countDocuments as jest.Mock).mockResolvedValue(0)
-
+    it("returns empty when following is empty", async () => {
       const svc = new PostService(makeFollow([]))
-      await svc.feed("user1", 1, 20)
+      const result = await svc.feed("user1", 1, 20)
 
-      expect(mockedModel.find).toHaveBeenCalledWith({
-        authorId: { $in: [], $ne: "user1" },
-        parentId: null,
-      })
+      expect(result).toEqual({ data: [], total: 0, page: 1, limit: 20 })
+      expect(mockedModel.find).not.toHaveBeenCalled()
     })
 
     it("excludes viewer from $in even if present in following list", async () => {
@@ -176,7 +173,7 @@ describe("PostService", () => {
 
       expect(mockedModel.find).toHaveBeenCalledWith({
         authorId: { $in: expect.arrayContaining(["user2"]), $ne: "user1" },
-        parentId: null,
+        $or: [{ parentId: null }, { $expr: { $eq: ["$parentId", "$rootParentId"] } }],
       })
     })
 

@@ -99,6 +99,8 @@
     "firstNamePlaceholder": "Sam",
     "lastNamePlaceholder": "Altman",
     "bioPlaceholder": "Dites-en un peu plus sur vous…",
+    "bioMaxLength": "La bio ne peut pas dépasser 200 caractères",
+    "bioMaxLines": "La bio doit comporter moins de 5 lignes",
     "forgotPasswordTitle": "Mot de passe oublié",
     "forgotSubtitle": "Entrez votre adresse e-mail pour recevoir un lien de réinitialisation",
     "sendResetLink": "Envoyer le lien de réinitialisation",
@@ -137,7 +139,16 @@
     "verifyEmailBannerSent": "E-mail de vérification envoyé ! Vérifiez votre boîte de réception.",
     "verifyEmailBannerText": "Vérifiez votre adresse e-mail pour débloquer toutes les fonctionnalités.",
     "verifyEmailBannerSending": "Envoi en cours…",
-    "verifyEmailBannerRetry": "Réessayez dans {seconds}s"
+    "verifyEmailBannerRetry": "Réessayez dans {seconds}s",
+    "chooseUsername": "Choisissez votre nom d'utilisateur",
+    "pickUsername": "Choisissez un nom d'utilisateur pour finaliser la création de votre compte.",
+    "welcomeName": "Bienvenue, {name} ! Choisissez un nom d'utilisateur pour finaliser la création de votre compte.",
+    "usernameMinLength": "Le nom d'utilisateur doit comporter au moins 3 caractères",
+    "usernameMaxLength": "Le nom d'utilisateur doit comporter au plus 50 caractères",
+    "usernameInvalidChars": "Le nom d'utilisateur ne peut contenir que des lettres minuscules, des chiffres, des tirets et des underscores",
+    "nameMinLength": "Le nom doit comporter au moins 1 caractère",
+    "nameMaxLength": "Le nom doit comporter au plus 100 caractères",
+    "nameInvalidChars": "Le nom ne peut contenir que des lettres, des chiffres, des espaces, des apostrophes, des tirets et des points"
   },
   "notifications": {
     "title": "Notifications",
@@ -148,6 +159,7 @@
     "lastWeek": "La semaine dernière",
     "lastMonth": "Le mois dernier",
     "follow": "<actor>{actorName}</actor> a commencé à vous suivre.",
+    "followBack": "<actor>{actorName}</actor> vous suit en retour.",
     "mention": "<actor>{actorName}</actor> vous a mentionné dans une publication.",
     "comment": "<actor>{actorName}</actor> a commenté votre publication.",
     "like1": "<actor>{actorName}</actor> a aimé votre publication.",
@@ -179,13 +191,28 @@
     "lastNamePlaceholder": "Altman",
     "bio": "Bio",
     "bioPlaceholder": "Dites-en un peu plus sur vous…",
+    "bioMaxLength": "La bio ne peut pas dépasser 200 caractères",
+    "bioMaxLines": "La bio doit comporter moins de 5 lignes",
     "saving": "Enregistrement…",
     "saveChanges": "Enregistrer",
     "cancel": "Annuler",
+    "usernameInvalidChars": "Le nom d'utilisateur ne peut contenir que des lettres minuscules, des chiffres, des tirets et des underscores",
+    "usernameMinLength": "Le nom d'utilisateur doit comporter au moins 3 caractères",
+    "usernameMaxLength": "Le nom d'utilisateur doit comporter au plus 50 caractères",
+    "nameInvalidChars": "Le nom ne peut contenir que des lettres, des chiffres, des espaces, des apostrophes, des tirets et des points",
+    "nameMinLength": "Le nom doit comporter au moins 1 caractère",
+    "nameMaxLength": "Le nom doit comporter au plus 100 caractères",
     "biographyTitle": "Biographie",
     "tabPosts": "Publications",
     "tabReplies": "Réponses",
-    "tabMedias": "Médias"
+    "tabMedias": "Médias",
+    "unknownProfile": "Profil inconnu",
+    "unknownProfileDesc": "Ce profil n'existe pas.",
+    "backToHome": "Retourner à l'accueil."
+  },
+  "feed": {
+    "emptyFollowing": "Aucune publication pour l'instant. Suivez des personnes pour voir leurs publications ici.",
+    "emptyDefault": "Aucune publication trouvée."
   },
   "composePost": {
     "posting": "Publication…",
@@ -193,7 +220,10 @@
     "placeholder": "Quoi de neuf ?",
     "addPhoto": "Ajouter une photo",
     "addVideo": "Ajouter une vidéo",
-    "addGif": "Ajouter un GIF"
+    "addGif": "Ajouter un GIF",
+    "tooLarge": "{type} est trop volumineux. Taille maximale : {size} Mo.",
+    "failedToPost": "Échec de la publication. Veuillez réessayer.",
+    "failedToSave": "Échec de l'enregistrement. Veuillez réessayer."
   },
   "search": {
     "placeholder": "Rechercher",

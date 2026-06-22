@@ -50,7 +50,8 @@ function NotificationText({ view, t }: { view: NotificationView; t: any }) {
   const uname = (chunks: React.ReactNode) => <span className='font-semibold'>{chunks}</span>
 
   if (view.kind === "follow") {
-    return <>{t.rich("follow", { actorName: view.actor.username, actor: uname })}</>
+    const key = view.isFollowBack ? "followBack" : "follow"
+    return <>{t.rich(key, { actorName: view.actor.username, actor: uname })}</>
   }
 
   if (view.kind === "mention") {
