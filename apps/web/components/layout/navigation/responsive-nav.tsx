@@ -46,10 +46,10 @@ export function ResponsiveNav() {
     <>
       {/* Mobile: Bottom bar - visible en dessous de lg */}
       <nav
-        className='fixed right-0 bottom-0 left-0 z-50 grid h-15 border-t bg-background pb-[env(safe-area-inset-bottom)] lg:hidden'
+        className={`${isConversationPage ? "hidden" : "grid lg:hidden"} fixed right-0 bottom-0 left-0 z-50 grid h-15 border-t bg-background pb-[env(safe-area-inset-bottom)]`}
         style={{ gridTemplateColumns: `repeat(${isModerator ? 6 : 5}, 1fr)` }}
       >
-        {navItems.map(({ href, icon, label }) => (
+        {navItems.map(({ href, icon, label, hasBadge }) => (
           <NavItem
             key={href}
             href={href}
