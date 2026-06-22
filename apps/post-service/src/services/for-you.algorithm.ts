@@ -1,5 +1,6 @@
 import { PostModel } from "../models/post.model"
 import { LikeModel } from "../models/like.model"
+import { getBannedUserIds } from "../clients/banned-users"
 import type { Post } from "../types/post"
 import type { PaginatedResponse } from "../types/api"
 
@@ -13,8 +14,10 @@ const LIKED_POST_PENALTY = 2
 export async function forYouFeed(
   viewerId: string,
   page: number,
-  limit: number
+  limit: number,
+  viewerRole?: string
 ): Promise<PaginatedResponse<Post>> {
+  const banned = viewerRole === "admin" ? new Set<string>() : await getBannedUserIds()
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
   const now = Date.now()
 
@@ -43,8 +46,10 @@ export async function forYouFeed(
 
   const likedPostSet = new Set(recentLikeIds)
 
+  const authorIdFilter: Record<string, unknown> = { $ne: viewerId }
+  if (banned.size > 0) authorIdFilter.$nin = [...banned]
   const filter: Record<string, unknown> = {
-    authorId: { $ne: viewerId },
+    authorId: authorIdFilter,
     createdAt: { $gte: sevenDaysAgo },
   }
 
