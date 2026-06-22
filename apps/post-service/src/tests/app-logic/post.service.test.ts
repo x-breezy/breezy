@@ -235,7 +235,7 @@ describe("PostService", () => {
       expect(result.data).toEqual(posts)
       expect(result.total).toBe(1)
       expect(mockPostModel.find).toHaveBeenCalledWith({
-        authorId: { $in: ["user-2", "user-3"], $ne: "viewer-1" },
+        authorId: { $in: ["user-2", "user-3"] },
         $or: [{ parentId: null }, { $expr: { $eq: ["$parentId", "$rootParentId"] } }],
       })
     })
@@ -280,7 +280,7 @@ describe("PostService", () => {
 
       expect(result.data).toEqual(posts)
       expect(mockPostModel.find).toHaveBeenCalledWith({
-        authorId: { $ne: "viewer-1" },
+        authorId: { $nin: ["viewer-1"] },
         $or: [{ parentId: null }, { $expr: { $eq: ["$parentId", "$rootParentId"] } }],
       })
     })
