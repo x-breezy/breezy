@@ -14,4 +14,4 @@ COPY --from=builder /app/packages ./packages
 COPY --from=builder /app/apps/notifications-service/dist ./apps/notifications-service/dist
 COPY --from=builder /app/apps/notifications-service/package.json ./apps/notifications-service/package.json
 WORKDIR /app/apps/notifications-service
-CMD ["tsx", "dist/index.js"]
+CMD ["node", "dist/index.js"]
