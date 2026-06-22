@@ -1,56 +1,14 @@
 import { NextFunction, Request, Response } from "express"
-import ChatService from "../services/message.service"
+import { ConversationController } from "./conversation.controller"
+import MessageService from "../services/message.service"
+import ConversationService from "../services/conversation.service"
 
-class ChatController {
-  constructor(private chatService = new ChatService()) {}
-
-  // GET /conversations
-  getConversations = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    try {
-      const conversations = await this.chatService.getConversations(req.user!.id)
-      res.status(200).json({ success: true, data: conversations })
-    } catch (err) {
-      next(err)
-    }
-  }
-
-  // POST /conversations  { recipientId, recipientIds, name }
-  getOrCreateConversation = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> => {
-    try {
-      const { recipientId, recipientIds, name } = req.body
-      
-      let ids: string[] = []
-      if (recipientIds && Array.isArray(recipientIds)) {
-        ids = recipientIds
-      } else if (recipientId) {
-        ids = [recipientId]
-      }
-
-      if (ids.length === 0) {
-        res.status(400).json({ success: false, message: "Recipient(s) required" })
-        return
-      }
-
-      // Filter out current user if they accidentally included themselves
-      const filteredIds = ids.filter(id => id !== req.user!.id)
-      if (filteredIds.length === 0) {
-        res.status(400).json({ success: false, message: "Cannot message yourself" })
-        return
-      }
-
-      const allParticipants = [req.user!.id, ...filteredIds]
-      // deduplicate
-      const uniqueParticipants = Array.from(new Set(allParticipants))
-
-      const conversation = await this.chatService.getOrCreateConversation(uniqueParticipants, name)
-      res.status(200).json({ success: true, data: conversation })
-    } catch (err) {
-      next(err)
-    }
+class ChatController extends ConversationController {
+  constructor(
+    private msgService = new MessageService(),
+    convService = new ConversationService()
+  ) {
+    super(convService)
   }
 
   // GET /conversations/:conversationId/messages?page=1&limit=20
@@ -62,7 +20,7 @@ class ChatController {
     try {
       const page = parseInt(req.query.page as string) || 1
       const limit = parseInt(req.query.limit as string) || 20
-      const result = await this.chatService.getMessages(req.params.conversationId, page, limit)
+      const result = await this.msgService.getMessages(req.params.conversationId, page, limit)
       res.status(200).json({ success: true, ...result })
     } catch (err) {
       next(err)
@@ -76,7 +34,7 @@ class ChatController {
     next: NextFunction
   ): Promise<void> => {
     try {
-      const message = await this.chatService.sendMessage(
+      const message = await this.msgService.sendMessage(
         req.params.conversationId,
         req.user!.id,
         req.body.content
@@ -94,7 +52,7 @@ class ChatController {
     next: NextFunction
   ): Promise<void> => {
     try {
-      await this.chatService.markAsRead(req.params.conversationId, req.user!.id)
+      await this.msgService.markAsRead(req.params.conversationId, req.user!.id)
       res.status(204).send()
     } catch (err) {
       next(err)
@@ -108,73 +66,12 @@ class ChatController {
     next: NextFunction
   ): Promise<void> => {
     try {
-      const deleted = await this.chatService.deleteMessage(req.params.messageId, req.user!.id)
+      const deleted = await this.msgService.deleteMessage(req.params.messageId, req.user!.id)
       if (!deleted) {
         res.status(404).json({ success: false, message: "Message not found" })
         return
       }
       res.status(204).send()
-    } catch (err) {
-      next(err)
-    }
-  }
-
-  // DELETE /conversations/:conversationId
-  deleteConversation = async (
-    req: Request<{ conversationId: string }>,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> => {
-    try {
-      const deleted = await this.chatService.deleteConversation(req.params.conversationId, req.user!.id)
-      if (!deleted) {
-        res.status(404).json({ success: false, message: "Conversation not found" })
-        return
-      }
-      res.status(204).send()
-    } catch (err) {
-      next(err)
-    }
-  }
-  // PATCH /conversations/:conversationId/name
-  renameConversation = async (
-    req: Request<{ conversationId: string }>,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> => {
-    try {
-      const updated = await this.chatService.renameConversation(
-        req.params.conversationId,
-        req.user!.id,
-        req.body.name
-      )
-      if (!updated) {
-        res.status(404).json({ success: false, message: "Group conversation not found or you don't have access" })
-        return
-      }
-      res.status(200).json({ success: true, data: updated })
-    } catch (err) {
-      next(err)
-    }
-  }
-
-  // POST /conversations/:conversationId/members
-  addMembers = async (
-    req: Request<{ conversationId: string }>,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> => {
-    try {
-      const updated = await this.chatService.addMembers(
-        req.params.conversationId,
-        req.user!.id,
-        req.body.memberIds
-      )
-      if (!updated) {
-        res.status(404).json({ success: false, message: "Group conversation not found or you don't have access" })
-        return
-      }
-      res.status(200).json({ success: true, data: updated })
     } catch (err) {
       next(err)
     }

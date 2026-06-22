@@ -21,7 +21,7 @@ export function setupWebSocket(server: HTTPServer): void {
       logger.warn("Socket connection rejected: Missing userId")
       return next(new Error("Authentication error: Missing userId"))
     }
-    
+
     // Attach userId to the socket for later use
     socket.data.userId = userId
     next()

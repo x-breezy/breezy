@@ -22,7 +22,7 @@ import {
   DialogDescription,
   DialogFooter,
   DialogTrigger,
-  DialogClose
+  DialogClose,
 } from "@/components/ui/dialog"
 
 export default function ConversationPage({
@@ -67,9 +67,9 @@ export default function ConversationPage({
     if (!currentUserId) return
 
     const fetchOtherUser = async () => {
-      let resolvedId = null;
-      let isGroup = false;
-      let groupName = null;
+      let resolvedId = null
+      let isGroup = false
+      let groupName = null
 
       try {
         const convRes = await apiClient.get(`/api/conversations/`)
@@ -79,8 +79,8 @@ export default function ConversationPage({
           if (conv) {
             setParticipantIds(conv.participantIds || [])
             if (conv.isGroup) {
-              isGroup = true;
-              groupName = conv.name || "Groupe";
+              isGroup = true
+              groupName = conv.name || "Groupe"
             } else {
               resolvedId = conv.participantIds.find((id: string) => id !== currentUserId)
             }
@@ -115,10 +115,10 @@ export default function ConversationPage({
       }
 
       // Fetch Username and Profile identically to sidebar
-      let authUsername = null;
-      let profileFirstName = null;
-      let profileLastName = null;
-      let fetchedAvatarUrl = undefined;
+      let authUsername = null
+      let profileFirstName = null
+      let profileLastName = null
+      let fetchedAvatarUrl = undefined
 
       try {
         const authRes = await apiClient.get(`/api/users/${resolvedId}`)
@@ -148,11 +148,11 @@ export default function ConversationPage({
       const nameParts = []
       if (profileFirstName) nameParts.push(profileFirstName)
       if (profileLastName) nameParts.push(profileLastName)
-      
+
       const fullName = nameParts.join(" ")
       const uname = authUsername || `User ${resolvedId.slice(0, 8)}`
       const display = fullName ? `${fullName} @${uname}` : `@${uname}`
-      
+
       setUsername(display)
       setUser(resolvedId, { displayName: display, avatarUrl: fetchedAvatarUrl })
     }
@@ -184,7 +184,9 @@ export default function ConversationPage({
     }
 
     try {
-      const res = await apiClient.patch(`/api/conversations/${conversationId}/name`, { name: editNameValue.trim() })
+      const res = await apiClient.patch(`/api/conversations/${conversationId}/name`, {
+        name: editNameValue.trim(),
+      })
       const data = res.data
       if (data.success && data.data) {
         setUsername(data.data.name)
@@ -230,7 +232,9 @@ export default function ConversationPage({
 
       if (isGroupConv) {
         // Add to existing group
-        const res = await apiClient.post(`/api/conversations/${conversationId}/members`, { memberIds: newMemberIds })
+        const res = await apiClient.post(`/api/conversations/${conversationId}/members`, {
+          memberIds: newMemberIds,
+        })
         const data = res.data
         if (data.success) {
           setAddMemberOpen(false)
@@ -241,12 +245,12 @@ export default function ConversationPage({
         }
       } else {
         // Create new group
-        const existingMembers = participantIds.filter(id => id !== currentUserId)
+        const existingMembers = participantIds.filter((id) => id !== currentUserId)
         const allRecipientIds = [...existingMembers, ...newMemberIds]
-        
+
         const res = await apiClient.post(`/api/conversations/`, { recipientIds: allRecipientIds })
         const data = res.data
-        
+
         if (data.success && data.data) {
           setAddMemberOpen(false)
           setNewMemberUsernames([])
@@ -267,27 +271,34 @@ export default function ConversationPage({
   return (
     <div className='flex h-full flex-col bg-white dark:bg-gray-950'>
       {/* Header */}
-      <header className='shrink-0 sticky top-0 z-10 flex h-16 items-center justify-between border-b border-gray-200 bg-white/80 px-4 md:px-6 backdrop-blur-md dark:border-gray-800 dark:bg-gray-950/80'>
-        <div className="flex items-center">
-          <Link href="/messages" className="mr-3 md:hidden p-2 -ml-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+      <header className='sticky top-0 z-10 flex h-16 shrink-0 items-center justify-between border-b border-gray-200 bg-white/80 px-4 backdrop-blur-md md:px-6 dark:border-gray-800 dark:bg-gray-950/80'>
+        <div className='flex items-center'>
+          <Link
+            href='/messages'
+            className='mr-3 -ml-2 rounded-full p-2 transition-colors hover:bg-gray-100 md:hidden dark:hover:bg-gray-800'
+          >
             <IconArrowLeft size={20} />
           </Link>
           <div>
-            <div className='text-lg font-bold truncate max-w-[200px] md:max-w-[300px]'>
+            <div className='max-w-[200px] truncate text-lg font-bold md:max-w-[300px]'>
               {username === null ? (
-                <div className="h-6 w-32 bg-foreground/10 animate-pulse rounded mt-1 mb-1"></div>
+                <div className='mt-1 mb-1 h-6 w-32 animate-pulse rounded bg-foreground/10'></div>
               ) : isEditingName ? (
                 <input
                   autoFocus
-                  className="bg-transparent border-b border-foreground focus:outline-none w-full"
+                  className='w-full border-b border-foreground bg-transparent focus:outline-none'
                   value={editNameValue}
                   onChange={(e) => setEditNameValue(e.target.value)}
                   onBlur={handleRenameSubmit}
                   onKeyDown={(e) => e.key === "Enter" && handleRenameSubmit()}
                 />
               ) : (
-                <span 
-                  className={isGroupConv ? "cursor-pointer hover:underline decoration-dashed decoration-gray-400 underline-offset-4" : ""}
+                <span
+                  className={
+                    isGroupConv
+                      ? "cursor-pointer decoration-gray-400 decoration-dashed underline-offset-4 hover:underline"
+                      : ""
+                  }
                   onClick={() => isGroupConv && setIsEditingName(true)}
                   title={isGroupConv ? "Click to rename group" : ""}
                 >
@@ -306,32 +317,40 @@ export default function ConversationPage({
             </p>
           </div>
         </div>
-        
+
         <Dialog open={addMemberOpen} onOpenChange={setAddMemberOpen}>
-          <DialogTrigger render={
-            <Button variant="ghost" size="icon" className="rounded-full" title="Add member">
-              <IconUserPlus size={20} />
-            </Button>
-          } />
+          <DialogTrigger
+            render={
+              <Button variant='ghost' size='icon' className='rounded-full' title='Add member'>
+                <IconUserPlus size={20} />
+              </Button>
+            }
+          />
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Add Member(s)</DialogTitle>
               <DialogDescription>
-                {isGroupConv 
+                {isGroupConv
                   ? "Tapez le nom d'utilisateur et appuyez sur Entrée pour l'ajouter au groupe."
                   : "Tapez le nom d'utilisateur et appuyez sur Entrée pour créer un nouveau groupe."}
               </DialogDescription>
             </DialogHeader>
-            <form onSubmit={handleAddMemberSubmit} className="space-y-4 pt-4">
+            <form onSubmit={handleAddMemberSubmit} className='space-y-4 pt-4'>
               <TagInput
-                placeholder="Tapez un username et Entrée..."
+                placeholder='Tapez un username et Entrée...'
                 tags={newMemberUsernames}
                 setTags={setNewMemberUsernames}
                 disabled={addingMember}
               />
               <DialogFooter>
-                <DialogClose render={<Button type="button" variant="outline">Cancel</Button>} />
-                <Button type="submit" disabled={newMemberUsernames.length === 0 || addingMember}>
+                <DialogClose
+                  render={
+                    <Button type='button' variant='outline'>
+                      Cancel
+                    </Button>
+                  }
+                />
+                <Button type='submit' disabled={newMemberUsernames.length === 0 || addingMember}>
                   {addingMember ? "Adding..." : "Add"}
                 </Button>
               </DialogFooter>
@@ -355,7 +374,7 @@ export default function ConversationPage({
             {messages.map((msg, index) => {
               const prevMsg = index > 0 ? messages[index - 1] : null
               const isConsecutive = prevMsg && prevMsg.senderId === msg.senderId
-              
+
               let senderName = msg.senderId === currentUserId ? "Vous" : "Quelqu'un"
               const senderCache = cachedUsers[msg.senderId]
               if (msg.senderId !== currentUserId && senderCache) {
@@ -369,16 +388,16 @@ export default function ConversationPage({
               }
 
               return (
-              <MessageBubble
-                key={msg._id}
-                content={displayContent}
-                createdAt={msg.createdAt}
-                isOwn={msg.senderId === currentUserId}
-                isConsecutive={isConsecutive}
-                avatarUrl={avatarUrl}
-                isSystem={msg.isSystem}
-                senderName={senderName}
-              />
+                <MessageBubble
+                  key={msg._id}
+                  content={displayContent}
+                  createdAt={msg.createdAt}
+                  isOwn={msg.senderId === currentUserId}
+                  isConsecutive={isConsecutive}
+                  avatarUrl={avatarUrl}
+                  isSystem={msg.isSystem}
+                  senderName={senderName}
+                />
               )
             })}
             <div ref={bottomRef} />

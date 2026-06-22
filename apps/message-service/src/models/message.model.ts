@@ -11,18 +11,6 @@ export interface Message {
   updatedAt: Date
 }
 
-export interface Conversation {
-  id: string
-  participantIds: string[]
-  isGroup: boolean
-  name: string | null
-  lastMessage: string | null
-  lastMessageAt: Date | null
-  deletedBy: string[]
-  createdAt: Date
-  updatedAt: Date
-}
-
 const messageSchema = new Schema<Message>(
   {
     conversationId: { type: String, required: true, index: true },
@@ -36,19 +24,4 @@ const messageSchema = new Schema<Message>(
 
 messageSchema.index({ conversationId: 1, createdAt: -1 })
 
-const conversationSchema = new Schema<Conversation>(
-  {
-    participantIds: { type: [String], required: true, index: true },
-    isGroup: { type: Boolean, default: false },
-    name: { type: String, default: null },
-    lastMessage: { type: String, default: null },
-    lastMessageAt: { type: Date, default: null },
-    deletedBy: { type: [String], default: [] },
-  },
-  { timestamps: true, collection: "conversations" }
-)
-
-
-
 export const MessageModel = model<Message>("Message", messageSchema)
-export const ConversationModel = model<Conversation>("Conversation", conversationSchema)
