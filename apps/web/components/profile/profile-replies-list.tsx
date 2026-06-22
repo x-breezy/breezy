@@ -31,5 +31,13 @@ export function ProfileRepliesList({ threads, isLoading }: ProfileRepliesListPro
     return <p className='py-8 text-center text-sm text-muted-foreground'>No replies yet.</p>
   }
 
-  return threads.map((thread) => <CommentTree key={thread._id} comments={[thread]} />)
+  return (
+    <div>
+      {threads.map((thread) => (
+        <div key={thread._id} className='border-b border-border last:border-b-0'>
+          <CommentTree comments={[thread]} />
+        </div>
+      ))}
+    </div>
+  )
 }

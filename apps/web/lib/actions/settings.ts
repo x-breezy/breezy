@@ -42,6 +42,10 @@ export async function sendVerificationEmailAction(): Promise<ActionState> {
     const meRes = await getMe(authHeader)
     await resendVerificationEmail(meRes.data.data.email)
   } catch (err) {
+    if (isAxiosError(err) && err.response?.status === 401) {
+      await clearSessionCookies()
+      redirect("/sign-in")
+    }
     if (isAxiosError(err)) {
       const d = err.response?.data as { message?: string; error?: string; code?: string }
       return {
@@ -76,6 +80,10 @@ export async function twoFactorSendCodeAction(): Promise<ActionState> {
   try {
     await sendTwoFactorCode(await getServerAuthHeader())
   } catch (err) {
+    if (isAxiosError(err) && err.response?.status === 401) {
+      await clearSessionCookies()
+      redirect("/sign-in")
+    }
     if (isAxiosError(err)) {
       const d = err.response?.data as { message?: string; error?: string; code?: string }
       return {
@@ -97,6 +105,10 @@ export async function twoFactorEnableAction(
   try {
     await enableTwoFactor(code, await getServerAuthHeader())
   } catch (err) {
+    if (isAxiosError(err) && err.response?.status === 401) {
+      await clearSessionCookies()
+      redirect("/sign-in")
+    }
     if (isAxiosError(err)) {
       const d = err.response?.data as { message?: string; error?: string }
       return { error: d?.message ?? d?.error ?? "Invalid code." }
@@ -110,6 +122,10 @@ export async function twoFactorDisableAction(): Promise<ActionState> {
   try {
     await disableTwoFactor(await getServerAuthHeader())
   } catch (err) {
+    if (isAxiosError(err) && err.response?.status === 401) {
+      await clearSessionCookies()
+      redirect("/sign-in")
+    }
     if (isAxiosError(err)) {
       const d = err.response?.data as { message?: string; error?: string }
       return { error: d?.message ?? d?.error ?? "Failed to disable 2FA." }

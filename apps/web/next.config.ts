@@ -15,6 +15,15 @@ const nextConfig: NextConfig = {
   // the gateway would fall through to the web upstream, and the request would
   // bypass auth (401, and POST downgraded to GET).
   skipTrailingSlashRedirect: true,
+  output: "standalone",
+  async rewrites() {
+    return [
+      {
+        source: "/api/:path*",
+        destination: "http://127.0.0.1/api/:path*",
+      },
+    ]
+  },
   experimental: {
     serverActions: {
       bodySizeLimit: "10mb",

@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useQueryClient } from "@tanstack/react-query"
 import { IconDots, IconShare, IconFlag, IconPencil, IconTrash } from "@tabler/icons-react"
 import {
   DropdownMenu,
@@ -39,6 +40,7 @@ export function PostMenu({
   onDeleted,
   onEdited,
 }: PostMenuProps) {
+  const queryClient = useQueryClient()
   const currentProfileId = useUserStore((s) => s.profile?.profileId)
   const isOwner = currentProfileId === authorId
 
@@ -84,6 +86,8 @@ export function PostMenu({
   async function handleDelete() {
     await deletePost(postId)
     setDeleteOpen(false)
+    queryClient.invalidateQueries({ queryKey: ["feed"] })
+    queryClient.invalidateQueries({ queryKey: ["profile-posts"] })
     onDeleted?.()
   }
 

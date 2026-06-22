@@ -1,6 +1,8 @@
 "use client"
 
 import { useState, useCallback, useEffect } from "react"
+import { useQueryClient } from "@tanstack/react-query"
+import { useTranslations } from "next-intl"
 import { createPost } from "@/lib/actions/posts"
 import { uploadMediaAction } from "@/lib/actions/media"
 import type { SearchPostMedia } from "@/lib/actions/posts"
@@ -27,22 +29,36 @@ function parseTags(content: string): string[] {
   return [...new Set(matches.map((t) => t.slice(1)))]
 }
 
+const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10 MB — matches next.config.ts serverActions.bodySizeLimit
+
 export function usePostCompose(parentId?: string, initialContent = "") {
+  const queryClient = useQueryClient()
+  const t = useTranslations("composePost")
   const [content, setContent] = useState(initialContent)
   const [mediaFiles, setMediaFiles] = useState<MediaPreview[]>([])
   const [resolvedMentions, setResolvedMentions] = useState<ResolvedMention[]>([])
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const addMedia = useCallback((files: FileList | File[]) => {
-    const arr = Array.from(files)
-    const previews: MediaPreview[] = arr.map((file) => ({
-      file,
-      previewUrl: URL.createObjectURL(file),
-      type: file.type.startsWith("video/") ? "video" : "image",
-    }))
-    setMediaFiles((prev) => [...prev, ...previews])
-  }, [])
+  const addMedia = useCallback(
+    (files: FileList | File[]) => {
+      const arr = Array.from(files)
+      const oversized = arr.find((f) => f.size > MAX_FILE_SIZE)
+      if (oversized) {
+        const type = oversized.type.startsWith("video/") ? "Video" : "File"
+        setError(t("tooLarge", { type, size: 10 }))
+        return
+      }
+      setError(null)
+      const previews: MediaPreview[] = arr.map((file) => ({
+        file,
+        previewUrl: URL.createObjectURL(file),
+        type: file.type.startsWith("video/") ? "video" : "image",
+      }))
+      setMediaFiles((prev) => [...prev, ...previews])
+    },
+    [t]
+  )
 
   const removeMedia = useCallback((index: number) => {
     setMediaFiles((prev) => {
@@ -90,18 +106,26 @@ export function usePostCompose(parentId?: string, initialContent = "") {
       setContent("")
       setMediaFiles([])
       setResolvedMentions([])
+      queryClient.invalidateQueries({ queryKey: ["feed"] })
+      if (parentId) {
+        queryClient.invalidateQueries({ queryKey: ["profile-posts"] })
+      }
       return true
-    } catch {
+    } catch (e) {
       // Cleanup uploaded media on error, but keep previews for retry
       uploadedMedia.forEach(() => {
         // TODO: Call delete media API if needed
       })
-      setError("Failed to post. Please try again.")
+      if (e instanceof Error && (e.message === "FILE_TOO_LARGE" || e.message.includes("413"))) {
+        setError(t("tooLarge", { type: "File", size: 10 }))
+      } else {
+        setError(t("failedToPost"))
+      }
       return false
     } finally {
       setSubmitting(false)
     }
-  }, [content, mediaFiles, resolvedMentions, parentId])
+  }, [content, mediaFiles, resolvedMentions, parentId, queryClient, t])
 
   // Cleanup object URLs on unmount
   useEffect(() => {

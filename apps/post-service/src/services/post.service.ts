@@ -1,5 +1,6 @@
 import { PostModel } from "../models/post.model"
 import { LikeModel } from "../models/like.model"
+import { forYouFeed } from "./for-you.algorithm"
 import { getActorProfile } from "../clients/grpc.client"
 import type { CreatePostDTO } from "../schemas/post.schema"
 import type { Post } from "../types/post"
@@ -54,14 +55,23 @@ export class PostService {
       await PostModel.findByIdAndUpdate(data.parentId, { $inc: { commentsCount: 1 } }).exec()
     }
 
-    for (const targetUserId of mentions.filter((id) => id !== data.authorId)) {
-      void publish("content.mention", { actorId: data.authorId, targetUserId, postId })
+    const filteredMentions = mentions.filter((id) => id !== data.authorId)
+    const profile =
+      filteredMentions.length > 0 || data.parentId ? await getActorProfile(data.authorId) : null
+
+    for (const targetUserId of filteredMentions) {
+      void publish("content.mention", {
+        actorId: data.authorId,
+        targetUserId,
+        postId,
+        username: profile?.username,
+        avatarId: profile?.avatarId,
+      })
     }
 
     if (data.parentId) {
       const parent = await PostModel.findById(data.parentId).exec()
       if (parent && parent.authorId !== data.authorId) {
-        const profile = await getActorProfile(data.authorId)
         void publish("content.reply", {
           actorId: data.authorId,
           targetUserId: parent.authorId,
@@ -142,15 +152,55 @@ export class PostService {
     }
   }
 
+  async forYouFeed(
+    viewerId: string,
+    page: number,
+    limit: number
+  ): Promise<PaginatedResponse<Post> & { parentPosts: Record<string, Post> }> {
+    const result = await forYouFeed(viewerId, page, limit)
+
+    const replies = result.data.filter((p) => p.parentId)
+    const parentIds = [...new Set(replies.map((r) => r.parentId!))]
+
+    let parentPosts: Post[] = []
+    if (parentIds.length > 0) {
+      parentPosts = (await PostModel.find({ _id: { $in: parentIds } })
+        .lean({ virtuals: true })
+        .exec()) as Post[]
+    }
+
+    const parentIdSet = new Set(
+      parentPosts.map((p) => String((p as unknown as { _id: string })._id))
+    )
+
+    const filteredData = result.data.filter((p) => {
+      if (p.parentId) return true
+      return !parentIdSet.has(String((p as unknown as { _id: string })._id))
+    })
+
+    return {
+      data: filteredData,
+      parentPosts: Object.fromEntries(
+        parentPosts.map((p) => [String((p as unknown as { _id: string })._id), p])
+      ),
+      total: result.total,
+      page: result.page,
+      limit: result.limit,
+    }
+  }
+
   async feed(viewerId: string, page: number, limit: number): Promise<PaginatedResponse<Post>> {
     const following = await this.follow.getFollowing(viewerId)
-    const filter: Record<string, unknown> =
-      following === null
-        ? { authorId: { $ne: viewerId }, parentId: null }
-        : {
-            authorId: { $in: [...new Set(following)], $ne: viewerId },
-            parentId: null,
-          }
+    if (following !== null && following.length === 0) {
+      return { data: [], total: 0, page, limit }
+    }
+    const authorFilter =
+      following === null ? { $ne: viewerId } : { $in: [...new Set(following)], $ne: viewerId }
+    const filter = {
+      authorId: authorFilter,
+      // top-level posts or direct replies only (parentId === rootParentId means depth-1)
+      $or: [{ parentId: null }, { $expr: { $eq: ["$parentId", "$rootParentId"] } }],
+    }
     const skip = (page - 1) * limit
     const [data, total] = await Promise.all([
       PostModel.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).exec(),
@@ -224,7 +274,7 @@ export class PostService {
       })) as unknown as ReplyPost[]
     }
 
-    const ids = posts.map((p) => String(p.id))
+    const ids = posts.map((p) => String((p as unknown as Record<string, unknown>)._id ?? p.id))
     // depth=1 fetches level-2 replies only show root author's responses
     const childFilter: Record<string, unknown> = { parentId: { $in: ids } }
     if (depth === 1 && rootAuthorId) childFilter.authorId = rootAuthorId
@@ -245,7 +295,7 @@ export class PostService {
     }
 
     return posts.map((p) => {
-      const id = String(p.id)
+      const id = String((p as unknown as Record<string, unknown>)._id ?? p.id)
       return { ...p, author: null, likedByMe: false, replies: repliesByParent.get(id) ?? [] }
     }) as unknown as ReplyPost[]
   }

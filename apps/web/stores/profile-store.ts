@@ -5,7 +5,7 @@ import { followUserAction, unfollowUserAction } from "@/lib/actions/follow"
 
 interface ProfileStoreState {
   profiles: Record<string, Profile>
-  loading: boolean
+  loading: Record<string, boolean>
   error: string | null
 
   set: (username: string, profile: Profile) => void
@@ -17,9 +17,11 @@ interface ProfileStoreState {
   clear: () => void
 }
 
+const _inFlight = new Set<string>()
+
 export const useProfileStore = create<ProfileStoreState>((set, get) => ({
   profiles: {},
-  loading: false,
+  loading: {},
   error: null,
 
   set: (username, profile) => set((s) => ({ profiles: { ...s.profiles, [username]: profile } })),
@@ -34,22 +36,29 @@ export const useProfileStore = create<ProfileStoreState>((set, get) => ({
   fetchByUsername: async (username) => {
     const cached = get().profiles[username]
     if (cached) return cached
+    if (_inFlight.has(username)) return null
 
-    set({ loading: true, error: null })
+    _inFlight.add(username)
+    set((s) => ({ loading: { ...s.loading, [username]: true }, error: null }))
     try {
       const profile = await getProfileByUsernameAction(username)
       if (profile) {
         set((s) => ({
           profiles: { ...s.profiles, [username]: profile },
-          loading: false,
+          loading: { ...s.loading, [username]: false },
         }))
       } else {
-        set({ loading: false })
+        set((s) => ({ loading: { ...s.loading, [username]: false } }))
       }
       return profile
     } catch (e) {
-      set({ error: (e as Error).message, loading: false })
+      set((s) => ({
+        error: (e as Error).message,
+        loading: { ...s.loading, [username]: false },
+      }))
       return null
+    } finally {
+      _inFlight.delete(username)
     }
   },
 
@@ -110,6 +119,7 @@ export const useProfileStore = create<ProfileStoreState>((set, get) => ({
   },
 
   clear: () => {
-    set({ profiles: {}, loading: false, error: null })
+    _inFlight.clear()
+    set({ profiles: {}, loading: {}, error: null })
   },
 }))

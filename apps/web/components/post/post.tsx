@@ -1,6 +1,6 @@
 "use client"
 
-import { memo, useState, useCallback, useEffect } from "react"
+import { memo, useState, useCallback } from "react"
 import { useRouter, usePathname } from "next/navigation"
 import { PostMeta, PostContent, PostActions } from "."
 import { PostMenu } from "./post-menu"
@@ -11,8 +11,8 @@ import { MediaViewer } from "../shared/medias/media-viewer"
 import { AutoplayVideo } from "../shared/medias/autoplay-video"
 import { MediaImage } from "../shared/medias/media-image"
 import { mediaUrl, timeAgo, formatFullDate, cn } from "@/lib/utils"
-import { UserRole } from "@/lib/auth/role"
 import { usePostStore } from "@/stores/post-store"
+import { UserRole } from "@/lib/auth/role"
 
 interface HomePostProps {
   id: string
@@ -35,6 +35,7 @@ interface HomePostProps {
   threadLine?: "solid" | "dashed"
   threadLineTop?: boolean
   className?: string
+  isPostAuthor?: boolean
 }
 
 function Post({
@@ -58,23 +59,24 @@ function Post({
   threadLine,
   threadLineTop,
   className,
+  isPostAuthor = false,
 }: HomePostProps) {
   const router = useRouter()
   const pathname = usePathname()
   const isDetailPage = pathname.startsWith("/post/")
-  const storeLiked = usePostStore((s) => s.likedPostIds.has(id))
-  const storeHasPost = usePostStore((s) => id in s.postsById)
-  const [likes, setLikes] = useState(initialLikes)
-  const [comments, setComments] = useState(initialComments)
-  const [isLiked, setIsLiked] = useState(initialLiked)
-  const [postContent, setPostContent] = useState(content)
+  const storePost = usePostStore((s) => s.postsById[id])
+  const storeIsLiked = usePostStore((s) => s.likedPostIds.has(id))
 
-  useEffect(() => {
-    if (storeHasPost) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setIsLiked(storeLiked)
-    }
-  }, [storeHasPost, storeLiked, id])
+  const [localLikes, setLocalLikes] = useState(initialLikes)
+  const [localComments, setLocalComments] = useState(initialComments)
+  const [localIsLiked, setLocalIsLiked] = useState(initialLiked)
+
+  // ponytail: store is source of truth when cached; local state for optimistic fallback (posts not in store)
+  const likes = storePost?.likesCount ?? localLikes
+  const isLiked = storePost !== undefined ? storeIsLiked : localIsLiked
+  // max: local handles inline-reply increment, store handles navigation-back-from-detail
+  const comments = storePost ? Math.max(storePost.commentsCount ?? 0, localComments) : localComments
+  const [postContent, setPostContent] = useState(content)
   const [postMedia, setPostMedia] = useState(media)
   const [deleted, setDeleted] = useState(false)
   const [viewerIndex, setViewerIndex] = useState<number | null>(null)
@@ -85,17 +87,15 @@ function Post({
     async (e: React.MouseEvent) => {
       e.stopPropagation()
       const newIsLiked = !isLiked
-      // Optimistic update
-      setIsLiked(newIsLiked)
-      setLikes((prev) => (newIsLiked ? prev + 1 : prev - 1))
+      setLocalIsLiked(newIsLiked)
+      setLocalLikes((prev) => (newIsLiked ? prev + 1 : prev - 1))
       if (onLike) {
         try {
           const serverCount = await onLike(id, newIsLiked)
-          if (typeof serverCount === "number") setLikes(serverCount)
+          if (typeof serverCount === "number") setLocalLikes(serverCount)
         } catch {
-          // Rollback on error
-          setIsLiked((prev) => !prev)
-          setLikes((prev) => (newIsLiked ? prev - 1 : prev + 1))
+          setLocalIsLiked((prev) => !prev)
+          setLocalLikes((prev) => (newIsLiked ? prev - 1 : prev + 1))
         }
       }
     },
@@ -175,6 +175,7 @@ function Post({
                 role={authorRole as UserRole | undefined}
                 createdAt={compact ? formattedTime : undefined}
                 compact={compact}
+                isPostAuthor={isPostAuthor}
               />
             </div>
             <PostMenu
@@ -253,7 +254,7 @@ function Post({
           parentAvatarUrl={avatarUrl}
           parentContent={content}
           onSuccess={() => {
-            setComments((prev) => prev + 1)
+            setLocalComments((prev) => prev + 1)
             onReplyCreated?.()
           }}
           onDismiss={() => setReplyOpen(false)}

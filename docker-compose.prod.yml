@@ -1,7 +1,4 @@
 services:
-
-  # ── Infrastructure ──────────────────────────────────────────────────────────
-
   postgres-user-service:
     image: postgres:16
     container_name: breezy-postgres-user-service
@@ -116,7 +113,7 @@ services:
       retries: 5
 
   rabbitmq:
-    image: rabbitmq:3
+    image: rabbitmq:3-management
     container_name: breezy-rabbitmq
     restart: unless-stopped
     environment:
@@ -124,6 +121,7 @@ services:
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS}
     networks:
       - services-net
+      - gateway-net
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "ping"]
       interval: 10s
@@ -143,7 +141,44 @@ services:
       timeout: 5s
       retries: 5
 
-  # ── Application services ─────────────────────────────────────────────────────
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.15.0
+    container_name: breezy-elasticsearch
+    restart: unless-stopped
+    environment:
+      discovery.type: single-node
+      xpack.security.enabled: "false"
+      ES_JAVA_OPTS: "-Xms512m -Xmx512m"
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
+    networks:
+      - services-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9200"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.15.0
+    container_name: breezy-kibana
+    restart: unless-stopped
+    environment:
+      ELASTICSEARCH_HOSTS: http://elasticsearch:9200
+      XPACK_SECURITY_ENABLED: "false"
+      SERVER_PUBLICBASEURL: https://logs.breezy.clementomnes.dev
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:5601/api/status || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 120s
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    networks:
+      - services-net
+      - gateway-net
 
   auth-service:
     build:
@@ -169,11 +204,24 @@ services:
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN}
       REFRESH_TOKEN_TTL_MS: ${REFRESH_TOKEN_TTL_MS}
       PROFILE_SERVICE_GRPC_URL: profile-service:50051
+      PROFILE_SERVICE_URL: http://profile-service:4010
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
       GOOGLE_REDIRECT_URI: https://${DOMAIN}/api/auth/google/callback
       LOG_FILE: /logs/auth-service.log
       LOG_LEVEL: info
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "require('net').connect(4020,'127.0.0.1').on('connect',()=>process.exit(0)).on('error',()=>process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     depends_on:
       postgres-user-service:
         condition: service_healthy
@@ -204,6 +252,18 @@ services:
       PROFILE_SERVICE_GRPC_URL: profile-service:50051
       LOG_FILE: /logs/profile-service.log
       LOG_LEVEL: info
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "require('net').connect(4010,'127.0.0.1').on('connect',()=>process.exit(0)).on('error',()=>process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     depends_on:
       postgres-profile-service:
         condition: service_healthy
@@ -233,6 +293,18 @@ services:
       MEDIA_SERVICE_GRPC_URL: media-service:50052
       LOG_FILE: /logs/post-service.log
       LOG_LEVEL: info
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "require('net').connect(4040,'127.0.0.1').on('connect',()=>process.exit(0)).on('error',()=>process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     depends_on:
       mongo-post-service:
         condition: service_healthy
@@ -260,6 +332,18 @@ services:
       JWT_PUBLIC_KEY_PATH: /secrets/public.pem
       LOG_FILE: /logs/media-service.log
       LOG_LEVEL: info
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "require('net').connect(4050,'127.0.0.1').on('connect',()=>process.exit(0)).on('error',()=>process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     depends_on:
       mongo-media-service:
         condition: service_healthy
@@ -292,6 +376,18 @@ services:
       SMTP_FROM: ${SMTP_FROM}
       LOG_FILE: /logs/notifications-service.log
       LOG_LEVEL: info
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "require('net').connect(4060,'127.0.0.1').on('connect',()=>process.exit(0)).on('error',()=>process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     depends_on:
       mongo-notifications-service:
         condition: service_healthy
@@ -314,6 +410,19 @@ services:
     environment:
       # SSR server-side calls go directly to the gateway container
       API_URL: http://gateway
+      HOSTNAME: "0.0.0.0"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "require('net').connect(3000,'127.0.0.1').on('connect',()=>process.exit(0)).on('error',()=>process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
     depends_on:
       - auth-service
       - profile-service
@@ -333,30 +442,37 @@ services:
     networks:
       - gateway-net
 
-  # ── Gateway (only port exposed to host) ──────────────────────────────────────
-
   gateway:
     build:
       context: .
       dockerfile: apps/gateway/Dockerfile
     container_name: breezy-gateway
     restart: unless-stopped
-    ports:
-      - "80:80"
     volumes:
       - ./apps/gateway/nginx.prod.conf:/etc/nginx/nginx.conf:ro
+      - /etc/breezy/secrets/.htpasswd-kibana:/etc/nginx/.htpasswd-kibana:ro
     depends_on:
-      - auth-service
-      - profile-service
-      - post-service
-      - media-service
-      - notifications-service
-      - web
-      - swagger-ui
+      auth-service:
+        condition: service_healthy
+      profile-service:
+        condition: service_healthy
+      post-service:
+        condition: service_healthy
+      media-service:
+        condition: service_healthy
+      notifications-service:
+        condition: service_healthy
+      web:
+        condition: service_healthy
+      swagger-ui:
+        condition: service_started
+      kibana:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     networks:
       - gateway-net
-
-  # ── Observability ────────────────────────────────────────────────────────────
+      - dokploy-network
 
   filebeat:
     build:
@@ -365,9 +481,12 @@ services:
     container_name: breezy-filebeat
     restart: unless-stopped
     environment:
-      ELASTICSEARCH_HOSTS: ${ELASTICSEARCH_HOSTS}
+      ELASTICSEARCH_HOSTS: http://elasticsearch:9200
     volumes:
       - shared-logs:/logs:ro
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
     networks:
       - services-net
 
@@ -378,6 +497,8 @@ networks:
     driver: bridge
   db-net:
     driver: bridge
+  dokploy-network:
+    external: true
 
 volumes:
   mongo-post-service-data:
@@ -385,4 +506,5 @@ volumes:
   mongo-notifications-service-data:
   postgres-user-service-data:
   postgres-profile-service-data:
+  elasticsearch-data:
   shared-logs:
