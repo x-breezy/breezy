@@ -13,6 +13,7 @@
     "PROFILE_SERVICE_GRPC_URL",
     "RABBITMQ_URL",
     "REDIS_URL",
+    "AUTH_SERVICE_URL",
     "SMTP_HOST",
     "SMTP_PORT",
     "SMTP_USER",

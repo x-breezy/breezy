@@ -4,12 +4,16 @@ import { LikeModel } from "../../models/like.model"
 import { getActorProfile } from "../../clients/grpc.client"
 import { publish } from "../../clients/rabbitmq"
 import { deleteMediaItems } from "../../clients/media.grpc.client"
+import * as bannedUsers from "../../clients/banned-users"
 
 jest.mock("../../models/post.model")
 jest.mock("../../models/like.model")
 jest.mock("../../clients/grpc.client")
 jest.mock("../../clients/rabbitmq")
 jest.mock("../../clients/media.grpc.client")
+jest.mock("../../clients/banned-users")
+
+const mockGetBannedUserIds = bannedUsers.getBannedUserIds as jest.MockedFunction<typeof bannedUsers.getBannedUserIds>
 
 const mockPostModel = PostModel as jest.Mocked<typeof PostModel>
 const mockLikeModel = LikeModel as jest.Mocked<typeof LikeModel>
@@ -35,6 +39,7 @@ describe("PostService", () => {
     jest.clearAllMocks()
     mockFollow = { getFollowing: jest.fn() }
     service = new PostService(mockFollow)
+    mockGetBannedUserIds.mockResolvedValue(new Set())
   })
 
   describe("createPost", () => {
@@ -131,6 +136,24 @@ describe("PostService", () => {
       const result = await service.getPost("not-found")
       expect(result).toBeNull()
     })
+
+    it("returns null when author is banned and viewer is not admin", async () => {
+      const post = { _id: "post-1", content: "hello", authorId: "banned-user" }
+      mockPostModel.findById.mockReturnValue(mockQuery(post) as any)
+      mockGetBannedUserIds.mockResolvedValue(new Set(["banned-user"]))
+
+      const result = await service.getPost("post-1", "user")
+      expect(result).toBeNull()
+    })
+
+    it("returns post when author is banned but viewer is admin", async () => {
+      const post = { _id: "post-1", content: "hello", authorId: "banned-user" }
+      mockPostModel.findById.mockReturnValue(mockQuery(post) as any)
+      mockGetBannedUserIds.mockResolvedValue(new Set(["banned-user"]))
+
+      const result = await service.getPost("post-1", "admin")
+      expect(result).toEqual(post)
+    })
   })
 
   describe("getPostDetail", () => {
@@ -212,9 +235,32 @@ describe("PostService", () => {
       expect(result.data).toEqual(posts)
       expect(result.total).toBe(1)
       expect(mockPostModel.find).toHaveBeenCalledWith({
-        authorId: { $in: ["user-2", "user-3"], $ne: "viewer-1" },
+        authorId: { $in: ["user-2", "user-3"] },
         $or: [{ parentId: null }, { $expr: { $eq: ["$parentId", "$rootParentId"] } }],
       })
+    })
+
+    it("excludes posts from banned users in feed", async () => {
+      mockFollow.getFollowing.mockResolvedValue(["user-2", "banned-user"])
+      mockGetBannedUserIds.mockResolvedValue(new Set(["banned-user"]))
+      const posts = [{ _id: "p1", authorId: "user-2" }]
+      const mockChain = {
+        sort: jest.fn().mockReturnThis(),
+        skip: jest.fn().mockReturnThis(),
+        limit: jest.fn().mockReturnThis(),
+        exec: jest.fn().mockResolvedValue(posts),
+      }
+      mockPostModel.find.mockReturnValue(mockChain as any)
+      const countQ = mockCount(1)
+      mockPostModel.countDocuments.mockReturnValue(countQ as any)
+
+      await service.feed("viewer-1", 1, 10)
+
+      expect(mockPostModel.find).toHaveBeenCalledWith(
+        expect.objectContaining({
+          authorId: expect.objectContaining({ $in: ["user-2"] }),
+        })
+      )
     })
 
     it("returns feed when not following anyone", async () => {
@@ -234,7 +280,7 @@ describe("PostService", () => {
 
       expect(result.data).toEqual(posts)
       expect(mockPostModel.find).toHaveBeenCalledWith({
-        authorId: { $ne: "viewer-1" },
+        authorId: { $nin: ["viewer-1"] },
         $or: [{ parentId: null }, { $expr: { $eq: ["$parentId", "$rootParentId"] } }],
       })
     })
@@ -257,6 +303,33 @@ describe("PostService", () => {
 
       expect(result.data).toEqual(posts)
       expect(mockPostModel.find).toHaveBeenCalledWith({ authorId: "user-1", parentId: null })
+    })
+
+    it("returns empty when author is banned and viewer is not admin", async () => {
+      mockGetBannedUserIds.mockResolvedValue(new Set(["banned-user"]))
+
+      const result = await service.byUser("banned-user", 1, 10, "posts", "user")
+
+      expect(result).toEqual({ data: [], total: 0, page: 1, limit: 10 })
+      expect(mockPostModel.find).not.toHaveBeenCalled()
+    })
+
+    it("returns posts when author is banned but viewer is admin", async () => {
+      mockGetBannedUserIds.mockResolvedValue(new Set(["banned-user"]))
+      const posts = [{ _id: "p1", authorId: "banned-user" }]
+      const mockChain = {
+        sort: jest.fn().mockReturnThis(),
+        skip: jest.fn().mockReturnThis(),
+        limit: jest.fn().mockReturnThis(),
+        exec: jest.fn().mockResolvedValue(posts),
+      }
+      mockPostModel.find.mockReturnValue(mockChain as any)
+      const countQ = mockCount(1)
+      mockPostModel.countDocuments.mockReturnValue(countQ as any)
+
+      const result = await service.byUser("banned-user", 1, 10, "posts", "admin")
+
+      expect(result.data).toEqual(posts)
     })
 
     it("includes replies when specified", async () => {

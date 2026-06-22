@@ -8,6 +8,7 @@ import { createUserRouter } from "./routes/user.route"
 import { createReportRouter } from "./routes/report.route"
 import { swaggerSpec } from "./config/swagger"
 import { getJwks } from "./utils/jwt.util"
+import UserService from "./services/user.service"
 
 const logger = createLogger({ service: "auth-service" })
 
@@ -37,6 +38,24 @@ export function createApp(): Express {
   app.use("/auth", createAuthRouter())
   app.use("/users", createUserRouter())
   app.use("/reports", createReportRouter())
+
+  const userService = new UserService()
+  app.get("/internal/banned-user-ids", async (_req, res, next) => {
+    try {
+      let page = 1
+      const limit = 100
+      const ids: string[] = []
+      while (true) {
+        const { users } = await userService.listSanctioned(page, limit)
+        for (const u of users) ids.push(u.id)
+        if (users.length < limit) break
+        page++
+      }
+      res.json({ ids })
+    } catch (err) {
+      next(err)
+    }
+  })
 
   // Global error handler, must be registered last and have exactly 4 params
   app.use(createErrorHandler(logger))

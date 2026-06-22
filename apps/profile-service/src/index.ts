@@ -4,6 +4,7 @@ import { connect } from "./config/database"
 import { initFollowModel } from "./models/follow.model"
 import { initProfileModel } from "./models/profile.model"
 import { connectRabbitMQ } from "./clients/rabbitmq"
+import { startBannedUsersConsumer } from "./clients/banned-users.consumer"
 import { startGrpcServer } from "./config/grpc.server"
 
 const logger = createLogger({ service: "profile-service" })
@@ -25,6 +26,7 @@ async function start(): Promise<void> {
   logger.info("Models synchronized")
 
   await connectRabbitMQ()
+  void startBannedUsersConsumer()
   startGrpcServer(logger, 50051)
 
   const server = app.listen(port, () => {

@@ -31,7 +31,7 @@ class ProfileController {
     next: NextFunction
   ): Promise<void> => {
     try {
-      const profile = await this.profileService.getProfile(req.params.profileId)
+      const profile = await this.profileService.getProfile(req.params.profileId, req.user?.role)
       if (!profile) {
         res.status(404).json({ success: false, message: "Profile not found" })
         return
@@ -50,7 +50,7 @@ class ProfileController {
     next: NextFunction
   ): Promise<void> => {
     try {
-      const profile = await this.profileService.getProfileByUsername(req.params.username)
+      const profile = await this.profileService.getProfileByUsername(req.params.username, req.user?.role)
       if (!profile) {
         res.status(404).json({ success: false, message: "Profile not found" })
         return
@@ -158,7 +158,7 @@ class ProfileController {
     try {
       const page = Math.max(1, parseInt(req.query.page as string) || 1)
       const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 50))
-      const result = await this.profileService.getFollowers(req.params.profileId, page, limit)
+      const result = await this.profileService.getFollowers(req.params.profileId, page, limit, req.user?.role)
       res.status(200).json({
         success: true,
         data: { ...result, page, limit },
@@ -177,7 +177,7 @@ class ProfileController {
     try {
       const page = Math.max(1, parseInt(req.query.page as string) || 1)
       const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 50))
-      const result = await this.profileService.getFollowing(req.params.profileId, page, limit)
+      const result = await this.profileService.getFollowing(req.params.profileId, page, limit, req.user?.role)
       res.status(200).json({
         success: true,
         data: { ...result, page, limit },
@@ -195,7 +195,7 @@ class ProfileController {
   ): Promise<void> => {
     try {
       const limit = Math.min(10, Math.max(1, parseInt(req.query.limit as string) || 3))
-      const profiles = await this.profileService.getFollowSuggestions(req.params.profileId, limit)
+      const profiles = await this.profileService.getFollowSuggestions(req.params.profileId, limit, req.user?.role)
       res.status(200).json({
         success: true,
         data: profiles,
@@ -213,7 +213,7 @@ class ProfileController {
         .split(",")
         .map((s) => s.trim())
         .filter(Boolean)
-      const profiles = await this.profileService.getProfilesByIds(ids)
+      const profiles = await this.profileService.getProfilesByIds(ids, req.user?.role)
       res.status(200).json({ success: true, data: profiles })
     } catch (err) {
       next(err)
@@ -229,7 +229,7 @@ class ProfileController {
       }
       const page = Math.max(1, parseInt(req.query.page as string) || 1)
       const limit = Math.min(50, Math.max(1, parseInt(req.query.limit as string) || 20))
-      const result = await this.profileService.search(q, page, limit, req.user!.id)
+      const result = await this.profileService.search(q, page, limit, req.user!.id, req.user?.role)
       res.status(200).json({
         success: true,
         data: { profiles: result.profiles, total: result.count, page, limit },
