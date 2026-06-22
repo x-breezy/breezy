@@ -2,16 +2,12 @@
 
 import { usePathname } from "next/navigation"
 import { useTranslations } from "next-intl"
-import { IconShield } from "@tabler/icons-react"
 import { HomeIcon, SearchIcon, GrodIcon, SendIcon, ProfileIcon } from "./icons"
 import { NavItem } from "./nav-item"
 import { useUserStore } from "@/stores/user-store"
 import type { NavItemData } from "./types"
 import Link from "next/link"
-
-function ModerationIcon({ active, className }: { active?: boolean; className?: string }) {
-  return <IconShield size={24} strokeWidth={active ? 2.5 : 1.5} className={className} />
-}
+import { ModerationIcon } from "./icons/moderation-icon"
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getNavItems(t: any): NavItemData[] {

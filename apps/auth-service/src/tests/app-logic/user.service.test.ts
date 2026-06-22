@@ -71,7 +71,7 @@ const MOCK_USER = {
 describe("addUser", () => {
   it("creates user with hashed password and returns safe user", async () => {
     mockedHashPassword.mockResolvedValue("salthash:derivedkey")
-      ; (mockedUser.create as jest.Mock).mockResolvedValue(MOCK_USER)
+    ;(mockedUser.create as jest.Mock).mockResolvedValue(MOCK_USER)
 
     const result = await service.addUser({
       username: "alice",
@@ -92,7 +92,7 @@ describe("addUser", () => {
 
 describe("getUser", () => {
   it("returns user JSON when found", async () => {
-    ; (mockedUser.findByPk as jest.Mock).mockResolvedValue(MOCK_USER)
+    ;(mockedUser.findByPk as jest.Mock).mockResolvedValue(MOCK_USER)
 
     const result = await service.getUser("user-1")
 
@@ -101,7 +101,7 @@ describe("getUser", () => {
   })
 
   it("returns null when not found", async () => {
-    ; (mockedUser.findByPk as jest.Mock).mockResolvedValue(null)
+    ;(mockedUser.findByPk as jest.Mock).mockResolvedValue(null)
 
     expect(await service.getUser("missing")).toBeNull()
   })
@@ -109,7 +109,7 @@ describe("getUser", () => {
 
 describe("isEmailAndUsernameTaken", () => {
   it("reports both taken", async () => {
-    ; (mockedUser.count as jest.Mock).mockResolvedValueOnce(1).mockResolvedValueOnce(1)
+    ;(mockedUser.count as jest.Mock).mockResolvedValueOnce(1).mockResolvedValueOnce(1)
 
     const result = await service.isEmailAndUsernameTaken("a@b.com", "alice")
 
@@ -117,7 +117,7 @@ describe("isEmailAndUsernameTaken", () => {
   })
 
   it("reports none taken", async () => {
-    ; (mockedUser.count as jest.Mock).mockResolvedValueOnce(0).mockResolvedValueOnce(0)
+    ;(mockedUser.count as jest.Mock).mockResolvedValueOnce(0).mockResolvedValueOnce(0)
 
     const result = await service.isEmailAndUsernameTaken("new@b.com", "newguy")
 
@@ -128,7 +128,7 @@ describe("isEmailAndUsernameTaken", () => {
 describe("banUser", () => {
   it("bans user and revokes sessions", async () => {
     const updateMock = jest.fn().mockResolvedValue(undefined)
-      ; (mockedUser.findByPk as jest.Mock).mockResolvedValue({ ...MOCK_USER, update: updateMock })
+    ;(mockedUser.findByPk as jest.Mock).mockResolvedValue({ ...MOCK_USER, update: updateMock })
     mockRedis.smembers.mockResolvedValue(["h1"])
 
     await service.banUser("user-1")
@@ -138,7 +138,7 @@ describe("banUser", () => {
   })
 
   it("throws USER_NOT_FOUND when user does not exist", async () => {
-    ; (mockedUser.findByPk as jest.Mock).mockResolvedValue(null)
+    ;(mockedUser.findByPk as jest.Mock).mockResolvedValue(null)
 
     await expect(service.banUser("missing")).rejects.toMatchObject({ code: "USER_NOT_FOUND" })
   })
@@ -146,7 +146,7 @@ describe("banUser", () => {
 
 describe("searchByUsername", () => {
   it("returns matching users", async () => {
-    ; (mockedUser.findAndCountAll as jest.Mock).mockResolvedValue({
+    ;(mockedUser.findAndCountAll as jest.Mock).mockResolvedValue({
       count: 1,
       rows: [{ id: "user-1", username: "alice" }],
     })
@@ -162,7 +162,7 @@ describe("searchByUsername", () => {
   })
 
   it("returns empty when no match", async () => {
-    ; (mockedUser.findAndCountAll as jest.Mock).mockResolvedValue({ count: 0, rows: [] })
+    ;(mockedUser.findAndCountAll as jest.Mock).mockResolvedValue({ count: 0, rows: [] })
 
     const result = await service.searchByUsername("zzz", 1, 20)
 
@@ -173,11 +173,11 @@ describe("searchByUsername", () => {
 describe("updatePassword", () => {
   it("updates password when current is correct", async () => {
     const updateMock = jest.fn().mockResolvedValue(undefined)
-      ; (mockedUser.findByPk as jest.Mock).mockResolvedValue({
-        id: "user-1",
-        passwordHash: "salt:oldhash",
-        update: updateMock,
-      })
+    ;(mockedUser.findByPk as jest.Mock).mockResolvedValue({
+      id: "user-1",
+      passwordHash: "salt:oldhash",
+      update: updateMock,
+    })
     mockedVerifyPassword.mockResolvedValue(true)
     mockedHashPassword.mockResolvedValue("salt:newhash")
 
@@ -189,7 +189,7 @@ describe("updatePassword", () => {
   })
 
   it("throws INVALID_PASSWORD when current is wrong", async () => {
-    ; (mockedUser.findByPk as jest.Mock).mockResolvedValue({
+    ;(mockedUser.findByPk as jest.Mock).mockResolvedValue({
       id: "user-1",
       passwordHash: "salt:oldhash",
       update: jest.fn(),
@@ -202,7 +202,7 @@ describe("updatePassword", () => {
   })
 
   it("throws USER_NOT_FOUND when user does not exist", async () => {
-    ; (mockedUser.findByPk as jest.Mock).mockResolvedValue(null)
+    ;(mockedUser.findByPk as jest.Mock).mockResolvedValue(null)
 
     await expect(service.updatePassword("missing", "OldPass1", "NewPass1")).rejects.toMatchObject({
       code: "USER_NOT_FOUND",

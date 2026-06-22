@@ -1,6 +1,7 @@
 import { Suspense } from "react"
 import type { Metadata } from "next"
 import { ProfilePageClient } from "@/components/profile/profile-page-client"
+import { ScrollArea } from "@/components/ui/scroll-area"
 
 export async function generateMetadata({
   params,
@@ -17,8 +18,10 @@ export async function generateMetadata({
 export default async function ProfilePage({ params }: { params: Promise<{ username: string }> }) {
   const { username } = await params
   return (
-    <Suspense>
-      <ProfilePageClient username={username.toLowerCase()} />
-    </Suspense>
+    <ScrollArea className='h-full'>
+      <Suspense>
+        <ProfilePageClient username={username.toLowerCase()} />
+      </Suspense>
+    </ScrollArea>
   )
 }

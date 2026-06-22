@@ -47,9 +47,7 @@ export function requireOwnership<T extends { authorId: string }>(
     req.resource = resource
     const isOwner = resource.authorId === req.user?.id
     const permission =
-      typeof elevatedPermission === "function"
-        ? elevatedPermission(resource)
-        : elevatedPermission
+      typeof elevatedPermission === "function" ? elevatedPermission(resource) : elevatedPermission
     const hasElevated = req.user?.permissions.includes(permission) ?? false
     if (!isOwner && !hasElevated) {
       res.status(403).json({ success: false, error: "Forbidden" })
