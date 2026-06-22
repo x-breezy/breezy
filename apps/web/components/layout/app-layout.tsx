@@ -11,7 +11,6 @@ import { Profile } from "@/types/profile"
 import { User } from "@/types/user"
 import { NotificationStoreProvider } from "../providers/notification-store-provider"
 import { NotificationToast } from "../notifications/notifications-toast"
-import { ScrollArea } from "../ui/scroll-area"
 
 interface AppLayoutProps {
   children: React.ReactNode
