@@ -43,18 +43,21 @@ export const useModerationStore = create<ModerationState>((set) => ({
   },
 
   initAllUsers: (users) => {
+    const valid = users.filter((u) => !!u.id)
     set((s) => ({
-      allUsers: users,
+      allUsers: valid,
       sanctions: {
         ...s.sanctions,
-        ...Object.fromEntries(users.map((u) => [u.id, { isBanned: u.isBanned }])),
+        ...Object.fromEntries(valid.map((u) => [u.id, { isBanned: u.isBanned }])),
       },
     }))
   },
 
   addUser: (user) =>
     set((s) => ({
-      allUsers: [user, ...s.allUsers],
+      allUsers: s.allUsers.some((u) => u.id === user.id)
+        ? s.allUsers
+        : [user, ...s.allUsers],
       sanctions: { ...s.sanctions, [user.id]: { isBanned: user.isBanned } },
     })),
 

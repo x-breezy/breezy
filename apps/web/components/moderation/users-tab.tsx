@@ -49,6 +49,8 @@ export function UsersTab() {
   const [error, setError] = useState<string | null>(null)
   const [dialogOpen, setDialogOpen] = useState(false)
 
+  const validUsers = users.filter((u) => !!u.id)
+
   function runAction(id: string, fn: () => Promise<void>, patch: { isBanned?: boolean }) {
     setActionId(id)
     setError(null)
@@ -65,14 +67,14 @@ export function UsersTab() {
   }
 
   function getVisible(filter: Filter) {
-    return users.filter((u) => {
+    return validUsers.filter((u) => {
       const s = sanctions[u.id] ?? { isBanned: u.isBanned }
       if (filter === "banned") return s.isBanned
       return true
     })
   }
 
-  const bannedCount = users.filter(
+  const bannedCount = validUsers.filter(
     (u) => (sanctions[u.id] ?? { isBanned: u.isBanned }).isBanned
   ).length
 
@@ -88,7 +90,7 @@ export function UsersTab() {
       <Tabs defaultValue='all'>
         <div className='mb-4 flex items-center justify-between'>
           <TabsList variant='line'>
-            <TabsTrigger value='all'>All ({users.length})</TabsTrigger>
+            <TabsTrigger value='all'>All ({validUsers.length})</TabsTrigger>
             <TabsTrigger value='banned'>Banned ({bannedCount})</TabsTrigger>
           </TabsList>
 
@@ -243,18 +245,13 @@ function AddUserDialog({ open, onOpenChange, onCreated }: AddUserDialogProps) {
     setFormError(null)
     startTransition(async () => {
       try {
-        await createUser(form)
-        onCreated({
-          id: crypto.randomUUID(),
-          username: form.username,
-          email: form.email,
-          role: form.role ?? "user",
-          isBanned: false,
-          updatedAt: new Date().toISOString(),
-        })
+        const user = await createUser(form)
+        onCreated(user)
         setForm({ username: "", email: "", password: "", role: "user" })
-      } catch {
-        setFormError("Failed to create user. Please try again.")
+      } catch (err) {
+        setFormError(
+          err instanceof Error ? err.message : "Failed to create user. Please try again."
+        )
       }
     })
   }

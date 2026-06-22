@@ -57,7 +57,7 @@ export async function listAllUsers(
 ): Promise<SanctionedList> {
   const authHeader = await getServerAuthHeader()
   const params = new URLSearchParams({ page: String(page), limit: String(limit) })
-  const res = await fetch(`${API_URL}/api/users?${params}`, { headers: authHeader })
+  const res = await fetch(`${API_URL}/api/users/?${params}`, { headers: authHeader })
   if (!res.ok) throw new Error(`Failed to list users: ${res.status}`)
   const json = await res.json()
   return json.data as SanctionedList
@@ -70,12 +70,24 @@ export interface CreateUserPayload {
   role?: "user" | "moderator" | "admin"
 }
 
-export async function createUser(payload: CreateUserPayload): Promise<void> {
+export async function createUser(payload: CreateUserPayload): Promise<SanctionedUser> {
   const authHeader = await getServerAuthHeader()
-  const res = await fetch(`${API_URL}/api/users`, {
+  const url = `${API_URL}/api/users/`
+  const res = await fetch(url, {
     method: "POST",
     headers: { ...authHeader, "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   })
-  if (!res.ok) throw new Error(`Failed to create user: ${res.status}`)
+  const raw = await res.text()
+  console.log("[createUser] →", res.status, url, "body:", raw.slice(0, 300))
+  if (!res.ok) {
+    let message: string | undefined
+    try {
+      message = (JSON.parse(raw) as { message?: string }).message
+    } catch {
+      message = undefined
+    }
+    throw new Error(message ?? `Failed to create user: ${res.status}`)
+  }
+  return (JSON.parse(raw) as { data: SanctionedUser }).data
 }
