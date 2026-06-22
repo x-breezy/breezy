@@ -2,10 +2,7 @@ import { Router, type Request, type Response, type NextFunction } from "express"
 import { PostController } from "../controllers/post.controller"
 import { PostService } from "../services/post.service"
 import { identity } from "../middlewares/identity.middleware"
-import {
-  requireOwnership,
-  requireSelfOrPermission,
-} from "../middlewares/roles.middleware"
+import { requireOwnership, requireSelfOrPermission } from "../middlewares/roles.middleware"
 import { validate } from "../middlewares/validate.middleware"
 import { createPostSchema, updatePostSchema } from "../schemas/post.schema"
 import { readLimit, writeLimit, searchLimit } from "../middlewares/rate-limit.middleware"
@@ -39,7 +36,14 @@ export function createPostRouter(
   const router = Router()
 
   // Static routes BEFORE /:id to avoid param-route swallowing
-  router.post("/", identity, writeLimit, requireCreatePermission(), validate(createPostSchema), controller.create)
+  router.post(
+    "/",
+    identity,
+    writeLimit,
+    requireCreatePermission(),
+    validate(createPostSchema),
+    controller.create
+  )
   router.get("/feed", identity, readLimit, controller.getFeed)
   router.get("/search", identity, searchLimit, controller.search)
   router.get("/trending-tags", identity, readLimit, controller.trendingTags)

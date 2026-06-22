@@ -280,7 +280,7 @@ describe("GET /users/me", () => {
   })
 
   it("handles service error with 500", async () => {
-    jest.spyOn(console, "error").mockImplementation(() => { })
+    jest.spyOn(console, "error").mockImplementation(() => {})
     mockService.getUser.mockRejectedValue(new Error("db error"))
     const res = await request(app).get("/users/me").set("Authorization", "Bearer fake-token")
     expect(res.status).toBe(500)
@@ -325,7 +325,7 @@ describe("PATCH /users/:id/ban", () => {
   })
 
   it("handles service error with 500", async () => {
-    jest.spyOn(console, "error").mockImplementation(() => { })
+    jest.spyOn(console, "error").mockImplementation(() => {})
     mockService.banUser.mockRejectedValue(new Error("db error"))
     mockVerifyToken.mockReturnValueOnce({ sub: ADMIN_ID, role: "admin", jti: "x" })
     const res = await request(app)
