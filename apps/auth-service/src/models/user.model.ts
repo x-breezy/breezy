@@ -21,6 +21,7 @@ export type CreateUserInput = {
   passwordHash?: string | null
   googleId?: string | null
   isEmailVerified?: boolean
+  role?: Role
 }
 
 /** User without the password hash, safe to serialize to clients/tokens. */

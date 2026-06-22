@@ -123,7 +123,7 @@ function SanctionedUserCard({
 
   return (
     <li className='flex items-center gap-3 rounded-xl border bg-card p-4'>
-      <ProfileAvatar size='2xs' />
+      <ProfileAvatar size='2xs' src={user.avatarUrl ?? undefined} />
 
       <div className='min-w-0 flex-1'>
         <div className='mb-0.5 flex flex-wrap items-center gap-2'>

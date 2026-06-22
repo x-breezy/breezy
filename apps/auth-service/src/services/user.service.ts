@@ -11,6 +11,7 @@ class UserService {
       username: input.username,
       email: input.email,
       passwordHash,
+      ...(input.role ? { role: input.role } : {}),
     })
     const safe = user.toJSON()
     return safe
