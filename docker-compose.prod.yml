@@ -1,7 +1,4 @@
 services:
-
-  # ── Infrastructure ──────────────────────────────────────────────────────────
-
   postgres-user-service:
     image: postgres:16
     container_name: breezy-postgres-user-service
@@ -158,8 +155,6 @@ services:
       - services-net
       - gateway-net
 
-  # ── Application services ─────────────────────────────────────────────────────
-
   auth-service:
     build:
       context: .
@@ -191,7 +186,13 @@ services:
       LOG_FILE: /logs/auth-service.log
       LOG_LEVEL: info
     healthcheck:
-      test: ["CMD", "node", "-e", "require('net').connect(4020,'127.0.0.1').on('connect',()=>process.exit(0)).on('error',()=>process.exit(1))"]
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "require('net').connect(4020,'127.0.0.1').on('connect',()=>process.exit(0)).on('error',()=>process.exit(1))",
+        ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -227,7 +228,13 @@ services:
       LOG_FILE: /logs/profile-service.log
       LOG_LEVEL: info
     healthcheck:
-      test: ["CMD", "node", "-e", "require('net').connect(4010,'127.0.0.1').on('connect',()=>process.exit(0)).on('error',()=>process.exit(1))"]
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "require('net').connect(4010,'127.0.0.1').on('connect',()=>process.exit(0)).on('error',()=>process.exit(1))",
+        ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -262,7 +269,13 @@ services:
       LOG_FILE: /logs/post-service.log
       LOG_LEVEL: info
     healthcheck:
-      test: ["CMD", "node", "-e", "require('net').connect(4040,'127.0.0.1').on('connect',()=>process.exit(0)).on('error',()=>process.exit(1))"]
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "require('net').connect(4040,'127.0.0.1').on('connect',()=>process.exit(0)).on('error',()=>process.exit(1))",
+        ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -295,7 +308,13 @@ services:
       LOG_FILE: /logs/media-service.log
       LOG_LEVEL: info
     healthcheck:
-      test: ["CMD", "node", "-e", "require('net').connect(4050,'127.0.0.1').on('connect',()=>process.exit(0)).on('error',()=>process.exit(1))"]
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "require('net').connect(4050,'127.0.0.1').on('connect',()=>process.exit(0)).on('error',()=>process.exit(1))",
+        ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -333,7 +352,13 @@ services:
       LOG_FILE: /logs/notifications-service.log
       LOG_LEVEL: info
     healthcheck:
-      test: ["CMD", "node", "-e", "require('net').connect(4060,'127.0.0.1').on('connect',()=>process.exit(0)).on('error',()=>process.exit(1))"]
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "require('net').connect(4060,'127.0.0.1').on('connect',()=>process.exit(0)).on('error',()=>process.exit(1))",
+        ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -362,7 +387,13 @@ services:
       API_URL: http://gateway
       HOSTNAME: "0.0.0.0"
     healthcheck:
-      test: ["CMD", "node", "-e", "require('net').connect(3000,'127.0.0.1').on('connect',()=>process.exit(0)).on('error',()=>process.exit(1))"]
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "require('net').connect(3000,'127.0.0.1').on('connect',()=>process.exit(0)).on('error',()=>process.exit(1))",
+        ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -385,8 +416,6 @@ services:
       BASE_URL: /api-docs
     networks:
       - gateway-net
-
-  # ── Gateway (only port exposed to host) ──────────────────────────────────────
 
   gateway:
     build:
@@ -419,8 +448,6 @@ services:
     networks:
       - gateway-net
       - dokploy-network
-
-  # ── Observability ────────────────────────────────────────────────────────────
 
   filebeat:
     build:
