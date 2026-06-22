@@ -3,7 +3,6 @@ import type { SanctionedUser } from "@/lib/actions/users"
 import type { EnrichedReport } from "@/types/report"
 
 interface UserSanctionState {
-  isSuspended: boolean
   isBanned: boolean
 }
 
@@ -33,7 +32,6 @@ export const useModerationStore = create<ModerationState>((set) => ({
     const sanctions: Record<string, UserSanctionState> = {}
     for (const r of reports) {
       sanctions[r.reportedUserId] = {
-        isSuspended: r.reportedIsSuspended,
         isBanned: r.reportedIsBanned,
       }
     }
@@ -43,7 +41,7 @@ export const useModerationStore = create<ModerationState>((set) => ({
   initSanctioned: (users) => {
     const sanctions: Record<string, UserSanctionState> = {}
     for (const u of users) {
-      sanctions[u.id] = { isSuspended: u.isSuspended, isBanned: u.isBanned }
+      sanctions[u.id] = { isBanned: u.isBanned }
     }
     set((s) => ({
       sanctionedUsers: users,
@@ -54,13 +52,12 @@ export const useModerationStore = create<ModerationState>((set) => ({
 
   setSanction: (userId, patch) =>
     set((s) => {
-      const prev = s.sanctions[userId] ?? { isSuspended: false, isBanned: false }
+      const prev = s.sanctions[userId] ?? { isBanned: false }
       const next: UserSanctionState = {
-        isSuspended: patch.isSuspended ?? prev.isSuspended,
         isBanned: patch.isBanned ?? prev.isBanned,
       }
-      const isStillSanctioned = next.isSuspended || next.isBanned
-      const wasSanctioned = prev.isSuspended || prev.isBanned
+      const isStillSanctioned = next.isBanned
+      const wasSanctioned = prev.isBanned
 
       let sanctionedUsers = s.sanctionedUsers
       if (!isStillSanctioned) {

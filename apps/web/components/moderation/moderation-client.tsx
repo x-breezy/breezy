@@ -55,7 +55,7 @@ export function ModerationClient({ initialReports, total, pendingCount, sanction
     id: string,
     userId: string,
     fn: () => Promise<void>,
-    patch: { isSuspended?: boolean; isBanned?: boolean }
+    patch: { isBanned?: boolean }
   ) {
     setActionId(id)
     setError(null)
@@ -243,7 +243,7 @@ function ReportsByUser({
             username={username}
             avatarUrl={avatarUrl}
             userReports={userReports}
-            sanction={sanctions[userId] ?? { isSuspended: false, isBanned: false }}
+            sanction={sanctions[userId] ?? { isBanned: false }}
             isAdmin={isAdmin}
             isPending={isPending}
             actionId={actionId}

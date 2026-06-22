@@ -19,7 +19,6 @@ const mockService = {
   updatePassword: jest.fn(),
   searchByUsername: jest.fn(),
   banUser: jest.fn(),
-  suspendUser: jest.fn(),
 }
 
 function buildApp() {
@@ -331,98 +330,6 @@ describe("PATCH /users/:id/ban", () => {
     mockVerifyToken.mockReturnValueOnce({ sub: ADMIN_ID, role: "admin", jti: "x" })
     const res = await request(app)
       .patch(`/users/${UUID}/ban`)
-      .set("Authorization", "Bearer fake-token")
-    expect(res.status).toBe(500)
-  })
-})
-
-// ── PATCH /users/:id/suspend ────────────────────────────────────────────────
-
-describe("PATCH /users/:id/suspend", () => {
-  const UUID = "11111111-1111-1111-1111-111111111111"
-
-  beforeEach(() => {
-    mockService.getUser.mockResolvedValue({ id: UUID, role: "user" })
-  })
-
-  it("returns 200 when admin suspends a user", async () => {
-    mockService.suspendUser.mockResolvedValue({ id: UUID, isSuspended: true })
-    mockVerifyToken.mockReturnValueOnce({ sub: ADMIN_ID, role: "admin", jti: "x" })
-    const res = await request(app)
-      .patch(`/users/${UUID}/suspend`)
-      .set("Authorization", "Bearer fake-token")
-    expect(res.status).toBe(200)
-  })
-
-  it("returns 200 when moderator suspends a regular user", async () => {
-    mockService.suspendUser.mockResolvedValue({ id: UUID, isSuspended: true })
-    mockVerifyToken.mockReturnValueOnce({ sub: ADMIN_ID, role: "moderator", jti: "x" })
-    const res = await request(app)
-      .patch(`/users/${UUID}/suspend`)
-      .set("Authorization", "Bearer fake-token")
-    expect(res.status).toBe(200)
-  })
-
-  it("returns 403 when user tries to suspend", async () => {
-    const res = await request(app)
-      .patch(`/users/${UUID}/suspend`)
-      .set("Authorization", "Bearer fake-token")
-    expect(res.status).toBe(403)
-  })
-
-  it("returns 403 when moderator tries to suspend an admin", async () => {
-    mockService.getUser.mockResolvedValueOnce({ id: UUID, role: "admin" })
-    mockService.suspendUser.mockResolvedValue({ id: UUID, isSuspended: true })
-    mockVerifyToken.mockReturnValueOnce({ sub: ADMIN_ID, role: "moderator", jti: "x" })
-    const res = await request(app)
-      .patch(`/users/${UUID}/suspend`)
-      .set("Authorization", "Bearer fake-token")
-    expect(res.status).toBe(403)
-    expect(mockService.suspendUser).not.toHaveBeenCalled()
-  })
-
-  it("returns 403 when moderator tries to suspend another moderator", async () => {
-    mockService.getUser.mockResolvedValueOnce({ id: UUID, role: "moderator" })
-    mockService.suspendUser.mockResolvedValue({ id: UUID, isSuspended: true })
-    mockVerifyToken.mockReturnValueOnce({ sub: ADMIN_ID, role: "moderator", jti: "x" })
-    const res = await request(app)
-      .patch(`/users/${UUID}/suspend`)
-      .set("Authorization", "Bearer fake-token")
-    expect(res.status).toBe(403)
-    expect(mockService.suspendUser).not.toHaveBeenCalled()
-  })
-
-  it("returns 200 when admin suspends a moderator", async () => {
-    mockService.getUser.mockResolvedValueOnce({ id: UUID, role: "moderator" })
-    mockService.suspendUser.mockResolvedValue({ id: UUID, isSuspended: true })
-    mockVerifyToken.mockReturnValueOnce({ sub: ADMIN_ID, role: "admin", jti: "x" })
-    const res = await request(app)
-      .patch(`/users/${UUID}/suspend`)
-      .set("Authorization", "Bearer fake-token")
-    expect(res.status).toBe(200)
-  })
-
-  it("returns 401 without auth", async () => {
-    const res = await request(app).patch(`/users/${UUID}/suspend`)
-    expect(res.status).toBe(401)
-  })
-
-  it("returns 404 when user not found", async () => {
-    mockService.getUser.mockResolvedValueOnce(null)
-    mockVerifyToken.mockReturnValueOnce({ sub: ADMIN_ID, role: "admin", jti: "x" })
-    const res = await request(app)
-      .patch(`/users/${UUID}/suspend`)
-      .set("Authorization", "Bearer fake-token")
-    expect(res.status).toBe(404)
-  })
-
-  it("handles service error with 500", async () => {
-    jest.spyOn(console, "error").mockImplementation(() => { })
-    mockService.getUser.mockResolvedValueOnce({ id: UUID, role: "user" })
-    mockService.suspendUser.mockRejectedValue(new Error("db error"))
-    mockVerifyToken.mockReturnValueOnce({ sub: ADMIN_ID, role: "admin", jti: "x" })
-    const res = await request(app)
-      .patch(`/users/${UUID}/suspend`)
       .set("Authorization", "Bearer fake-token")
     expect(res.status).toBe(500)
   })

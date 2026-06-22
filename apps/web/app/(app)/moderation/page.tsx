@@ -88,7 +88,6 @@ export default async function ModerationPage({ searchParams }: Props) {
     reporterUsername: usersMap.get(r.reporterId)?.username ?? null,
     reportedUsername: usersMap.get(r.reportedUserId)?.username ?? null,
     reportedAvatarUrl: profilesMap.get(r.reportedUserId)?.avatarId ?? null,
-    reportedIsSuspended: usersMap.get(r.reportedUserId)?.isSuspended ?? false,
     reportedIsBanned: usersMap.get(r.reportedUserId)?.isBanned ?? false,
     reportedRole: usersMap.get(r.reportedUserId)?.role ?? null,
   }))

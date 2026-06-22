@@ -9,7 +9,6 @@ export interface UserAttributes {
   googleId: string | null
   role: Role
   isBanned: boolean
-  isSuspended: boolean
   isEmailVerified: boolean
   twoFactorEnabled: boolean
   createdAt: Date
@@ -35,7 +34,6 @@ export class User extends Model<UserAttributes, CreateUserInput> implements User
   declare googleId: string | null
   declare role: Role
   declare isBanned: boolean
-  declare isSuspended: boolean
   declare isEmailVerified: boolean
   declare twoFactorEnabled: boolean
   declare readonly createdAt: Date
@@ -86,11 +84,6 @@ export function initUserModel(sequelize: Sequelize): void {
         defaultValue: ROLES.USER,
       },
       isBanned: {
-        type: DataTypes.BOOLEAN,
-        allowNull: false,
-        defaultValue: false,
-      },
-      isSuspended: {
         type: DataTypes.BOOLEAN,
         allowNull: false,
         defaultValue: false,

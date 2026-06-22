@@ -39,13 +39,6 @@ class UserService {
     await this.revokeAllSessions(id)
   }
 
-  async suspendUser(id: string): Promise<void> {
-    const user = await User.findByPk(id)
-    if (!user) throw Object.assign(new Error("User not found"), { code: "USER_NOT_FOUND" })
-    await user.update({ isSuspended: true })
-    await this.revokeAllSessions(id)
-  }
-
   private async revokeAllSessions(userId: string): Promise<void> {
     const redis = getRedis()
     const hashes = await redis.smembers(`session:${userId}`)
@@ -62,16 +55,10 @@ class UserService {
 
   async listSanctioned(
     page: number = 1,
-    limit: number = 20,
-    filter: "suspended" | "banned" | "all" = "all"
+    limit: number = 20
   ): Promise<{ count: number; users: SafeUser[] }> {
     const offset = (page - 1) * limit
-    const where =
-      filter === "suspended"
-        ? { isSuspended: true }
-        : filter === "banned"
-          ? { isBanned: true }
-          : { [Op.or]: [{ isSuspended: true }, { isBanned: true }] }
+    const where = { isBanned: true }
     const { count, rows } = await User.findAndCountAll({
       where,
       order: [["updatedAt", "DESC"]],
@@ -79,12 +66,6 @@ class UserService {
       offset,
     })
     return { count, users: rows.map((u) => u.toJSON()) }
-  }
-
-  async unsuspendUser(id: string): Promise<void> {
-    const user = await User.findByPk(id)
-    if (!user) throw Object.assign(new Error("User not found"), { code: "USER_NOT_FOUND" })
-    await user.update({ isSuspended: false })
   }
 
   async unbanUser(id: string): Promise<void> {
@@ -103,7 +84,6 @@ class UserService {
       where: {
         username: { [Op.iLike]: `%${q}%` },
         isBanned: false,
-        isSuspended: false,
       },
       attributes: ["id", "username"],
       limit,

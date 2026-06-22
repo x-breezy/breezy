@@ -33,7 +33,6 @@ const options: swaggerJsdoc.Options = {
             email: { type: "string", format: "email" },
             role: { type: "string", example: "user" },
             isBanned: { type: "boolean", example: false },
-            isSuspended: { type: "boolean", example: false },
             createdAt: { type: "string", format: "date-time" },
             updatedAt: { type: "string", format: "date-time" },
           },

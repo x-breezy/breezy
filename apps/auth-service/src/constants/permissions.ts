@@ -4,7 +4,6 @@ export const PERMISSIONS = {
 
   USER_READ: "user:read",
   USER_CREATE: "user:create",
-  USER_SUSPEND: "user:suspend",
   USER_BAN: "user:ban",
 
   REPORT_CREATE: "report:create",

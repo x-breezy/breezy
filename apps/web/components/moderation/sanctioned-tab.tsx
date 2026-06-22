@@ -4,21 +4,20 @@ import { useState, useTransition } from "react"
 import Link from "next/link"
 import {
   IconCheck,
-  IconUserOff,
   IconBan,
   IconAlertTriangle,
   IconExternalLink,
   IconLockOpen,
 } from "@tabler/icons-react"
 import { Button } from "@/components/ui/button"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
-import { unsuspendUser, banUser, unbanUser } from "@/lib/actions/users"
+import { ProfileAvatar } from "@/components/profile/profile-avatar"
+import { banUser, unbanUser } from "@/lib/actions/users"
 import { useUserStore } from "@/stores/user-store"
 import { useModerationStore } from "@/stores/moderation-store"
 import type { SanctionedUser } from "@/lib/actions/users"
 
-type Filter = "all" | "suspended" | "banned"
+type Filter = "all" | "banned"
 
 export function SanctionedTab() {
   const isAdmin = useUserStore((s) => s.user?.role) === "admin"
@@ -29,11 +28,7 @@ export function SanctionedTab() {
   const [actionId, setActionId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
-  function runAction(
-    id: string,
-    fn: () => Promise<void>,
-    patch: { isSuspended?: boolean; isBanned?: boolean }
-  ) {
+  function runAction(id: string, fn: () => Promise<void>, patch: { isBanned?: boolean }) {
     setActionId(id)
     setError(null)
     startTransition(async () => {
@@ -50,8 +45,7 @@ export function SanctionedTab() {
 
   function getVisible(filter: Filter) {
     return users.filter((u) => {
-      const s = sanctions[u.id] ?? { isSuspended: u.isSuspended, isBanned: u.isBanned }
-      if (filter === "suspended") return s.isSuspended && !s.isBanned
+      const s = sanctions[u.id] ?? { isBanned: u.isBanned }
       if (filter === "banned") return s.isBanned
       return true
     })
@@ -69,11 +63,10 @@ export function SanctionedTab() {
       <Tabs defaultValue='all'>
         <TabsList variant='line' className='mb-4'>
           <TabsTrigger value='all'>All</TabsTrigger>
-          <TabsTrigger value='suspended'>Suspended</TabsTrigger>
           <TabsTrigger value='banned'>Banned</TabsTrigger>
         </TabsList>
 
-        {(["all", "suspended", "banned"] as Filter[]).map((filter) => {
+        {(["all", "banned"] as Filter[]).map((filter) => {
           const visible = getVisible(filter)
           return (
             <TabsContent key={filter} value={filter}>
@@ -88,12 +81,7 @@ export function SanctionedTab() {
                     <SanctionedUserCard
                       key={user.id}
                       user={user}
-                      sanction={
-                        sanctions[user.id] ?? {
-                          isSuspended: user.isSuspended,
-                          isBanned: user.isBanned,
-                        }
-                      }
+                      sanction={sanctions[user.id] ?? { isBanned: user.isBanned }}
                       isAdmin={isAdmin}
                       isPending={isPending}
                       actionId={actionId}
@@ -116,15 +104,11 @@ export function SanctionedTab() {
 
 interface SanctionedUserCardProps {
   user: SanctionedUser
-  sanction: { isSuspended: boolean; isBanned: boolean }
+  sanction: { isBanned: boolean }
   isAdmin: boolean
   isPending: boolean
   actionId: string | null
-  runAction: (
-    id: string,
-    fn: () => Promise<void>,
-    patch: { isSuspended?: boolean; isBanned?: boolean }
-  ) => void
+  runAction: (id: string, fn: () => Promise<void>, patch: { isBanned?: boolean }) => void
 }
 
 function SanctionedUserCard({
@@ -136,13 +120,10 @@ function SanctionedUserCard({
   runAction,
 }: SanctionedUserCardProps) {
   const loading = isPending && actionId === user.id
-  const initials = user.username.slice(0, 2).toUpperCase()
 
   return (
     <li className='flex items-center gap-3 rounded-xl border bg-card p-4'>
-      <Avatar>
-        <AvatarFallback>{initials}</AvatarFallback>
-      </Avatar>
+      <ProfileAvatar size='2xs' />
 
       <div className='min-w-0 flex-1'>
         <div className='mb-0.5 flex flex-wrap items-center gap-2'>
@@ -159,12 +140,6 @@ function SanctionedUserCard({
               Banned
             </span>
           )}
-          {sanction.isSuspended && !sanction.isBanned && (
-            <span className='inline-flex items-center gap-1 rounded-full bg-orange-100 px-2 py-0.5 text-xs font-medium text-orange-700 dark:bg-orange-900/30 dark:text-orange-400'>
-              <IconUserOff size={11} />
-              Suspended
-            </span>
-          )}
           <span className='rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground'>
             {user.role}
           </span>
@@ -173,18 +148,6 @@ function SanctionedUserCard({
       </div>
 
       <div className='flex shrink-0 flex-wrap items-center gap-2'>
-        {sanction.isSuspended && (
-          <Button
-            variant='outline'
-            size='xs'
-            onClick={() => runAction(user.id, () => unsuspendUser(user.id), { isSuspended: false })}
-            disabled={loading}
-            className='border-green-300 text-green-700 hover:bg-green-50 dark:border-green-700 dark:text-green-400 dark:hover:bg-green-900/20'
-          >
-            <IconLockOpen />
-            {loading ? "…" : "Unsuspend"}
-          </Button>
-        )}
         {isAdmin && sanction.isBanned && (
           <Button
             variant='outline'

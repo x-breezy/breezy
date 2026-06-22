@@ -4,15 +4,6 @@ import { getServerAuthHeader } from "@/lib/auth/session"
 
 const API_URL = process.env.API_URL ?? "http://localhost"
 
-export async function suspendUser(userId: string): Promise<void> {
-  const authHeader = await getServerAuthHeader()
-  const res = await fetch(`${API_URL}/api/users/${userId}/suspend`, {
-    method: "PATCH",
-    headers: authHeader,
-  })
-  if (!res.ok) throw new Error(`Failed to suspend user: ${res.status}`)
-}
-
 export async function banUser(userId: string): Promise<void> {
   const authHeader = await getServerAuthHeader()
   const res = await fetch(`${API_URL}/api/users/${userId}/ban`, {
@@ -20,15 +11,6 @@ export async function banUser(userId: string): Promise<void> {
     headers: authHeader,
   })
   if (!res.ok) throw new Error(`Failed to ban user: ${res.status}`)
-}
-
-export async function unsuspendUser(userId: string): Promise<void> {
-  const authHeader = await getServerAuthHeader()
-  const res = await fetch(`${API_URL}/api/users/${userId}/unsuspend`, {
-    method: "PATCH",
-    headers: authHeader,
-  })
-  if (!res.ok) throw new Error(`Failed to unsuspend user: ${res.status}`)
 }
 
 export async function unbanUser(userId: string): Promise<void> {
@@ -45,7 +27,6 @@ export interface SanctionedUser {
   username: string
   email: string
   role: string
-  isSuspended: boolean
   isBanned: boolean
   updatedAt: string
 }
@@ -59,11 +40,10 @@ export interface SanctionedList {
 
 export async function listSanctionedUsers(
   page = 1,
-  limit = 20,
-  filter: "suspended" | "banned" | "all" = "all"
+  limit = 20
 ): Promise<SanctionedList> {
   const authHeader = await getServerAuthHeader()
-  const params = new URLSearchParams({ filter, page: String(page), limit: String(limit) })
+  const params = new URLSearchParams({ page: String(page), limit: String(limit) })
   const res = await fetch(`${API_URL}/api/users/sanctioned?${params}`, { headers: authHeader })
   if (!res.ok) throw new Error(`Failed to list sanctioned users: ${res.status}`)
   const json = await res.json()

@@ -32,9 +32,9 @@ export async function AppLayout({ children, modal }: AppLayoutProps) {
       if (res.status === 200) profile = res.data.data as Profile
       if (meRes.status === 200) user = meRes.data.data as User
 
-      if (user && (user.isSuspended || user.isBanned)) {
+      if (user?.isBanned) {
         await clearSessionCookies()
-        redirect(user.isBanned ? "/sign-in?reason=banned" : "/sign-in?reason=suspended")
+        redirect("/sign-in?reason=banned")
       }
 
       if (profile) {

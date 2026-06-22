@@ -31,7 +31,6 @@ const mockUserService = {
   searchByUsername: jest.fn(),
   updatePassword: jest.fn(),
   banUser: jest.fn(),
-  suspendUser: jest.fn(),
 }
 
 const mockAuthService = {
@@ -94,7 +93,6 @@ describe("POST /auth/sign-in", () => {
       id: USER_ID,
       role: "user",
       isBanned: false,
-      isSuspended: false,
       twoFactorEnabled: false,
     })
     mockAuthService.issueTokenPair.mockResolvedValue({
@@ -132,7 +130,6 @@ describe("POST /auth/sign-in", () => {
       id: USER_ID,
       role: "user",
       isBanned: true,
-      isSuspended: false,
       twoFactorEnabled: false,
     })
 
@@ -144,29 +141,11 @@ describe("POST /auth/sign-in", () => {
     expect(res.body.message).toMatch(/banned/i)
   })
 
-  it("returns 403 when account is suspended", async () => {
-    mockAuthService.verifyCredentials.mockResolvedValue({
-      id: USER_ID,
-      role: "user",
-      isBanned: false,
-      isSuspended: true,
-      twoFactorEnabled: false,
-    })
-
-    const res = await request(app)
-      .post("/auth/sign-in")
-      .send({ identifier: "suspended@e.com", password: "Pass1234" })
-
-    expect(res.status).toBe(403)
-    expect(res.body.message).toMatch(/suspended/i)
-  })
-
   it("returns 200 with pending 2FA token when 2FA enabled", async () => {
     mockAuthService.verifyCredentials.mockResolvedValue({
       id: USER_ID,
       role: "user",
       isBanned: false,
-      isSuspended: false,
       twoFactorEnabled: true,
     })
     mockAuthService.createTwoFactorCode.mockResolvedValue({
@@ -370,7 +349,6 @@ describe("POST /auth/2fa/verify-login", () => {
       username: "u",
       role: "user",
       isBanned: false,
-      isSuspended: false,
     })
   })
 
@@ -403,7 +381,6 @@ describe("POST /auth/2fa/resend-login-code", () => {
       username: "u",
       role: "user",
       isBanned: false,
-      isSuspended: false,
       twoFactorEnabled: true,
     })
   })
@@ -485,7 +462,7 @@ describe("POST /auth/2fa/disable", () => {
 
 describe("auth controller error handling", () => {
   beforeEach(() => {
-    jest.spyOn(console, "error").mockImplementation(() => {})
+    jest.spyOn(console, "error").mockImplementation(() => { })
   })
 
   it("returns 500 when signIn service throws unexpected error", async () => {
@@ -597,7 +574,6 @@ describe("GET /auth/validate", () => {
     mockUserService.getUser.mockResolvedValue({
       id: USER_ID,
       isBanned: false,
-      isSuspended: false,
     } as never)
 
     const res = await request(app).get("/auth/validate").set("Authorization", "Bearer valid-token")
@@ -627,7 +603,6 @@ describe("GET /auth/validate", () => {
     mockUserService.getUser.mockResolvedValue({
       id: USER_ID,
       isBanned: true,
-      isSuspended: false,
     } as never)
 
     const res = await request(app).get("/auth/validate").set("Authorization", "Bearer token")

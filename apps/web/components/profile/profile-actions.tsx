@@ -13,14 +13,12 @@ import {
   IconUserX,
   IconDots,
   IconFlag,
-  IconUserOff,
 } from "@tabler/icons-react"
 import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
 import { Dialog, DialogOverlay, DialogPortal } from "@/components/ui/dialog"
 import { Dialog as DialogPrimitive } from "@base-ui/react/dialog"
@@ -30,7 +28,6 @@ import { useProfileStore } from "@/stores/profile-store"
 import { useUserStore } from "@/stores/user-store"
 import { UnfollowDialog } from "../shared/unfollow-dialog"
 import { reportProfile } from "@/lib/actions/reports"
-import { suspendUser } from "@/lib/actions/users"
 
 interface ProfileActionsProps {
   className?: string
@@ -43,7 +40,6 @@ export function ProfileActions({ className, profile, isOwn }: ProfileActionsProp
   const [open, setOpen] = useState(false)
   const [pending, setPending] = useState(false)
   const [reportOpen, setReportOpen] = useState(false)
-  const [suspendOpen, setSuspendOpen] = useState(false)
   const [reason, setReason] = useState("")
   const [modPending, setModPending] = useState(false)
   const profileFollow = useProfileStore((s) => s.follow)
@@ -80,17 +76,6 @@ export function ProfileActions({ className, profile, isOwn }: ProfileActionsProp
       await reportProfile(profile.profileId, reason)
       setReportOpen(false)
       setReason("")
-    } finally {
-      setModPending(false)
-    }
-  }
-
-  async function handleSuspend() {
-    if (!profile) return
-    setModPending(true)
-    try {
-      await suspendUser(profile.profileId)
-      setSuspendOpen(false)
     } finally {
       setModPending(false)
     }
@@ -184,15 +169,6 @@ export function ProfileActions({ className, profile, isOwn }: ProfileActionsProp
                   <IconFlag />
                   Report
                 </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  variant='destructive'
-                  onClick={() => setSuspendOpen(true)}
-                  className='px-3 py-2.5 text-base md:px-2 md:py-1.5 md:text-sm'
-                >
-                  <IconUserOff />
-                  Suspend
-                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           )}
@@ -234,42 +210,6 @@ export function ProfileActions({ className, profile, isOwn }: ProfileActionsProp
                 >
                   <IconFlag />
                   Report
-                </Button>
-              </div>
-            </div>
-          </DialogPrimitive.Popup>
-        </DialogPortal>
-      </Dialog>
-
-      {/* Suspend dialog */}
-      <Dialog open={suspendOpen} onOpenChange={setSuspendOpen}>
-        <DialogPortal>
-          <DialogOverlay />
-          <DialogPrimitive.Popup className='fixed top-1/2 left-1/2 z-120 w-full max-w-xs -translate-x-1/2 -translate-y-1/2 rounded-[min(var(--radius-4xl),24px)] bg-popover p-6 text-popover-foreground shadow-xl ring-1 ring-foreground/5 duration-100 outline-none dark:ring-foreground/10 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95'>
-            <div className='flex flex-col gap-5'>
-              <div className='flex flex-col gap-1'>
-                <DialogPrimitive.Title className='font-heading text-base font-medium'>
-                  Suspend @{profile.username}?
-                </DialogPrimitive.Title>
-                <DialogPrimitive.Description className='text-sm text-muted-foreground'>
-                  This user will be temporarily suspended and lose access to their account.
-                </DialogPrimitive.Description>
-              </div>
-              <div className='flex justify-center gap-2'>
-                <DialogPrimitive.Close
-                  render={<Button size='lg' className='w-1/2' variant='secondary' />}
-                >
-                  Cancel
-                </DialogPrimitive.Close>
-                <Button
-                  variant='destructive'
-                  className='w-1/2'
-                  size='lg'
-                  onClick={handleSuspend}
-                  disabled={modPending}
-                >
-                  <IconUserOff />
-                  Suspend
                 </Button>
               </div>
             </div>

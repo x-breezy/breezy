@@ -118,7 +118,6 @@ const MOCK_USER = {
   passwordHash: "salt:hash",
   role: "user",
   isBanned: false,
-  isSuspended: false,
   isEmailVerified: false,
   twoFactorEnabled: false,
   createdAt: new Date(),
@@ -130,7 +129,7 @@ let service: AuthService
 
 describe("verifyCredentials", () => {
   it("authenticates user by email", async () => {
-    ;(mockedUser.findOne as jest.Mock).mockResolvedValue(MOCK_USER)
+    ; (mockedUser.findOne as jest.Mock).mockResolvedValue(MOCK_USER)
     mockedVerifyPassword.mockResolvedValue(true)
 
     const result = await service.verifyCredentials({
@@ -146,7 +145,7 @@ describe("verifyCredentials", () => {
   })
 
   it("authenticates user by username", async () => {
-    ;(mockedUser.findOne as jest.Mock).mockResolvedValue(MOCK_USER)
+    ; (mockedUser.findOne as jest.Mock).mockResolvedValue(MOCK_USER)
     mockedVerifyPassword.mockResolvedValue(true)
 
     await service.verifyCredentials({ identifier: "alice", password: "Pass1234" })
@@ -157,7 +156,7 @@ describe("verifyCredentials", () => {
   })
 
   it("throws INVALID_CREDENTIALS when user not found", async () => {
-    ;(mockedUser.findOne as jest.Mock).mockResolvedValue(null)
+    ; (mockedUser.findOne as jest.Mock).mockResolvedValue(null)
 
     await expect(
       service.verifyCredentials({ identifier: "unknown@e.com", password: "x" })
@@ -165,7 +164,7 @@ describe("verifyCredentials", () => {
   })
 
   it("throws INVALID_CREDENTIALS when passwordHash is null", async () => {
-    ;(mockedUser.findOne as jest.Mock).mockResolvedValue({ ...MOCK_USER, passwordHash: null })
+    ; (mockedUser.findOne as jest.Mock).mockResolvedValue({ ...MOCK_USER, passwordHash: null })
 
     await expect(
       service.verifyCredentials({ identifier: "alice@e.com", password: "x" })
@@ -173,7 +172,7 @@ describe("verifyCredentials", () => {
   })
 
   it("throws INVALID_CREDENTIALS on wrong password", async () => {
-    ;(mockedUser.findOne as jest.Mock).mockResolvedValue(MOCK_USER)
+    ; (mockedUser.findOne as jest.Mock).mockResolvedValue(MOCK_USER)
     mockedVerifyPassword.mockResolvedValue(false)
 
     await expect(
@@ -217,7 +216,7 @@ describe("createEmailVerificationToken", () => {
 describe("verifyEmail", () => {
   it("marks token as used and user as verified", async () => {
     const mockRecord = { update: jest.fn().mockResolvedValue(undefined) }
-    ;(mockedEVT.findOne as jest.Mock).mockResolvedValue(mockRecord)
+      ; (mockedEVT.findOne as jest.Mock).mockResolvedValue(mockRecord)
 
     await service.verifyEmail("valid-token")
 
@@ -234,7 +233,7 @@ describe("verifyEmail", () => {
   })
 
   it("throws INVALID_TOKEN when token not found", async () => {
-    ;(mockedEVT.findOne as jest.Mock).mockResolvedValue(null)
+    ; (mockedEVT.findOne as jest.Mock).mockResolvedValue(null)
 
     await expect(service.verifyEmail("bad-token")).rejects.toMatchObject({ code: "INVALID_TOKEN" })
   })
@@ -242,7 +241,7 @@ describe("verifyEmail", () => {
 
 describe("createPasswordResetToken", () => {
   it("creates token and returns reset URL when user exists", async () => {
-    ;(mockedUser.findOne as jest.Mock).mockResolvedValue(MOCK_USER)
+    ; (mockedUser.findOne as jest.Mock).mockResolvedValue(MOCK_USER)
 
     const result = await service.createPasswordResetToken("alice@example.com")
 
@@ -256,7 +255,7 @@ describe("createPasswordResetToken", () => {
   })
 
   it("returns null when user not found", async () => {
-    ;(mockedUser.findOne as jest.Mock).mockResolvedValue(null)
+    ; (mockedUser.findOne as jest.Mock).mockResolvedValue(null)
 
     const result = await service.createPasswordResetToken("ghost@e.com")
     expect(result).toBeNull()
@@ -266,7 +265,7 @@ describe("createPasswordResetToken", () => {
 describe("resetPassword", () => {
   it("updates password and revokes sessions", async () => {
     const mockRecord = { userId: "user-1", update: jest.fn().mockResolvedValue(undefined) }
-    ;(mockedPRT.findOne as jest.Mock).mockResolvedValue(mockRecord)
+      ; (mockedPRT.findOne as jest.Mock).mockResolvedValue(mockRecord)
     mockedHashPassword.mockResolvedValue("new-salt:new-hash")
     mockRedis.smembers.mockResolvedValue(["h1", "h2"])
 
@@ -281,7 +280,7 @@ describe("resetPassword", () => {
   })
 
   it("throws INVALID_TOKEN when token not found", async () => {
-    ;(mockedPRT.findOne as jest.Mock).mockResolvedValue(null)
+    ; (mockedPRT.findOne as jest.Mock).mockResolvedValue(null)
 
     await expect(service.resetPassword("bad", "NewPass1")).rejects.toMatchObject({
       code: "INVALID_TOKEN",
@@ -302,7 +301,7 @@ describe("2FA code management", () => {
   })
 
   it("verifyTwoFactorCode succeeds with valid code", async () => {
-    ;(mockedTFC.findOne as jest.Mock).mockResolvedValue({ update: jest.fn() })
+    ; (mockedTFC.findOne as jest.Mock).mockResolvedValue({ update: jest.fn() })
 
     await service.verifyTwoFactorCode("user-1", "123456")
 
@@ -320,7 +319,7 @@ describe("2FA code management", () => {
   })
 
   it("verifyTwoFactorCode throws on wrong code", async () => {
-    ;(mockedTFC.findOne as jest.Mock).mockResolvedValue(null)
+    ; (mockedTFC.findOne as jest.Mock).mockResolvedValue(null)
     mockRedis.incr.mockResolvedValue(1)
     mockRedis.expire.mockResolvedValue(1)
 
@@ -360,7 +359,7 @@ describe("enableTwoFactor / disableTwoFactor", () => {
 
 describe("resendVerification", () => {
   it("returns token when user exists and is not verified", async () => {
-    ;(mockedUser.findOne as jest.Mock).mockResolvedValue(MOCK_USER)
+    ; (mockedUser.findOne as jest.Mock).mockResolvedValue(MOCK_USER)
 
     const result = await service.resendVerification("alice@example.com")
 
@@ -373,14 +372,14 @@ describe("resendVerification", () => {
   })
 
   it("returns null when user not found", async () => {
-    ;(mockedUser.findOne as jest.Mock).mockResolvedValue(null)
+    ; (mockedUser.findOne as jest.Mock).mockResolvedValue(null)
 
     const result = await service.resendVerification("ghost@example.com")
     expect(result).toBeNull()
   })
 
   it("returns null when user is already verified", async () => {
-    ;(mockedUser.findOne as jest.Mock).mockResolvedValue({ ...MOCK_USER, isEmailVerified: true })
+    ; (mockedUser.findOne as jest.Mock).mockResolvedValue({ ...MOCK_USER, isEmailVerified: true })
 
     const result = await service.resendVerification("verified@example.com")
     expect(result).toBeNull()
@@ -416,7 +415,7 @@ describe("revokeAllRefreshTokens", () => {
 describe("rotateRefreshToken", () => {
   it("returns new token pair and user when rotation succeeds", async () => {
     mockRedis.eval.mockResolvedValue([1, JSON.stringify({ userId: "user-1", role: "user" })])
-    ;(mockedUser.findByPk as jest.Mock).mockResolvedValue(MOCK_USER)
+      ; (mockedUser.findByPk as jest.Mock).mockResolvedValue(MOCK_USER)
 
     const result = await service.rotateRefreshToken("old-refresh-token")
 
@@ -446,7 +445,7 @@ describe("rotateRefreshToken", () => {
 
   it("throws INVALID_REFRESH when user not found", async () => {
     mockRedis.eval.mockResolvedValue([1, JSON.stringify({ userId: "missing-user", role: "user" })])
-    ;(mockedUser.findByPk as jest.Mock).mockResolvedValue(null)
+      ; (mockedUser.findByPk as jest.Mock).mockResolvedValue(null)
 
     await expect(service.rotateRefreshToken("valid-but-missing-user")).rejects.toMatchObject({
       code: "INVALID_REFRESH",
@@ -511,7 +510,7 @@ describe("Google OAuth - findOrCreateGoogleUser", () => {
   })
 
   it("returns existing user when googleId matches", async () => {
-    ;(mockedUser.findOne as jest.Mock).mockResolvedValueOnce(MOCK_USER)
+    ; (mockedUser.findOne as jest.Mock).mockResolvedValueOnce(MOCK_USER)
 
     const result = await service.findOrCreateGoogleUser("code", "verifier")
 
@@ -520,9 +519,9 @@ describe("Google OAuth - findOrCreateGoogleUser", () => {
 
   it("links googleId to existing email when email matches and verified", async () => {
     const updateMock = jest.fn().mockResolvedValue(undefined)
-    ;(mockedUser.findOne as jest.Mock)
-      .mockResolvedValueOnce(null) // no googleId match
-      .mockResolvedValueOnce({ ...MOCK_USER, update: updateMock }) // email match
+      ; (mockedUser.findOne as jest.Mock)
+        .mockResolvedValueOnce(null) // no googleId match
+        .mockResolvedValueOnce({ ...MOCK_USER, update: updateMock }) // email match
 
     const result = await service.findOrCreateGoogleUser("code", "verifier")
 
@@ -538,9 +537,9 @@ describe("Google OAuth - findOrCreateGoogleUser", () => {
         email_verified: false,
       }),
     })
-    ;(mockedUser.findOne as jest.Mock)
-      .mockResolvedValueOnce(null) // no googleId match
-      .mockResolvedValueOnce(MOCK_USER) // email match
+      ; (mockedUser.findOne as jest.Mock)
+        .mockResolvedValueOnce(null) // no googleId match
+        .mockResolvedValueOnce(MOCK_USER) // email match
 
     await expect(service.findOrCreateGoogleUser("code", "verifier")).rejects.toMatchObject({
       code: "GOOGLE_EMAIL_UNVERIFIED",
@@ -548,7 +547,7 @@ describe("Google OAuth - findOrCreateGoogleUser", () => {
   })
 
   it("returns pending token for new user", async () => {
-    ;(mockedUser.findOne as jest.Mock).mockResolvedValue(null) // no googleId, no email
+    ; (mockedUser.findOne as jest.Mock).mockResolvedValue(null) // no googleId, no email
 
     const result = await service.findOrCreateGoogleUser("code", "verifier")
 
@@ -588,9 +587,9 @@ describe("Google OAuth - completeGoogleAuth", () => {
         email: "google@example.com",
       }),
     }
-    ;(mockedUser.count as jest.Mock).mockResolvedValue(0) // username not taken
-    ;(mockedUser.findOne as jest.Mock).mockResolvedValue(null) // no existing googleId
-    ;(mockedUser.create as jest.Mock).mockResolvedValue(newUser)
+      ; (mockedUser.count as jest.Mock).mockResolvedValue(0) // username not taken
+      ; (mockedUser.findOne as jest.Mock).mockResolvedValue(null) // no existing googleId
+      ; (mockedUser.create as jest.Mock).mockResolvedValue(newUser)
 
     const result = await service.completeGoogleAuth("pending-token", "newgoogleuser")
 
@@ -609,7 +608,7 @@ describe("Google OAuth - completeGoogleAuth", () => {
   })
 
   it("throws USERNAME_TAKEN when username already exists", async () => {
-    ;(mockedUser.count as jest.Mock).mockResolvedValue(1)
+    ; (mockedUser.count as jest.Mock).mockResolvedValue(1)
 
     await expect(service.completeGoogleAuth("pending-token", "takenuser")).rejects.toMatchObject({
       code: "USERNAME_TAKEN",
@@ -617,8 +616,8 @@ describe("Google OAuth - completeGoogleAuth", () => {
   })
 
   it("returns existing user on double-submit guard", async () => {
-    ;(mockedUser.count as jest.Mock).mockResolvedValue(0) // username not taken
-    ;(mockedUser.findOne as jest.Mock).mockResolvedValue(MOCK_USER) // existing googleId
+    ; (mockedUser.count as jest.Mock).mockResolvedValue(0) // username not taken
+      ; (mockedUser.findOne as jest.Mock).mockResolvedValue(MOCK_USER) // existing googleId
 
     const result = await service.completeGoogleAuth("pending-token", "existinguser")
 

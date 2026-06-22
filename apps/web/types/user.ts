@@ -4,7 +4,6 @@ export interface User {
   email: string
   role: string
   isBanned: boolean
-  isSuspended: boolean
   isEmailVerified: boolean
   twoFactorEnabled: boolean
   createdAt: string

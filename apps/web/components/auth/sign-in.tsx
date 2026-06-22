@@ -17,7 +17,6 @@ interface Props {
 }
 
 const SANCTION_MESSAGES: Record<string, string> = {
-  suspended: "Your account has been suspended. Contact support if you think this is a mistake.",
   banned: "Your account has been permanently banned.",
 }
 

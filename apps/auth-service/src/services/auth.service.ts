@@ -98,7 +98,6 @@ class AuthService {
         "passwordHash",
         "role",
         "isBanned",
-        "isSuspended",
         "isEmailVerified",
         "twoFactorEnabled",
         "createdAt",
