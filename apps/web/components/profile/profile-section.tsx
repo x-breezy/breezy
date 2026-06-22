@@ -21,7 +21,9 @@ export function ProfileSection({ className, profile, role, isOwn }: ProfileSecti
       <div className='flex flex-col items-center gap-4 p-4 md:hidden'>
         <ProfileAvatar src={profile.avatarId || undefined} alt={profile.username} size='xl' />
         <ProfileInfo
-          name={[profile?.firstName, profile?.lastName].filter(Boolean).join(" ") || profile?.username}
+          name={
+            [profile?.firstName, profile?.lastName].filter(Boolean).join(" ") || profile?.username
+          }
           username={profile?.username}
           userId={profile.profileId}
           role={role || UserRole.User}
@@ -44,7 +46,10 @@ export function ProfileSection({ className, profile, role, isOwn }: ProfileSecti
           <div className='flex items-start justify-between'>
             <div className='flex flex-col gap-2'>
               <ProfileInfo
-                name={[profile?.firstName, profile?.lastName].filter(Boolean).join(" ") || profile?.username}
+                name={
+                  [profile?.firstName, profile?.lastName].filter(Boolean).join(" ") ||
+                  profile?.username
+                }
                 username={profile?.username}
                 userId={profile.profileId}
                 role={role}
