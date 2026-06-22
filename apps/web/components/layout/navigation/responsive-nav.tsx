@@ -51,14 +51,16 @@ export function ResponsiveNav() {
             iconClassName='block size-6'
           />
         ))}
-        <NavItem
-          href={`/profile/${profile?.username}`}
-          icon={ProfileNavIcon}
-          label={t("profile")}
-          isActive={isProfileActive}
-          showLabel={false}
-          iconClassName='block size-6'
-        />
+        {profile && (
+          <NavItem
+            href={`/profile/${profile.username}`}
+            icon={ProfileNavIcon}
+            label={t("profile")}
+            isActive={isProfileActive}
+            showLabel={false}
+            iconClassName='block size-6'
+          />
+        )}
       </nav>
 
       {/* Desktop: Sidebar - visible à partir de lg */}
@@ -80,14 +82,16 @@ export function ResponsiveNav() {
               iconClassName='block size-7'
             />
           ))}
-          <NavItem
-            href={`/profile/${profile?.username}`}
-            icon={ProfileNavIcon}
-            label={t("profile")}
-            isActive={isProfileActive}
-            showLabel={true}
-            iconClassName='block size-7'
-          />
+          {profile && (
+            <NavItem
+              href={`/profile/${profile.username}`}
+              icon={ProfileNavIcon}
+              label={t("profile")}
+              isActive={isProfileActive}
+              showLabel={true}
+              iconClassName='block size-7'
+            />
+          )}
         </nav>
       </aside>
     </>

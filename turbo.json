@@ -46,15 +46,15 @@
       "dependsOn": ["^format"]
     },
     "test": {
-      "dependsOn": ["^test"],
+      "dependsOn": ["^build", "^test"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"]
     },
     "test:coverage": {
-      "dependsOn": ["^test:coverage"],
+      "dependsOn": ["^build", "^test:coverage"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"]
     },
     "check-types": {
-      "dependsOn": ["^check-types"]
+      "dependsOn": ["^build", "^check-types"]
     },
     "dev": {
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
