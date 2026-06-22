@@ -16,14 +16,6 @@ const nextConfig: NextConfig = {
   // bypass auth (401, and POST downgraded to GET).
   skipTrailingSlashRedirect: true,
   output: "standalone",
-  async rewrites() {
-    return [
-      {
-        source: "/api/:path*",
-        destination: "http://127.0.0.1/api/:path*",
-      },
-    ]
-  },
   experimental: {
     serverActions: {
       bodySizeLimit: "10mb",
