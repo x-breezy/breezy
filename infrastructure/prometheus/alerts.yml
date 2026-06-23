@@ -1,0 +1,47 @@
+groups:
+  - name: breezy-services
+    rules:
+      - alert: BreezyServiceDown
+        expr: up{job=~".*-service"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "{{ $labels.job }} is down"
+          description:
+            "Prometheus has not been able to scrape {{ $labels.job }} for more than 1 minute."
+
+      - alert: BreezyHighErrorRate
+        expr: |
+          sum by (service) (rate(http_requests_total{status_code=~"5.."}[5m]))
+          /
+          clamp_min(sum by (service) (rate(http_requests_total[5m])), 1)
+          > 0.05
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High 5xx rate on {{ $labels.service }}"
+          description: "More than 5% of requests are failing with 5xx responses."
+
+      - alert: BreezyHighLatencyP95
+        expr: |
+          histogram_quantile(
+            0.95,
+            sum by (service, le) (rate(http_request_duration_seconds_bucket[5m]))
+          ) > 1
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High p95 latency on {{ $labels.service }}"
+          description: "p95 HTTP latency has been above 1s for 10 minutes."
+
+      - alert: BreezyHighMemoryUsage
+        expr: breezy_process_resident_memory_bytes{service!=""} > 500000000
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High memory usage on {{ $labels.service }}"
+          description: "Resident memory is above 500MB for 10 minutes."

@@ -1,4 +1,5 @@
-import { createLogger } from "@breezy/logger"
+import "@breezy/observability/register"
+import { createLogger, registerProcessHandlers } from "@breezy/logger"
 import { createApp } from "./app"
 import { connect } from "./config/database"
 import { connectRabbitMQ } from "./clients/rabbitmq"
@@ -6,6 +7,7 @@ import http from "http"
 import { setupWebSocket } from "./config/websocket"
 
 const logger = createLogger({ service: "message-service" })
+registerProcessHandlers(logger)
 
 const app = createApp()
 const port = process.env.PORT ?? 4030

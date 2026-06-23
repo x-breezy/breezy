@@ -70,7 +70,7 @@ export default async function ModerationPage({ searchParams }: Props) {
     allUsersPage = allUsersRes.page
     allUsersLimit = allUsersRes.limit
   } catch {
-    // unauthorised or fetch error — client will show empty state
+    // unauthorised or fetch error,  client will show empty state
   }
 
   // Resolve unique user IDs to usernames and profiles in parallel
@@ -96,7 +96,7 @@ export default async function ModerationPage({ searchParams }: Props) {
           profilesMap.set(p.profileId, p)
         }
       } catch {
-        // profiles unavailable — avatars will be empty
+        // profiles unavailable,  avatars will be empty
       }
     })(),
   ])

@@ -29,7 +29,7 @@ function parseTags(content: string): string[] {
   return [...new Set(matches.map((t) => t.slice(1)))]
 }
 
-const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10 MB — matches next.config.ts serverActions.bodySizeLimit
+const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10 MB ,  matches next.config.ts serverActions.bodySizeLimit
 
 export function usePostCompose(parentId?: string, initialContent = "") {
   const queryClient = useQueryClient()

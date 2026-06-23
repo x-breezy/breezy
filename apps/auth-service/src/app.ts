@@ -4,13 +4,19 @@ import type { Express } from "express"
 import swaggerUi from "swagger-ui-express"
 import { createAuthRouter } from "./routes/auth.route"
 import { createLogger, httpLogger, createErrorHandler } from "@breezy/logger"
+import { createHealthRouter, createMetrics } from "@breezy/observability"
 import { createUserRouter } from "./routes/user.route"
 import { createReportRouter } from "./routes/report.route"
 import { swaggerSpec } from "./config/swagger"
 import { getJwks } from "./utils/jwt.util"
 import UserService from "./services/user.service"
+import { getSequelize } from "./config/database"
+import { assertRabbitMQReady } from "./clients/rabbitmq"
+import { getRedis } from "./clients/redis"
 
-const logger = createLogger({ service: "auth-service" })
+const service = "auth-service"
+const logger = createLogger({ service })
+const { metricsMiddleware, metricsHandler } = createMetrics({ service })
 
 /** Build the Express app. No network/DB side effects, so tests can import it. */
 export function createApp(): Express {
@@ -19,6 +25,18 @@ export function createApp(): Express {
   app.set("trust proxy", 1)
   app.disable("x-powered-by")
   app.use(helmet())
+  app.use(
+    createHealthRouter({
+      service,
+      checks: {
+        postgres: () => getSequelize().authenticate(),
+        rabbitmq: assertRabbitMQReady,
+        redis: () => getRedis().ping(),
+      },
+    })
+  )
+  app.get("/metrics", metricsHandler)
+  app.use(metricsMiddleware)
   app.use(httpLogger(logger))
   app.use(express.json({ limit: "1mb" }))
 

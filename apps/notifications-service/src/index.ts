@@ -1,3 +1,4 @@
+import "@breezy/observability/register"
 import { createLogger, registerProcessHandlers } from "@breezy/logger"
 import { createApp } from "./app"
 import { connect } from "./config/database"
@@ -15,7 +16,7 @@ async function start(): Promise<void> {
   await connect(mongoUri)
   logger.info("Connected to MongoDB")
 
-  // Run consumer in background — connectWithRetry handles reconnection
+  // Run consumer in background,  connectWithRetry handles reconnection
   startConsuming(handleEvent).catch((err) => logger.error({ err }, "RabbitMQ consumer failed"))
 
   const server = app.listen(port, () => {
