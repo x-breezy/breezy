@@ -2,7 +2,7 @@ services:
   gateway:
     build:
       context: .
-      dockerfile: apps/gateway/Dockerfile
+      dockerfile: infrastructure/gateway/Dockerfile
     container_name: breezy-gateway
     restart: unless-stopped
     ports:
