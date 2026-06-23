@@ -37,7 +37,8 @@ class ChatController extends ConversationController {
       const message = await this.msgService.sendMessage(
         req.params.conversationId,
         req.user!.id,
-        req.body.content
+        req.body.content,
+        req.body.replyTo
       )
       res.status(201).json({ success: true, data: message })
     } catch (err) {

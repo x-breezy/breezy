@@ -21,6 +21,7 @@ interface MessagesListProps {
   avatarUrl?: string
   isGroup: boolean
   participantIds: string[]
+  onReply?: (msg: Message, senderName: string) => void
 }
 
 function sameDay(a: string, b: string) {
@@ -45,6 +46,7 @@ export function MessagesList({
   avatarUrl,
   isGroup,
   participantIds,
+  onReply,
 }: MessagesListProps) {
   const t = useTranslations("messages")
   const bottomRef = useRef<HTMLDivElement>(null)
@@ -160,6 +162,8 @@ export function MessagesList({
                 isLastOfGroup={isLastOfGroup}
                 avatarUrl={msgAvatarUrl}
                 senderName={senderName}
+                replyTo={msg.replyTo}
+                onReply={onReply ? () => onReply(msg, senderName) : undefined}
               />
             </React.Fragment>
           )

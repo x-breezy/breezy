@@ -386,6 +386,9 @@
     "group": "Groupe",
     "view": "Voir",
     "userFallback": "Utilisateur {id}",
-    "addToGroupCount": "Ajouter au groupe ({count})"
+    "addToGroupCount": "Ajouter au groupe ({count})",
+    "reply": "Répondre",
+    "replyingTo": "Vous répondez à {name}",
+    "cancelReply": "Annuler la réponse"
   }
 }

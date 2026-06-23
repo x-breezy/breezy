@@ -1,15 +1,25 @@
 import { MessageModel } from "../models/message.model"
-import type { Message } from "../models/message.model"
+import type { Message, ReplyTo } from "../models/message.model"
 import { ConversationModel } from "../models/conversation.model"
 import type { PaginatedResponse } from "../types/api"
 import { getIO } from "../config/websocket"
 
 export class MessageService {
-  async sendMessage(conversationId: string, senderId: string, content: string): Promise<Message> {
+  async sendMessage(
+    conversationId: string,
+    senderId: string,
+    content: string,
+    replyTo?: ReplyTo
+  ): Promise<Message> {
     const safeContent = typeof content === "string" ? content : String(content)
     const safeSenderId = typeof senderId === "string" ? senderId : String(senderId)
     const [message, conversation] = await Promise.all([
-      MessageModel.create({ conversationId, senderId: safeSenderId, content: safeContent }),
+      MessageModel.create({
+        conversationId,
+        senderId: safeSenderId,
+        content: safeContent,
+        replyTo,
+      }),
       ConversationModel.findByIdAndUpdate(conversationId, {
         lastMessage: safeContent,
         lastMessageSenderId: safeSenderId,
@@ -22,7 +32,7 @@ export class MessageService {
     for (const recipientId of recipientIds) {
       try {
         getIO().to(recipientId).emit("message:new", message)
-      } catch (err) {}
+      } catch (err) { }
     }
 
     return message as unknown as Message
