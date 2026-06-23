@@ -115,9 +115,10 @@ export class ConversationService {
     userId: string,
     name: string
   ): Promise<Conversation | null> {
+    const safeName = typeof name === "string" ? name : String(name)
     const conversation = await ConversationModel.findOneAndUpdate(
       { _id: conversationId, participantIds: userId, isGroup: true },
-      { name },
+      { name: safeName },
       { new: true }
     ).exec()
 
@@ -125,7 +126,7 @@ export class ConversationService {
       const sysMsg = await MessageModel.create({
         conversationId,
         senderId: userId,
-        content: `a renommé le groupe en "${name}"`,
+        content: `a renommé le groupe en "${safeName}"`,
         isSystem: true,
       })
 

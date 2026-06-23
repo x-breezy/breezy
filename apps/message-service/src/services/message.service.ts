@@ -6,11 +6,13 @@ import { getIO } from "../config/websocket"
 
 export class MessageService {
   async sendMessage(conversationId: string, senderId: string, content: string): Promise<Message> {
+    const safeContent = typeof content === "string" ? content : String(content)
+    const safeSenderId = typeof senderId === "string" ? senderId : String(senderId)
     const [message, conversation] = await Promise.all([
-      MessageModel.create({ conversationId, senderId, content }),
+      MessageModel.create({ conversationId, senderId: safeSenderId, content: safeContent }),
       ConversationModel.findByIdAndUpdate(conversationId, {
-        lastMessage: content,
-        lastMessageSenderId: senderId,
+        lastMessage: safeContent,
+        lastMessageSenderId: safeSenderId,
         lastMessageAt: new Date(),
         deletedBy: [],
       }).exec(),

@@ -30,8 +30,6 @@ const app = createApp()
 const USER1_UUID = "11111111-1111-1111-1111-111111111111"
 const USER2_UUID = "22222222-2222-2222-2222-222222222222"
 const CONVERSATION_ID = "64f1a2b3c4d5e6f7a8b9c0d1"
-const NOW = new Date("2026-01-01T00:00:00.000Z")
-
 describe("Message API", () => {
   beforeEach(() => {
     jest.clearAllMocks()
