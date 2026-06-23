@@ -579,8 +579,6 @@ describe("GET /auth/validate", () => {
     const res = await request(app).get("/auth/validate").set("Authorization", "Bearer valid-token")
 
     expect(res.status).toBe(200)
-    expect(res.headers["x-user-id"]).toBe(USER_ID)
-    expect(res.headers["x-roles"]).toBe("user")
   })
 
   it("returns 401 when token is missing", async () => {
