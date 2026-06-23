@@ -240,10 +240,6 @@ http {
       if ($request_method = OPTIONS) { return 204; }
       limit_req zone=api burst=20 nodelay;
       auth_request /authenticate;
-      auth_request_set $user_id $upstream_http_x_user_id;
-      auth_request_set $user_roles $upstream_http_x_roles;
-      proxy_set_header X-User-Id $user_id;
-      proxy_set_header X-Roles   $user_roles;
       proxy_pass http://message_service/conversations/;
     }
 

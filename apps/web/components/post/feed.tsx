@@ -41,12 +41,14 @@ export function Feed({ feedType = "forYou" }: { feedType?: string }) {
   const [hasNewPosts, setHasNewPosts] = useState(false)
   const scrollKey = `feed-scroll-${feedType}`
 
+  const scrollEl = () => document.querySelector<HTMLElement>("[data-scroll-root]")
+
   // Restore scroll before first paint so there's no flash to the top
   useLayoutEffect(() => {
     const y = sessionStorage.getItem(scrollKey)
     if (!y) return
     sessionStorage.removeItem(scrollKey)
-    window.scrollTo({ top: parseInt(y, 10), behavior: "instant" })
+    scrollEl()?.scrollTo({ top: parseInt(y, 10), behavior: "instant" })
   }, [scrollKey])
 
   const { data: latestCheck } = useQuery({
@@ -70,7 +72,7 @@ export function Feed({ feedType = "forYou" }: { feedType?: string }) {
     queryClient.invalidateQueries({ queryKey: ["feed", feedType] })
     firstPostIdRef.current = null
     setHasNewPosts(false)
-    window.scrollTo({ top: 0, behavior: "smooth" })
+    scrollEl()?.scrollTo({ top: 0, behavior: "smooth" })
   }
 
   useEffect(() => {
@@ -211,7 +213,7 @@ export function Feed({ feedType = "forYou" }: { feedType?: string }) {
           <IconArrowUp size={12} /> New posts
         </Button>
       </div>
-      <ul onClick={() => sessionStorage.setItem(scrollKey, String(window.scrollY))}>
+      <ul onClick={() => sessionStorage.setItem(scrollKey, String(scrollEl()?.scrollTop ?? 0))}>
         {feedItems.map((item) => {
           if (item.type === "reply-group") {
             return (

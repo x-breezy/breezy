@@ -39,31 +39,6 @@ services:
       timeout: 5s
       retries: 5
 
-    postgres-message-service:
-      image: postgres:16
-      container_name: breezy-postgres-message-service
-      restart: unless-stopped
-      ports:
-        - "5435:5432"
-      environment:
-        POSTGRES_USER: postgres
-        POSTGRES_PASSWORD: postgres
-        POSTGRES_DB: message_service
-        POSTGRES_HOST_AUTH_METHOD: md5
-        POSTGRES_INITDB_ARGS: "--auth-host=md5 --auth-local=md5"
-      volumes:
-        - postgres-message-service-data:/var/lib/postgresql/data
-      networks:
-        - breezy
-      healthcheck:
-        test: ["CMD", "pg_isready", "-U", "postgres"]
-        interval: 10s
-        timeout: 5s
-        retries: 5
-
-  rabbitmq:
-    image: rabbitmq:3-management
-    container_name: breezy-rabbitmq
   mongo-post-service:
     image: mongo:8
     container_name: breezy-mongo-post-service
@@ -245,6 +220,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      profile-service:
+        condition: service_healthy
     networks:
       - gateway-net
       - services-net
@@ -262,6 +239,7 @@ services:
     environment:
       NODE_ENV: production
       PORT: 4010
+      GRPC_PORT: 50051
       DATABASE_URL: postgres://postgres:${POSTGRES_PROFILE_PASSWORD}@postgres-profile-service:5432/profile_service
       RABBITMQ_URL: amqp://${RABBITMQ_USER}:${RABBITMQ_PASS}@rabbitmq:5672
       JWT_PUBLIC_KEY_PATH: /secrets/public.pem
@@ -307,6 +285,7 @@ services:
       JWT_PUBLIC_KEY_PATH: /secrets/public.pem
       PROFILE_SERVICE_GRPC_URL: profile-service:50051
       MEDIA_SERVICE_GRPC_URL: media-service:50052
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
       LOG_FILE: /logs/post-service.log
       LOG_LEVEL: info
     healthcheck:
@@ -325,6 +304,10 @@ services:
       mongo-post-service:
         condition: service_healthy
       rabbitmq:
+        condition: service_healthy
+      profile-service:
+        condition: service_healthy
+      media-service:
         condition: service_healthy
     networks:
       - gateway-net
@@ -409,6 +392,8 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+      profile-service:
+        condition: service_healthy
     networks:
       - gateway-net
       - services-net
@@ -420,11 +405,15 @@ services:
       dockerfile: apps/message-service/Dockerfile
     container_name: breezy-message-service
     restart: unless-stopped
+    volumes:
+      - shared-logs:/logs
+      - /etc/breezy/secrets/public.pem:/secrets/public.pem:ro
     environment:
       NODE_ENV: production
       PORT: 4030
       DATABASE_URL: mongodb://mongo-message-service:27017/message_service
       RABBITMQ_URL: amqp://${RABBITMQ_USER}:${RABBITMQ_PASS}@rabbitmq:5672
+      JWT_PUBLIC_KEY_PATH: /secrets/public.pem
       PROFILE_SERVICE_GRPC_URL: profile-service:50051
       FRONTEND_URL: https://${DOMAIN}
       LOG_LEVEL: info
@@ -444,6 +433,8 @@ services:
       mongo-message-service:
         condition: service_healthy
       rabbitmq:
+        condition: service_healthy
+      profile-service:
         condition: service_healthy
     networks:
       - gateway-net

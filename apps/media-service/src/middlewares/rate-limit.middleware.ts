@@ -13,30 +13,30 @@ const defaults = {
 export const readLimit = rateLimit({
   ...defaults,
   windowMs: 60_000,
-  max: 120,
+  max: 600,
   keyGenerator: byUser,
 })
 export const writeLimit = rateLimit({
   ...defaults,
   windowMs: 60_000,
-  max: 60,
+  max: 300,
   keyGenerator: byUser,
 })
 export const uploadLimit = rateLimit({
   ...defaults,
   windowMs: 60_000,
-  max: 20,
+  max: 100,
   keyGenerator: byUser,
 })
 export const videoUploadLimit = rateLimit({
   ...defaults,
   windowMs: 60_000,
-  max: 10,
+  max: 50,
   keyGenerator: byUser,
 })
 export const publicReadLimit = rateLimit({
   ...defaults,
   windowMs: 60_000,
-  max: 120,
+  max: 600,
   keyGenerator: byIp,
 })

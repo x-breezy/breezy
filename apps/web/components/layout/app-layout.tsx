@@ -15,10 +15,9 @@ import { MessageNotificationToast } from "../messages/message-notification-toast
 
 interface AppLayoutProps {
   children: React.ReactNode
-  modal: React.ReactNode
 }
 
-export async function AppLayout({ children, modal }: AppLayoutProps) {
+export async function AppLayout({ children }: AppLayoutProps) {
   let profile: Profile | null = null
   let user: User | null = null
   let suggestedUsers: SearchProfile[] = []
@@ -27,28 +26,30 @@ export async function AppLayout({ children, modal }: AppLayoutProps) {
   try {
     const userId = await getUserId()
 
-    if (userId) {
-      const authHeader = await getServerAuthHeader()
-      const [res, meRes] = await Promise.all([getProfile(userId, authHeader), getMe(authHeader)])
-      if (res.status === 200) profile = res.data.data as Profile
-      if (meRes.status === 200) user = meRes.data.data as User
+    if (!userId) {
+      redirect("/sign-in")
+    }
 
-      if (user?.isBanned) {
-        await clearSessionCookies()
-        redirect("/sign-in?reason=banned")
-      }
+    const authHeader = await getServerAuthHeader()
+    const [res, meRes] = await Promise.all([getProfile(userId, authHeader), getMe(authHeader)])
+    if (res.status === 200) profile = res.data.data as Profile
+    if (meRes.status === 200) user = meRes.data.data as User
 
-      if (profile) {
-        const relRes = await getFollowing(profile.profileId, authHeader)
+    if (user?.isBanned) {
+      await clearSessionCookies()
+      redirect("/sign-in?reason=banned")
+    }
 
-        if (relRes.status === 200) {
-          for (const id of relRes.data.data.following) {
-            following[id] = true
-          }
+    if (profile) {
+      const relRes = await getFollowing(profile.profileId, authHeader)
+
+      if (relRes.status === 200) {
+        for (const id of relRes.data.data.following) {
+          following[id] = true
         }
-
-        suggestedUsers = await getSuggestedProfiles(profile.profileId, 3)
       }
+
+      suggestedUsers = await getSuggestedProfiles(profile.profileId, 3)
     }
   } catch (err) {
     // Re-throw Next.js redirect/notFound internals so they are not swallowed
@@ -61,17 +62,16 @@ export async function AppLayout({ children, modal }: AppLayoutProps) {
       <NotificationStoreProvider>
         <NotificationToast />
         <MessageNotificationToast />
-        <div className='flex h-dvh'>
-          <div className='flex min-w-0 flex-1'>
-            <div className='mx-auto flex w-full max-w-[1400px]'>
-              <NavBar />
-              <main className='min-w-0 flex-1 overflow-y-hidden border-x pb-15 lg:pb-0'>
-                {children}
-              </main>
-              <RightSidebarConditional suggestedUsers={suggestedUsers} />
+        <div className='h-dvh overflow-y-auto' data-scroll-root>
+          <div className='flex'>
+            <div className='flex min-w-0 flex-1'>
+              <div className='mx-auto flex w-full max-w-[1400px]'>
+                <NavBar />
+                <main className='min-w-0 flex-1 border-x pb-15 lg:pb-0'>{children}</main>
+                <RightSidebarConditional suggestedUsers={suggestedUsers} />
+              </div>
             </div>
           </div>
-          {modal}
         </div>
       </NotificationStoreProvider>
     </UserStoreProvider>

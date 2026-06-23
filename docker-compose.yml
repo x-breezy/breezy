@@ -16,12 +16,12 @@ services:
       MESSAGE_UPSTREAM: host.docker.internal:4030
       WEB_UPSTREAM: host.docker.internal:3000
       SWAGGER_UPSTREAM: swagger-ui:8080
-      KIBANA_UPSTREAM: kibana:5601
+      KIBANA_UPSTREAM: 127.0.0.1:5601
       RABBITMQ_UPSTREAM: rabbitmq:15672
       CORS_ORIGIN_1: http://localhost:3000
-      CORS_ORIGIN_2: http://localhost:3000
-      LOGS_DOMAIN: ""
-      MQ_DOMAIN: ""
+      CORS_ORIGIN_2: http://localhost:3001
+      LOGS_DOMAIN: logs.localhost
+      MQ_DOMAIN: mq.localhost
     networks:
       - breezy
 
@@ -233,6 +233,7 @@ volumes:
   swagger-ui:
   postgres-user-service-data:
   postgres-profile-service-data:
+  postgres-message-service-data:
   # sonarqube-data:
   # sonarqube-logs:
   # postgres-sonar-data:

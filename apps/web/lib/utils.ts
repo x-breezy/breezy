@@ -11,7 +11,7 @@ export function mediaUrl(path: string): string {
 }
 
 export function timeAgo(dateStr: string): string {
-  const diff = Date.now() - new Date(dateStr).getTime()
+  const diff = Math.max(0, Date.now() - new Date(dateStr).getTime())
   const s = Math.floor(diff / 1000)
   if (s < 60) return `${s}s`
   const m = Math.floor(s / 60)

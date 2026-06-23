@@ -1,4 +1,5 @@
 import request from "supertest"
+import { verifyJwt } from "../../utils/jwt"
 import { createApp } from "../../app"
 import { MessageModel } from "../../models/message.model"
 import { ConversationModel } from "../../models/conversation.model"
@@ -22,6 +23,9 @@ jest.mock("../../models/conversation.model", () => ({
   },
 }))
 
+jest.mock("../../utils/jwt")
+const mockVerifyJwt = verifyJwt as jest.MockedFunction<typeof verifyJwt>
+
 const mockedMessage = jest.mocked(MessageModel)
 const mockConversationFindOne = jest.mocked(ConversationModel.findOne)
 const mockConversationFindByIdAndUpdate = jest.mocked(ConversationModel.findByIdAndUpdate)
@@ -33,13 +37,14 @@ const CONVERSATION_ID = "64f1a2b3c4d5e6f7a8b9c0d1"
 describe("Message API", () => {
   beforeEach(() => {
     jest.clearAllMocks()
+    mockVerifyJwt.mockReturnValue({ sub: USER1_UUID, role: "user" })
   })
 
   describe("POST /conversations", () => {
     it("returns 400 if user messages themselves", async () => {
       const res = await request(app)
         .post("/conversations")
-        .set("x-user-id", USER1_UUID)
+        .set("Authorization", "Bearer fake-token")
         .send({ recipientId: USER1_UUID })
       expect(res.status).toBe(400)
     })
@@ -52,7 +57,7 @@ describe("Message API", () => {
 
       const res = await request(app)
         .post("/conversations")
-        .set("x-user-id", USER1_UUID)
+        .set("Authorization", "Bearer fake-token")
         .send({ recipientId: USER2_UUID })
 
       expect(res.status).toBe(200)
@@ -71,7 +76,7 @@ describe("Message API", () => {
 
       const res = await request(app)
         .post(`/conversations/${CONVERSATION_ID}/messages`)
-        .set("x-user-id", USER1_UUID)
+        .set("Authorization", "Bearer fake-token")
         .send({ content: "hello" })
 
       expect(res.status).toBe(201)

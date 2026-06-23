@@ -122,8 +122,6 @@ class AuthController {
         res.status(403).json({ success: false, message: "User is banned", code: "USER_BANNED" })
         return
       }
-      res.set("X-User-Id", payload.sub)
-      res.set("X-Roles", payload.role)
       res.status(200).json({ success: true })
     } catch {
       res.status(401).json({ success: false, message: "Invalid or expired token" })

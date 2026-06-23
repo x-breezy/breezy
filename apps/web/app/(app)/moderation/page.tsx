@@ -8,7 +8,6 @@ import {
   type SanctionedUser,
 } from "@/lib/actions/users"
 import { ModerationClient } from "@/components/moderation/moderation-client"
-import { ScrollArea } from "@/components/ui/scroll-area"
 import * as authService from "@/lib/services/auth-service"
 import type { PaginatedReports, EnrichedReport } from "@/types/report"
 import type { User } from "@/types/user"
@@ -121,17 +120,15 @@ export default async function ModerationPage({ searchParams }: Props) {
   }))
 
   return (
-    <ScrollArea className='h-full'>
-      <ModerationClient
-        initialReports={enriched}
-        total={data.total}
-        pendingCount={pendingCount}
-        sanctioned={sanctioned}
-        allUsers={allUsers}
-        allUsersTotal={allUsersTotal}
-        allUsersPage={allUsersPage}
-        allUsersLimit={allUsersLimit}
-      />
-    </ScrollArea>
+    <ModerationClient
+      initialReports={enriched}
+      total={data.total}
+      pendingCount={pendingCount}
+      sanctioned={sanctioned}
+      allUsers={allUsers}
+      allUsersTotal={allUsersTotal}
+      allUsersPage={allUsersPage}
+      allUsersLimit={allUsersLimit}
+    />
   )
 }

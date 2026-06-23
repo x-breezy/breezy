@@ -10,8 +10,6 @@ import {
   groupByTimeFrame,
   type NotificationView,
 } from "@/lib/notifications/group"
-import { ScrollArea } from "@/components/ui/scroll-area"
-
 function viewKey(view: NotificationView): string {
   if (view.kind === "like") return `like-${view.postId}`
   return view.ids[0] as string
@@ -40,41 +38,41 @@ export default function NotificationsPage() {
 
   if (loading) {
     return (
-      <ScrollArea className='h-full'>
+      <>
         <NotificationsHeader />
         <div className='flex items-center justify-center py-12 text-sm text-muted-foreground'>
           {t("loading")}
         </div>
-      </ScrollArea>
+      </>
     )
   }
 
   if (error) {
     return (
-      <ScrollArea className='h-full'>
+      <>
         <NotificationsHeader />
         <div className='flex items-center justify-center py-12 text-sm text-muted-foreground'>
           {error}
         </div>
-      </ScrollArea>
+      </>
     )
   }
 
   if (views.length === 0) {
     return (
-      <ScrollArea className='h-full'>
+      <>
         <NotificationsHeader />
         <div className='flex items-center justify-center py-12 text-sm text-muted-foreground'>
           {t("noNotifications")}
         </div>
-      </ScrollArea>
+      </>
     )
   }
 
   const groups = groupByTimeFrame(views)
 
   return (
-    <ScrollArea className='h-full'>
+    <>
       <NotificationsHeader />
       <ul className='container-center px-6'>
         {groups.map(({ label, views: groupViews }) => (
@@ -99,6 +97,6 @@ export default function NotificationsPage() {
           </li>
         ))}
       </ul>
-    </ScrollArea>
+    </>
   )
 }
