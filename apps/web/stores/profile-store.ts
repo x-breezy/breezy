@@ -38,7 +38,7 @@ export const useProfileStore = create<ProfileStoreState>((set, get) => ({
     if (cached) return cached
     if (_inFlight.has(username)) return _inFlight.get(username)!
 
-    const promise = getProfileByUsernameAction(username)
+    const promise: Promise<Profile | null> = getProfileByUsernameAction(username)
       .then((profile) => {
         if (profile) {
           set((s) => ({
@@ -49,13 +49,6 @@ export const useProfileStore = create<ProfileStoreState>((set, get) => ({
           set((s) => ({ loading: { ...s.loading, [username]: false } }))
         }
         return profile
-      })
-      .catch((e) => {
-        set((s) => ({
-          error: (e as Error).message,
-          loading: { ...s.loading, [username]: false },
-        }))
-        return null
       })
       .finally(() => {
         _inFlight.delete(username)

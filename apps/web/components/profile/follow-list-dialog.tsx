@@ -9,6 +9,7 @@ import { PageHeader, PageHeaderContent } from "@/components/layout/page-header"
 import { PersonCard } from "@/components/search/person-card"
 import { useIsMobile } from "@/hooks/use-is-mobile"
 import { useUserStore } from "@/stores/user-store"
+import { useProfileStore } from "@/stores/profile-store"
 import { followUserAction, unfollowUserAction } from "@/lib/actions/follow"
 import { useFollowList, type FollowType } from "./use-follow-list"
 
@@ -72,17 +73,33 @@ function FollowListBody({
   const following = useUserStore((s) => s.following)
   const setRelation = useUserStore((s) => s.setRelation)
   const currentUserId = useUserStore((s) => s.profile?.profileId)
+  const profileFollow = useProfileStore((s) => s.follow)
+  const profileUnfollow = useProfileStore((s) => s.unfollow)
 
   const { profiles, total, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, error } =
     useFollowList(profileId, type, open)
 
   const handleFollow = useCallback(
     async (id: string, follow: boolean) => {
-      if (follow) await followUserAction(id)
-      else await unfollowUserAction(id)
-      setRelation(id, follow)
+      const p = profiles.find((p) => p.profileId === id)
+      const username = p?.username
+      if (follow) {
+        if (username) {
+          await profileFollow(id, username)
+        } else {
+          await followUserAction(id)
+        }
+        setRelation(id, true)
+      } else {
+        if (username) {
+          await profileUnfollow(id, username)
+        } else {
+          await unfollowUserAction(id)
+        }
+        setRelation(id, false)
+      }
     },
-    [setRelation]
+    [profiles, profileFollow, profileUnfollow, setRelation]
   )
 
   useEffect(() => {

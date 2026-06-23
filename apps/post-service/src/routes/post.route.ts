@@ -2,7 +2,7 @@ import { Router, type Request, type Response, type NextFunction } from "express"
 import { PostController } from "../controllers/post.controller"
 import { PostService } from "../services/post.service"
 import { identity } from "../middlewares/identity.middleware"
-import { requireOwnership, requireSelfOrPermission } from "../middlewares/roles.middleware"
+import { requireOwnership, requirePermission } from "../middlewares/roles.middleware"
 import { validate } from "../middlewares/validate.middleware"
 import { createPostSchema, updatePostSchema } from "../schemas/post.schema"
 import { readLimit, writeLimit, searchLimit } from "../middlewares/rate-limit.middleware"
@@ -52,7 +52,7 @@ export function createPostRouter(
     "/users/:userId",
     identity,
     readLimit,
-    requireSelfOrPermission("userId", PERMISSIONS.POST_READ_ANY),
+    requirePermission(PERMISSIONS.POST_READ),
     controller.getUserPosts
   )
   router.get("/:id/detail", identity, readLimit, controller.getDetail)
@@ -189,7 +189,6 @@ export function createPostRouter(
  *     summary: Posts by user
  *     description: >
  *       Returns paginated posts authored by the given userId, newest first.
- *       Users may only access their own profile; moderators and admins may access any.
  *     tags: [Posts]
  *     parameters:
  *       - in: path

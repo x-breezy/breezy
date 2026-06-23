@@ -12,7 +12,7 @@ export function NavItem({
   isActive,
   showLabel = false,
   iconClassName = "size-6",
-  hasBadge = false,
+  badgeCount = 0,
 }: NavItemProps) {
   return (
     <Link
@@ -27,10 +27,9 @@ export function NavItem({
     >
       <div className='relative inline-flex items-center justify-center'>
         <Icon active={isActive} className={iconClassName} />
-        {hasBadge && (
-          <span className='absolute -top-1 -right-1 flex h-2.5 w-2.5'>
-            <span className='absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75'></span>
-            <span className='relative inline-flex h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-background'></span>
+        {badgeCount > 0 && (
+          <span className='absolute -top-1.5 -right-1.5 flex min-w-[18px] items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold leading-5 text-primary-foreground ring-2 ring-background'>
+            {badgeCount > 9 ? "9+" : badgeCount}
           </span>
         )}
       </div>

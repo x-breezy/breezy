@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useTranslations } from "next-intl"
 import { useQueryClient } from "@tanstack/react-query"
 import { IconDots, IconShare, IconFlag, IconPencil, IconTrash } from "@tabler/icons-react"
 import {
@@ -40,6 +41,7 @@ export function PostMenu({
   onDeleted,
   onEdited,
 }: PostMenuProps) {
+  const t = useTranslations("postMenu")
   const queryClient = useQueryClient()
   const currentProfileId = useUserStore((s) => s.profile?.profileId)
   const currentUserRole = useUserStore((s) => s.user?.role)
@@ -102,7 +104,7 @@ export function PostMenu({
             <Button
               variant='ghost'
               size='icon-xs'
-              aria-label='More options'
+              aria-label={t("moreOptions")}
               className='-mr-1 text-muted-foreground transition hover:text-foreground'
               onClick={(e) => e.stopPropagation()}
             >
@@ -116,7 +118,7 @@ export function PostMenu({
             className='px-3 py-2.5 text-base md:px-2 md:py-1.5 md:text-sm'
           >
             <IconShare />
-            Share
+            {t("share")}
           </DropdownMenuItem>
           {isOwner && (
             <>
@@ -126,7 +128,7 @@ export function PostMenu({
                 className='px-3 py-2.5 text-base md:px-2 md:py-1.5 md:text-sm'
               >
                 <IconPencil />
-                Edit
+                {t("edit")}
               </DropdownMenuItem>
               <DropdownMenuItem
                 variant='destructive'
@@ -134,7 +136,7 @@ export function PostMenu({
                 className='px-3 py-2.5 text-base md:px-2 md:py-1.5 md:text-sm'
               >
                 <IconTrash />
-                Delete
+                {t("delete")}
               </DropdownMenuItem>
             </>
           )}
@@ -148,7 +150,7 @@ export function PostMenu({
                   className='px-3 py-2.5 text-base md:px-2 md:py-1.5 md:text-sm'
                 >
                   <IconTrash />
-                  Delete (mod)
+                  {t("delete")}
                 </DropdownMenuItem>
               )}
               <DropdownMenuItem
@@ -157,7 +159,7 @@ export function PostMenu({
                 className='px-3 py-2.5 text-base md:px-2 md:py-1.5 md:text-sm'
               >
                 <IconFlag />
-                Report
+                {t("report")}
               </DropdownMenuItem>
             </>
           )}
@@ -170,7 +172,7 @@ export function PostMenu({
           initialMedia={media}
           onSubmit={handleEditSubmit}
           onDismiss={() => setEditOpen(false)}
-          postLabel='Save'
+          postLabel={t("save")}
         />
       )}
 
@@ -181,21 +183,21 @@ export function PostMenu({
             <div className='flex flex-col gap-5'>
               <div className='flex flex-col gap-1'>
                 <DialogPrimitive.Title className='font-heading text-base font-medium'>
-                  Delete post?
+                  {t("deletePostTitle")}
                 </DialogPrimitive.Title>
                 <DialogPrimitive.Description className='text-sm text-muted-foreground'>
-                  This cannot be undone.
+                  {t("deletePostDescription")}
                 </DialogPrimitive.Description>
               </div>
               <div className='flex justify-center gap-2'>
                 <DialogPrimitive.Close
                   render={<Button size='lg' className='w-1/2' variant='secondary' />}
                 >
-                  Cancel
+                  {t("cancel")}
                 </DialogPrimitive.Close>
                 <Button variant='destructive' className='w-1/2' size='lg' onClick={handleDelete}>
                   <IconTrash />
-                  Delete
+                  {t("delete")}
                 </Button>
               </div>
             </div>
@@ -210,23 +212,23 @@ export function PostMenu({
             <div className='flex flex-col gap-5'>
               <div className='flex flex-col gap-1'>
                 <DialogPrimitive.Title className='font-heading text-base font-medium'>
-                  Report this post?
+                  {t("reportPostTitle")}
                 </DialogPrimitive.Title>
                 <DialogPrimitive.Description className='text-sm text-muted-foreground'>
-                  Describe why you are reporting this post.
+                  {t("reportPostDescription")}
                 </DialogPrimitive.Description>
               </div>
               <Textarea
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
-                placeholder='Reason...'
+                placeholder={t("reasonPlaceholder")}
               />
               <div className='flex justify-center gap-2'>
                 <DialogPrimitive.Close
                   render={<Button size='lg' className='w-1/2' variant='secondary' />}
                   onClick={() => setReason("")}
                 >
-                  Cancel
+                  {t("cancel")}
                 </DialogPrimitive.Close>
                 <Button
                   variant='destructive'
@@ -236,7 +238,7 @@ export function PostMenu({
                   disabled={!reason.trim()}
                 >
                   <IconFlag />
-                  Report
+                  {t("report")}
                 </Button>
               </div>
             </div>

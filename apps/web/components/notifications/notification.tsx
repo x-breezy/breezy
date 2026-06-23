@@ -14,8 +14,8 @@ import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import type { Notification } from "@/types/notification"
 import type { NotificationView } from "@/lib/notifications/group"
-import { followUserAction, unfollowUserAction } from "@/lib/actions/follow"
 import { useUserStore } from "@/stores/user-store"
+import { useProfileStore } from "@/stores/profile-store"
 import { ProfileAvatar } from "../profile/profile-avatar"
 import { UnfollowDialog } from "@/components/shared/unfollow-dialog"
 
@@ -103,6 +103,8 @@ export function NotificationCard({ view, highlight, className }: CardProps) {
   const actorId = view.kind === "follow" ? view.actor.id : ""
   const followed = useUserStore((s) => s.following[actorId] ?? false)
   const setRelation = useUserStore((s) => s.setRelation)
+  const profileFollow = useProfileStore((s) => s.follow)
+  const profileUnfollow = useProfileStore((s) => s.unfollow)
   const [isPending, startTransition] = useTransition()
   const t = useTranslations("notifications")
 
@@ -125,7 +127,7 @@ export function NotificationCard({ view, highlight, className }: CardProps) {
     e.stopPropagation()
     startTransition(async () => {
       try {
-        await followUserAction(actorId)
+        await profileFollow(actorId, primaryActor.username)
         setRelation(actorId, true)
       } catch {
         // no-op
@@ -136,7 +138,7 @@ export function NotificationCard({ view, highlight, className }: CardProps) {
   function handleUnfollow() {
     startTransition(async () => {
       try {
-        await unfollowUserAction(actorId)
+        await profileUnfollow(actorId, primaryActor.username)
         setRelation(actorId, false)
       } catch {
         // no-op

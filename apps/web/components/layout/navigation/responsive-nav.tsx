@@ -11,12 +11,12 @@ import { useUnreadMessages } from "@/hooks/use-unread-messages"
 import { ModerationIcon } from "./icons/moderation-icon"
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function getNavItems(t: any, hasUnreadMessages: boolean): NavItemData[] {
+function getNavItems(t: any, unreadCount: number): NavItemData[] {
   return [
     { href: "/", icon: HomeIcon, label: t("home") },
     { href: "/search", icon: SearchIcon, label: t("search") },
     { href: "/grod", icon: GrodIcon, label: t("grod") },
-    { href: "/messages", icon: SendIcon, label: t("messages"), hasBadge: hasUnreadMessages },
+    { href: "/messages", icon: SendIcon, label: t("messages"), badgeCount: unreadCount },
   ]
 }
 
@@ -38,8 +38,8 @@ export function ResponsiveNav() {
   const isProfileActive = pathname === `/profile/${profile?.username}`
   const isConversationPage = pathname.startsWith("/messages/")
 
-  const hasUnreadMessages = useUnreadMessages()
-  const navItems = getNavItems(t, hasUnreadMessages)
+  const unreadCount = useUnreadMessages()
+  const navItems = getNavItems(t, unreadCount)
   const isModerator = user?.role === "moderator" || user?.role === "admin"
 
   return (
@@ -49,7 +49,7 @@ export function ResponsiveNav() {
         className={`${isConversationPage ? "hidden" : "grid lg:hidden"} fixed right-0 bottom-0 left-0 z-50 grid h-15 border-t bg-background pb-[env(safe-area-inset-bottom)]`}
         style={{ gridTemplateColumns: `repeat(${isModerator ? 6 : 5}, 1fr)` }}
       >
-        {navItems.map(({ href, icon, label, hasBadge }) => (
+        {navItems.map(({ href, icon, label, badgeCount }) => (
           <NavItem
             key={href}
             href={href}
@@ -58,7 +58,7 @@ export function ResponsiveNav() {
             isActive={pathname === href}
             showLabel={false}
             iconClassName='block size-6'
-            hasBadge={hasBadge}
+            badgeCount={badgeCount}
           />
         ))}
         {isModerator && (
@@ -89,7 +89,7 @@ export function ResponsiveNav() {
           </Link>
         </div>
         <nav className='flex flex-1 flex-col gap-2 pr-2'>
-          {navItems.map(({ href, icon, label, hasBadge }) => (
+          {navItems.map(({ href, icon, label, badgeCount }) => (
             <NavItem
               key={href}
               href={href}
@@ -98,7 +98,7 @@ export function ResponsiveNav() {
               isActive={pathname === href}
               showLabel={true}
               iconClassName='block size-7'
-              hasBadge={hasBadge}
+              badgeCount={badgeCount}
             />
           ))}
           {isModerator && (

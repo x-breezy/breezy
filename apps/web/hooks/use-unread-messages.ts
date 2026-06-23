@@ -10,7 +10,9 @@ export function useUnreadMessages() {
   const { socket } = useSocket(profileId)
 
   const fetchConversations = useConversationStore((s) => s.fetchConversations)
-  const hasUnread = useConversationStore((s) => s.conversations.some((c) => c.hasUnread))
+  const totalUnread = useConversationStore((s) =>
+    s.conversations.reduce((acc, c) => acc + (c.unreadCount || 0), 0)
+  )
 
   // Populate store when not on /messages (layout handles it there).
   // Read state imperatively — depending reactively on conversations.length would re-trigger
@@ -37,5 +39,5 @@ export function useUnreadMessages() {
     }
   }, [socket, pathname, fetchConversations])
 
-  return hasUnread
+  return totalUnread
 }

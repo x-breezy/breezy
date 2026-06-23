@@ -150,6 +150,28 @@
     "nameMaxLength": "Name must be at most 100 characters",
     "nameInvalidChars": "Name can only contain letters, numbers, spaces, apostrophes, hyphens, and periods"
   },
+  "postMenu": {
+    "share": "Share",
+    "edit": "Edit",
+    "delete": "Delete",
+    "report": "Report",
+    "moreOptions": "More options",
+    "save": "Save",
+    "deletePostTitle": "Delete post?",
+    "deletePostDescription": "This cannot be undone.",
+    "cancel": "Cancel",
+    "reportPostTitle": "Report this post?",
+    "reportPostDescription": "Describe why you are reporting this post.",
+    "reasonPlaceholder": "Reason..."
+  },
+  "profileInfo": {
+    "share": "Share",
+    "report": "Report",
+    "reportProfileTitle": "Report @{username}?",
+    "reportProfileDescription": "Describe why you are reporting this account.",
+    "cancel": "Cancel",
+    "reasonPlaceholder": "Reason..."
+  },
   "notifications": {
     "title": "Notifications",
     "loading": "Loading...",

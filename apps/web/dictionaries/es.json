@@ -150,6 +150,28 @@
     "nameMaxLength": "El nombre debe tener como máximo 100 caracteres",
     "nameInvalidChars": "El nombre solo puede contener letras, números, espacios, apóstrofos, guiones y puntos"
   },
+  "postMenu": {
+    "share": "Compartir",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "report": "Reportar",
+    "moreOptions": "Más opciones",
+    "save": "Guardar",
+    "deletePostTitle": "¿Eliminar publicación?",
+    "deletePostDescription": "Esto no se puede deshacer.",
+    "cancel": "Cancelar",
+    "reportPostTitle": "¿Reportar esta publicación?",
+    "reportPostDescription": "Describe por qué reportas esta publicación.",
+    "reasonPlaceholder": "Motivo..."
+  },
+  "profileInfo": {
+    "share": "Compartir",
+    "report": "Reportar",
+    "reportProfileTitle": "¿Reportar a @{username}?",
+    "reportProfileDescription": "Describe por qué reportas esta cuenta.",
+    "cancel": "Cancelar",
+    "reasonPlaceholder": "Motivo..."
+  },
   "notifications": {
     "title": "Notificaciones",
     "loading": "Cargando...",
