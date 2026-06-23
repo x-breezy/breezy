@@ -529,6 +529,8 @@ services:
       RABBITMQ_UPSTREAM: rabbitmq:15672
       JAEGER_UPSTREAM: jaeger:16686
       TRACING_DOMAIN: tracing.breezy.clementomnes.dev
+      GRAFANA_UPSTREAM: grafana:3000
+      GRAFANA_DOMAIN: grafana.breezy.clementomnes.dev
       CORS_ORIGIN_1: https://breezy.clementomnes.dev
       CORS_ORIGIN_2: http://localhost:3000
       LOGS_DOMAIN: logs.breezy.clementomnes.dev
@@ -558,6 +560,8 @@ services:
         condition: service_healthy
       jaeger:
         condition: service_started
+      grafana:
+        condition: service_started
     networks:
       - gateway-net
       - dokploy-network
@@ -582,7 +586,6 @@ services:
     image: prom/prometheus:v2.55.1
     container_name: breezy-prometheus
     restart: unless-stopped
-    profiles: ["metrics", "observability"]
     mem_limit: 512m
     command:
       - --config.file=/etc/prometheus/prometheus.yml
@@ -600,7 +603,6 @@ services:
     image: grafana/grafana:11.3.0
     container_name: breezy-grafana
     restart: unless-stopped
-    profiles: ["metrics", "observability"]
     mem_limit: 256m
     environment:
       GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
