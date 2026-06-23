@@ -572,5 +572,6 @@ volumes:
   mongo-message-service-data:
   postgres-user-service-data:
   postgres-profile-service-data:
+  postgres-message-service-data:
   elasticsearch-data:
   shared-logs:

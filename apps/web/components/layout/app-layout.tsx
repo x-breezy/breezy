@@ -27,28 +27,30 @@ export async function AppLayout({ children, modal }: AppLayoutProps) {
   try {
     const userId = await getUserId()
 
-    if (userId) {
-      const authHeader = await getServerAuthHeader()
-      const [res, meRes] = await Promise.all([getProfile(userId, authHeader), getMe(authHeader)])
-      if (res.status === 200) profile = res.data.data as Profile
-      if (meRes.status === 200) user = meRes.data.data as User
+    if (!userId) {
+      redirect("/sign-in")
+    }
 
-      if (user?.isBanned) {
-        await clearSessionCookies()
-        redirect("/sign-in?reason=banned")
-      }
+    const authHeader = await getServerAuthHeader()
+    const [res, meRes] = await Promise.all([getProfile(userId, authHeader), getMe(authHeader)])
+    if (res.status === 200) profile = res.data.data as Profile
+    if (meRes.status === 200) user = meRes.data.data as User
 
-      if (profile) {
-        const relRes = await getFollowing(profile.profileId, authHeader)
+    if (user?.isBanned) {
+      await clearSessionCookies()
+      redirect("/sign-in?reason=banned")
+    }
 
-        if (relRes.status === 200) {
-          for (const id of relRes.data.data.following) {
-            following[id] = true
-          }
+    if (profile) {
+      const relRes = await getFollowing(profile.profileId, authHeader)
+
+      if (relRes.status === 200) {
+        for (const id of relRes.data.data.following) {
+          following[id] = true
         }
-
-        suggestedUsers = await getSuggestedProfiles(profile.profileId, 3)
       }
+
+      suggestedUsers = await getSuggestedProfiles(profile.profileId, 3)
     }
   } catch (err) {
     // Re-throw Next.js redirect/notFound internals so they are not swallowed
