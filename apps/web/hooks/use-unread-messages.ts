@@ -35,7 +35,7 @@ export function useUnreadMessages() {
     return () => {
       socket.off("message:new", handle)
     }
-  }, [socket, pathname])
+  }, [socket, pathname, fetchConversations])
 
   return hasUnread
 }

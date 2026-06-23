@@ -25,12 +25,12 @@ export function NavItem({
       )}
       aria-current={isActive ? "page" : undefined}
     >
-      <div className="relative inline-flex items-center justify-center">
+      <div className='relative inline-flex items-center justify-center'>
         <Icon active={isActive} className={iconClassName} />
         {hasBadge && (
-          <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75"></span>
-            <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-background"></span>
+          <span className='absolute -top-1 -right-1 flex h-2.5 w-2.5'>
+            <span className='absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75'></span>
+            <span className='relative inline-flex h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-background'></span>
           </span>
         )}
       </div>

@@ -22,24 +22,25 @@ function MemberRow({
   currentUserId: string | undefined
 }) {
   const t = useTranslations("messages")
+  const cachedUsers = useUserCache((s) => s.users)
+  const cached = cachedUsers[userId]
+  const cachedParts = cached?.displayName.split(" @")
   const [info, setInfo] = useState<{
     name: string
     username: string | null
     avatarUrl?: string
-  } | null>(null)
-  const cachedUsers = useUserCache((s) => s.users)
+  } | null>(
+    cached
+      ? {
+          name: cachedParts![0] || cached.displayName,
+          username: cachedParts![1] || null,
+          avatarUrl: cached.avatarUrl,
+        }
+      : null
+  )
 
   useEffect(() => {
-    const cached = cachedUsers[userId]
-    if (cached) {
-      const parts = cached.displayName.split(" @")
-      setInfo({
-        name: parts[0] || cached.displayName,
-        username: parts[1] || null,
-        avatarUrl: cached.avatarUrl,
-      })
-      return
-    }
+    if (cached) return
     const fetchInfo = async () => {
       let username: string | null = null
       let firstName: string | null = null
@@ -48,18 +49,22 @@ function MemberRow({
       try {
         const user = await getUserById(userId)
         username = user.username
-      } catch {}
+      } catch {
+        /* noop */
+      }
       try {
         const profile = await getProfileById(userId)
         firstName = profile.firstName
         lastName = profile.lastName
         if (profile.avatarId) avatarUrl = profile.avatarId
-      } catch {}
+      } catch {
+        /* noop */
+      }
       const name = [firstName, lastName].filter(Boolean).join(" ") || username || t("someone")
       setInfo({ name, username, avatarUrl })
     }
     fetchInfo()
-  }, [userId, cachedUsers])
+  }, [userId, cached, t])
 
   const isYou = userId === currentUserId
 
@@ -116,10 +121,6 @@ export function ConversationDetailsDialog({
   const [deleteOpen, setDeleteOpen] = useState(false)
   const renameConversation = useConversationStore((s) => s.renameConversation)
   const deleteConversation = useConversationStore((s) => s.deleteConversation)
-
-  useEffect(() => {
-    setGroupName(name || "")
-  }, [name])
 
   const handleRename = async () => {
     if (!groupName.trim() || groupName === name || renaming) return

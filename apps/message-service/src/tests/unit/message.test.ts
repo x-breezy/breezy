@@ -1,13 +1,8 @@
-import ChatService from "../../services/message.service"
-import { ConversationModel, MessageModel } from "../../models/message.model"
+import MessageService from "../../services/message.service"
+import { MessageModel } from "../../models/message.model"
+import { ConversationModel } from "../../models/conversation.model"
 
 jest.mock("../../models/message.model", () => ({
-  ConversationModel: {
-    findOne: jest.fn(),
-    create: jest.fn(),
-    find: jest.fn(),
-    findByIdAndUpdate: jest.fn(),
-  },
   MessageModel: {
     create: jest.fn(),
     find: jest.fn(),
@@ -17,65 +12,39 @@ jest.mock("../../models/message.model", () => ({
   },
 }))
 
-const mockedConversation = ConversationModel as jest.Mocked<typeof ConversationModel>
-const mockedMessage = MessageModel as jest.Mocked<typeof MessageModel>
+jest.mock("../../models/conversation.model", () => ({
+  ConversationModel: {
+    findByIdAndUpdate: jest.fn(),
+  },
+}))
+
+jest.mock("../../config/websocket", () => ({
+  getIO: () => ({
+    to: jest.fn().mockReturnThis(),
+    emit: jest.fn(),
+  }),
+}))
+
+const mockedMessage = jest.mocked(MessageModel)
+const mockFindByIdAndUpdate = jest.mocked(ConversationModel.findByIdAndUpdate)
 
 const USER1_UUID = "11111111-1111-1111-1111-111111111111"
-const USER2_UUID = "22222222-2222-2222-2222-222222222222"
 const CONV_ID = "conv123"
 
-describe("ChatService", () => {
-  let service: ChatService
+describe("MessageService", () => {
+  let service: MessageService
 
   beforeEach(() => {
     jest.clearAllMocks()
-    service = new ChatService()
-  })
-
-  describe("getOrCreateConversation", () => {
-    it("returns existing conversation if found", async () => {
-      const mockConv = { id: CONV_ID }
-      ;(mockedConversation.findOne as jest.Mock).mockReturnValue({
-        exec: jest.fn().mockResolvedValue(mockConv),
-      })
-
-      const result = await service.getOrCreateConversation(USER1_UUID, USER2_UUID)
-      expect(result).toEqual(mockConv)
-    })
-
-    it("creates new conversation if not found", async () => {
-      ;(mockedConversation.findOne as jest.Mock).mockReturnValue({
-        exec: jest.fn().mockResolvedValue(null),
-      })
-      const mockConv = { id: CONV_ID }
-      ;(mockedConversation.create as jest.Mock).mockResolvedValue(mockConv)
-
-      const result = await service.getOrCreateConversation(USER1_UUID, USER2_UUID)
-      expect(result).toEqual(mockConv)
-      expect(mockedConversation.create).toHaveBeenCalled()
-    })
-  })
-
-  describe("getConversations", () => {
-    it("returns conversations sorted by lastMessageAt", async () => {
-      const mockQuery = {
-        sort: jest.fn().mockReturnThis(),
-        exec: jest.fn().mockResolvedValue([{ id: CONV_ID }]),
-      }
-      ;(mockedConversation.find as jest.Mock).mockReturnValue(mockQuery)
-
-      const result = await service.getConversations(USER1_UUID)
-      expect(result).toEqual([{ id: CONV_ID }])
-      expect(mockedConversation.find).toHaveBeenCalledWith({ participantIds: USER1_UUID })
-    })
+    service = new MessageService()
   })
 
   describe("sendMessage", () => {
     it("creates a message and updates the conversation", async () => {
       const mockMsg = { id: "msg1", content: "hello" }
       ;(mockedMessage.create as jest.Mock).mockResolvedValue(mockMsg)
-      ;(mockedConversation.findByIdAndUpdate as jest.Mock).mockReturnValue({
-        exec: jest.fn().mockResolvedValue(null),
+      mockFindByIdAndUpdate.mockReturnValue({
+        exec: jest.fn().mockResolvedValue({ participantIds: [USER1_UUID] }),
       })
 
       const result = await service.sendMessage(CONV_ID, USER1_UUID, "hello")
@@ -85,7 +54,7 @@ describe("ChatService", () => {
         senderId: USER1_UUID,
         content: "hello",
       })
-      expect(mockedConversation.findByIdAndUpdate).toHaveBeenCalled()
+      expect(mockFindByIdAndUpdate).toHaveBeenCalled()
     })
   })
 

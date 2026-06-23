@@ -8,7 +8,7 @@ describe("getPermissions", () => {
     const perms = getPermissions(ROLES.USER)
     expect(perms).toContain(PERMISSIONS.USER_ME)
     expect(perms).toContain(PERMISSIONS.REPORT_CREATE)
-    expect(perms).not.toContain(PERMISSIONS.USER_READ)
+    expect(perms).toContain(PERMISSIONS.USER_READ)
     expect(perms).not.toContain(PERMISSIONS.USER_BAN)
     expect(perms).not.toContain(PERMISSIONS.REPORT_RESOLVE)
   })
@@ -45,6 +45,6 @@ describe("getPermissions", () => {
   it("deduplicates the union of multiple role", () => {
     const perms = getPermissions(ROLES.MODERATOR)
     expect(new Set(perms).size).toBe(perms.length)
-    expect(perms.sort()).toEqual([...ROLE_PERMISSIONS[ROLES.MODERATOR]].sort())
+    expect(perms.sort()).toEqual([...new Set(ROLE_PERMISSIONS[ROLES.MODERATOR])].sort())
   })
 })

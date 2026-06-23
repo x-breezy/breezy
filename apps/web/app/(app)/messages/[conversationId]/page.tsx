@@ -19,7 +19,10 @@ export default function ConversationPage({
   const { conversationId } = use(params)
   const t = useTranslations("messages")
   const { currentUserId } = useCurrentUser()
-  const { messages, loading, loadingMore, loadMore, hasMore, sendMessage } = useConversation(conversationId, currentUserId)
+  const { messages, loading, loadingMore, loadMore, hasMore, sendMessage } = useConversation(
+    conversationId,
+    currentUserId
+  )
 
   const [avatarUrl, setAvatarUrl] = useState<string | undefined>(undefined)
   const [otherUserDisplay, setOtherUserDisplay] = useState<string | null>(null)
@@ -92,7 +95,7 @@ export default function ConversationPage({
     }
 
     fetchOtherUser()
-  }, [currentUserId, conversationId, otherUserId, cachedUsers, setUser])
+  }, [currentUserId, conversationId, otherUserId, cachedUsers, setUser, t])
 
   return (
     <div className='flex h-full flex-col'>

@@ -59,7 +59,7 @@ export function MessageNotificationToast() {
     return () => {
       socket.off("message:new", handle)
     }
-  }, [socket, currentUserId, pathname, conversations, cachedUsers])
+  }, [socket, currentUserId, pathname, conversations, cachedUsers, t])
 
   return null
 }

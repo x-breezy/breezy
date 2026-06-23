@@ -49,7 +49,12 @@ function DialogContent({
   return (
     <DialogPortal>
       <DialogOverlay />
-      <div className={cn('fixed inset-0 z-120 flex justify-center overflow-y-auto', centered ? 'items-center' : 'items-start')}>
+      <div
+        className={cn(
+          "fixed inset-0 z-120 flex justify-center overflow-y-auto",
+          centered ? "items-center" : "items-start"
+        )}
+      >
         <DialogPrimitive.Popup
           data-slot='dialog-content'
           className={cn(

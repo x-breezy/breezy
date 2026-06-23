@@ -9,9 +9,7 @@ import {
   addMembersSchema,
 } from "../schemas/message.schema"
 
-export function createChatRouter(
-  controller: ChatController = new ChatController()
-) {
+export function createChatRouter(controller: ChatController = new ChatController()) {
   const router = Router({ mergeParams: true })
 
   router.get("/", identity, controller.getConversations)

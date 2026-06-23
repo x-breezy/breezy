@@ -65,6 +65,7 @@ export function ConversationHeader({
       </header>
 
       <ConversationDetailsDialog
+        key={name}
         open={detailsOpen}
         onOpenChange={setDetailsOpen}
         conversationId={conversationId}

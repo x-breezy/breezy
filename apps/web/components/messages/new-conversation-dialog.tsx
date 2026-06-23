@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useRef, useCallback } from "react"
 import { useRouter } from "next/navigation"
-import { useTranslations } from "next-intl"
 import { IconSearch, IconUsersGroup, IconX, IconLoader2 } from "@tabler/icons-react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
@@ -64,8 +63,9 @@ export function NewConversationDialog({
   conversationId,
   participantIds,
 }: NewConversationDialogProps) {
-  const t = useTranslations("messages")
   const router = useRouter()
+  const openCountRef = useRef(0)
+  const [dialogKey, setDialogKey] = useState(0)
   const [query, setQuery] = useState("")
   const [suggestions, setSuggestions] = useState<SearchProfile[]>([])
   const [suggestionsPage, setSuggestionsPage] = useState(1)
@@ -84,19 +84,14 @@ export function NewConversationDialog({
   const sentinelRef = useRef<HTMLDivElement>(null)
   const isAddMode = !!conversationId
 
-  useEffect(() => {
-    if (!open) {
-      setQuery("")
-      setSearchResults([])
-      setSuggestions([])
-      setSuggestionsPage(1)
-      setSuggestionsTotal(0)
-      setSearchPage(1)
-      setSearchTotal(0)
-      setSelected([])
-      if (!conversationId) setIsGroupMode(false)
+  // Reset state on dialog close via remount key
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (!nextOpen && open) {
+      openCountRef.current += 1
+      setDialogKey((k) => k + 1)
     }
-  }, [open, conversationId])
+    onOpenChange(nextOpen)
+  }
 
   // Load following list as initial suggestions
   useEffect(() => {
@@ -113,14 +108,12 @@ export function NewConversationDialog({
   // Debounced search
   useEffect(() => {
     if (timerRef.current) clearTimeout(timerRef.current)
-    if (!query.trim()) {
+    if (!query.trim()) return
+    timerRef.current = setTimeout(async () => {
+      setSearchLoading(true)
       setSearchResults([])
       setSearchPage(1)
       setSearchTotal(0)
-      return
-    }
-    timerRef.current = setTimeout(async () => {
-      setSearchLoading(true)
       try {
         const res = await searchProfiles(query, 1, PAGE_SIZE)
         setSearchResults(res.profiles.filter((p) => p.username && p.profileId !== currentUserId))
@@ -258,7 +251,7 @@ export function NewConversationDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog key={dialogKey} open={open} onOpenChange={handleOpenChange}>
       <DialogContent
         centered
         className='flex max-h-150 min-h-150 flex-col gap-0 overflow-hidden p-0 sm:max-w-md'

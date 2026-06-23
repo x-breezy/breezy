@@ -22,8 +22,6 @@ export function useConversation(conversationId: string, userId: string | undefin
   useEffect(() => {
     if (!conversationId || !userId) return
 
-    setLoading(true)
-    setPage(1)
     listMessages(conversationId, 1, PAGE_SIZE)
       .then((res) => {
         setMessages([...res.data].reverse())
@@ -53,7 +51,9 @@ export function useConversation(conversationId: string, userId: string | undefin
   useEffect(() => {
     if (!socket || !isConnected) return
 
-    const handleNewMessage = (message: Awaited<ReturnType<typeof listMessages>>["data"][number]) => {
+    const handleNewMessage = (
+      message: Awaited<ReturnType<typeof listMessages>>["data"][number]
+    ) => {
       if (message.conversationId === conversationId) {
         setMessages((prev) => {
           if (prev.some((m) => m._id === message._id)) return prev

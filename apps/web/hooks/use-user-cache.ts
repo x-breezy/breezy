@@ -1,5 +1,5 @@
-import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
+import { create } from "zustand"
+import { persist } from "zustand/middleware"
 
 interface UserCacheState {
   users: Record<string, { displayName: string; avatarUrl?: string }>
@@ -13,7 +13,7 @@ export const useUserCache = create<UserCacheState>()(
       setUser: (id, data) => set((state) => ({ users: { ...state.users, [id]: data } })),
     }),
     {
-      name: 'user-cache-storage',
+      name: "user-cache-storage",
     }
   )
 )

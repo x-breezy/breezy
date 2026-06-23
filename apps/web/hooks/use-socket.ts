@@ -17,8 +17,7 @@ export function useSocket(userId: string | undefined) {
     // - dev:  Next runs on :3000 but the gateway is :80, so same-origin would 404 →
     //         target the gateway origin explicitly.
     // NEXT_PUBLIC_WS_URL overrides both when set (e.g. a dedicated WS domain).
-    const isDevSplitOrigin =
-      typeof window !== "undefined" && window.location.port === "3000"
+    const isDevSplitOrigin = typeof window !== "undefined" && window.location.port === "3000"
     const wsUrl = process.env.NEXT_PUBLIC_WS_URL ?? (isDevSplitOrigin ? "http://localhost" : "")
     const socketInstance = io(wsUrl, {
       auth: { userId },

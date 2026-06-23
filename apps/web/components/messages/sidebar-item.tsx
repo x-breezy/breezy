@@ -23,24 +23,26 @@ export function SidebarItem({ conv, currentUserId, activeId, onDelete }: Sidebar
   const t = useTranslations("messages")
   const otherUserId = conv.participantIds.find((id) => id !== currentUserId) || "Unknown"
   const isActive = conv._id === activeId
-  const [displayName, setDisplayName] = useState<string | null>(null)
   const cachedUsers = useUserCache((state) => state.users)
   const cachedUser = cachedUsers[otherUserId]
   const setUser = useUserCache((state) => state.setUser)
 
+  const initDisplayName = () => {
+    if (conv.isGroup) return conv.name || t("group")
+    if (otherUserId === "Unknown" || !currentUserId) return null
+    if (cachedUser) {
+      const parts = cachedUser.displayName.split(" @")
+      return parts[0] || cachedUser.displayName
+    }
+    return null
+  }
+  const [displayName, setDisplayName] = useState<string | null>(initDisplayName)
+
   const visibleIds = conv.participantIds.filter((id) => id !== currentUserId)
 
   useEffect(() => {
-    if (conv.isGroup) {
-      setDisplayName(conv.name || t("group"))
-      return
-    }
-    if (otherUserId === "Unknown" || !currentUserId) return
-    if (cachedUser) {
-      const parts = cachedUser.displayName.split(" @")
-      setDisplayName(parts[0] || cachedUser.displayName)
-      return
-    }
+    if (conv.isGroup) return
+    if (otherUserId === "Unknown" || !currentUserId || displayName) return
 
     const fetchDetails = async () => {
       let authUsername: string | null = null
@@ -51,14 +53,18 @@ export function SidebarItem({ conv, currentUserId, activeId, onDelete }: Sidebar
       try {
         const user = await getUserById(otherUserId)
         authUsername = user.username
-      } catch {}
+      } catch {
+        /* noop */
+      }
 
       try {
         const profile = await getProfileById(otherUserId)
         firstName = profile.firstName
         lastName = profile.lastName
         if (profile.avatarId) avatarUrl = profile.avatarId
-      } catch {}
+      } catch {
+        /* noop */
+      }
 
       const nameParts = []
       if (firstName) nameParts.push(firstName)
@@ -73,7 +79,7 @@ export function SidebarItem({ conv, currentUserId, activeId, onDelete }: Sidebar
     }
 
     fetchDetails()
-  }, [otherUserId, currentUserId, cachedUser, setUser, conv.isGroup, conv.name, t])
+  }, [otherUserId, currentUserId, cachedUser, setUser, conv.isGroup, displayName, t])
 
   // Fetch profile details for all group participants (for avatars and sender name)
   useEffect(() => {
@@ -106,7 +112,9 @@ export function SidebarItem({ conv, currentUserId, activeId, onDelete }: Sidebar
           } else if (displayName) {
             setUser(id, { displayName, avatarUrl })
           }
-        } catch {}
+        } catch {
+          /* noop */
+        }
       }
     }
 

@@ -20,16 +20,25 @@ export default function MessagesLayout({ children }: { children: React.ReactNode
   useEffect(() => {
     if (!currentUserId) return
     fetchConversations(conversationId)
-  }, [currentUserId])
+  }, [currentUserId, conversationId, fetchConversations])
 
   useEffect(() => {
     if (!socket || !currentUserId) return
 
-    const handleNewMessage = (message: any) => {
+    const handleNewMessage = (message: {
+      conversationId: string
+      senderId: string
+      content: string
+      createdAt?: string
+    }) => {
       updateLastMessage(message, currentUserId, conversationId)
     }
 
-    const handleConversationUpdated = (updatedConv: any) => {
+    const handleConversationUpdated = (updatedConv: {
+      _id: string
+      name?: string
+      isGroup?: boolean
+    }) => {
       updateConversationMeta(updatedConv._id, {
         name: updatedConv.name,
         isGroup: updatedConv.isGroup,
@@ -42,11 +51,11 @@ export default function MessagesLayout({ children }: { children: React.ReactNode
       socket.off("message:new", handleNewMessage)
       socket.off("conversation:updated", handleConversationUpdated)
     }
-  }, [socket, currentUserId, conversationId])
+  }, [socket, currentUserId, conversationId, updateConversationMeta, updateLastMessage])
 
   useEffect(() => {
     if (conversationId) clearUnread(conversationId)
-  }, [conversationId])
+  }, [conversationId, clearUnread])
 
   if (!currentUserId) return null
 

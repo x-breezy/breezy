@@ -1,14 +1,9 @@
 import request from "supertest"
 import { createApp } from "../../app"
-import { MessageModel, ConversationModel } from "../../models/message.model"
+import { MessageModel } from "../../models/message.model"
+import { ConversationModel } from "../../models/conversation.model"
 
 jest.mock("../../models/message.model", () => ({
-  ConversationModel: {
-    findOne: jest.fn(),
-    create: jest.fn(),
-    find: jest.fn(),
-    findByIdAndUpdate: jest.fn(),
-  },
   MessageModel: {
     create: jest.fn(),
     find: jest.fn(),
@@ -18,8 +13,18 @@ jest.mock("../../models/message.model", () => ({
   },
 }))
 
-const mockedConversation = ConversationModel as jest.Mocked<typeof ConversationModel>
-const mockedMessage = MessageModel as jest.Mocked<typeof MessageModel>
+jest.mock("../../models/conversation.model", () => ({
+  ConversationModel: {
+    findOne: jest.fn(),
+    create: jest.fn(),
+    find: jest.fn(),
+    findByIdAndUpdate: jest.fn(),
+  },
+}))
+
+const mockedMessage = jest.mocked(MessageModel)
+const mockConversationFindOne = jest.mocked(ConversationModel.findOne)
+const mockConversationFindByIdAndUpdate = jest.mocked(ConversationModel.findByIdAndUpdate)
 const app = createApp()
 
 const USER1_UUID = "11111111-1111-1111-1111-111111111111"
@@ -43,7 +48,7 @@ describe("Message API", () => {
 
     it("creates or gets a conversation", async () => {
       const mockConv = { id: CONVERSATION_ID, participantIds: [USER1_UUID, USER2_UUID] }
-      ;(mockedConversation.findOne as jest.Mock).mockReturnValue({
+      mockConversationFindOne.mockReturnValue({
         exec: jest.fn().mockResolvedValue(mockConv),
       })
 
@@ -51,7 +56,7 @@ describe("Message API", () => {
         .post("/conversations")
         .set("x-user-id", USER1_UUID)
         .send({ recipientId: USER2_UUID })
-      
+
       expect(res.status).toBe(200)
       expect(res.body.success).toBe(true)
       expect(res.body.data).toEqual(mockConv)
@@ -62,7 +67,7 @@ describe("Message API", () => {
     it("creates a message", async () => {
       const mockMsg = { id: "msg1", content: "hello" }
       ;(mockedMessage.create as jest.Mock).mockResolvedValue(mockMsg)
-      ;(mockedConversation.findByIdAndUpdate as jest.Mock).mockReturnValue({
+      mockConversationFindByIdAndUpdate.mockReturnValue({
         exec: jest.fn().mockResolvedValue({ participantIds: [USER1_UUID, USER2_UUID] }),
       })
 
@@ -70,7 +75,7 @@ describe("Message API", () => {
         .post(`/conversations/${CONVERSATION_ID}/messages`)
         .set("x-user-id", USER1_UUID)
         .send({ content: "hello" })
-      
+
       expect(res.status).toBe(201)
       expect(res.body.data).toEqual(mockMsg)
     })

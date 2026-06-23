@@ -57,11 +57,6 @@ export function Feed({ feedType = "forYou" }: { feedType?: string }) {
   })
 
   useEffect(() => {
-    firstPostIdRef.current = null
-    setHasNewPosts(false)
-  }, [feedType])
-
-  useEffect(() => {
     const latestId = latestCheck?.posts[0]?._id
     if (!latestId) return
     if (!firstPostIdRef.current) {

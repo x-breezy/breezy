@@ -136,12 +136,12 @@ describe("GET /users/:id", () => {
     expect(mockService.getUser).not.toHaveBeenCalled()
   })
 
-  it("returns 403 when caller is user (lacks user:read)", async () => {
+  it("returns 404 when user does not exist (user has user:read permission)", async () => {
     const res = await request(app)
       .get(`/users/${USER_ID}`)
       .set("Authorization", "Bearer fake-token")
-    expect(res.status).toBe(403)
-    expect(mockService.getUser).not.toHaveBeenCalled()
+    expect(res.status).toBe(404)
+    expect(mockService.getUser).toHaveBeenCalledWith(USER_ID)
   })
 
   it("returns 400 when :id is not a UUID", async () => {
@@ -353,7 +353,7 @@ describe("GET /users/search", () => {
       success: true,
       data: expect.objectContaining({ total: 1, page: 1 }),
     })
-    expect(mockService.searchByUsername).toHaveBeenCalledWith("alice", 1, 20)
+    expect(mockService.searchByUsername).toHaveBeenCalledWith("alice", 1, 20, USER_ID)
   })
 
   it("returns 400 when q is missing", async () => {
