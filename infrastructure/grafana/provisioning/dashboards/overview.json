@@ -11,7 +11,7 @@
   "time": { "from": "now-6h", "to": "now" },
   "timepicker": {},
   "title": "Breezy Service Overview",
-  "uid": "breezy-overview",
+  "uid": "breezy-main-overview",
   "version": 1,
   "weekStart": "",
   "panels": [
