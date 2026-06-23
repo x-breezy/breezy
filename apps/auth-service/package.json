@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@breezy/logger": "*",
+    "@breezy/observability": "*",
     "amqplib": "^0.10.4",
     "cors": "^2.8.6",
     "dotenv": "^16.0.3",

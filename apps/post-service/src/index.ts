@@ -1,3 +1,4 @@
+import "@breezy/observability/register"
 import { createLogger, registerProcessHandlers } from "@breezy/logger"
 import { createApp } from "./app"
 import { connect } from "./config/database"

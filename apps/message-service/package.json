@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@breezy/logger": "*",
+    "@breezy/observability": "*",
     "@grpc/grpc-js": "^1.14.4",
     "@grpc/proto-loader": "^0.8.1",
     "@types/swagger-jsdoc": "^6.0.4",

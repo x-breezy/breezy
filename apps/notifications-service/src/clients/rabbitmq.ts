@@ -10,6 +10,8 @@ const DLQ = "notifications.dlq"
 const MAX_RETRY_DELAY = 30000
 const INITIAL_RETRY_DELAY = 1000
 
+let consuming = false
+
 async function connectWithRetry(url: string) {
   let delay = INITIAL_RETRY_DELAY
   for (let attempt = 1; ; attempt++) {
@@ -61,9 +63,11 @@ export async function startConsuming(
       }
     })
 
+    consuming = true
     logger.info("RabbitMQ consumer started")
 
     conn.on("close", async () => {
+      consuming = false
       logger.warn("RabbitMQ connection closed, reconnecting")
       await connectAndConsume()
     })
@@ -74,4 +78,8 @@ export async function startConsuming(
   }
 
   await connectAndConsume()
+}
+
+export function assertRabbitMQReady(): void {
+  if (!consuming) throw new Error("RabbitMQ consumer not started")
 }
