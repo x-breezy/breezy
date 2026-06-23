@@ -233,6 +233,7 @@ volumes:
   swagger-ui:
   postgres-user-service-data:
   postgres-profile-service-data:
+  postgres-message-service-data:
   # sonarqube-data:
   # sonarqube-logs:
   # postgres-sonar-data:
