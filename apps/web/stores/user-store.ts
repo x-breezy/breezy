@@ -28,6 +28,16 @@ export const useUserStore = create<UserState>((set) => ({
   setProfile: (profile) => set({ profile }),
   setUser: (user) => set({ user }),
   setRelation: (profileId, isFollowing) =>
-    set((s) => ({ following: { ...s.following, [profileId]: isFollowing } })),
+    set((s) => {
+      const wasFollowing = s.following[profileId] ?? false
+      const changed = wasFollowing !== isFollowing
+      return {
+        following: { ...s.following, [profileId]: isFollowing },
+        profile:
+          s.profile && changed
+            ? { ...s.profile, followingCount: s.profile.followingCount + (isFollowing ? 1 : -1) }
+            : s.profile,
+      }
+    }),
   clear: () => set({ profile: null, user: null, following: {} }),
 }))

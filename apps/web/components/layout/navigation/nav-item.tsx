@@ -12,6 +12,7 @@ export function NavItem({
   isActive,
   showLabel = false,
   iconClassName = "size-6",
+  badgeCount = 0,
 }: NavItemProps) {
   return (
     <Link
@@ -24,7 +25,15 @@ export function NavItem({
       )}
       aria-current={isActive ? "page" : undefined}
     >
-      <Icon active={isActive} className={iconClassName} />
+      <div className='relative inline-flex items-center justify-center'>
+        <Icon active={isActive} className={iconClassName} />
+        {badgeCount > 0 && (
+          <span className='absolute -top-1.5 -right-1.5 flex min-w-[18px] items-center justify-center rounded-full bg-primary px-1 text-[10px] leading-5 font-bold text-primary-foreground ring-2 ring-background'>
+            {badgeCount > 9 ? "9+" : badgeCount}
+          </span>
+        )}
+      </div>
+
       {showLabel && (
         <span className={cn("text-sm", isActive ? "font-bold" : "font-medium")}>{label}</span>
       )}

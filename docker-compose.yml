@@ -7,6 +7,21 @@ services:
     restart: unless-stopped
     ports:
       - "80:80"
+    environment:
+      AUTH_UPSTREAM: host.docker.internal:4020
+      PROFILE_UPSTREAM: host.docker.internal:4010
+      POST_UPSTREAM: host.docker.internal:4040
+      MEDIA_UPSTREAM: host.docker.internal:4050
+      NOTIFICATIONS_UPSTREAM: host.docker.internal:4060
+      MESSAGE_UPSTREAM: host.docker.internal:4030
+      WEB_UPSTREAM: host.docker.internal:3000
+      SWAGGER_UPSTREAM: swagger-ui:8080
+      KIBANA_UPSTREAM: kibana:5601
+      RABBITMQ_UPSTREAM: rabbitmq:15672
+      CORS_ORIGIN_1: http://localhost:3000
+      CORS_ORIGIN_2: http://localhost:3000
+      LOGS_DOMAIN: ""
+      MQ_DOMAIN: ""
     networks:
       - breezy
 
@@ -140,6 +155,21 @@ services:
       timeout: 5s
       retries: 5
 
+  mongo-message-service:
+    image: mongo:8
+    container_name: breezy-mongo-message-service
+    restart: unless-stopped
+    ports:
+      - "27020:27017"
+    environment:
+      MONGO_INITDB_DATABASE: message_service
+    volumes:
+      - mongo-message-service-data:/data/db
+    networks:
+      - breezy
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
   swagger-ui:
     image: swaggerapi/swagger-ui:latest
     container_name: breezy-swagger-ui
@@ -199,6 +229,8 @@ volumes:
   mongo-post-service-data:
   mongo-media-service-data:
   mongo-notifications-service-data:
+  mongo-message-service-data:
+  swagger-ui:
   postgres-user-service-data:
   postgres-profile-service-data:
   # sonarqube-data:

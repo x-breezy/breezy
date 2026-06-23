@@ -69,12 +69,10 @@ function PostRow({
 function CommentThread({
   comment,
   onReplyCreated,
-  isLastThread,
   postAuthorId,
 }: {
   comment: CommentNode
   onReplyCreated?: () => void
-  isLastThread?: boolean
   postAuthorId?: string
 }) {
   const ownerReplies = comment.replies
@@ -134,12 +132,11 @@ export function CommentTree({
 
   return (
     <div>
-      {comments.map((comment, i) => (
+      {comments.map((comment) => (
         <div key={comment._id} className='border-b border-border last:border-b-0'>
           <CommentThread
             comment={comment}
             onReplyCreated={onReplyCreated}
-            isLastThread={i === comments.length - 1}
             postAuthorId={postAuthorId}
           />
         </div>

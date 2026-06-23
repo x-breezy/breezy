@@ -39,6 +39,31 @@ services:
       timeout: 5s
       retries: 5
 
+    postgres-message-service:
+      image: postgres:16
+      container_name: breezy-postgres-message-service
+      restart: unless-stopped
+      ports:
+        - "5435:5432"
+      environment:
+        POSTGRES_USER: postgres
+        POSTGRES_PASSWORD: postgres
+        POSTGRES_DB: message_service
+        POSTGRES_HOST_AUTH_METHOD: md5
+        POSTGRES_INITDB_ARGS: "--auth-host=md5 --auth-local=md5"
+      volumes:
+        - postgres-message-service-data:/var/lib/postgresql/data
+      networks:
+        - breezy
+      healthcheck:
+        test: ["CMD", "pg_isready", "-U", "postgres"]
+        interval: 10s
+        timeout: 5s
+        retries: 5
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: breezy-rabbitmq
   mongo-post-service:
     image: mongo:8
     container_name: breezy-mongo-post-service
@@ -79,6 +104,22 @@ services:
       MONGO_INITDB_DATABASE: notifications_service
     volumes:
       - mongo-notifications-service-data:/data/db
+    networks:
+      - db-net
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mongo-message-service:
+    image: mongo:8
+    container_name: breezy-mongo-message-service
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_DATABASE: message_service
+    volumes:
+      - mongo-message-service-data:/data/db
     networks:
       - db-net
     healthcheck:
@@ -373,6 +414,42 @@ services:
       - services-net
       - db-net
 
+  message-service:
+    build:
+      context: .
+      dockerfile: apps/message-service/Dockerfile
+    container_name: breezy-message-service
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 4030
+      DATABASE_URL: mongodb://mongo-message-service:27017/message_service
+      RABBITMQ_URL: amqp://${RABBITMQ_USER}:${RABBITMQ_PASS}@rabbitmq:5672
+      PROFILE_SERVICE_GRPC_URL: profile-service:50051
+      FRONTEND_URL: https://${DOMAIN}
+      LOG_LEVEL: info
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "require('net').connect(4030,'127.0.0.1').on('connect',()=>process.exit(0)).on('error',()=>process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    depends_on:
+      mongo-message-service:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - gateway-net
+      - services-net
+      - db-net
+
   web:
     build:
       context: .
@@ -383,7 +460,6 @@ services:
     container_name: breezy-web
     restart: unless-stopped
     environment:
-      # SSR server-side calls go directly to the gateway container
       API_URL: http://gateway
       HOSTNAME: "0.0.0.0"
     healthcheck:
@@ -404,6 +480,7 @@ services:
       - post-service
       - media-service
       - notifications-service
+      - message-service
     networks:
       - gateway-net
 
@@ -423,8 +500,22 @@ services:
       dockerfile: apps/gateway/Dockerfile
     container_name: breezy-gateway
     restart: unless-stopped
+    environment:
+      AUTH_UPSTREAM: auth-service:4020
+      PROFILE_UPSTREAM: profile-service:4010
+      POST_UPSTREAM: post-service:4040
+      MEDIA_UPSTREAM: media-service:4050
+      NOTIFICATIONS_UPSTREAM: notifications-service:4060
+      MESSAGE_UPSTREAM: message-service:4030
+      WEB_UPSTREAM: web:3000
+      SWAGGER_UPSTREAM: swagger-ui:8080
+      KIBANA_UPSTREAM: kibana:5601
+      RABBITMQ_UPSTREAM: rabbitmq:15672
+      CORS_ORIGIN_1: https://breezy.clementomnes.dev
+      CORS_ORIGIN_2: http://localhost:3000
+      LOGS_DOMAIN: logs.breezy.clementomnes.dev
+      MQ_DOMAIN: mq.breezy.clementomnes.dev
     volumes:
-      - ./apps/gateway/nginx.prod.conf:/etc/nginx/nginx.conf:ro
       - /etc/breezy/secrets/.htpasswd-kibana:/etc/nginx/.htpasswd-kibana:ro
     depends_on:
       auth-service:
@@ -436,6 +527,8 @@ services:
       media-service:
         condition: service_healthy
       notifications-service:
+        condition: service_healthy
+      message-service:
         condition: service_healthy
       web:
         condition: service_healthy
@@ -479,6 +572,7 @@ volumes:
   mongo-post-service-data:
   mongo-media-service-data:
   mongo-notifications-service-data:
+  mongo-message-service-data:
   postgres-user-service-data:
   postgres-profile-service-data:
   elasticsearch-data:

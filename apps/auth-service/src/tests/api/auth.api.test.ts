@@ -580,7 +580,7 @@ describe("GET /auth/validate", () => {
 
     expect(res.status).toBe(200)
     expect(res.headers["x-user-id"]).toBe(USER_ID)
-    expect(res.headers["x-role"]).toBe("user")
+    expect(res.headers["x-roles"]).toBe("user")
   })
 
   it("returns 401 when token is missing", async () => {

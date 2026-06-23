@@ -11,7 +11,7 @@ export interface FollowPage {
   limit: number
 }
 
-export async function listFollowers(profileId: string, page = 1, limit = 30): Promise<FollowPage> {
+export async function listFollowers(profileId: string, page = 1, limit = 100): Promise<FollowPage> {
   const h = await getServerAuthHeader()
   const { data } = await getFollowers(profileId, h, page, limit)
   const { followers, count } = data.data
@@ -25,7 +25,7 @@ export async function listFollowers(profileId: string, page = 1, limit = 30): Pr
   return { profiles, total: count, page, limit }
 }
 
-export async function listFollowing(profileId: string, page = 1, limit = 30): Promise<FollowPage> {
+export async function listFollowing(profileId: string, page = 1, limit = 100): Promise<FollowPage> {
   const h = await getServerAuthHeader()
   const { data } = await getFollowing(profileId, h, page, limit)
   const { following, count } = data.data

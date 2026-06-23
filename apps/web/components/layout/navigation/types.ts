@@ -4,6 +4,7 @@ export interface NavItemData {
   href: string
   icon: ComponentType<{ active?: boolean; className?: string }>
   label: string
+  badgeCount?: number
 }
 
 export interface NavItemProps extends NavItemData {

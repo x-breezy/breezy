@@ -1,28 +1,23 @@
 "use client"
 
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useState } from "react"
 
 const STORAGE_KEY = "breezy_recent_searches"
 const MAX_RECENT_SEARCHES = 5
 
 export function useRecentSearches() {
-  const [recentSearches, setRecentSearches] = useState<string[]>([])
-  const [isLoaded, setIsLoaded] = useState(false)
-
-  useEffect(() => {
+  const [recentSearches, setRecentSearches] = useState<string[]>(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY)
       if (stored) {
         const parsed = JSON.parse(stored)
-        if (Array.isArray(parsed)) {
-          setRecentSearches(parsed)
-        }
+        if (Array.isArray(parsed)) return parsed
       }
     } catch {
       // Ignore localStorage errors
     }
-    setIsLoaded(true)
-  }, [])
+    return []
+  })
 
   const saveSearches = useCallback((searches: string[]) => {
     try {
@@ -69,7 +64,7 @@ export function useRecentSearches() {
 
   return {
     recentSearches,
-    isLoaded,
+    isLoaded: true,
     addSearch,
     removeSearch,
     clearSearches,

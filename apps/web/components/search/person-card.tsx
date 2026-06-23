@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback, useEffect } from "react"
+import { useState, useCallback } from "react"
 import { useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
 import { ProfileAvatar } from "../profile/profile-avatar"
@@ -33,9 +33,6 @@ export function PersonCard({
 }: PersonCardProps) {
   const t = useTranslations("search")
   const [isFollowing, setIsFollowing] = useState(initialFollowing ?? false)
-  useEffect(() => {
-    setIsFollowing(initialFollowing ?? false)
-  }, [initialFollowing])
 
   const handleFollow = useCallback(
     async (e: React.MouseEvent) => {

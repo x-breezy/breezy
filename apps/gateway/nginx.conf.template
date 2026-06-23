@@ -10,29 +10,25 @@ http {
   gzip_min_length 1000;
   gzip_proxied any;
 
-  upstream auth_service          { server host.docker.internal:4020; }
-  upstream profile_service       { server host.docker.internal:4010; }
-  upstream post_service          { server host.docker.internal:4040; }
-  upstream media_service         { server host.docker.internal:4050; }
-  upstream notifications_service { server host.docker.internal:4060; }
-  upstream web                   { server host.docker.internal:3000; }
-  upstream swagger_ui            { server swagger-ui:8080; }
+  upstream auth_service          { server ${AUTH_UPSTREAM}; }
+  upstream profile_service       { server ${PROFILE_UPSTREAM}; }
+  upstream post_service          { server ${POST_UPSTREAM}; }
+  upstream media_service         { server ${MEDIA_UPSTREAM}; }
+  upstream notifications_service { server ${NOTIFICATIONS_UPSTREAM}; }
+  upstream message_service       { server ${MESSAGE_UPSTREAM}; }
+  upstream web                   { server ${WEB_UPSTREAM}; }
+  upstream swagger_ui            { server ${SWAGGER_UPSTREAM}; }
+  upstream kibana                { server ${KIBANA_UPSTREAM}; }
+  upstream rabbitmq_mgmt         { server ${RABBITMQ_UPSTREAM}; }
 
-  # Rate limiting zones
-  # auth zone : 10 req/min, keyed by IP , brute-force guard on sign-in/sign-up.
-  # api zone  : 600 req/min, keyed by Bearer token, per-user limiting.
-  #   Keying by IP is broken in this topology: every service + browser hit the
-  #   gateway from the same docker host IP. Keying on $http_authorization (the
-  #   per-user access token) gives real per-user isolation. An empty key (no
-  #   Authorization header) is not counted by nginx; those requests receive a
-  #   401 from auth_request before any rate limit matters.
   limit_req_zone $binary_remote_addr zone=auth:10m rate=1000r/m;
   limit_req_zone $http_authorization zone=api:10m  rate=60000r/m;
   limit_req_status 429;
 
   map $http_origin $cors_origin {
-    "http://localhost:3000" "http://localhost:3000";
-    default                 "";
+    "${CORS_ORIGIN_1}" "${CORS_ORIGIN_1}";
+    "${CORS_ORIGIN_2}" "${CORS_ORIGIN_2}";
+    default "";
   }
 
   server {
@@ -43,7 +39,6 @@ http {
     proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
     proxy_set_header X-Forwarded-Proto $scheme;
 
-    # Custom 401 error - returns JSON for API routes instead of HTML
     error_page 401 @error401;
     location @error401 {
       include /etc/nginx/cors.conf;
@@ -51,8 +46,6 @@ http {
       return 401 '{"success":false,"error":"Unauthorized"}';
     }
 
-    # Internal - nginx calls this to validate the Bearer token.
-    # auth-service returns 200 (valid) or 401 (invalid/missing).
     location /authenticate {
       internal;
       client_max_body_size 300m;
@@ -62,7 +55,6 @@ http {
       proxy_pass http://auth_service/auth/validate;
     }
 
-    # public, JWKS endpoint for downstream services
     location /.well-known/jwks.json {
       include /etc/nginx/cors.conf;
       if ($request_method = OPTIONS) { return 204; }
@@ -215,9 +207,6 @@ http {
       proxy_pass http://post_service/posts/;
     }
 
-    # Image and video bytes are public on GET (so <img src> and <video src>
-    # work without a token). Only GET is exposed here; upload + meta fall
-    # through to the general /api/media/ block below (still authed).
     location ~ ^/api/media/((images|videos)/[^/]+)$ {
       include /etc/nginx/cors.conf;
       if ($request_method = OPTIONS) { return 204; }
@@ -235,11 +224,6 @@ http {
       proxy_pass http://media_service/;
     }
 
-    # SSE stream, exact match wins over the prefix block below.
-    # EventSource (browser) cannot send an Authorization header, so we skip
-    # auth_request here. The notifications-service identity middleware
-    # authenticates via the breezy-token cookie instead (verifyJwt-signed).
-    # No rate limit: this is a single long-lived connection per user.
     location = /api/notifications/stream {
       include /etc/nginx/cors.conf;
       if ($request_method = OPTIONS) { return 204; }
@@ -249,6 +233,26 @@ http {
       proxy_cache        off;
       proxy_read_timeout 3600s;
       proxy_pass http://notifications_service/notifications/stream;
+    }
+
+    location /api/conversations/ {
+      include /etc/nginx/cors.conf;
+      if ($request_method = OPTIONS) { return 204; }
+      limit_req zone=api burst=20 nodelay;
+      auth_request /authenticate;
+      auth_request_set $user_id $upstream_http_x_user_id;
+      auth_request_set $user_roles $upstream_http_x_roles;
+      proxy_set_header X-User-Id $user_id;
+      proxy_set_header X-Roles   $user_roles;
+      proxy_pass http://message_service/conversations/;
+    }
+
+    location /socket.io/ {
+      proxy_http_version 1.1;
+      proxy_set_header Upgrade $http_upgrade;
+      proxy_set_header Connection "upgrade";
+      proxy_set_header Host $host;
+      proxy_pass http://message_service/socket.io/;
     }
 
     location /api/notifications/ {
@@ -275,13 +279,42 @@ http {
       proxy_pass http://swagger_ui/api-docs/;
     }
 
-    # front
     location / {
+      client_max_body_size 20m;
       include /etc/nginx/security-web.conf;
       proxy_http_version 1.1;
       proxy_set_header Upgrade    $http_upgrade;
       proxy_set_header Connection "upgrade";
       proxy_pass http://web;
+    }
+  }
+
+  server {
+    listen 80;
+    server_name ${LOGS_DOMAIN};
+
+    auth_basic "Breezy Logs";
+    auth_basic_user_file /etc/nginx/.htpasswd-kibana;
+
+    location / {
+      proxy_pass http://kibana;
+      proxy_set_header Host              $host;
+      proxy_set_header X-Real-IP         $remote_addr;
+      proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto $scheme;
+    }
+  }
+
+  server {
+    listen 80;
+    server_name ${MQ_DOMAIN};
+
+    location / {
+      proxy_pass http://rabbitmq_mgmt;
+      proxy_set_header Host              $host;
+      proxy_set_header X-Real-IP         $remote_addr;
+      proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto $scheme;
     }
   }
 }

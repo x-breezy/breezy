@@ -25,7 +25,6 @@ export function PostPageClient({ postId }: { username: string; postId: string })
   const [parentPost, setParentPost] = useState<PostDetail["post"] | null>(null)
 
   useEffect(() => {
-    setPageReady(false)
     getPostDetail(postId)
       .then((d) => {
         if (d) {

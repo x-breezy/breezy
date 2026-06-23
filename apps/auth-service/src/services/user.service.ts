@@ -23,6 +23,11 @@ class UserService {
     return user ? user.toJSON() : null
   }
 
+  async getUserByUsername(username: string): Promise<SafeUser | null> {
+    const user = await User.findOne({ where: { username } })
+    return user ? user.toJSON() : null
+  }
+
   async isEmailAndUsernameTaken(
     email: string,
     username: string
@@ -94,13 +99,26 @@ class UserService {
   async searchByUsername(
     q: string,
     page: number = 1,
-    limit: number = 20
+    limit: number = 20,
+    excludeUserId?: string
   ): Promise<{ count: number; users: Pick<SafeUser, "id" | "username">[] }> {
     const offset = (page - 1) * limit
+
+    const whereClause: any = {
+      username: { [Op.iLike]: `%${q}%` },
+      isBanned: false,
+      isSuspended: false,
+    }
+
+    if (excludeUserId) {
+      whereClause.id = { [Op.ne]: excludeUserId }
+    }
+
     const { count, rows } = await User.findAndCountAll({
       where: {
         username: { [Op.iLike]: `%${q}%` },
         isBanned: false,
+        ...whereClause,
       },
       attributes: ["id", "username"],
       limit,

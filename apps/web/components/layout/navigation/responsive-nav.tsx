@@ -7,15 +7,16 @@ import { NavItem } from "./nav-item"
 import { useUserStore } from "@/stores/user-store"
 import type { NavItemData } from "./types"
 import Link from "next/link"
+import { useUnreadMessages } from "@/hooks/use-unread-messages"
 import { ModerationIcon } from "./icons/moderation-icon"
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function getNavItems(t: any): NavItemData[] {
+function getNavItems(t: any, unreadCount: number): NavItemData[] {
   return [
     { href: "/", icon: HomeIcon, label: t("home") },
     { href: "/search", icon: SearchIcon, label: t("search") },
     { href: "/grod", icon: GrodIcon, label: t("grod") },
-    { href: "/messages", icon: SendIcon, label: t("messages") },
+    { href: "/messages", icon: SendIcon, label: t("messages"), badgeCount: unreadCount },
   ]
 }
 
@@ -35,18 +36,20 @@ export function ResponsiveNav() {
   const user = useUserStore((s) => s.user)
   const ProfileNavIcon = makeProfileIcon(profile?.avatarId ?? null)
   const isProfileActive = pathname === `/profile/${profile?.username}`
-  const isModerator = user?.role === "moderator" || user?.role === "admin"
+  const isConversationPage = pathname.startsWith("/messages/")
 
-  const navItems = getNavItems(t)
+  const unreadCount = useUnreadMessages()
+  const navItems = getNavItems(t, unreadCount)
+  const isModerator = user?.role === "moderator" || user?.role === "admin"
 
   return (
     <>
       {/* Mobile: Bottom bar - visible en dessous de lg */}
       <nav
-        className='fixed right-0 bottom-0 left-0 z-50 grid h-15 border-t bg-background pb-[env(safe-area-inset-bottom)] lg:hidden'
+        className={`${isConversationPage ? "hidden" : "grid lg:hidden"} fixed right-0 bottom-0 left-0 z-50 grid h-15 border-t bg-background pb-[env(safe-area-inset-bottom)]`}
         style={{ gridTemplateColumns: `repeat(${isModerator ? 6 : 5}, 1fr)` }}
       >
-        {navItems.map(({ href, icon, label }) => (
+        {navItems.map(({ href, icon, label, badgeCount }) => (
           <NavItem
             key={href}
             href={href}
@@ -55,6 +58,7 @@ export function ResponsiveNav() {
             isActive={pathname === href}
             showLabel={false}
             iconClassName='block size-6'
+            badgeCount={badgeCount}
           />
         ))}
         {isModerator && (
@@ -85,7 +89,7 @@ export function ResponsiveNav() {
           </Link>
         </div>
         <nav className='flex flex-1 flex-col gap-2 pr-2'>
-          {navItems.map(({ href, icon, label }) => (
+          {navItems.map(({ href, icon, label, badgeCount }) => (
             <NavItem
               key={href}
               href={href}
@@ -94,6 +98,7 @@ export function ResponsiveNav() {
               isActive={pathname === href}
               showLabel={true}
               iconClassName='block size-7'
+              badgeCount={badgeCount}
             />
           ))}
           {isModerator && (

@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation"
 import { NavBar } from "./navigation/nav-bar"
-import { RightSidebar } from "./right-sidebar"
+import { RightSidebarConditional } from "./right-sidebar-conditional"
 import { UserStoreProvider } from "../providers/user-store-provider"
 import { clearSessionCookies, getServerAuthHeader, getUserId } from "@/lib/auth/session"
 import { getMe } from "@/lib/services/auth-service"
@@ -11,6 +11,7 @@ import { Profile } from "@/types/profile"
 import { User } from "@/types/user"
 import { NotificationStoreProvider } from "../providers/notification-store-provider"
 import { NotificationToast } from "../notifications/notifications-toast"
+import { MessageNotificationToast } from "../messages/message-notification-toast"
 
 interface AppLayoutProps {
   children: React.ReactNode
@@ -59,6 +60,7 @@ export async function AppLayout({ children, modal }: AppLayoutProps) {
     <UserStoreProvider profile={profile} user={user} following={following}>
       <NotificationStoreProvider>
         <NotificationToast />
+        <MessageNotificationToast />
         <div className='flex h-dvh'>
           <div className='flex min-w-0 flex-1'>
             <div className='mx-auto flex w-full max-w-[1400px]'>
@@ -66,9 +68,7 @@ export async function AppLayout({ children, modal }: AppLayoutProps) {
               <main className='min-w-0 flex-1 overflow-y-hidden border-x pb-15 lg:pb-0'>
                 {children}
               </main>
-              <aside className='hidden w-[350px] shrink-0 overflow-y-auto xl:block'>
-                <RightSidebar suggestedUsers={suggestedUsers} />
-              </aside>
+              <RightSidebarConditional suggestedUsers={suggestedUsers} />
             </div>
           </div>
           {modal}

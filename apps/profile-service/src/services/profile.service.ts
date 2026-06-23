@@ -118,7 +118,10 @@ class ProfileService {
            ${bannedClause}
          ORDER BY p.username ASC
          LIMIT :limit OFFSET :offset`,
-        { replacements: { profileId, limit, offset, ...bannedReplacements }, type: QueryTypes.SELECT }
+        {
+          replacements: { profileId, limit, offset, ...bannedReplacements },
+          type: QueryTypes.SELECT,
+        }
       ),
       Follow.count({ where: { followingId: profileId } }),
     ])
@@ -150,14 +153,21 @@ class ProfileService {
            ${bannedClause}
          ORDER BY p.username ASC
          LIMIT :limit OFFSET :offset`,
-        { replacements: { profileId, limit, offset, ...bannedReplacements }, type: QueryTypes.SELECT }
+        {
+          replacements: { profileId, limit, offset, ...bannedReplacements },
+          type: QueryTypes.SELECT,
+        }
       ),
       Follow.count({ where: { followerId: profileId } }),
     ])
     return { count: countResult, following: rows.map((r) => r.id) }
   }
 
-  async getFollowSuggestions(profileId: string, limit: number = 3, viewerRole?: string): Promise<Profile[]> {
+  async getFollowSuggestions(
+    profileId: string,
+    limit: number = 3,
+    viewerRole?: string
+  ): Promise<Profile[]> {
     const banned = viewerRole === "admin" ? new Set<string>() : getBannedUserIds()
     const bannedClause =
       banned.size > 0

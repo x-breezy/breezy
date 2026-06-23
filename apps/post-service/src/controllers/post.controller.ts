@@ -3,7 +3,7 @@ import { PostService } from "../services/post.service"
 import type { Post } from "../types/post"
 
 export class PostController {
-  constructor(private service = new PostService()) { }
+  constructor(private service = new PostService()) {}
 
   create = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
@@ -63,7 +63,13 @@ export class PostController {
       const repliesLegacy = req.query.replies === "true"
       const validTypes = ["posts", "replies", "media", "all"]
       const type = validTypes.includes(rawType ?? "") ? rawType! : repliesLegacy ? "all" : "posts"
-      const result = await this.service.byUser(req.params.userId!, page, limit, type as any, req.user?.role)
+      const result = await this.service.byUser(
+        req.params.userId!,
+        page,
+        limit,
+        type as any,
+        req.user?.role
+      )
 
       res.json({ success: true, data: result, message: "User posts retrieved successfully" })
     } catch (err) {
@@ -75,7 +81,14 @@ export class PostController {
     try {
       const page = Math.max(1, parseInt(req.query.page as string) || 1)
       const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 20))
-      const result = await this.service.getReplies(req.params.id!, page, limit, req.user?.id, false, req.user?.role)
+      const result = await this.service.getReplies(
+        req.params.id!,
+        page,
+        limit,
+        req.user?.id,
+        false,
+        req.user?.role
+      )
 
       res.json({ success: true, data: result, message: "Replies retrieved successfully" })
     } catch (err) {
@@ -120,7 +133,14 @@ export class PostController {
       const limit = Math.min(50, Math.max(1, parseInt(req.query.limit as string) || 20))
       const rawAuthorIds = typeof req.query.authorIds === "string" ? req.query.authorIds : ""
       const authorIds = rawAuthorIds ? rawAuthorIds.split(",").filter(Boolean) : undefined
-      const result = await this.service.search(q, page, limit, authorIds, req.user!.id, req.user?.role)
+      const result = await this.service.search(
+        q,
+        page,
+        limit,
+        authorIds,
+        req.user!.id,
+        req.user?.role
+      )
       res.json({ success: true, data: result, message: "Search results retrieved successfully" })
     } catch (err) {
       next(err)

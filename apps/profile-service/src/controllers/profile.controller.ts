@@ -50,7 +50,10 @@ class ProfileController {
     next: NextFunction
   ): Promise<void> => {
     try {
-      const profile = await this.profileService.getProfileByUsername(req.params.username, req.user?.role)
+      const profile = await this.profileService.getProfileByUsername(
+        req.params.username,
+        req.user?.role
+      )
       if (!profile) {
         res.status(404).json({ success: false, message: "Profile not found" })
         return
@@ -158,7 +161,12 @@ class ProfileController {
     try {
       const page = Math.max(1, parseInt(req.query.page as string) || 1)
       const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 50))
-      const result = await this.profileService.getFollowers(req.params.profileId, page, limit, req.user?.role)
+      const result = await this.profileService.getFollowers(
+        req.params.profileId,
+        page,
+        limit,
+        req.user?.role
+      )
       res.status(200).json({
         success: true,
         data: { ...result, page, limit },
@@ -177,7 +185,12 @@ class ProfileController {
     try {
       const page = Math.max(1, parseInt(req.query.page as string) || 1)
       const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 50))
-      const result = await this.profileService.getFollowing(req.params.profileId, page, limit, req.user?.role)
+      const result = await this.profileService.getFollowing(
+        req.params.profileId,
+        page,
+        limit,
+        req.user?.role
+      )
       res.status(200).json({
         success: true,
         data: { ...result, page, limit },
@@ -195,7 +208,11 @@ class ProfileController {
   ): Promise<void> => {
     try {
       const limit = Math.min(10, Math.max(1, parseInt(req.query.limit as string) || 3))
-      const profiles = await this.profileService.getFollowSuggestions(req.params.profileId, limit, req.user?.role)
+      const profiles = await this.profileService.getFollowSuggestions(
+        req.params.profileId,
+        limit,
+        req.user?.role
+      )
       res.status(200).json({
         success: true,
         data: profiles,

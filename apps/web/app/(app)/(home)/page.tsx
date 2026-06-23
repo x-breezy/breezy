@@ -12,7 +12,7 @@ export default function HomePage() {
     <ScrollArea className='h-full'>
       <HomeHeader feed={feed} onFeedChange={setFeed} />
       <div className='container-center w-full py-2'>
-        <Feed feedType={feed} />
+        <Feed key={feed} feedType={feed} />
       </div>
     </ScrollArea>
   )
