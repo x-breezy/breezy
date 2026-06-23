@@ -14,7 +14,7 @@ output.elasticsearch:
 setup.template.name: "breezy-logs"
 setup.template.pattern: "breezy-logs-*"
 setup.ilm.enabled: false
-setup.data_stream.enabled: false
+setup.data_stream.enabled: true
 
 logging.level: info
 logging.to_files: false
