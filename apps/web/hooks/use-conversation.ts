@@ -4,6 +4,7 @@ import {
   listMessages,
   sendMessage as sendMessageAction,
   markConversationRead,
+  type ReplyTo,
 } from "@/lib/actions/messages"
 
 export type { Message } from "@/lib/actions/messages"
@@ -77,10 +78,10 @@ export function useConversation(conversationId: string, userId: string | undefin
   }, [conversationId, userId, messages])
 
   const sendMessage = useCallback(
-    async (content: string) => {
+    async (content: string, replyTo?: ReplyTo) => {
       if (!conversationId || !userId) return
       try {
-        const message = await sendMessageAction(conversationId, content)
+        const message = await sendMessageAction(conversationId, content, replyTo)
         setMessages((prev) => {
           if (prev.some((m) => m._id === message._id)) return prev
           return [...prev, message]

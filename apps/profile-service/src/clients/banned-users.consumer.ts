@@ -15,14 +15,25 @@ export function getBannedUserIds(): Set<string> {
 
 async function syncBannedUsersFromAuthService(): Promise<void> {
   const authUrl = process.env.AUTH_SERVICE_URL ?? "http://localhost:4020"
-  try {
-    const res = await fetch(`${authUrl}/internal/banned-user-ids`)
-    if (!res.ok) throw new Error(`HTTP ${res.status}`)
-    const body = (await res.json()) as { ids: string[] }
-    for (const id of body.ids) bannedUsers.add(id)
-    logger.info({ count: body.ids.length }, "Banned users cache seeded from auth-service")
-  } catch (err) {
-    logger.warn({ err }, "Failed to seed banned users cache, starting empty")
+  const maxAttempts = 5
+  const delayMs = 1000
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      const res = await fetch(`${authUrl}/internal/banned-user-ids`)
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      const body = (await res.json()) as { ids: string[] }
+      for (const id of body.ids) bannedUsers.add(id)
+      logger.info({ count: body.ids.length }, "Banned users cache seeded from auth-service")
+      return
+    } catch (err) {
+      if (attempt === maxAttempts) {
+        logger.warn({ err }, "Failed to seed banned users cache, starting empty")
+        return
+      }
+      logger.debug({ attempt, err }, "Retrying banned users cache seed")
+      await new Promise((resolve) => setTimeout(resolve, delayMs))
+    }
   }
 }
 

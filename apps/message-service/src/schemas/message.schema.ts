@@ -18,8 +18,15 @@ export const createConversationSchema = z
   })
 export type CreateConversationDTO = z.infer<typeof createConversationSchema>
 
+export const replyToSchema = z.object({
+  _id: z.string(),
+  content: z.string(),
+  senderName: z.string(),
+})
+
 export const sendMessageSchema = z.object({
   content: z.string().min(1).max(2000),
+  replyTo: replyToSchema.optional(),
 })
 export type SendMessageDTO = z.infer<typeof sendMessageSchema>
 

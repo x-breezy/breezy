@@ -10,6 +10,8 @@ import { useCurrentUser } from "@/hooks/use-current-user"
 import { useUserCache } from "@/hooks/use-user-cache"
 import { useConversationStore } from "@/stores/conversation-store"
 import { getUserById, getProfileById } from "@/lib/actions/conversations"
+import type { ReplyTo } from "@/lib/actions/messages"
+import type { Message } from "@/hooks/use-conversation"
 
 export default function ConversationPage({
   params,
@@ -26,6 +28,11 @@ export default function ConversationPage({
 
   const [avatarUrl, setAvatarUrl] = useState<string | undefined>(undefined)
   const [otherUserDisplay, setOtherUserDisplay] = useState<string | null>(null)
+  const [replyTo, setReplyTo] = useState<ReplyTo | null>(null)
+
+  const handleReply = (msg: Message, senderName: string) => {
+    setReplyTo({ _id: msg._id, content: msg.content, senderName })
+  }
 
   const cachedUsers = useUserCache((state) => state.users)
   const setUser = useUserCache((state) => state.setUser)
@@ -157,8 +164,9 @@ export default function ConversationPage({
         otherUserDisplay={username}
         isGroup={isGroupConv}
         participantIds={participantIds}
+        onReply={handleReply}
       />
-      <ChatInput onSend={sendMessage} />
+      <ChatInput onSend={sendMessage} replyTo={replyTo} onCancelReply={() => setReplyTo(null)} />
     </div>
   )
 }
