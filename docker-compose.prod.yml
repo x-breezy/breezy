@@ -132,44 +132,31 @@ services:
       timeout: 5s
       retries: 5
 
-  elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.15.0
-    container_name: breezy-elasticsearch
+  loki:
+    image: grafana/loki:3.0.0
+    container_name: breezy-loki
     restart: unless-stopped
-    environment:
-      discovery.type: single-node
-      xpack.security.enabled: "false"
-      ES_JAVA_OPTS: "-Xms512m -Xmx512m"
+    mem_limit: 256m
+    command: -config.file=/etc/loki/loki.yml
     volumes:
-      - elasticsearch-data:/usr/share/elasticsearch/data
+      - ./apps/infrastructure/loki/loki.yml:/etc/loki/loki.yml:ro
+      - loki-data:/loki
     networks:
       - services-net
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9200"]
-      interval: 15s
-      timeout: 5s
-      retries: 10
 
-  kibana:
-    image: docker.elastic.co/kibana/kibana:8.15.0
-    container_name: breezy-kibana
+  promtail:
+    image: grafana/promtail:3.0.0
+    container_name: breezy-promtail
     restart: unless-stopped
-    environment:
-      ELASTICSEARCH_HOSTS: http://elasticsearch:9200
-      XPACK_SECURITY_ENABLED: "false"
-      SERVER_PUBLICBASEURL: https://logs.breezy.clementomnes.dev
-    healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost:5601/api/status || exit 1"]
-      interval: 15s
-      timeout: 5s
-      retries: 10
-      start_period: 120s
+    mem_limit: 128m
+    command: -config.file=/etc/promtail/promtail.yml
+    volumes:
+      - ./apps/infrastructure/promtail/promtail.yml:/etc/promtail/promtail.yml:ro
+      - shared-logs:/logs:ro
     depends_on:
-      elasticsearch:
-        condition: service_healthy
+      - loki
     networks:
       - services-net
-      - gateway-net
 
   auth-service:
     build:
@@ -525,18 +512,12 @@ services:
       MESSAGE_UPSTREAM: message-service:4030
       WEB_UPSTREAM: web:3000
       SWAGGER_UPSTREAM: swagger-ui:8080
-      KIBANA_UPSTREAM: kibana:5601
       RABBITMQ_UPSTREAM: rabbitmq:15672
-      JAEGER_UPSTREAM: jaeger:16686
-      TRACING_DOMAIN: traces.breezy.clementomnes.dev
       GRAFANA_UPSTREAM: grafana:3000
       GRAFANA_DOMAIN: grafana.breezy.clementomnes.dev
       CORS_ORIGIN_1: https://breezy.clementomnes.dev
       CORS_ORIGIN_2: http://localhost:3000
-      LOGS_DOMAIN: logs.breezy.clementomnes.dev
       MQ_DOMAIN: mq.breezy.clementomnes.dev
-    volumes:
-      - /etc/breezy/secrets/.htpasswd-kibana:/etc/nginx/.htpasswd-kibana:ro
     depends_on:
       auth-service:
         condition: service_healthy
@@ -558,29 +539,11 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
-      jaeger:
-        condition: service_started
       grafana:
         condition: service_started
     networks:
       - gateway-net
       - dokploy-network
-
-  filebeat:
-    build:
-      context: ./apps/filebeat
-      dockerfile: Dockerfile
-    container_name: breezy-filebeat
-    restart: unless-stopped
-    environment:
-      ELASTICSEARCH_HOSTS: http://elasticsearch:9200
-    volumes:
-      - shared-logs:/logs:ro
-    depends_on:
-      elasticsearch:
-        condition: service_healthy
-    networks:
-      - services-net
 
   prometheus:
     image: prom/prometheus:v2.55.1
@@ -593,8 +556,8 @@ services:
       - --storage.tsdb.retention.time=15d
       - --web.enable-lifecycle
     volumes:
-      - ./apps/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-      - ./apps/prometheus/alerts.yml:/etc/prometheus/alerts.yml:ro
+      - ./apps/infrastructure/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./apps/infrastructure/prometheus/alerts.yml:/etc/prometheus/alerts.yml:ro
       - prometheus-data:/prometheus
     networks:
       - services-net
@@ -615,6 +578,7 @@ services:
     networks:
       - services-net
       - gateway-net
+      - db-net
 
   jaeger:
     image: jaegertracing/all-in-one:1.62.0
@@ -625,7 +589,6 @@ services:
       COLLECTOR_OTLP_ENABLED: "true"
     networks:
       - services-net
-      - gateway-net
 
 networks:
   gateway-net:
