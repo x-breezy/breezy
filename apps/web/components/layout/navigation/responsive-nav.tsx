@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation"
 import { useTranslations } from "next-intl"
-import { HomeIcon, SearchIcon, GrodIcon, SendIcon, ProfileIcon } from "./icons"
+import { HomeIcon, SearchIcon, SendIcon, ProfileIcon } from "./icons"
 import { NavItem } from "./nav-item"
 import { useUserStore } from "@/stores/user-store"
 import type { NavItemData } from "./types"
@@ -81,7 +81,7 @@ export function ResponsiveNav() {
       </nav>
 
       {/* Desktop: Sidebar - visible à partir de lg */}
-      <aside className='hidden h-full min-w-64 shrink-0 flex-col bg-background py-6 lg:flex'>
+      <aside className='sticky top-0 hidden h-dvh min-w-64 shrink-0 flex-col self-start bg-background py-6 lg:flex'>
         <div className='px-6 pb-6'>
           <Link href='/' className='font-geom text-xl font-bold'>
             Breezy

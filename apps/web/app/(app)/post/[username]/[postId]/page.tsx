@@ -1,6 +1,5 @@
 import type { Metadata } from "next"
 import { PostPageClient } from "./post-page-client"
-import { ScrollArea } from "@/components/ui/scroll-area"
 
 export async function generateMetadata({
   params,
@@ -20,9 +19,5 @@ export default async function PostPage({
   params: Promise<{ username: string; postId: string }>
 }) {
   const { username, postId } = await params
-  return (
-    <ScrollArea className='h-full'>
-      <PostPageClient username={username} postId={postId} />
-    </ScrollArea>
-  )
+  return <PostPageClient username={username} postId={postId} />
 }

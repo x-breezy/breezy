@@ -15,10 +15,9 @@ import { MessageNotificationToast } from "../messages/message-notification-toast
 
 interface AppLayoutProps {
   children: React.ReactNode
-  modal: React.ReactNode
 }
 
-export async function AppLayout({ children, modal }: AppLayoutProps) {
+export async function AppLayout({ children }: AppLayoutProps) {
   let profile: Profile | null = null
   let user: User | null = null
   let suggestedUsers: SearchProfile[] = []
@@ -63,17 +62,16 @@ export async function AppLayout({ children, modal }: AppLayoutProps) {
       <NotificationStoreProvider>
         <NotificationToast />
         <MessageNotificationToast />
-        <div className='flex h-dvh'>
-          <div className='flex min-w-0 flex-1'>
-            <div className='mx-auto flex w-full max-w-[1400px]'>
-              <NavBar />
-              <main className='min-w-0 flex-1 overflow-y-hidden border-x pb-15 lg:pb-0'>
-                {children}
-              </main>
-              <RightSidebarConditional suggestedUsers={suggestedUsers} />
+        <div className='h-dvh overflow-y-auto' data-scroll-root>
+          <div className='flex'>
+            <div className='flex min-w-0 flex-1'>
+              <div className='mx-auto flex w-full max-w-[1400px]'>
+                <NavBar />
+                <main className='min-w-0 flex-1 border-x pb-15 lg:pb-0'>{children}</main>
+                <RightSidebarConditional suggestedUsers={suggestedUsers} />
+              </div>
             </div>
           </div>
-          {modal}
         </div>
       </NotificationStoreProvider>
     </UserStoreProvider>

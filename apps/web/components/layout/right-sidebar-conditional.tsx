@@ -8,7 +8,7 @@ export function RightSidebarConditional({ suggestedUsers }: { suggestedUsers: Se
   const pathname = usePathname()
   if (pathname.startsWith("/messages")) return null
   return (
-    <aside className='hidden w-[350px] shrink-0 overflow-y-auto xl:block'>
+    <aside className='sticky top-0 hidden h-dvh w-[350px] shrink-0 self-start overflow-y-auto xl:block'>
       <RightSidebar suggestedUsers={suggestedUsers} />
     </aside>
   )
