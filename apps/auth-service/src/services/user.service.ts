@@ -3,6 +3,7 @@ import { User, type SafeUser } from "../models/user.model"
 import { hashPassword, verifyPassword } from "../utils/password.util"
 import type { CreateUserDTO } from "../schemas/user.schema"
 import { getRedis } from "../clients/redis"
+import { publish } from "../clients/rabbitmq"
 
 class UserService {
   async addUser(input: CreateUserDTO): Promise<SafeUser> {
@@ -43,6 +44,7 @@ class UserService {
     if (!user) throw Object.assign(new Error("User not found"), { code: "USER_NOT_FOUND" })
     await user.update({ isBanned: true })
     await this.revokeAllSessions(id)
+    void publish("user.banned", { userId: id })
   }
 
   private async revokeAllSessions(userId: string): Promise<void> {
@@ -91,6 +93,7 @@ class UserService {
     const user = await User.findByPk(id)
     if (!user) throw Object.assign(new Error("User not found"), { code: "USER_NOT_FOUND" })
     await user.update({ isBanned: false })
+    void publish("user.unbanned", { userId: id })
   }
 
   async searchByUsername(
