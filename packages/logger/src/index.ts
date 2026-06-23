@@ -40,8 +40,7 @@ const sensitiveFields = ["password", "token", "authorization", "cookie", "secret
  */
 export function createLogger(options: CreateLoggerOptions): Logger {
   const isProd = process.env.NODE_ENV === "production"
-  const isTest = process.env.NODE_ENV === "test"
-  const pretty = options.pretty ?? (!isProd && !isTest && !!process.stdout.isTTY)
+  const pretty = options.pretty ?? !isProd
   const logFile = isProd ? process.env.LOG_FILE : undefined
 
   if (logFile) {
