@@ -3,7 +3,7 @@
 import React, { useState } from "react"
 import { useTranslations } from "next-intl"
 import { IconArrowLeft, IconDots } from "@tabler/icons-react"
-import { Button, buttonVariants } from "@/components/ui/button"
+import { Button } from "@/components/ui/button"
 import { ConversationGroupAvatar } from "@/components/shared/conversation-group-avatar"
 import { ConversationDetailsDialog } from "./conversation-details-dialog"
 import Link from "next/link"
