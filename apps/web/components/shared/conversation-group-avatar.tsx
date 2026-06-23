@@ -19,6 +19,8 @@ export function ConversationGroupAvatar({
   const shown = participantIds.slice(0, 2)
   const extra = Math.max(0, totalCount - shown.length)
 
+  console.log(shown)
+
   if (shown.length === 0) return null
 
   const avatar1 = shown[0] ? cachedUsers[shown[0]] : null
@@ -30,8 +32,8 @@ export function ConversationGroupAvatar({
         <div className='absolute inset-0 flex items-center justify-center'>
           <ProfileAvatar
             src={avatar1?.avatarUrl}
-            size='sm'
-            className='size-[60%] rounded-full ring-2 ring-background'
+            size='2xs'
+            className='rounded-full ring-2 ring-background'
           />
         </div>
       ) : (

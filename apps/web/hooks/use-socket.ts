@@ -30,13 +30,11 @@ export function useSocket(userId: string | undefined) {
     socketRef.current = socketInstance
 
     socketInstance.on("connect", () => {
-      console.log("WebSocket connected:", socketInstance.id)
       setIsConnected(true)
       setSocket(socketInstance)
     })
 
     socketInstance.on("disconnect", () => {
-      console.log("WebSocket disconnected")
       setIsConnected(false)
     })
 

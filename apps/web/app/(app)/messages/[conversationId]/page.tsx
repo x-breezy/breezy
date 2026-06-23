@@ -97,6 +97,45 @@ export default function ConversationPage({
     fetchOtherUser()
   }, [currentUserId, conversationId, otherUserId, cachedUsers, setUser, t])
 
+  // Fetch profiles for all group participants so sender avatars show in messages
+  useEffect(() => {
+    if (!currentUserId || !isGroupConv) return
+
+    const ids = participantIds.filter((id) => id !== currentUserId)
+    const uncached = ids.filter((id) => !cachedUsers[id])
+    if (uncached.length === 0) return
+
+    const fetchGroupProfiles = async () => {
+      for (const id of uncached) {
+        try {
+          const [user, profile] = await Promise.allSettled([getUserById(id), getProfileById(id)])
+
+          let displayName = ""
+          let fetchedAvatarUrl: string | undefined
+
+          if (profile.status === "fulfilled") {
+            const nameParts = [profile.value.firstName, profile.value.lastName].filter(Boolean)
+            displayName = nameParts.join(" ")
+            if (profile.value.avatarId) fetchedAvatarUrl = profile.value.avatarId
+          }
+
+          if (user.status === "fulfilled") {
+            const fullDisplay = displayName
+              ? `${displayName} @${user.value.username}`
+              : `@${user.value.username}`
+            setUser(id, { displayName: fullDisplay, avatarUrl: fetchedAvatarUrl })
+          } else if (displayName) {
+            setUser(id, { displayName, avatarUrl: fetchedAvatarUrl })
+          }
+        } catch {
+          /* noop */
+        }
+      }
+    }
+
+    fetchGroupProfiles()
+  }, [currentUserId, isGroupConv, participantIds, cachedUsers, setUser])
+
   return (
     <div className='flex h-full flex-col'>
       <ConversationHeader
