@@ -28,7 +28,7 @@ function extractMentions(content: string, authorId: string): string[] {
 }
 
 export class PostService {
-  constructor(private follow: FollowGraphPort = new GrpcFollowGraph()) {}
+  constructor(private follow: FollowGraphPort = new GrpcFollowGraph()) { }
 
   async createPost(data: CreatePostDTO & { authorId: string }): Promise<Post> {
     const mentions = data.mentions ?? extractMentions(data.content, data.authorId)
@@ -87,9 +87,9 @@ export class PostService {
     return post
   }
 
-  async getPost(id: string, viewerRole?: string): Promise<Post | null> {
+  async getPost(id: string): Promise<Post | null> {
     const post = (await PostModel.findById(id).exec()) as Post | null
-    if (!post || viewerRole === "admin") return post
+    if (!post) return post
     const banned = await getBannedUserIds()
     if (banned.has(post.authorId)) return null
     return post
@@ -97,20 +97,17 @@ export class PostService {
 
   async getPostDetail(
     postId: string,
-    viewerId: string,
-    viewerRole?: string
+    viewerId: string
   ): Promise<PostDetail | null> {
     const doc = await PostModel.findById(postId).exec()
     if (!doc) return null
-    if (viewerRole !== "admin") {
-      const banned = await getBannedUserIds()
-      if (banned.has((doc as unknown as { authorId: string }).authorId)) return null
-    }
+    const banned = await getBannedUserIds()
+    if (banned.has((doc as unknown as { authorId: string }).authorId)) return null
     const post = doc.toJSON() as Record<string, unknown> & Post
 
     const [likedDoc, repliesResult] = await Promise.all([
       LikeModel.findOne({ postId, userId: viewerId }).exec(),
-      this.getReplies(postId, 1, 999, viewerId, true, viewerRole),
+      this.getReplies(postId, 1, 999, viewerId, true),
     ])
 
     const likedByMe = likedDoc !== null
@@ -168,15 +165,14 @@ export class PostService {
   async forYouFeed(
     viewerId: string,
     page: number,
-    limit: number,
-    viewerRole?: string
+    limit: number
   ): Promise<PaginatedResponse<Post> & { parentPosts: Record<string, Post> }> {
-    const result = await forYouFeed(viewerId, page, limit, viewerRole)
+    const result = await forYouFeed(viewerId, page, limit)
 
     const replies = result.data.filter((p) => p.parentId)
     const parentIds = [...new Set(replies.map((r) => r.parentId!))]
 
-    const banned = viewerRole === "admin" ? new Set<string>() : await getBannedUserIds()
+    const banned = await getBannedUserIds()
     let parentPosts: Post[] = []
     if (parentIds.length > 0) {
       const bannedParentFilter = banned.size > 0 ? { authorId: { $nin: [...banned] } } : {}
@@ -208,12 +204,11 @@ export class PostService {
   async feed(
     viewerId: string,
     page: number,
-    limit: number,
-    viewerRole?: string
+    limit: number
   ): Promise<PaginatedResponse<Post>> {
     const [following, banned] = await Promise.all([
       this.follow.getFollowing(viewerId),
-      viewerRole === "admin" ? Promise.resolve(new Set<string>()) : getBannedUserIds(),
+      getBannedUserIds(),
     ])
     if (following !== null && following.length === 0) {
       return { data: [], total: 0, page, limit }
@@ -241,13 +236,10 @@ export class PostService {
     userId: string,
     page: number,
     limit: number,
-    type: "posts" | "replies" | "media" | "all" = "posts",
-    viewerRole?: string
+    type: "posts" | "replies" | "media" | "all" = "posts"
   ): Promise<PaginatedResponse<Post>> {
-    if (viewerRole !== "admin") {
-      const banned = await getBannedUserIds()
-      if (banned.has(userId)) return { data: [], total: 0, page, limit }
-    }
+    const banned = await getBannedUserIds()
+    if (banned.has(userId)) return { data: [], total: 0, page, limit }
     const filter: Record<string, unknown> = { authorId: userId }
     if (type === "posts") filter.parentId = null
     else if (type === "replies") filter.parentId = { $ne: null }
@@ -377,10 +369,9 @@ export class PostService {
     page: number,
     limit: number,
     viewerId?: string,
-    skipPagination?: boolean,
-    viewerRole?: string
+    skipPagination?: boolean
   ): Promise<PaginatedResponse<ReplyPost>> {
-    const banned = viewerRole === "admin" ? new Set<string>() : await getBannedUserIds()
+    const banned = await getBannedUserIds()
 
     const [rootPost, roots, total] = await Promise.all([
       PostModel.findById(postId).exec(),
@@ -410,8 +401,8 @@ export class PostService {
     return { data: nested, total, page, limit }
   }
 
-  async getThread(postId: string, viewerRole?: string): Promise<Post[]> {
-    const banned = viewerRole === "admin" ? new Set<string>() : await getBannedUserIds()
+  async getThread(postId: string): Promise<Post[]> {
+    const banned = await getBannedUserIds()
     const thread: Post[] = []
     let current = (await PostModel.findById(postId).lean({ virtuals: true }).exec()) as Post | null
     while (current?.parentId) {
@@ -430,10 +421,9 @@ export class PostService {
     page: number,
     limit: number,
     authorIds?: string[],
-    viewerId?: string,
-    viewerRole?: string
+    viewerId?: string
   ): Promise<PaginatedResponse<Post>> {
-    const bannedIds = viewerRole === "admin" ? new Set<string>() : await getBannedUserIds()
+    const bannedIds = await getBannedUserIds()
     const bannedFilter = bannedIds.size > 0 ? { authorId: { $nin: [...bannedIds] } } : {}
     const skip = (page - 1) * limit
     const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
@@ -468,11 +458,11 @@ export class PostService {
     const authorDocs =
       filteredAuthorIds && filteredAuthorIds.length > 0
         ? await PostModel.find({
-            authorId: { $in: filteredAuthorIds, ...(viewerId ? { $ne: viewerId } : {}) },
-          })
-            .sort({ createdAt: -1 })
-            .limit(fetchLimit)
-            .exec()
+          authorId: { $in: filteredAuthorIds, ...(viewerId ? { $ne: viewerId } : {}) },
+        })
+          .sort({ createdAt: -1 })
+          .limit(fetchLimit)
+          .exec()
         : []
 
     // Merge and deduplicate while preserving priority order

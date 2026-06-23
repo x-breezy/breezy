@@ -164,8 +164,7 @@ class ProfileController {
       const result = await this.profileService.getFollowers(
         req.params.profileId,
         page,
-        limit,
-        req.user?.role
+        limit
       )
       res.status(200).json({
         success: true,
@@ -188,8 +187,7 @@ class ProfileController {
       const result = await this.profileService.getFollowing(
         req.params.profileId,
         page,
-        limit,
-        req.user?.role
+        limit
       )
       res.status(200).json({
         success: true,
@@ -210,8 +208,7 @@ class ProfileController {
       const limit = Math.min(10, Math.max(1, parseInt(req.query.limit as string) || 3))
       const profiles = await this.profileService.getFollowSuggestions(
         req.params.profileId,
-        limit,
-        req.user?.role
+        limit
       )
       res.status(200).json({
         success: true,
@@ -230,7 +227,21 @@ class ProfileController {
         .split(",")
         .map((s) => s.trim())
         .filter(Boolean)
-      const profiles = await this.profileService.getProfilesByIds(ids, req.user?.role)
+      const profiles = await this.profileService.getProfilesByIds(ids)
+      res.status(200).json({ success: true, data: profiles })
+    } catch (err) {
+      next(err)
+    }
+  }
+
+  internalBatchGet = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const raw = (req.query.ids as string | undefined) ?? ""
+      const ids = raw
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean)
+      const profiles = await this.profileService.getProfilesByIdsUnfiltered(ids)
       res.status(200).json({ success: true, data: profiles })
     } catch (err) {
       next(err)
@@ -246,7 +257,7 @@ class ProfileController {
       }
       const page = Math.max(1, parseInt(req.query.page as string) || 1)
       const limit = Math.min(50, Math.max(1, parseInt(req.query.limit as string) || 20))
-      const result = await this.profileService.search(q, page, limit, req.user!.id, req.user?.role)
+      const result = await this.profileService.search(q, page, limit, req.user!.id)
       res.status(200).json({
         success: true,
         data: { profiles: result.profiles, total: result.count, page, limit },

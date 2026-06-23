@@ -12,7 +12,7 @@ import * as authService from "@/lib/services/auth-service"
 import type { PaginatedReports, EnrichedReport } from "@/types/report"
 import type { User } from "@/types/user"
 import type { Metadata } from "next"
-import { getProfilesByIds } from "@/lib/services/profile-service"
+import { getProfilesByIdsUnfiltered } from "@/lib/services/profile-service"
 import type { RawProfile } from "@/lib/api/profiles"
 
 export const metadata: Metadata = {
@@ -91,7 +91,7 @@ export default async function ModerationPage({ searchParams }: Props) {
       try {
         const batchIds = [...new Set([...reportedIds, ...allUserIds, ...sanctionedIds])]
         if (batchIds.length === 0) return
-        const res = await getProfilesByIds(batchIds, authHeader)
+        const res = await getProfilesByIdsUnfiltered(batchIds)
         for (const p of (res.data as { data: RawProfile[] }).data) {
           profilesMap.set(p.profileId, p)
         }

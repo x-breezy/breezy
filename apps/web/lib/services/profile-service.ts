@@ -89,6 +89,14 @@ export function getProfilesByIds(ids: string[], authHeader: Record<string, strin
   })
 }
 
+export function getProfilesByIdsUnfiltered(ids: string[]) {
+  const profileServiceUrl = process.env.PROFILE_SERVICE_URL ?? "http://localhost:4010"
+  return serverClient.get<{ success: boolean; data: RawProfile[] }>(
+    `${profileServiceUrl}/profiles/internal/batch`,
+    { params: { ids: ids.join(",") }, baseURL: "" }
+  )
+}
+
 export function getIsFollowing(profileId: string, authHeader: Record<string, string>) {
   return serverClient.get<{ success: boolean; data: { isFollowing: boolean } }>(
     `/api/profiles/${profileId}/is-following`,
