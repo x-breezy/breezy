@@ -528,7 +528,7 @@ services:
       KIBANA_UPSTREAM: kibana:5601
       RABBITMQ_UPSTREAM: rabbitmq:15672
       JAEGER_UPSTREAM: jaeger:16686
-      TRACING_DOMAIN: tracing.breezy.clementomnes.dev
+      TRACING_DOMAIN: traces.breezy.clementomnes.dev
       GRAFANA_UPSTREAM: grafana:3000
       GRAFANA_DOMAIN: grafana.breezy.clementomnes.dev
       CORS_ORIGIN_1: https://breezy.clementomnes.dev
