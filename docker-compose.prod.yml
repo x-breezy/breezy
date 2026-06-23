@@ -407,11 +407,13 @@ services:
     restart: unless-stopped
     volumes:
       - shared-logs:/logs
+      - /etc/breezy/secrets/public.pem:/secrets/public.pem:ro
     environment:
       NODE_ENV: production
       PORT: 4030
       DATABASE_URL: mongodb://mongo-message-service:27017/message_service
       RABBITMQ_URL: amqp://${RABBITMQ_USER}:${RABBITMQ_PASS}@rabbitmq:5672
+      JWT_PUBLIC_KEY_PATH: /secrets/public.pem
       PROFILE_SERVICE_GRPC_URL: profile-service:50051
       FRONTEND_URL: https://${DOMAIN}
       LOG_LEVEL: info
