@@ -605,7 +605,7 @@ volumes:
   mongo-message-service-data:
   postgres-user-service-data:
   postgres-profile-service-data:
-  elasticsearch-data:
+  loki-data:
   shared-logs:
   prometheus-data:
   grafana-data:
