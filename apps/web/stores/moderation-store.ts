@@ -7,7 +7,7 @@ interface UserSanctionState {
 }
 
 interface ModerationState {
-  /** Per-userId sanction state — shared across report cards and sanctioned tab */
+  /** Per-userId sanction state ,  shared across report cards and sanctioned tab */
   sanctions: Record<string, UserSanctionState>
   reports: EnrichedReport[]
   sanctionedUsers: SanctionedUser[]

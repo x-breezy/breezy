@@ -26,20 +26,24 @@
       "type": "stat",
       "title": "Services Up",
       "id": 2,
-      "gridPos": { "x": 0, "y": 1, "w": 12, "h": 4 },
-      "repeat": "job",
-      "repeatDirection": "h",
+      "gridPos": { "x": 0, "y": 1, "w": 6, "h": 4 },
       "options": {
         "colorMode": "background",
         "graphMode": "none",
         "textMode": "value_and_name",
-        "reduceOptions": { "calcs": ["lastNotNull"] }
+        "reduceOptions": { "calcs": ["lastNotNull"], "values": false, "fields": "" }
       },
       "fieldConfig": {
         "defaults": {
           "unit": "none",
           "mappings": [
-            { "type": "value", "options": { "0": { "text": "DOWN" }, "1": { "text": "UP" } } }
+            {
+              "type": "value",
+              "options": {
+                "0": { "text": "DOWN", "color": "red" },
+                "1": { "text": "UP", "color": "green" }
+              }
+            }
           ],
           "thresholds": {
             "mode": "absolute",
@@ -47,7 +51,8 @@
               { "color": "red", "value": null },
               { "color": "green", "value": 1 }
             ]
-          }
+          },
+          "custom": {}
         }
       },
       "targets": [
@@ -62,12 +67,12 @@
       "type": "stat",
       "title": "Overall Request Rate",
       "id": 3,
-      "gridPos": { "x": 12, "y": 1, "w": 4, "h": 4 },
+      "gridPos": { "x": 6, "y": 1, "w": 6, "h": 4 },
       "options": {
         "colorMode": "background",
         "graphMode": "area",
         "textMode": "value_and_name",
-        "reduceOptions": { "calcs": ["lastNotNull"] }
+        "reduceOptions": { "calcs": ["lastNotNull"], "values": false, "fields": "" }
       },
       "fieldConfig": {
         "defaults": {
@@ -76,7 +81,8 @@
           "thresholds": {
             "mode": "absolute",
             "steps": [{ "color": "green", "value": null }]
-          }
+          },
+          "custom": {}
         }
       },
       "targets": [
@@ -91,9 +97,12 @@
       "type": "gauge",
       "title": "Overall Error Rate",
       "id": 4,
-      "gridPos": { "x": 16, "y": 1, "w": 4, "h": 4 },
+      "gridPos": { "x": 12, "y": 1, "w": 6, "h": 4 },
       "options": {
-        "reduceOptions": { "calcs": ["lastNotNull"] }
+        "reduceOptions": { "calcs": ["lastNotNull"], "values": false, "fields": "" },
+        "orientation": "auto",
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true
       },
       "fieldConfig": {
         "defaults": {
@@ -108,7 +117,8 @@
               { "color": "yellow", "value": 1 },
               { "color": "red", "value": 5 }
             ]
-          }
+          },
+          "custom": {}
         }
       },
       "targets": [
@@ -123,12 +133,12 @@
       "type": "stat",
       "title": "P95 Latency",
       "id": 5,
-      "gridPos": { "x": 20, "y": 1, "w": 4, "h": 4 },
+      "gridPos": { "x": 18, "y": 1, "w": 6, "h": 4 },
       "options": {
         "colorMode": "background",
         "graphMode": "area",
         "textMode": "value_and_name",
-        "reduceOptions": { "calcs": ["lastNotNull"] }
+        "reduceOptions": { "calcs": ["lastNotNull"], "values": false, "fields": "" }
       },
       "fieldConfig": {
         "defaults": {
@@ -141,7 +151,8 @@
               { "color": "yellow", "value": 0.5 },
               { "color": "red", "value": 2 }
             ]
-          }
+          },
+          "custom": {}
         }
       },
       "targets": [
@@ -177,9 +188,10 @@
             "pointSize": 5,
             "showPoints": "never",
             "lineInterpolation": "smooth",
-            "stacking": { "mode": "none" }
+            "stacking": { "mode": "none", "group": "A" }
           }
-        }
+        },
+        "overrides": []
       },
       "targets": [
         {
@@ -205,7 +217,7 @@
             "lineWidth": 2,
             "fillOpacity": 20,
             "lineInterpolation": "smooth",
-            "stacking": { "mode": "none" }
+            "stacking": { "mode": "none", "group": "A" }
           },
           "thresholds": {
             "mode": "absolute",
@@ -215,12 +227,13 @@
               { "color": "red", "value": 1 }
             ]
           }
-        }
+        },
+        "overrides": []
       },
       "targets": [
         {
           "expr": "sum(rate(http_requests_total{status_code=~\"5..\"}[5m])) by (service)",
-          "legendFormat": "{{service}} — 5xx",
+          "legendFormat": "{{service}} - 5xx",
           "refId": "A"
         }
       ]
@@ -244,7 +257,7 @@
           "custom": {
             "fillOpacity": 0,
             "lineInterpolation": "smooth",
-            "stacking": { "mode": "none" }
+            "stacking": { "mode": "none", "group": "A" }
           },
           "thresholds": {
             "mode": "absolute",
@@ -254,22 +267,23 @@
               { "color": "red", "value": 2 }
             ]
           }
-        }
+        },
+        "overrides": []
       },
       "targets": [
         {
           "expr": "histogram_quantile(0.50, sum(rate(http_request_duration_seconds_bucket[5m])) by (le, service))",
-          "legendFormat": "{{service}} — P50",
+          "legendFormat": "{{service}} - P50",
           "refId": "A"
         },
         {
           "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le, service))",
-          "legendFormat": "{{service}} — P95",
+          "legendFormat": "{{service}} - P95",
           "refId": "B"
         },
         {
           "expr": "histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket[5m])) by (le, service))",
-          "legendFormat": "{{service}} — P99",
+          "legendFormat": "{{service}} - P99",
           "refId": "C"
         }
       ]
@@ -296,7 +310,7 @@
           "custom": {
             "fillOpacity": 30,
             "lineInterpolation": "stepAfter",
-            "stacking": { "mode": "normal" }
+            "stacking": { "mode": "normal", "group": "A" }
           },
           "thresholds": {
             "mode": "absolute",
@@ -306,7 +320,8 @@
               { "color": "red", "value": 1000 }
             ]
           }
-        }
+        },
+        "overrides": []
       },
       "targets": [
         {
@@ -332,19 +347,20 @@
             "lineWidth": 2,
             "fillOpacity": 10,
             "lineInterpolation": "smooth",
-            "stacking": { "mode": "none" }
+            "stacking": { "mode": "none", "group": "A" }
           }
-        }
+        },
+        "overrides": []
       },
       "targets": [
         {
           "expr": "rate(rabbitmq_queue_messages_published_total[5m])",
-          "legendFormat": "{{queue}} — published",
+          "legendFormat": "{{queue}} - published",
           "refId": "A"
         },
         {
           "expr": "rate(rabbitmq_queue_messages_delivered_total[5m])",
-          "legendFormat": "{{queue}} — delivered",
+          "legendFormat": "{{queue}} - delivered",
           "refId": "B"
         }
       ]
@@ -354,12 +370,10 @@
       "title": "Consumer Count",
       "id": 23,
       "gridPos": { "x": 12, "y": 15, "w": 6, "h": 8 },
-      "repeat": "queue",
-      "repeatDirection": "h",
       "options": {
         "colorMode": "background",
         "textMode": "value_and_name",
-        "reduceOptions": { "calcs": ["lastNotNull"] }
+        "reduceOptions": { "calcs": ["lastNotNull"], "values": false, "fields": "" }
       },
       "fieldConfig": {
         "defaults": {
@@ -370,7 +384,8 @@
               { "color": "red", "value": null },
               { "color": "green", "value": 1 }
             ]
-          }
+          },
+          "custom": {}
         }
       },
       "targets": [
@@ -405,12 +420,13 @@
               { "color": "red", "value": 500 }
             ]
           }
-        }
+        },
+        "overrides": []
       },
       "targets": [
         {
           "expr": "rabbitmq_queue_messages_unacknowledged",
-          "legendFormat": "{{queue}} — unacked",
+          "legendFormat": "{{queue}} - unacked",
           "refId": "A"
         }
       ]
@@ -426,11 +442,12 @@
       "type": "stat",
       "title": "Connected Clients",
       "id": 31,
-      "gridPos": { "x": 0, "y": 24, "w": 4, "h": 4 },
+      "gridPos": { "x": 0, "y": 24, "w": 4, "h": 6 },
       "options": {
         "colorMode": "background",
         "graphMode": "area",
-        "reduceOptions": { "calcs": ["lastNotNull"] }
+        "textMode": "value_and_name",
+        "reduceOptions": { "calcs": ["lastNotNull"], "values": false, "fields": "" }
       },
       "fieldConfig": {
         "defaults": {
@@ -442,7 +459,8 @@
               { "color": "green", "value": 1 },
               { "color": "yellow", "value": 100 }
             ]
-          }
+          },
+          "custom": {}
         }
       },
       "targets": [{ "expr": "redis_connected_clients", "legendFormat": "Clients", "refId": "A" }]
@@ -451,8 +469,10 @@
       "type": "timeseries",
       "title": "Memory Usage",
       "id": 32,
-      "gridPos": { "x": 4, "y": 24, "w": 5, "h": 4 },
-      "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
+      "gridPos": { "x": 4, "y": 24, "w": 5, "h": 6 },
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom" }
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "bytes",
@@ -465,7 +485,8 @@
               { "color": "red", "value": 268435456 }
             ]
           }
-        }
+        },
+        "overrides": []
       },
       "targets": [
         { "expr": "redis_memory_used_bytes", "legendFormat": "Used Memory", "refId": "A" }
@@ -475,8 +496,13 @@
       "type": "gauge",
       "title": "Hit Rate",
       "id": 33,
-      "gridPos": { "x": 9, "y": 24, "w": 5, "h": 4 },
-      "options": { "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "gridPos": { "x": 9, "y": 24, "w": 5, "h": 6 },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "values": false, "fields": "" },
+        "orientation": "auto",
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "percent",
@@ -490,7 +516,8 @@
               { "color": "yellow", "value": 80 },
               { "color": "green", "value": 95 }
             ]
-          }
+          },
+          "custom": {}
         }
       },
       "targets": [
@@ -505,13 +532,16 @@
       "type": "timeseries",
       "title": "Commands/sec",
       "id": 34,
-      "gridPos": { "x": 14, "y": 24, "w": 5, "h": 4 },
-      "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
+      "gridPos": { "x": 14, "y": 24, "w": 5, "h": 6 },
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom" }
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "ops",
           "custom": { "lineWidth": 2, "fillOpacity": 15, "lineInterpolation": "smooth" }
-        }
+        },
+        "overrides": []
       },
       "targets": [
         {
@@ -525,8 +555,10 @@
       "type": "timeseries",
       "title": "Evicted Keys",
       "id": 35,
-      "gridPos": { "x": 19, "y": 24, "w": 5, "h": 4 },
-      "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
+      "gridPos": { "x": 19, "y": 24, "w": 5, "h": 6 },
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom" }
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "short",
@@ -538,7 +570,8 @@
               { "color": "red", "value": 1 }
             ]
           }
-        }
+        },
+        "overrides": []
       },
       "targets": [
         { "expr": "rate(redis_evicted_keys_total[5m])", "legendFormat": "Evicted/s", "refId": "A" }
@@ -548,22 +581,24 @@
       "type": "row",
       "title": "Databases",
       "collapsed": false,
-      "gridPos": { "x": 0, "y": 28, "w": 24, "h": 1 },
+      "gridPos": { "x": 0, "y": 30, "w": 24, "h": 1 },
       "id": 40
     },
     {
       "type": "timeseries",
-      "title": "PostgreSQL — Active Connections",
+      "title": "PostgreSQL - Active Connections",
       "id": 41,
-      "gridPos": { "x": 0, "y": 29, "w": 8, "h": 8 },
-      "options": { "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["last"] } },
+      "gridPos": { "x": 0, "y": 31, "w": 8, "h": 8 },
+      "options": {
+        "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["last"] }
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "short",
           "custom": {
             "fillOpacity": 15,
             "lineInterpolation": "stepAfter",
-            "stacking": { "mode": "normal" }
+            "stacking": { "mode": "normal", "group": "A" }
           },
           "thresholds": {
             "mode": "absolute",
@@ -573,45 +608,49 @@
               { "color": "red", "value": 100 }
             ]
           }
-        }
+        },
+        "overrides": []
       },
       "targets": [
         {
           "expr": "pg_stat_activity_count{datname=~\"user_service|profile_service\"}",
-          "legendFormat": "{{datname}} — {{state}}",
+          "legendFormat": "{{datname}} - {{state}}",
           "refId": "A"
         }
       ]
     },
     {
       "type": "timeseries",
-      "title": "PostgreSQL — Transactions/s",
+      "title": "PostgreSQL - Transactions/s",
       "id": 42,
-      "gridPos": { "x": 8, "y": 29, "w": 8, "h": 8 },
-      "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
+      "gridPos": { "x": 8, "y": 31, "w": 8, "h": 8 },
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom" }
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "ops",
           "custom": { "lineWidth": 2, "fillOpacity": 10, "lineInterpolation": "smooth" }
-        }
+        },
+        "overrides": []
       },
       "targets": [
         {
           "expr": "rate(pg_stat_database_xact_commit{datname=~\"user_service|profile_service\"}[5m])",
-          "legendFormat": "{{datname}} — commits/s",
+          "legendFormat": "{{datname}} - commits/s",
           "refId": "A"
         }
       ]
     },
     {
       "type": "bargauge",
-      "title": "PostgreSQL — Dead Tuples",
+      "title": "PostgreSQL - Dead Tuples",
       "id": 43,
-      "gridPos": { "x": 16, "y": 29, "w": 8, "h": 8 },
+      "gridPos": { "x": 16, "y": 31, "w": 8, "h": 8 },
       "options": {
         "orientation": "horizontal",
         "displayMode": "gradient",
-        "reduceOptions": { "calcs": ["lastNotNull"] }
+        "reduceOptions": { "calcs": ["lastNotNull"], "values": false, "fields": "" }
       },
       "fieldConfig": {
         "defaults": {
@@ -623,7 +662,8 @@
               { "color": "yellow", "value": 10000 },
               { "color": "red", "value": 100000 }
             ]
-          }
+          },
+          "custom": {}
         }
       },
       "targets": [
@@ -636,29 +676,32 @@
     },
     {
       "type": "timeseries",
-      "title": "MongoDB — Current Connections",
+      "title": "MongoDB - Current Connections",
       "id": 44,
-      "gridPos": { "x": 0, "y": 37, "w": 8, "h": 8 },
-      "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
+      "gridPos": { "x": 0, "y": 39, "w": 8, "h": 8 },
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom" }
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "short",
           "custom": { "fillOpacity": 15, "lineInterpolation": "stepAfter" }
-        }
+        },
+        "overrides": []
       },
       "targets": [
         {
           "expr": "mongodb_ss_connections{conn_type=\"current\"}",
-          "legendFormat": "{{instance}} — current",
+          "legendFormat": "{{instance}} - current",
           "refId": "A"
         }
       ]
     },
     {
       "type": "timeseries",
-      "title": "MongoDB — Operations/s",
+      "title": "MongoDB - Operations/s",
       "id": 45,
-      "gridPos": { "x": 8, "y": 37, "w": 8, "h": 8 },
+      "gridPos": { "x": 8, "y": 39, "w": 8, "h": 8 },
       "options": {
         "tooltip": { "mode": "multi", "sort": "none" },
         "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["last", "mean"] }
@@ -670,24 +713,27 @@
             "lineWidth": 2,
             "fillOpacity": 10,
             "lineInterpolation": "smooth",
-            "stacking": { "mode": "none" }
+            "stacking": { "mode": "none", "group": "A" }
           }
-        }
+        },
+        "overrides": []
       },
       "targets": [
         {
           "expr": "rate(mongodb_ss_opcounters[5m])",
-          "legendFormat": "{{instance}} — {{type}}",
+          "legendFormat": "{{instance}} - {{type}}",
           "refId": "A"
         }
       ]
     },
     {
       "type": "timeseries",
-      "title": "MongoDB — Resident Memory",
+      "title": "MongoDB - Resident Memory",
       "id": 46,
-      "gridPos": { "x": 16, "y": 37, "w": 8, "h": 8 },
-      "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
+      "gridPos": { "x": 16, "y": 39, "w": 8, "h": 8 },
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom" }
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "decmbytes",
@@ -700,12 +746,13 @@
               { "color": "red", "value": 512 }
             ]
           }
-        }
+        },
+        "overrides": []
       },
       "targets": [
         {
           "expr": "mongodb_ss_mem_resident",
-          "legendFormat": "{{instance}} — resident MB",
+          "legendFormat": "{{instance}} - resident MB",
           "refId": "A"
         }
       ]
@@ -714,14 +761,14 @@
       "type": "row",
       "title": "Node.js Runtime",
       "collapsed": false,
-      "gridPos": { "x": 0, "y": 45, "w": 24, "h": 1 },
+      "gridPos": { "x": 0, "y": 47, "w": 24, "h": 1 },
       "id": 50
     },
     {
       "type": "timeseries",
       "title": "Heap Used vs Total",
       "id": 51,
-      "gridPos": { "x": 0, "y": 46, "w": 6, "h": 8 },
+      "gridPos": { "x": 0, "y": 48, "w": 6, "h": 8 },
       "options": {
         "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["last", "max"] }
       },
@@ -729,17 +776,18 @@
         "defaults": {
           "unit": "bytes",
           "custom": { "lineInterpolation": "smooth" }
-        }
+        },
+        "overrides": []
       },
       "targets": [
         {
           "expr": "nodejs_heap_size_used_bytes",
-          "legendFormat": "{{service}} — used",
+          "legendFormat": "{{service}} - used",
           "refId": "A"
         },
         {
           "expr": "nodejs_heap_size_total_bytes",
-          "legendFormat": "{{service}} — total",
+          "legendFormat": "{{service}} - total",
           "refId": "B"
         }
       ]
@@ -748,8 +796,10 @@
       "type": "timeseries",
       "title": "Event Loop Lag P99",
       "id": 52,
-      "gridPos": { "x": 6, "y": 46, "w": 6, "h": 8 },
-      "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
+      "gridPos": { "x": 6, "y": 48, "w": 6, "h": 8 },
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom" }
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "s",
@@ -762,39 +812,45 @@
               { "color": "red", "value": 0.5 }
             ]
           }
-        }
+        },
+        "overrides": []
       },
       "targets": [
         {
           "expr": "nodejs_eventloop_lag_p99_seconds",
-          "legendFormat": "{{service}} — P99 lag",
+          "legendFormat": "{{service}} - P99 lag",
           "refId": "A"
         }
       ]
     },
     {
       "type": "timeseries",
-      "title": "Active Handles & Requests",
+      "title": "Active Handles and Requests",
       "id": 53,
-      "gridPos": { "x": 12, "y": 46, "w": 6, "h": 8 },
+      "gridPos": { "x": 12, "y": 48, "w": 6, "h": 8 },
       "options": {
         "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["last"] }
       },
       "fieldConfig": {
         "defaults": {
           "unit": "short",
-          "custom": { "lineWidth": 2, "fillOpacity": 10, "stacking": { "mode": "none" } }
-        }
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "stacking": { "mode": "none", "group": "A" }
+          }
+        },
+        "overrides": []
       },
       "targets": [
         {
           "expr": "nodejs_active_handles_total",
-          "legendFormat": "{{service}} — handles",
+          "legendFormat": "{{service}} - handles",
           "refId": "A"
         },
         {
           "expr": "nodejs_active_requests_total",
-          "legendFormat": "{{service}} — requests",
+          "legendFormat": "{{service}} - requests",
           "refId": "B"
         }
       ]
@@ -803,22 +859,25 @@
       "type": "timeseries",
       "title": "GC Duration",
       "id": 54,
-      "gridPos": { "x": 18, "y": 46, "w": 6, "h": 8 },
-      "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
+      "gridPos": { "x": 18, "y": 48, "w": 6, "h": 8 },
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom" }
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "s",
           "custom": {
             "fillOpacity": 25,
             "lineInterpolation": "stepAfter",
-            "stacking": { "mode": "normal" }
+            "stacking": { "mode": "normal", "group": "A" }
           }
-        }
+        },
+        "overrides": []
       },
       "targets": [
         {
           "expr": "rate(nodejs_gc_duration_seconds_sum[5m])",
-          "legendFormat": "{{service}} — {{kind}}",
+          "legendFormat": "{{service}} - {{kind}}",
           "refId": "A"
         }
       ]
@@ -827,14 +886,15 @@
       "type": "row",
       "title": "Logs (Loki)",
       "collapsed": false,
-      "gridPos": { "x": 0, "y": 54, "w": 24, "h": 1 },
+      "gridPos": { "x": 0, "y": 56, "w": 24, "h": 1 },
       "id": 60
     },
     {
       "type": "barchart",
       "title": "Error Log Volume",
       "id": 61,
-      "gridPos": { "x": 0, "y": 55, "w": 8, "h": 8 },
+      "gridPos": { "x": 0, "y": 57, "w": 8, "h": 8 },
+      "datasource": { "type": "loki", "uid": "loki" },
       "options": {
         "barWidth": 0.8,
         "stacking": "normal",
@@ -842,14 +902,15 @@
         "legend": { "displayMode": "table", "placement": "bottom" }
       },
       "fieldConfig": {
-        "defaults": { "unit": "short" }
+        "defaults": { "unit": "short" },
+        "overrides": []
       },
       "targets": [
         {
+          "datasource": { "type": "loki", "uid": "loki" },
           "expr": "sum(count_over_time({job=~\".+\"} | json | level=\"error\" [1m])) by (job)",
           "legendFormat": "{{job}}",
-          "refId": "A",
-          "datasource": { "type": "loki" }
+          "refId": "A"
         }
       ]
     },
@@ -857,7 +918,8 @@
       "type": "barchart",
       "title": "Warn Log Volume",
       "id": 62,
-      "gridPos": { "x": 8, "y": 55, "w": 8, "h": 8 },
+      "gridPos": { "x": 8, "y": 57, "w": 8, "h": 8 },
+      "datasource": { "type": "loki", "uid": "loki" },
       "options": {
         "barWidth": 0.8,
         "stacking": "normal",
@@ -865,14 +927,15 @@
         "legend": { "displayMode": "list", "placement": "bottom" }
       },
       "fieldConfig": {
-        "defaults": { "unit": "short" }
+        "defaults": { "unit": "short" },
+        "overrides": []
       },
       "targets": [
         {
+          "datasource": { "type": "loki", "uid": "loki" },
           "expr": "sum(count_over_time({job=~\".+\"} | json | level=\"warn\" [1m])) by (job)",
-          "legendFormat": "{{job}} — warn",
-          "refId": "A",
-          "datasource": { "type": "loki" }
+          "legendFormat": "{{job}} - warn",
+          "refId": "A"
         }
       ]
     },
@@ -880,7 +943,8 @@
       "type": "logs",
       "title": "Log Stream",
       "id": 63,
-      "gridPos": { "x": 16, "y": 55, "w": 8, "h": 8 },
+      "gridPos": { "x": 16, "y": 57, "w": 8, "h": 8 },
+      "datasource": { "type": "loki", "uid": "loki" },
       "options": {
         "dedupStrategy": "signature",
         "showTime": true,
@@ -891,9 +955,9 @@
       },
       "targets": [
         {
+          "datasource": { "type": "loki", "uid": "loki" },
           "expr": "{job=~\".+\"} | json",
-          "refId": "A",
-          "datasource": { "type": "loki" }
+          "refId": "A"
         }
       ]
     },
@@ -901,17 +965,18 @@
       "type": "row",
       "title": "HTTP Breakdown",
       "collapsed": false,
-      "gridPos": { "x": 0, "y": 63, "w": 24, "h": 1 },
+      "gridPos": { "x": 0, "y": 65, "w": 24, "h": 1 },
       "id": 70
     },
     {
       "type": "table",
       "title": "Requests by Route",
       "id": 71,
-      "gridPos": { "x": 0, "y": 64, "w": 8, "h": 8 },
+      "gridPos": { "x": 0, "y": 66, "w": 8, "h": 8 },
       "options": {
         "sortBy": [{ "displayName": "Value", "desc": true }],
-        "cellHeight": "sm"
+        "cellHeight": "sm",
+        "footer": { "show": false }
       },
       "transformations": [{ "id": "reduce", "options": { "reducers": ["last"] } }],
       "fieldConfig": {
@@ -926,7 +991,8 @@
               { "color": "blue", "value": 50 }
             ]
           }
-        }
+        },
+        "overrides": []
       },
       "targets": [
         {
@@ -941,22 +1007,25 @@
       "type": "timeseries",
       "title": "Requests by Status Code",
       "id": 72,
-      "gridPos": { "x": 8, "y": 64, "w": 8, "h": 8 },
-      "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
+      "gridPos": { "x": 8, "y": 66, "w": 8, "h": 8 },
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom" }
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "reqps",
           "custom": {
             "fillOpacity": 20,
             "lineInterpolation": "smooth",
-            "stacking": { "mode": "normal" }
+            "stacking": { "mode": "normal", "group": "A" }
           }
-        }
+        },
+        "overrides": []
       },
       "targets": [
         {
           "expr": "sum(rate(http_requests_total[5m])) by (service, status_code)",
-          "legendFormat": "{{service}} — {{status_code}}",
+          "legendFormat": "{{service}} - {{status_code}}",
           "refId": "A"
         }
       ]
@@ -965,11 +1034,11 @@
       "type": "bargauge",
       "title": "Slowest Routes P95",
       "id": 73,
-      "gridPos": { "x": 16, "y": 64, "w": 8, "h": 8 },
+      "gridPos": { "x": 16, "y": 66, "w": 8, "h": 8 },
       "options": {
         "orientation": "horizontal",
         "displayMode": "gradient",
-        "reduceOptions": { "calcs": ["lastNotNull"] }
+        "reduceOptions": { "calcs": ["lastNotNull"], "values": false, "fields": "" }
       },
       "fieldConfig": {
         "defaults": {
@@ -981,7 +1050,8 @@
               { "color": "yellow", "value": 0.5 },
               { "color": "red", "value": 2 }
             ]
-          }
+          },
+          "custom": {}
         }
       },
       "targets": [

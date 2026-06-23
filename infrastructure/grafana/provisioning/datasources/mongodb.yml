@@ -1,0 +1,42 @@
+apiVersion: 1
+
+datasources:
+  - name: MongoDB (post-service)
+    type: grafana-mongodb-datasource
+    uid: mongo-post
+    access: proxy
+    url: mongodb://mongo-post-service:27017
+    isDefault: false
+    editable: false
+    jsonData:
+      database: post_service
+
+  - name: MongoDB (media-service)
+    type: grafana-mongodb-datasource
+    uid: mongo-media
+    access: proxy
+    url: mongodb://mongo-media-service:27017
+    isDefault: false
+    editable: false
+    jsonData:
+      database: media_service
+
+  - name: MongoDB (notifications-service)
+    type: grafana-mongodb-datasource
+    uid: mongo-notifications
+    access: proxy
+    url: mongodb://mongo-notifications-service:27017
+    isDefault: false
+    editable: false
+    jsonData:
+      database: notifications_service
+
+  - name: MongoDB (message-service)
+    type: grafana-mongodb-datasource
+    uid: mongo-message
+    access: proxy
+    url: mongodb://mongo-message-service:27017
+    isDefault: false
+    editable: false
+    jsonData:
+      database: message_service

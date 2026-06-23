@@ -168,7 +168,7 @@ export function MessageBubble(props: MessageBubbleProps) {
             </div>
           )}
 
-          {/* Bubble — reply button absolutely centered, swipe on mobile */}
+          {/* Bubble,  reply button absolutely centered, swipe on mobile */}
           <div
             className={`relative w-full px-3.5 py-2 transition-transform ${
               swipeDx !== 0 ? "" : "duration-200"

@@ -6,7 +6,7 @@ import { useConversationStore } from "@/stores/conversation-store"
 
 export function useUnreadMessages() {
   const pathname = usePathname()
-  const profileId = useUserStore((s) => s.profile?.profileId) // was profile?.id — bug fix
+  const profileId = useUserStore((s) => s.profile?.profileId) // was profile?.id ,  bug fix
   const { socket } = useSocket(profileId)
 
   const fetchConversations = useConversationStore((s) => s.fetchConversations)
@@ -15,7 +15,7 @@ export function useUnreadMessages() {
   )
 
   // Populate store when not on /messages (layout handles it there).
-  // Read state imperatively — depending reactively on conversations.length would re-trigger
+  // Read state imperatively ,  depending reactively on conversations.length would re-trigger
   // the effect after every fetch that returns [], creating an infinite loop.
   useEffect(() => {
     if (!profileId) return
