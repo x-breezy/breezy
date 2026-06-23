@@ -32,7 +32,7 @@ export class MessageService {
     for (const recipientId of recipientIds) {
       try {
         getIO().to(recipientId).emit("message:new", message)
-      } catch (err) { }
+      } catch (err) {}
     }
 
     return message as unknown as Message
