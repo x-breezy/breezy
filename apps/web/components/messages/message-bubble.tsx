@@ -155,7 +155,9 @@ export function MessageBubble(props: MessageBubbleProps) {
             <div
               className={`mt-4 mb-1 flex w-fit flex-col gap-0.5 ${isOwn ? "items-end" : "items-start"}`}
             >
-              <span className='px-1 text-xs font-semibold text-white/70'>{replyTo.senderName}</span>
+              <span className='px-1 text-xs font-semibold text-foreground/60'>
+                {replyTo.senderName}
+              </span>
               <div
                 className={`w-fit truncate rounded-xl px-3 py-1.5 text-xs opacity-70 ${
                   isOwn
@@ -170,8 +172,8 @@ export function MessageBubble(props: MessageBubbleProps) {
 
           {/* Bubble — reply button absolutely centered, swipe on mobile */}
           <div
-            className={`relative w-full px-3.5 py-2 transition-transform ${
-              swipeDx !== 0 ? "" : "duration-200"
+            className={`relative w-full px-3.5 py-2 transition-transform ease-out ${
+              swipeDx !== 0 ? "duration-75" : "duration-300"
             } ${
               isOwn
                 ? `bg-primary text-primary-foreground ${ownCorners}`
