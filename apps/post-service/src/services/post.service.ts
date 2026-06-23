@@ -28,7 +28,7 @@ function extractMentions(content: string, authorId: string): string[] {
 }
 
 export class PostService {
-  constructor(private follow: FollowGraphPort = new GrpcFollowGraph()) { }
+  constructor(private follow: FollowGraphPort = new GrpcFollowGraph()) {}
 
   async createPost(data: CreatePostDTO & { authorId: string }): Promise<Post> {
     const mentions = data.mentions ?? extractMentions(data.content, data.authorId)
@@ -95,7 +95,11 @@ export class PostService {
     return post
   }
 
-  async getPostDetail(postId: string, viewerId: string, viewerRole?: string): Promise<PostDetail | null> {
+  async getPostDetail(
+    postId: string,
+    viewerId: string,
+    viewerRole?: string
+  ): Promise<PostDetail | null> {
     const doc = await PostModel.findById(postId).exec()
     if (!doc) return null
     if (viewerRole !== "admin") {
@@ -201,7 +205,12 @@ export class PostService {
     }
   }
 
-  async feed(viewerId: string, page: number, limit: number, viewerRole?: string): Promise<PaginatedResponse<Post>> {
+  async feed(
+    viewerId: string,
+    page: number,
+    limit: number,
+    viewerRole?: string
+  ): Promise<PaginatedResponse<Post>> {
     const [following, banned] = await Promise.all([
       this.follow.getFollowing(viewerId),
       viewerRole === "admin" ? Promise.resolve(new Set<string>()) : getBannedUserIds(),
@@ -209,7 +218,8 @@ export class PostService {
     if (following !== null && following.length === 0) {
       return { data: [], total: 0, page, limit }
     }
-    const allowedIds = following === null ? null : [...new Set(following)].filter((id) => !banned.has(id))
+    const allowedIds =
+      following === null ? null : [...new Set(following)].filter((id) => !banned.has(id))
     const authorFilter =
       allowedIds === null
         ? { $nin: [...banned, viewerId] }
@@ -299,7 +309,9 @@ export class PostService {
       })) as unknown as ReplyPost[]
     }
 
-    const ids = filteredPosts.map((p) => String((p as unknown as Record<string, unknown>)._id ?? p.id))
+    const ids = filteredPosts.map((p) =>
+      String((p as unknown as Record<string, unknown>)._id ?? p.id)
+    )
     // depth=1 fetches level-2 replies only show root author's responses
     const childFilter: Record<string, unknown> = { parentId: { $in: ids } }
     if (depth === 1 && rootAuthorId) childFilter.authorId = rootAuthorId
@@ -308,7 +320,13 @@ export class PostService {
       .lean({ virtuals: true })
       .exec()) as Post[]
     this.sortByOwnerFirst(children, rootAuthorId, viewerId)
-    const nestedChildren = await this.attachReplies(children, depth + 1, rootAuthorId, viewerId, banned)
+    const nestedChildren = await this.attachReplies(
+      children,
+      depth + 1,
+      rootAuthorId,
+      viewerId,
+      banned
+    )
 
     const repliesByParent = new Map<string, ReplyPost[]>()
     for (const child of nestedChildren) {
@@ -450,11 +468,11 @@ export class PostService {
     const authorDocs =
       filteredAuthorIds && filteredAuthorIds.length > 0
         ? await PostModel.find({
-          authorId: { $in: filteredAuthorIds, ...(viewerId ? { $ne: viewerId } : {}) },
-        })
-          .sort({ createdAt: -1 })
-          .limit(fetchLimit)
-          .exec()
+            authorId: { $in: filteredAuthorIds, ...(viewerId ? { $ne: viewerId } : {}) },
+          })
+            .sort({ createdAt: -1 })
+            .limit(fetchLimit)
+            .exec()
         : []
 
     // Merge and deduplicate while preserving priority order

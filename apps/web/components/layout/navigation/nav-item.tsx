@@ -28,7 +28,7 @@ export function NavItem({
       <div className='relative inline-flex items-center justify-center'>
         <Icon active={isActive} className={iconClassName} />
         {badgeCount > 0 && (
-          <span className='absolute -top-1.5 -right-1.5 flex min-w-[18px] items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold leading-5 text-primary-foreground ring-2 ring-background'>
+          <span className='absolute -top-1.5 -right-1.5 flex min-w-[18px] items-center justify-center rounded-full bg-primary px-1 text-[10px] leading-5 font-bold text-primary-foreground ring-2 ring-background'>
             {badgeCount > 9 ? "9+" : badgeCount}
           </span>
         )}

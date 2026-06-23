@@ -11,8 +11,7 @@ const BINDING_KEYS = ["user.banned", "user.unbanned"]
 const BANNED_KEY = "banned:users"
 
 async function syncBannedUsersFromAuthService(): Promise<void> {
-  const authUrl =
-    process.env.AUTH_SERVICE_URL ?? "http://localhost:4020"
+  const authUrl = process.env.AUTH_SERVICE_URL ?? "http://localhost:4020"
   try {
     const res = await fetch(`${authUrl}/internal/banned-user-ids`)
     if (!res.ok) throw new Error(`HTTP ${res.status}`)

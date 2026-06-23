@@ -13,7 +13,9 @@ jest.mock("../../clients/rabbitmq")
 jest.mock("../../clients/media.grpc.client")
 jest.mock("../../clients/banned-users")
 
-const mockGetBannedUserIds = bannedUsers.getBannedUserIds as jest.MockedFunction<typeof bannedUsers.getBannedUserIds>
+const mockGetBannedUserIds = bannedUsers.getBannedUserIds as jest.MockedFunction<
+  typeof bannedUsers.getBannedUserIds
+>
 
 const mockPostModel = PostModel as jest.Mocked<typeof PostModel>
 const mockLikeModel = LikeModel as jest.Mocked<typeof LikeModel>
