@@ -9,12 +9,11 @@ filebeat.inputs:
 
 output.elasticsearch:
   hosts: ["${ELASTICSEARCH_HOSTS}"]
-  index: "breezy-logs-%{+yyyy.MM.dd}"
 
 setup.template.name: "breezy-logs"
 setup.template.pattern: "breezy-logs-*"
 setup.ilm.enabled: false
-setup.data_stream.enabled: false
+setup.data_stream.enabled: true
 
 logging.level: info
 logging.to_files: false

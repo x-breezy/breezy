@@ -186,7 +186,7 @@ services:
       SERVICE_NAME: auth-service
       OTEL_ENABLED: ${OTEL_ENABLED:-false}
       OTEL_SERVICE_NAME: auth-service
-      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: http://otel-collector:4318/v1/traces
+      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: http://jaeger:4318/v1/traces
       PORT: 4020
       DATABASE_URL: postgres://postgres:${POSTGRES_USER_PASSWORD}@postgres-user-service:5432/user_service
       RABBITMQ_URL: amqp://${RABBITMQ_USER}:${RABBITMQ_PASS}@rabbitmq:5672
@@ -245,7 +245,7 @@ services:
       SERVICE_NAME: profile-service
       OTEL_ENABLED: ${OTEL_ENABLED:-false}
       OTEL_SERVICE_NAME: profile-service
-      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: http://otel-collector:4318/v1/traces
+      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: http://jaeger:4318/v1/traces
       PORT: 4010
       GRPC_PORT: 50051
       DATABASE_URL: postgres://postgres:${POSTGRES_PROFILE_PASSWORD}@postgres-profile-service:5432/profile_service
@@ -290,7 +290,7 @@ services:
       SERVICE_NAME: post-service
       OTEL_ENABLED: ${OTEL_ENABLED:-false}
       OTEL_SERVICE_NAME: post-service
-      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: http://otel-collector:4318/v1/traces
+      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: http://jaeger:4318/v1/traces
       PORT: 4040
       DATABASE_URL: mongodb://mongo-post-service:27017/post_service
       RABBITMQ_URL: amqp://${RABBITMQ_USER}:${RABBITMQ_PASS}@rabbitmq:5672
@@ -340,7 +340,7 @@ services:
       SERVICE_NAME: media-service
       OTEL_ENABLED: ${OTEL_ENABLED:-false}
       OTEL_SERVICE_NAME: media-service
-      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: http://otel-collector:4318/v1/traces
+      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: http://jaeger:4318/v1/traces
       PORT: 4050
       GRPC_PORT: 50052
       DATABASE_URL: mongodb://mongo-media-service:27017/media_service
@@ -381,7 +381,7 @@ services:
       SERVICE_NAME: notifications-service
       OTEL_ENABLED: ${OTEL_ENABLED:-false}
       OTEL_SERVICE_NAME: notifications-service
-      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: http://otel-collector:4318/v1/traces
+      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: http://jaeger:4318/v1/traces
       PORT: 4060
       DATABASE_URL: mongodb://mongo-notifications-service:27017/notifications_service
       RABBITMQ_URL: amqp://${RABBITMQ_USER}:${RABBITMQ_PASS}@rabbitmq:5672
@@ -433,7 +433,7 @@ services:
       SERVICE_NAME: message-service
       OTEL_ENABLED: ${OTEL_ENABLED:-false}
       OTEL_SERVICE_NAME: message-service
-      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: http://otel-collector:4318/v1/traces
+      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: http://jaeger:4318/v1/traces
       PORT: 4030
       DATABASE_URL: mongodb://mongo-message-service:27017/message_service
       RABBITMQ_URL: amqp://${RABBITMQ_USER}:${RABBITMQ_PASS}@rabbitmq:5672
@@ -527,6 +527,8 @@ services:
       SWAGGER_UPSTREAM: swagger-ui:8080
       KIBANA_UPSTREAM: kibana:5601
       RABBITMQ_UPSTREAM: rabbitmq:15672
+      JAEGER_UPSTREAM: jaeger:16686
+      TRACING_DOMAIN: tracing.breezy.clementomnes.dev
       CORS_ORIGIN_1: https://breezy.clementomnes.dev
       CORS_ORIGIN_2: http://localhost:3000
       LOGS_DOMAIN: logs.breezy.clementomnes.dev
@@ -589,23 +591,6 @@ services:
       - ./apps/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - ./apps/prometheus/alerts.yml:/etc/prometheus/alerts.yml:ro
       - prometheus-data:/prometheus
-    depends_on:
-      - alertmanager
-    networks:
-      - services-net
-
-  alertmanager:
-    image: prom/alertmanager:v0.27.0
-    container_name: breezy-alertmanager
-    restart: unless-stopped
-    profiles: ["metrics", "observability"]
-    mem_limit: 128m
-    command:
-      - --config.file=/etc/alertmanager/alertmanager.yml
-      - --storage.path=/alertmanager
-    volumes:
-      - ./apps/alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
-      - alertmanager-data:/alertmanager
     networks:
       - services-net
 
@@ -638,20 +623,6 @@ services:
     networks:
       - services-net
 
-  otel-collector:
-    image: otel/opentelemetry-collector-contrib:0.111.0
-    container_name: breezy-otel-collector
-    restart: unless-stopped
-    profiles: ["tracing", "observability"]
-    mem_limit: 256m
-    command: ["--config=/etc/otelcol-contrib/config.yml"]
-    volumes:
-      - ./apps/prometheus/otel-collector.yml:/etc/otelcol-contrib/config.yml:ro
-    depends_on:
-      - jaeger
-    networks:
-      - services-net
-
 networks:
   gateway-net:
     driver: bridge
@@ -672,5 +643,4 @@ volumes:
   elasticsearch-data:
   shared-logs:
   prometheus-data:
-  alertmanager-data:
   grafana-data:
