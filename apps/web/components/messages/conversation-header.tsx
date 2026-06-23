@@ -3,10 +3,11 @@
 import React, { useState } from "react"
 import { useTranslations } from "next-intl"
 import { IconArrowLeft, IconDots } from "@tabler/icons-react"
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
 import { ConversationGroupAvatar } from "@/components/shared/conversation-group-avatar"
 import { ConversationDetailsDialog } from "./conversation-details-dialog"
 import Link from "next/link"
+import { cn } from "@/lib/utils"
 
 interface ConversationHeaderProps {
   conversationId: string
@@ -35,7 +36,7 @@ export function ConversationHeader({
         <div className='flex items-center gap-3'>
           <Link
             href='/messages'
-            className='mr-3 -ml-2 rounded-full p-2 transition-colors hover:bg-gray-100 md:hidden dark:hover:bg-gray-800'
+            className={cn("mr-3 -ml-2 rounded-full p-2 transition-colors md:hidden")}
           >
             <IconArrowLeft size={20} />
           </Link>
@@ -44,7 +45,7 @@ export function ConversationHeader({
             totalCount={visibleIds.length}
             className='size-10'
           />
-          <div className='max-w-[200px] truncate font-semibold md:max-w-[300px]'>
+          <div className='max-w-[200px] truncate text-xl font-bold tracking-tight md:max-w-[300px]'>
             {displayName === null ? (
               <div className='h-4 w-32 animate-pulse rounded bg-foreground/10' />
             ) : (

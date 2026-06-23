@@ -15,7 +15,6 @@ function getNavItems(t: any, unreadCount: number): NavItemData[] {
   return [
     { href: "/", icon: HomeIcon, label: t("home") },
     { href: "/search", icon: SearchIcon, label: t("search") },
-    { href: "/grod", icon: GrodIcon, label: t("grod") },
     { href: "/messages", icon: SendIcon, label: t("messages"), badgeCount: unreadCount },
   ]
 }
@@ -47,7 +46,7 @@ export function ResponsiveNav() {
       {/* Mobile: Bottom bar - visible en dessous de lg */}
       <nav
         className={`${isConversationPage ? "hidden" : "grid lg:hidden"} fixed right-0 bottom-0 left-0 z-50 grid h-15 border-t bg-background pb-[env(safe-area-inset-bottom)]`}
-        style={{ gridTemplateColumns: `repeat(${isModerator ? 6 : 5}, 1fr)` }}
+        style={{ gridTemplateColumns: `repeat(${isModerator ? 5 : 4}, 1fr)` }}
       >
         {navItems.map(({ href, icon, label, badgeCount }) => (
           <NavItem

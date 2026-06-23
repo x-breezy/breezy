@@ -6,7 +6,6 @@ import { useTranslations } from "next-intl"
 import { IconPlus, IconSearch, IconX } from "@tabler/icons-react"
 import { useUserCache } from "@/hooks/use-user-cache"
 import { useConversationStore, type ConversationMeta } from "@/stores/conversation-store"
-import { Button } from "@/components/ui/button"
 import {
   InputGroup,
   InputGroupAddon,
@@ -87,22 +86,20 @@ export function ConversationSidebar({ currentUserId, activeId, className = "" }:
     >
       <div className='flex items-center justify-between px-4 pt-4 pb-2'>
         <div className='flex items-center gap-2'>
-          <h2 className='text-xl font-bold tracking-tight'>{t("title")}</h2>
+          <h2 className='text-lg font-bold'>{t("title")}</h2>
           {totalUnreadCount > 0 && (
             <span className='flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-primary px-2 text-xs font-bold text-primary-foreground'>
               {totalUnreadCount}
             </span>
           )}
         </div>
-        <Button
-          size='icon'
-          variant='ghost'
-          className='rounded-full'
-          title={t("newMessage")}
+        <button
+          aria-label={t("newMessage")}
+          className='flex size-8 items-center justify-center'
           onClick={() => setOpen(true)}
         >
           <IconPlus size={20} />
-        </Button>
+        </button>
       </div>
 
       <div className='px-4 pb-3'>

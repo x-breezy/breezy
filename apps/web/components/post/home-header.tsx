@@ -1,6 +1,6 @@
 "use client"
 
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { useTranslations } from "next-intl"
 import { IconBell, IconPlus } from "@tabler/icons-react"
 import { Button } from "@/components/ui/button"
@@ -14,6 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { useNotificationStore } from "@/stores/notification-store"
+import { PostComposeDialog } from "@/components/post/create-post/post-compose-dialog"
 
 const FEED_OPTIONS = [
   { value: "forYou", labelKey: "feedForYou" },
@@ -27,8 +28,11 @@ interface HomeHeaderProps {
 
 export function HomeHeader({ feed, onFeedChange }: HomeHeaderProps) {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const t = useTranslations("home")
   const unreadCount = useNotificationStore((s) => s.unreadCount)
+
+  const composeOpen = searchParams.get("compose") === "post"
 
   return (
     <PageHeader>
@@ -38,7 +42,7 @@ export function HomeHeader({ feed, onFeedChange }: HomeHeaderProps) {
             variant='secondary'
             size='icon-lg'
             aria-label={t("createPost")}
-            onClick={() => router.push("/compose/post")}
+            onClick={() => router.push("?compose=post")}
             className='rounded-md'
           >
             <IconPlus className='size-5' strokeWidth={2} />
@@ -82,6 +86,7 @@ export function HomeHeader({ feed, onFeedChange }: HomeHeaderProps) {
           </Button>
         }
       />
+      {composeOpen && <PostComposeDialog onDismiss={() => router.back()} />}
     </PageHeader>
   )
 }
