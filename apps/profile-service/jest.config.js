@@ -14,4 +14,5 @@ module.exports = {
     "!src/config/**",
     "!src/tests/**",
   ],
+  forceExit: true,
 }
