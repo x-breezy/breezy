@@ -4,7 +4,7 @@ import { getNodeAutoInstrumentations } from "@opentelemetry/auto-instrumentation
 import { resourceFromAttributes } from "@opentelemetry/resources"
 import { ATTR_SERVICE_NAME, ATTR_SERVICE_VERSION } from "@opentelemetry/semantic-conventions"
 
-const enabled = process.env.OTEL_ENABLED !== "false"
+const enabled = process.env.OTEL_ENABLED === "true"
 const serviceName =
   process.env.OTEL_SERVICE_NAME ||
   process.env.SERVICE_NAME ||

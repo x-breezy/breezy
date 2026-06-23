@@ -440,6 +440,7 @@ services:
       JWT_PUBLIC_KEY_PATH: /secrets/public.pem
       PROFILE_SERVICE_GRPC_URL: profile-service:50051
       FRONTEND_URL: https://${DOMAIN}
+      LOG_FILE: /logs/message-service.log
       LOG_LEVEL: info
     healthcheck:
       test:
@@ -577,7 +578,7 @@ services:
     image: prom/prometheus:v2.55.1
     container_name: breezy-prometheus
     restart: unless-stopped
-    profiles: ["observability"]
+    profiles: ["metrics", "observability"]
     mem_limit: 512m
     command:
       - --config.file=/etc/prometheus/prometheus.yml
@@ -597,7 +598,7 @@ services:
     image: prom/alertmanager:v0.27.0
     container_name: breezy-alertmanager
     restart: unless-stopped
-    profiles: ["observability"]
+    profiles: ["metrics", "observability"]
     mem_limit: 128m
     command:
       - --config.file=/etc/alertmanager/alertmanager.yml
@@ -612,7 +613,7 @@ services:
     image: grafana/grafana:11.3.0
     container_name: breezy-grafana
     restart: unless-stopped
-    profiles: ["observability"]
+    profiles: ["metrics", "observability"]
     mem_limit: 256m
     environment:
       GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
@@ -630,7 +631,7 @@ services:
     image: jaegertracing/all-in-one:1.62.0
     container_name: breezy-jaeger
     restart: unless-stopped
-    profiles: ["observability"]
+    profiles: ["tracing", "observability"]
     mem_limit: 512m
     environment:
       COLLECTOR_OTLP_ENABLED: "true"
@@ -641,7 +642,7 @@ services:
     image: otel/opentelemetry-collector-contrib:0.111.0
     container_name: breezy-otel-collector
     restart: unless-stopped
-    profiles: ["observability"]
+    profiles: ["tracing", "observability"]
     mem_limit: 256m
     command: ["--config=/etc/otelcol-contrib/config.yml"]
     volumes:
