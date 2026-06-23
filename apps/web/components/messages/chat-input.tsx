@@ -1,9 +1,14 @@
 "use client"
 
 import React, { useState } from "react"
+import { useTranslations } from "next-intl"
 import { IconSend } from "@tabler/icons-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupInput,
+} from "@/components/ui/input-group"
 
 interface ChatInputProps {
   onSend: (content: string) => void
@@ -11,6 +16,7 @@ interface ChatInputProps {
 }
 
 export function ChatInput({ onSend, disabled }: ChatInputProps) {
+  const t = useTranslations("messages")
   const [text, setText] = useState("")
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -24,24 +30,28 @@ export function ChatInput({ onSend, disabled }: ChatInputProps) {
   return (
     <form
       onSubmit={handleSubmit}
-      className='flex items-center gap-2 border-t border-border bg-background/80 p-4 backdrop-blur-md'
+      className='flex items-center border-t border-border bg-background/80 px-4 py-3 backdrop-blur-md'
     >
-      <Input
-        type='text'
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-        placeholder='Type a message...'
-        disabled={disabled}
-        className='flex-1 rounded-full px-4 py-5'
-      />
-      <Button
-        type='submit'
-        size='icon'
-        disabled={!text.trim() || disabled}
-        className='shrink-0 rounded-full'
-      >
-        <IconSend size={18} />
-      </Button>
+      <InputGroup className='h-11 w-full rounded-full px-2 text-base'>
+        <InputGroupInput
+          type='text'
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          placeholder={t("messagePlaceholder")}
+          disabled={disabled}
+          className='text-base'
+        />
+        <InputGroupAddon align='inline-end'>
+          <InputGroupButton
+            type='submit'
+            variant={!text.trim() ? "ghost" : "default"}
+            size='sm'
+            disabled={!text.trim() || disabled}
+          >
+            <IconSend size={18} />
+          </InputGroupButton>
+        </InputGroupAddon>
+      </InputGroup>
     </form>
   )
 }

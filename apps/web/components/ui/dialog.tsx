@@ -40,14 +40,16 @@ function DialogContent({
   className,
   children,
   showCloseButton = true,
+  centered = false,
   ...props
 }: DialogPrimitive.Popup.Props & {
   showCloseButton?: boolean
+  centered?: boolean
 }) {
   return (
     <DialogPortal>
       <DialogOverlay />
-      <div className='fixed inset-0 z-120 flex items-start justify-center overflow-y-auto'>
+      <div className={cn('fixed inset-0 z-120 flex justify-center overflow-y-auto', centered ? 'items-center' : 'items-start')}>
         <DialogPrimitive.Popup
           data-slot='dialog-content'
           className={cn(

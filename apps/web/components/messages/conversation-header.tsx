@@ -1,17 +1,17 @@
 "use client"
 
 import React, { useState } from "react"
-import Link from "next/link"
-import { IconArrowLeft, IconUserPlus } from "@tabler/icons-react"
+import { useTranslations } from "next-intl"
+import { IconArrowLeft, IconDots } from "@tabler/icons-react"
 import { Button } from "@/components/ui/button"
-import { AddMemberDialog } from "./add-member-dialog"
+import { ConversationGroupAvatar } from "@/components/shared/conversation-group-avatar"
+import { ConversationDetailsDialog } from "./conversation-details-dialog"
+import Link from "next/link"
 
 interface ConversationHeaderProps {
   conversationId: string
   name: string | null
   isGroup: boolean
-  isConnected: boolean
-  onRename: (name: string) => Promise<void>
   participantIds: string[]
   currentUserId: string | undefined
 }
@@ -20,101 +20,59 @@ export function ConversationHeader({
   conversationId,
   name,
   isGroup,
-  isConnected,
-  onRename,
   participantIds,
   currentUserId,
 }: ConversationHeaderProps) {
-  const [isEditing, setIsEditing] = useState(false)
-  const [editValue, setEditValue] = useState("")
-  const [addMemberOpen, setAddMemberOpen] = useState(false)
+  const t = useTranslations("messages")
+  const [detailsOpen, setDetailsOpen] = useState(false)
+  const visibleIds = participantIds.filter((id) => id !== currentUserId)
 
-  const handleRenameSubmit = async () => {
-    if (!editValue.trim() || editValue === name) {
-      setIsEditing(false)
-      return
-    }
-    try {
-      await onRename(editValue.trim())
-    } catch (err) {
-      console.error(err)
-      setEditValue(name || "")
-    } finally {
-      setIsEditing(false)
-    }
-  }
+  const displayName = name ? (isGroup ? name : name.split(" @")[0]) : null
 
   return (
-    <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center justify-between border-b border-gray-200 bg-white/80 px-4 backdrop-blur-md md:px-6 dark:border-gray-800 dark:bg-gray-950/80">
-      <div className="flex items-center">
-        <Link
-          href="/messages"
-          className="mr-3 -ml-2 rounded-full p-2 transition-colors hover:bg-gray-100 md:hidden dark:hover:bg-gray-800"
-        >
-          <IconArrowLeft size={20} />
-        </Link>
-        <div>
-          <div className="max-w-[200px] truncate text-lg font-bold md:max-w-[300px]">
-            {name === null ? (
-              <div className="mt-1 mb-1 h-6 w-32 animate-pulse rounded bg-foreground/10" />
-            ) : isEditing ? (
-              <input
-                autoFocus
-                className="w-full border-b border-foreground bg-transparent focus:outline-none"
-                value={editValue}
-                onChange={(e) => setEditValue(e.target.value)}
-                onBlur={handleRenameSubmit}
-                onKeyDown={(e) => e.key === "Enter" && handleRenameSubmit()}
-              />
+    <>
+      <header className='sticky top-0 z-10 flex h-16 shrink-0 items-center justify-between border-b border-border bg-background/80 px-4 backdrop-blur-md md:px-6'>
+        <div className='flex items-center gap-3'>
+          <Link
+            href='/messages'
+            className='mr-3 -ml-2 rounded-full p-2 transition-colors hover:bg-gray-100 md:hidden dark:hover:bg-gray-800'
+          >
+            <IconArrowLeft size={20} />
+          </Link>
+          <ConversationGroupAvatar
+            participantIds={visibleIds}
+            totalCount={visibleIds.length}
+            className='size-10'
+          />
+          <div className='max-w-[200px] truncate font-semibold md:max-w-[300px]'>
+            {displayName === null ? (
+              <div className='h-4 w-32 animate-pulse rounded bg-foreground/10' />
             ) : (
-              <span
-                className={
-                  isGroup
-                    ? "cursor-pointer decoration-gray-400 decoration-dashed underline-offset-4 hover:underline"
-                    : ""
-                }
-                onClick={() => {
-                  if (isGroup) {
-                    setEditValue(name || "")
-                    setIsEditing(true)
-                  }
-                }}
-                title={isGroup ? "Click to rename group" : ""}
-              >
-                {name}
-              </span>
+              displayName
             )}
           </div>
-          <p className="text-xs text-gray-500">
-            {isConnected ? (
-              <span className="flex items-center gap-1 text-green-500">
-                <span className="h-2 w-2 rounded-full bg-green-500" /> Online
-              </span>
-            ) : (
-              <span className="text-gray-400">Connecting...</span>
-            )}
-          </p>
         </div>
-      </div>
 
-      <Button
-        variant="ghost"
-        size="icon"
-        className="rounded-full"
-        title="Add member"
-        onClick={() => setAddMemberOpen(true)}
-      >
-        <IconUserPlus size={20} />
-      </Button>
+        <Button
+          variant='ghost'
+          size='icon'
+          className='rounded-full'
+          title={t("details")}
+          onClick={() => setDetailsOpen(true)}
+        >
+          <IconDots size={20} />
+        </Button>
+      </header>
 
-      <AddMemberDialog
-        open={addMemberOpen}
-        onOpenChange={setAddMemberOpen}
+      <ConversationDetailsDialog
+        open={detailsOpen}
+        onOpenChange={setDetailsOpen}
         conversationId={conversationId}
+        name={name}
         isGroup={isGroup}
         participantIds={participantIds}
         currentUserId={currentUserId}
       />
-    </header>
+    </>
   )
 }

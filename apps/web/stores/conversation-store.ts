@@ -20,7 +20,10 @@ interface ConversationState {
     currentUserId: string,
     activeConversationId?: string
   ) => void
-  updateConversationMeta: (id: string, update: { name?: string; isGroup?: boolean }) => void
+  updateConversationMeta: (
+    id: string,
+    update: { name?: string; isGroup?: boolean; lastMessageSenderId?: string }
+  ) => void
   addConversation: (conv: ConversationMeta) => void
   removeConversation: (id: string) => void
   renameConversation: (id: string, name: string) => Promise<string>
@@ -68,13 +71,10 @@ export const useConversationStore = create<ConversationState>((set, get) => ({
     const updated: ConversationMeta = {
       ...conv,
       lastMessage: msg.content,
+      lastMessageSenderId: msg.senderId,
       lastMessageAt: msg.createdAt || new Date().toISOString(),
       hasUnread: conv.hasUnread || (!isActive && msg.senderId !== currentUserId),
-      unreadCount: isActive
-        ? 0
-        : msg.senderId !== currentUserId
-          ? (conv.unreadCount || 0) + 1
-          : 0,
+      unreadCount: isActive ? 0 : msg.senderId !== currentUserId ? (conv.unreadCount || 0) + 1 : 0,
     }
     set((s) => ({
       conversations: [updated, ...s.conversations.filter((c) => c._id !== msg.conversationId)],

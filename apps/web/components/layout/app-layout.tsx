@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation"
 import { NavBar } from "./navigation/nav-bar"
-import { RightSidebar } from "./right-sidebar"
+import { RightSidebarConditional } from "./right-sidebar-conditional"
 import { UserStoreProvider } from "../providers/user-store-provider"
 import { clearSessionCookies, getServerAuthHeader, getUserId } from "@/lib/auth/session"
 import { getMe } from "@/lib/services/auth-service"
@@ -68,9 +68,7 @@ export async function AppLayout({ children, modal }: AppLayoutProps) {
               <main className='min-w-0 flex-1 overflow-y-hidden border-x pb-15 lg:pb-0'>
                 {children}
               </main>
-              <aside className='hidden w-[350px] shrink-0 overflow-y-auto xl:block'>
-                <RightSidebar suggestedUsers={suggestedUsers} />
-              </aside>
+              <RightSidebarConditional suggestedUsers={suggestedUsers} />
             </div>
           </div>
           {modal}

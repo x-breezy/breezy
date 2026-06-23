@@ -8,27 +8,52 @@ import {
 
 export type { Message } from "@/lib/actions/messages"
 
+const PAGE_SIZE = 100
+
 export function useConversation(conversationId: string, userId: string | undefined) {
   const { socket, isConnected } = useSocket(userId)
-  const [messages, setMessages] = useState<Awaited<ReturnType<typeof listMessages>>>([])
+  const [messages, setMessages] = useState<Awaited<ReturnType<typeof listMessages>>["data"]>([])
   const [loading, setLoading] = useState(true)
+  const [loadingMore, setLoadingMore] = useState(false)
+  const [page, setPage] = useState(1)
+  const [total, setTotal] = useState(0)
 
   // Fetch initial history
   useEffect(() => {
     if (!conversationId || !userId) return
 
     setLoading(true)
-    listMessages(conversationId)
-      .then((msgs) => setMessages([...msgs].reverse()))
+    setPage(1)
+    listMessages(conversationId, 1, PAGE_SIZE)
+      .then((res) => {
+        setMessages([...res.data].reverse())
+        setTotal(res.total)
+      })
       .catch(console.error)
       .finally(() => setLoading(false))
   }, [conversationId, userId])
+
+  const loadMore = useCallback(async () => {
+    if (loadingMore || messages.length >= total) return
+    const nextPage = page + 1
+    setLoadingMore(true)
+    try {
+      const res = await listMessages(conversationId, nextPage, PAGE_SIZE)
+      setMessages((prev) => [...res.data.reverse(), ...prev])
+      setPage(nextPage)
+      setTotal(res.total)
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setLoadingMore(false)
+    }
+  }, [conversationId, loadingMore, messages.length, page, total])
 
   // Listen for new messages
   useEffect(() => {
     if (!socket || !isConnected) return
 
-    const handleNewMessage = (message: Awaited<ReturnType<typeof listMessages>>[number]) => {
+    const handleNewMessage = (message: Awaited<ReturnType<typeof listMessages>>["data"][number]) => {
       if (message.conversationId === conversationId) {
         setMessages((prev) => {
           if (prev.some((m) => m._id === message._id)) return prev
@@ -67,5 +92,5 @@ export function useConversation(conversationId: string, userId: string | undefin
     [conversationId, userId]
   )
 
-  return { messages, loading, sendMessage, isConnected }
+  return { messages, loading, loadingMore, loadMore, hasMore: messages.length < total, sendMessage }
 }

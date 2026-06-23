@@ -10,6 +10,7 @@ export class MessageService {
       MessageModel.create({ conversationId, senderId, content }),
       ConversationModel.findByIdAndUpdate(conversationId, {
         lastMessage: content,
+        lastMessageSenderId: senderId,
         lastMessageAt: new Date(),
         deletedBy: [],
       }).exec(),

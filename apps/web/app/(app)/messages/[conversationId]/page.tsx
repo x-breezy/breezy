@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useEffect, use, useState } from "react"
+import { useTranslations } from "next-intl"
 import { useConversation } from "@/hooks/use-conversation"
 import { ChatInput } from "@/components/messages/chat-input"
 import { ConversationHeader } from "@/components/messages/conversation-header"
@@ -16,11 +17,9 @@ export default function ConversationPage({
   params: Promise<{ conversationId: string }>
 }) {
   const { conversationId } = use(params)
+  const t = useTranslations("messages")
   const { currentUserId } = useCurrentUser()
-  const { messages, loading, sendMessage, isConnected } = useConversation(
-    conversationId,
-    currentUserId
-  )
+  const { messages, loading, loadingMore, loadMore, hasMore, sendMessage } = useConversation(conversationId, currentUserId)
 
   const [avatarUrl, setAvatarUrl] = useState<string | undefined>(undefined)
   const [otherUserDisplay, setOtherUserDisplay] = useState<string | null>(null)
@@ -31,8 +30,6 @@ export default function ConversationPage({
   const storeConv = useConversationStore((s) =>
     s.conversations.find((c) => c._id === conversationId)
   )
-  const renameConversation = useConversationStore((s) => s.renameConversation)
-
   const isGroupConv = storeConv?.isGroup ?? false
   const participantIds = storeConv?.participantIds ?? []
 
@@ -87,7 +84,7 @@ export default function ConversationPage({
       if (lastName) nameParts.push(lastName)
 
       const fullName = nameParts.join(" ")
-      const uname = authUsername || `User ${otherUserId.slice(0, 8)}`
+      const uname = authUsername || t("userFallback", { id: otherUserId.slice(0, 8) })
       const display = fullName ? `${fullName} @${uname}` : `@${uname}`
 
       setOtherUserDisplay(display)
@@ -98,24 +95,28 @@ export default function ConversationPage({
   }, [currentUserId, conversationId, otherUserId, cachedUsers, setUser])
 
   return (
-    <div className="flex h-full flex-col bg-white dark:bg-gray-950">
+    <div className='flex h-full flex-col'>
       <ConversationHeader
         conversationId={conversationId}
         name={username}
         isGroup={isGroupConv}
-        isConnected={isConnected}
-        onRename={async (name) => { await renameConversation(conversationId, name) }}
         participantIds={participantIds}
         currentUserId={currentUserId}
       />
       <MessagesList
         messages={messages}
         loading={loading}
+        loadingMore={loadingMore}
+        hasMore={hasMore}
+        onLoadMore={loadMore}
         currentUserId={currentUserId}
         avatarUrl={avatarUrl}
         cachedUsers={cachedUsers}
+        otherUserDisplay={username}
+        isGroup={isGroupConv}
+        participantIds={participantIds}
       />
-      <ChatInput onSend={sendMessage} disabled={!isConnected} />
+      <ChatInput onSend={sendMessage} />
     </div>
   )
 }

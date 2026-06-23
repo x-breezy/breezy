@@ -8,6 +8,7 @@ export interface ConversationMeta {
   isGroup?: boolean
   name?: string
   lastMessage?: string
+  lastMessageSenderId?: string
   lastMessageAt?: string
   hasUnread?: boolean
   unreadCount?: number
@@ -33,7 +34,9 @@ export async function createConversation(
   })
   if (!res.ok) {
     const json = await res.json().catch(() => null)
-    throw new Error((json as { message?: string })?.message ?? `Failed to create conversation: ${res.status}`)
+    throw new Error(
+      (json as { message?: string })?.message ?? `Failed to create conversation: ${res.status}`
+    )
   }
   const json = await res.json()
   return json.data as ConversationMeta
@@ -52,7 +55,9 @@ export async function renameConversation(id: string, name: string): Promise<stri
   })
   if (!res.ok) {
     const json = await res.json().catch(() => null)
-    throw new Error((json as { message?: string })?.message ?? `Failed to rename conversation: ${res.status}`)
+    throw new Error(
+      (json as { message?: string })?.message ?? `Failed to rename conversation: ${res.status}`
+    )
   }
   const json = await res.json()
   return json.data.name as string
@@ -66,11 +71,15 @@ export async function addConversationMember(id: string, memberIds: string[]): Pr
   })
   if (!res.ok) {
     const json = await res.json().catch(() => null)
-    throw new Error((json as { message?: string })?.message ?? `Failed to add member: ${res.status}`)
+    throw new Error(
+      (json as { message?: string })?.message ?? `Failed to add member: ${res.status}`
+    )
   }
 }
 
-export async function getUserByUsername(username: string): Promise<{ id: string; username: string }> {
+export async function getUserByUsername(
+  username: string
+): Promise<{ id: string; username: string }> {
   const res = await authenticatedFetch(`/api/users/by-username/${encodeURIComponent(username)}`)
   if (!res.ok) {
     if (res.status === 404) throw new Error(`User not found: @${username}`)

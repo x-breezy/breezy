@@ -6,6 +6,7 @@ export interface Conversation {
   isGroup: boolean
   name: string | null
   lastMessage: string | null
+  lastMessageSenderId: string | null
   lastMessageAt: Date | null
   deletedBy: string[]
   createdAt: Date
@@ -18,6 +19,7 @@ const conversationSchema = new Schema<Conversation>(
     isGroup: { type: Boolean, default: false },
     name: { type: String, default: null },
     lastMessage: { type: String, default: null },
+    lastMessageSenderId: { type: String, default: null },
     lastMessageAt: { type: Date, default: null },
     deletedBy: { type: [String], default: [] },
   },

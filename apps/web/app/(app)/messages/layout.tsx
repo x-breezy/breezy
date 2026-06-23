@@ -52,7 +52,7 @@ export default function MessagesLayout({ children }: { children: React.ReactNode
 
   return (
     <div
-      className={`flex w-full overflow-hidden bg-gray-50 font-sans dark:bg-black ${conversationId ? "-mb-[3.75rem] h-[calc(100%+3.75rem)] lg:mb-0 lg:h-full" : "h-full"}`}
+      className={`flex w-full overflow-hidden font-sans ${conversationId ? "-mb-[3.75rem] h-[calc(100%+3.75rem)] lg:mb-0 lg:h-full" : "h-full"}`}
     >
       <ConversationSidebar
         className={conversationId ? "hidden md:flex" : "flex"}

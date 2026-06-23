@@ -13,11 +13,17 @@ export interface Message {
   updatedAt: string
 }
 
-export async function listMessages(conversationId: string): Promise<Message[]> {
-  const res = await authenticatedFetch(`/api/conversations/${conversationId}/messages`)
+export async function listMessages(
+  conversationId: string,
+  page = 1,
+  limit = 100
+): Promise<{ data: Message[]; total: number; page: number; limit: number }> {
+  const res = await authenticatedFetch(
+    `/api/conversations/${conversationId}/messages?page=${page}&limit=${limit}`
+  )
   if (!res.ok) throw new Error(`Failed to load messages: ${res.status}`)
   const json = await res.json()
-  return json.data as Message[]
+  return json as { data: Message[]; total: number; page: number; limit: number }
 }
 
 export async function sendMessage(conversationId: string, content: string): Promise<Message> {
