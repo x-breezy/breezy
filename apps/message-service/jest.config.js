@@ -5,4 +5,5 @@ module.exports = {
   roots: ["<rootDir>/src"],
   testMatch: ["**/*.test.ts"],
   testTimeout: 30000,
+  forceExit: true,
 }
