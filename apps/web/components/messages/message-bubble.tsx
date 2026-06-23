@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useRef, useState } from "react"
 import { useTranslations } from "next-intl"
 import { IconArrowBackUp } from "@tabler/icons-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -26,6 +26,33 @@ type MessageBubbleProps =
 export function MessageBubble(props: MessageBubbleProps) {
   const t = useTranslations("messages")
   const [hovered, setHovered] = useState(false)
+  const [swipeDx, setSwipeDx] = useState(0)
+  const touchStartX = useRef<number | null>(null)
+  const swipeTriggered = useRef(false)
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (!e.touches[0]) return
+    touchStartX.current = e.touches[0].clientX
+    swipeTriggered.current = false
+  }
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (touchStartX.current === null || !e.touches[0]) return
+    const dx = e.touches[0].clientX - touchStartX.current
+    // Only allow swipe in the reply direction (right for received, left for own)
+    const directional = isOwn ? Math.min(0, dx) : Math.max(0, dx)
+    const clamped = isOwn ? Math.max(-60, directional) : Math.min(60, directional)
+    setSwipeDx(clamped)
+    if (!swipeTriggered.current && Math.abs(clamped) >= 50) {
+      swipeTriggered.current = true
+      onReply?.()
+    }
+  }
+
+  const handleTouchEnd = () => {
+    touchStartX.current = null
+    setSwipeDx(0)
+  }
 
   if (props.variant === "system") {
     return (
@@ -98,6 +125,8 @@ export function MessageBubble(props: MessageBubbleProps) {
     </button>
   )
 
+  const swipeProgress = Math.min(Math.abs(swipeDx) / 50, 1)
+
   return (
     <div
       className={`group flex w-full ${isConsecutive ? "mb-0.5" : "mt-3 mb-0.5"} ${isOwn ? "justify-end" : "justify-start"}`}
@@ -139,20 +168,27 @@ export function MessageBubble(props: MessageBubbleProps) {
             </div>
           )}
 
-          {/* Bubble — reply button is absolutely centered on this element only */}
+          {/* Bubble — reply button absolutely centered, swipe on mobile */}
           <div
-            className={`relative w-full px-3.5 py-2 ${
+            className={`relative w-full px-3.5 py-2 transition-transform ${
+              swipeDx !== 0 ? "" : "duration-200"
+            } ${
               isOwn
                 ? `bg-primary text-primary-foreground ${ownCorners}`
                 : `bg-secondary text-foreground ${receivedCorners}`
             }`}
+            style={{ transform: swipeDx !== 0 ? `translateX(${swipeDx}px)` : undefined }}
+            onTouchStart={onReply ? handleTouchStart : undefined}
+            onTouchMove={onReply ? handleTouchMove : undefined}
+            onTouchEnd={onReply ? handleTouchEnd : undefined}
           >
             <p className='text-sm leading-relaxed [overflow-wrap:anywhere]'>{content}</p>
             {onReply && (
               <div
                 className={`absolute top-1/2 flex -translate-y-1/2 items-center transition-opacity ${
                   isOwn ? "-left-8" : "-right-8"
-                } ${hovered ? "opacity-100" : "opacity-0"} [@media(hover:none)]:opacity-100`}
+                } ${hovered ? "opacity-100" : "opacity-0"}`}
+                style={{ opacity: swipeProgress > 0 ? swipeProgress : undefined }}
               >
                 {replyButton}
               </div>
