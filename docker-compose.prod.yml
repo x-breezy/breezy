@@ -477,6 +477,7 @@ services:
     restart: unless-stopped
     environment:
       API_URL: http://gateway
+      PROFILE_SERVICE_URL: http://profile-service:4010
       HOSTNAME: "0.0.0.0"
     healthcheck:
       test:
