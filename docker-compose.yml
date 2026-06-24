@@ -171,12 +171,13 @@ services:
       test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
       interval: 10s
   swagger-ui:
-    image: swaggerapi/swagger-ui:latest
+    build:
+      context: .
+      dockerfile: infrastructure/docs/Dockerfile
     container_name: breezy-swagger-ui
     restart: unless-stopped
-    environment:
-      URL: /openapi.json
-      BASE_URL: /api-docs
+    ports:
+      - "8080:8080"
     networks:
       - breezy
 

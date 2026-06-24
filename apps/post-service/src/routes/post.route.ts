@@ -90,8 +90,8 @@ export function createPostRouter(
  * @openapi
  * /api/posts:
  *   post:
- *     summary: Create a post
- *     description: Create a new post. Requires authentication via x-user-id and x-role headers.
+ *     summary: Create a post or comment
+ *     description: Create a new post or a reply/comment when parentId is provided.
  *     tags: [Posts]
  *     requestBody:
  *       required: true
@@ -104,23 +104,25 @@ export function createPostRouter(
  *               content:
  *                 type: string
  *                 minLength: 1
+ *                 maxLength: 5000
  *                 example: "Hello world!"
  *               tags:
  *                 type: array
- *                 items:
- *                   type: string
+ *                 items: { type: string }
  *                 example: ["news", "tech"]
+ *               mentions:
+ *                 type: array
+ *                 items: { type: string }
+ *                 example: ["user_42"]
  *               media:
  *                 type: array
- *                 items:
- *                   type: object
- *                   properties:
- *                     id:
- *                       type: string
- *                     type:
- *                       type: string
- *                       enum: [image, video]
+ *                 items: { $ref: '#/components/schemas/MediaItem' }
  *                 example: [{ id: "media_abc123", type: "image" }]
+ *               parentId:
+ *                 type: string
+ *                 nullable: true
+ *                 example: null
+ *                 description: Parent post ID when creating a reply/comment
  *     responses:
  *       201:
  *         description: Post created.
@@ -129,47 +131,40 @@ export function createPostRouter(
  *             schema:
  *               type: object
  *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 data:
- *                   $ref: '#/components/schemas/Post'
+ *                 success: { type: boolean, example: true }
+ *                 data: { $ref: '#/components/schemas/Post' }
  *       400:
  *         description: Missing or invalid request data.
  *         content:
  *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ApiError'
+ *             schema: { $ref: '#/components/schemas/ApiError' }
  *       401:
- *         description: Missing authentication headers.
+ *         description: Unauthorized.
  *         content:
  *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ApiError'
+ *             schema: { $ref: '#/components/schemas/ApiError' }
  *
  * /api/posts/feed:
  *   get:
- *     summary: Personalized chronological feed
+ *     summary: Personalized feed
  *     description: >
- *       Returns posts from users the authenticated viewer follows, sorted newest first, paginated.
- *       The viewer's own posts are always included. Follow graph is resolved server-side from
- *       user-service (GET /users/:id/following). Falls back to a global chronological feed when
- *       user-service is unavailable, the endpoint never errors due to follow-graph failures.
+ *       Returns a paginated feed for the authenticated viewer. Use `type=following` for posts from
+ *       followed users (including own posts) or `type=for-you` for the recommendation algorithm.
+ *       Defaults to `for-you` when no type is provided.
  *     tags: [Posts]
  *     parameters:
  *       - in: query
- *         name: page
+ *         name: type
  *         schema:
- *           type: integer
- *           minimum: 1
- *           default: 1
+ *           type: string
+ *           enum: [following, for-you]
+ *           default: for-you
+ *       - in: query
+ *         name: page
+ *         schema: { type: integer, minimum: 1, default: 1 }
  *       - in: query
  *         name: limit
- *         schema:
- *           type: integer
- *           minimum: 1
- *           maximum: 100
- *           default: 20
+ *         schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
  *     responses:
  *       200:
  *         description: Paginated list of posts.
@@ -178,37 +173,91 @@ export function createPostRouter(
  *             schema:
  *               type: object
  *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 data:
- *                   $ref: '#/components/schemas/PaginatedPosts'
+ *                 success: { type: boolean, example: true }
+ *                 data: { $ref: '#/components/schemas/PaginatedPosts' }
+ *
+ * /api/posts/search:
+ *   get:
+ *     summary: Search posts
+ *     tags: [Posts]
+ *     parameters:
+ *       - in: query
+ *         name: q
+ *         required: true
+ *         schema: { type: string }
+ *       - in: query
+ *         name: page
+ *         schema: { type: integer, default: 1 }
+ *       - in: query
+ *         name: limit
+ *         schema: { type: integer, default: 20 }
+ *     responses:
+ *       200:
+ *         description: Paginated search results.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: boolean, example: true }
+ *                 data: { $ref: '#/components/schemas/PaginatedPosts' }
+ *
+ * /api/posts/trending-tags:
+ *   get:
+ *     summary: Trending tags
+ *     tags: [Posts]
+ *     parameters:
+ *       - in: query
+ *         name: limit
+ *         schema: { type: integer, default: 10 }
+ *     responses:
+ *       200:
+ *         description: List of trending tags.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: boolean, example: true }
+ *                 data: { type: array, items: { $ref: '#/components/schemas/TrendingTag' } }
+ *
+ * /api/posts/liked-by-me:
+ *   get:
+ *     summary: Posts liked by the current user
+ *     tags: [Posts]
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema: { type: integer, default: 1 }
+ *       - in: query
+ *         name: limit
+ *         schema: { type: integer, default: 20 }
+ *     responses:
+ *       200:
+ *         description: Paginated liked posts.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: boolean, example: true }
+ *                 data: { type: array, items: { $ref: '#/components/schemas/Post' } }
  *
  * /api/posts/users/{userId}:
  *   get:
  *     summary: Posts by user
- *     description: >
- *       Returns paginated posts authored by the given userId, newest first.
  *     tags: [Posts]
  *     parameters:
  *       - in: path
  *         name: userId
  *         required: true
- *         schema:
- *           type: string
+ *         schema: { type: string }
  *       - in: query
  *         name: page
- *         schema:
- *           type: integer
- *           minimum: 1
- *           default: 1
+ *         schema: { type: integer, minimum: 1, default: 1 }
  *       - in: query
  *         name: limit
- *         schema:
- *           type: integer
- *           minimum: 1
- *           maximum: 100
- *           default: 20
+ *         schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
  *     responses:
  *       200:
  *         description: Paginated posts by user.
@@ -217,17 +266,13 @@ export function createPostRouter(
  *             schema:
  *               type: object
  *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 data:
- *                   $ref: '#/components/schemas/PaginatedPosts'
+ *                 success: { type: boolean, example: true }
+ *                 data: { $ref: '#/components/schemas/PaginatedPosts' }
  *       403:
- *         description: User attempting to access another user's posts.
+ *         description: Forbidden.
  *         content:
  *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ApiError'
+ *             schema: { $ref: '#/components/schemas/ApiError' }
  *
  * /api/posts/{id}:
  *   get:
@@ -237,8 +282,7 @@ export function createPostRouter(
  *       - in: path
  *         name: id
  *         required: true
- *         schema:
- *           type: string
+ *         schema: { type: string }
  *     responses:
  *       200:
  *         description: Post found.
@@ -247,29 +291,71 @@ export function createPostRouter(
  *             schema:
  *               type: object
  *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 data:
- *                   $ref: '#/components/schemas/Post'
+ *                 success: { type: boolean, example: true }
+ *                 data: { $ref: '#/components/schemas/Post' }
  *       404:
  *         description: Not found.
  *         content:
  *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ApiError'
- *   delete:
- *     summary: Delete a post
- *     description: >
- *       Post owner may delete their own post.
- *       Moderators and admins may delete any post.
+ *             schema: { $ref: '#/components/schemas/ApiError' }
+ *   patch:
+ *     summary: Update a post
  *     tags: [Posts]
  *     parameters:
  *       - in: path
  *         name: id
  *         required: true
- *         schema:
- *           type: string
+ *         schema: { type: string }
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               content:
+ *                 type: string
+ *                 minLength: 1
+ *                 maxLength: 5000
+ *                 example: "Updated content"
+ *               tags:
+ *                 type: array
+ *                 items: { type: string }
+ *               mentions:
+ *                 type: array
+ *                 items: { type: string }
+ *               media:
+ *                 type: array
+ *                 items: { $ref: '#/components/schemas/MediaItem' }
+ *     responses:
+ *       200:
+ *         description: Post updated.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: boolean, example: true }
+ *                 data: { $ref: '#/components/schemas/Post' }
+ *       403:
+ *         description: Forbidden.
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/ApiError' }
+ *       404:
+ *         description: Not found.
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/ApiError' }
+ *   delete:
+ *     summary: Delete a post
+ *     description: Post owner may delete their own post; moderators/admins may delete any post.
+ *     tags: [Posts]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
  *     responses:
  *       200:
  *         description: Deleted.
@@ -278,22 +364,67 @@ export function createPostRouter(
  *             schema:
  *               type: object
  *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 data:
- *                   nullable: true
- *                   example: null
+ *                 success: { type: boolean, example: true }
+ *                 data: { nullable: true, example: null }
  *       403:
  *         description: Not the post owner and lacks elevated role.
  *         content:
  *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ApiError'
+ *             schema: { $ref: '#/components/schemas/ApiError' }
  *       404:
  *         description: Not found.
  *         content:
  *           application/json:
+ *             schema: { $ref: '#/components/schemas/ApiError' }
+ *
+ * /api/posts/{id}/detail:
+ *   get:
+ *     summary: Get a post with author, replies and like status
+ *     tags: [Posts]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Post detail.
+ *         content:
+ *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ApiError'
+ *               type: object
+ *               properties:
+ *                 success: { type: boolean, example: true }
+ *                 data: { $ref: '#/components/schemas/PostDetail' }
+ *       404:
+ *         description: Not found.
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/ApiError' }
+ *
+ * /api/posts/{id}/replies:
+ *   get:
+ *     summary: List replies to a post
+ *     tags: [Posts]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *       - in: query
+ *         name: page
+ *         schema: { type: integer, default: 1 }
+ *       - in: query
+ *         name: limit
+ *         schema: { type: integer, default: 20 }
+ *     responses:
+ *       200:
+ *         description: Paginated replies.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: boolean, example: true }
+ *                 data: { $ref: '#/components/schemas/PaginatedPosts' }
  */

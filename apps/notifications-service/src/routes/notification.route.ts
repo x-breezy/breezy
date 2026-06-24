@@ -81,12 +81,25 @@ export { createNotificationRouter }
  *           maximum: 100
  *           default: 20
  *       - in: query
- *         name: unreadOnly
+ *         name: read
  *         schema:
  *           type: boolean
+ *         description: Filter by read status (true = read, false = unread). Omit to return all.
  *     responses:
  *       200:
  *         description: Paginated list of notifications.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: boolean, example: true }
+ *                 data:
+ *                   type: array
+ *                   items: { $ref: '#/components/schemas/Notification' }
+ *                 total: { type: integer, example: 100 }
+ *                 page: { type: integer, example: 1 }
+ *                 limit: { type: integer, example: 20 }
  *
  * /api/notifications/read-all:
  *   patch:
