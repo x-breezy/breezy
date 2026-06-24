@@ -438,6 +438,7 @@ services:
       RABBITMQ_URL: amqp://${RABBITMQ_USER}:${RABBITMQ_PASS}@rabbitmq:5672
       JWT_PUBLIC_KEY_PATH: /secrets/public.pem
       PROFILE_SERVICE_GRPC_URL: profile-service:50051
+      PROFILE_SERVICE_URL: http://profile-service:4010
       FRONTEND_URL: https://${DOMAIN}
       LOG_FILE: /logs/message-service.log
       LOG_LEVEL: info
