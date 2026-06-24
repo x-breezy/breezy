@@ -2,6 +2,7 @@ import { createLogger } from "@breezy/logger"
 import { handleEmailVerification, handleForgotPassword, handle2FA } from "../handlers/auth.handler"
 import { handleFollow } from "../handlers/social.handler"
 import { handleLike, handleMention, handleReply } from "../handlers/content.handler"
+import { handleMessageSent } from "../handlers/message.handler"
 
 const logger = createLogger({ service: "notifications-service" })
 
@@ -13,6 +14,7 @@ const HANDLERS: Record<string, (payload: unknown) => Promise<void>> = {
   "content.like": handleLike,
   "content.mention": handleMention,
   "content.reply": handleReply,
+  "message.sent": handleMessageSent,
 }
 
 export async function handleEvent(routingKey: string, payload: unknown): Promise<void> {

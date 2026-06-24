@@ -56,6 +56,13 @@ export interface ContentReplyEvent {
   avatarId?: string
 }
 
+export interface MessageSentEvent {
+  senderId: string
+  recipientUserId: string
+  content: string
+  conversationId: string
+}
+
 export type BreezyEvent =
   | AuthEmailVerificationEvent
   | AuthForgotPasswordEvent
@@ -64,3 +71,4 @@ export type BreezyEvent =
   | ContentLikeEvent
   | ContentMentionEvent
   | ContentReplyEvent
+  | MessageSentEvent
