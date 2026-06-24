@@ -3,7 +3,7 @@ import { PostService } from "../services/post.service"
 import type { Post } from "../types/post"
 
 export class PostController {
-  constructor(private service = new PostService()) {}
+  constructor(private service = new PostService()) { }
 
   create = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
@@ -16,7 +16,7 @@ export class PostController {
 
   getDetail = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const detail = await this.service.getPostDetail(req.params.id!, req.user!.id, req.user?.role)
+      const detail = await this.service.getPostDetail(req.params.id!, req.user!.id)
       if (!detail) {
         res.status(404).json({ success: false, error: "Not found", message: "Post not found" })
         return
@@ -29,7 +29,7 @@ export class PostController {
 
   getOne = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const post = await this.service.getPost(req.params.id!, req.user?.role)
+      const post = await this.service.getPost(req.params.id!)
       if (!post) {
         res.status(404).json({ success: false, error: "Not found", message: "Post not found" })
         return
@@ -47,8 +47,8 @@ export class PostController {
       const type = req.query.type === "forYou" ? "forYou" : "following"
       const result =
         type === "forYou"
-          ? await this.service.forYouFeed(req.user!.id, page, limit, req.user?.role)
-          : await this.service.feed(req.user!.id, page, limit, req.user?.role)
+          ? await this.service.forYouFeed(req.user!.id, page, limit)
+          : await this.service.feed(req.user!.id, page, limit)
       res.json({ success: true, data: result, message: "Feed retrieved successfully" })
     } catch (err) {
       next(err)
@@ -67,7 +67,7 @@ export class PostController {
         req.params.userId!,
         page,
         limit,
-        type as any,
+        type as "posts" | "replies" | "media" | "all",
         req.user?.role
       )
 
@@ -86,8 +86,7 @@ export class PostController {
         page,
         limit,
         req.user?.id,
-        false,
-        req.user?.role
+        false
       )
 
       res.json({ success: true, data: result, message: "Replies retrieved successfully" })
@@ -138,8 +137,7 @@ export class PostController {
         page,
         limit,
         authorIds,
-        req.user!.id,
-        req.user?.role
+        req.user!.id
       )
       res.json({ success: true, data: result, message: "Search results retrieved successfully" })
     } catch (err) {

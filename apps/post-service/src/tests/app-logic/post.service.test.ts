@@ -139,22 +139,13 @@ describe("PostService", () => {
       expect(result).toBeNull()
     })
 
-    it("returns null when author is banned and viewer is not admin", async () => {
+    it("returns null when author is banned", async () => {
       const post = { _id: "post-1", content: "hello", authorId: "banned-user" }
       mockPostModel.findById.mockReturnValue(mockQuery(post) as any)
       mockGetBannedUserIds.mockResolvedValue(new Set(["banned-user"]))
 
-      const result = await service.getPost("post-1", "user")
+      const result = await service.getPost("post-1")
       expect(result).toBeNull()
-    })
-
-    it("returns post when author is banned but viewer is admin", async () => {
-      const post = { _id: "post-1", content: "hello", authorId: "banned-user" }
-      mockPostModel.findById.mockReturnValue(mockQuery(post) as any)
-      mockGetBannedUserIds.mockResolvedValue(new Set(["banned-user"]))
-
-      const result = await service.getPost("post-1", "admin")
-      expect(result).toEqual(post)
     })
   })
 
@@ -307,18 +298,18 @@ describe("PostService", () => {
       expect(mockPostModel.find).toHaveBeenCalledWith({ authorId: "user-1", parentId: null })
     })
 
-    it("returns empty when author is banned and viewer is not admin", async () => {
+    it("returns empty when author is banned", async () => {
       mockGetBannedUserIds.mockResolvedValue(new Set(["banned-user"]))
 
-      const result = await service.byUser("banned-user", 1, 10, "posts", "user")
+      const result = await service.byUser("banned-user", 1, 10, "posts")
 
       expect(result).toEqual({ data: [], total: 0, page: 1, limit: 10 })
       expect(mockPostModel.find).not.toHaveBeenCalled()
     })
 
-    it("returns posts when author is banned but viewer is admin", async () => {
+    it("returns posts for admin even when author is banned", async () => {
       mockGetBannedUserIds.mockResolvedValue(new Set(["banned-user"]))
-      const posts = [{ _id: "p1", authorId: "banned-user" }]
+      const posts = [{ _id: "p1", authorId: "banned-user", parentId: null }]
       const mockChain = {
         sort: jest.fn().mockReturnThis(),
         skip: jest.fn().mockReturnThis(),
@@ -332,6 +323,7 @@ describe("PostService", () => {
       const result = await service.byUser("banned-user", 1, 10, "posts", "admin")
 
       expect(result.data).toEqual(posts)
+      expect(mockPostModel.find).toHaveBeenCalledWith({ authorId: "banned-user", parentId: null })
     })
 
     it("includes replies when specified", async () => {
@@ -346,7 +338,7 @@ describe("PostService", () => {
       const countQ = mockCount(1)
       mockPostModel.countDocuments.mockReturnValue(countQ as any)
 
-      const result = await service.byUser("user-1", 1, 10, true)
+      const result = await service.byUser("user-1", 1, 10, "all")
 
       expect(mockPostModel.find).toHaveBeenCalledWith({ authorId: "user-1" })
       expect(result.data).toEqual(posts)
@@ -514,15 +506,15 @@ describe("PostService", () => {
         .mockReturnValueOnce({
           lean: jest.fn().mockReturnThis(),
           exec: jest.fn().mockResolvedValue(post),
-        })
+        } as unknown as ReturnType<typeof PostModel.findById>)
         .mockReturnValueOnce({
           lean: jest.fn().mockReturnThis(),
           exec: jest.fn().mockResolvedValue(parent),
-        })
+        } as unknown as ReturnType<typeof PostModel.findById>)
         .mockReturnValueOnce({
           lean: jest.fn().mockReturnThis(),
           exec: jest.fn().mockResolvedValue(root),
-        })
+        } as unknown as ReturnType<typeof PostModel.findById>)
 
       const result = await service.getThread("p3")
 
@@ -535,11 +527,11 @@ describe("PostService", () => {
         .mockReturnValueOnce({
           lean: jest.fn().mockReturnThis(),
           exec: jest.fn().mockResolvedValue(post),
-        })
+        } as unknown as ReturnType<typeof PostModel.findById>)
         .mockReturnValueOnce({
           lean: jest.fn().mockReturnThis(),
           exec: jest.fn().mockResolvedValue(null),
-        })
+        } as unknown as ReturnType<typeof PostModel.findById>)
 
       const result = await service.getThread("orphan")
       expect(result).toEqual([])
@@ -588,7 +580,7 @@ describe("PostService", () => {
           sort: jest.fn().mockReturnThis(),
           limit: jest.fn().mockReturnThis(),
           exec: jest.fn().mockResolvedValue(data),
-        }
+        } as unknown as ReturnType<typeof PostModel.find>
       })
       const countQ = mockCount(1)
       mockPostModel.countDocuments.mockReturnValue(countQ as any)

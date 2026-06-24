@@ -14,10 +14,9 @@ const LIKED_POST_PENALTY = 2
 export async function forYouFeed(
   viewerId: string,
   page: number,
-  limit: number,
-  viewerRole?: string
+  limit: number
 ): Promise<PaginatedResponse<Post>> {
-  const banned = viewerRole === "admin" ? new Set<string>() : await getBannedUserIds()
+  const banned = await getBannedUserIds()
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
   const now = Date.now()
 

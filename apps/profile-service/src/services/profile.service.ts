@@ -14,16 +14,20 @@ class ProfileService {
   }
 
   async getProfile(profileId: string, viewerRole?: string): Promise<Profile | null> {
-    const banned = viewerRole === "admin" ? new Set<string>() : getBannedUserIds()
-    if (banned.has(profileId)) return null
+    if (viewerRole !== "admin") {
+      const banned = await getBannedUserIds()
+      if (banned.has(profileId)) return null
+    }
     return Profile.findOne({ where: { profileId } })
   }
 
   async getProfileByUsername(username: string, viewerRole?: string): Promise<Profile | null> {
     const profile = await Profile.findOne({ where: { username } })
     if (!profile) return null
-    const banned = viewerRole === "admin" ? new Set<string>() : getBannedUserIds()
-    if (banned.has(profile.profileId)) return null
+    if (viewerRole !== "admin") {
+      const banned = await getBannedUserIds()
+      if (banned.has(profile.profileId)) return null
+    }
     return profile
   }
 
@@ -96,10 +100,9 @@ class ProfileService {
   async getFollowers(
     profileId: string,
     page: number = 1,
-    limit: number = 50,
-    viewerRole?: string
+    limit: number = 50
   ): Promise<{ count: number; followers: string[] }> {
-    const banned = viewerRole === "admin" ? new Set<string>() : getBannedUserIds()
+    const banned = await getBannedUserIds()
     const offset = (page - 1) * limit
     const sequelize = Profile.sequelize!
     const bannedArray = [...banned]
@@ -108,7 +111,7 @@ class ProfileService {
         ? `AND f.follower_id NOT IN (${bannedArray.map((_, i) => `:banned${i}`).join(",")})`
         : ""
     const bannedReplacements = Object.fromEntries(bannedArray.map((id, i) => [`banned${i}`, id]))
-    const [rows, countResult] = await Promise.all([
+    const [rows, countRows] = await Promise.all([
       sequelize.query<{ id: string }>(
         `SELECT f.follower_id AS id
          FROM follows f
@@ -123,18 +126,29 @@ class ProfileService {
           type: QueryTypes.SELECT,
         }
       ),
-      Follow.count({ where: { followingId: profileId } }),
+      sequelize.query<{ count: number }>(
+        `SELECT COUNT(*)::int AS count
+         FROM follows f
+         JOIN profiles p ON p.profile_id = f.follower_id
+         WHERE f.following_id = :profileId
+           AND p.deleted_at IS NULL
+           ${bannedClause}`,
+        {
+          replacements: { profileId, ...bannedReplacements },
+          type: QueryTypes.SELECT,
+          plain: true,
+        }
+      ),
     ])
-    return { count: countResult, followers: rows.map((r) => r.id) }
+    return { count: countRows?.count ?? 0, followers: rows.map((r) => r.id) }
   }
 
   async getFollowing(
     profileId: string,
     page: number = 1,
-    limit: number = 50,
-    viewerRole?: string
+    limit: number = 50
   ): Promise<{ count: number; following: string[] }> {
-    const banned = viewerRole === "admin" ? new Set<string>() : getBannedUserIds()
+    const banned = await getBannedUserIds()
     const offset = (page - 1) * limit
     const sequelize = Profile.sequelize!
     const bannedArray = [...banned]
@@ -143,7 +157,7 @@ class ProfileService {
         ? `AND f.following_id NOT IN (${bannedArray.map((_, i) => `:banned${i}`).join(",")})`
         : ""
     const bannedReplacements = Object.fromEntries(bannedArray.map((id, i) => [`banned${i}`, id]))
-    const [rows, countResult] = await Promise.all([
+    const [rows, countRows] = await Promise.all([
       sequelize.query<{ id: string }>(
         `SELECT f.following_id AS id
          FROM follows f
@@ -158,21 +172,34 @@ class ProfileService {
           type: QueryTypes.SELECT,
         }
       ),
-      Follow.count({ where: { followerId: profileId } }),
+      sequelize.query<{ count: number }>(
+        `SELECT COUNT(*)::int AS count
+         FROM follows f
+         JOIN profiles p ON p.profile_id = f.following_id
+         WHERE f.follower_id = :profileId
+           AND p.deleted_at IS NULL
+           ${bannedClause}`,
+        {
+          replacements: { profileId, ...bannedReplacements },
+          type: QueryTypes.SELECT,
+          plain: true,
+        }
+      ),
     ])
-    return { count: countResult, following: rows.map((r) => r.id) }
+    return { count: countRows?.count ?? 0, following: rows.map((r) => r.id) }
   }
 
   async getFollowSuggestions(
     profileId: string,
-    limit: number = 3,
-    viewerRole?: string
+    limit: number = 3
   ): Promise<Profile[]> {
-    const banned = viewerRole === "admin" ? new Set<string>() : getBannedUserIds()
+    const banned = await getBannedUserIds()
+    const bannedArray = [...banned]
     const bannedClause =
-      banned.size > 0
-        ? `AND p.profile_id NOT IN (${[...banned].map((id) => `'${id}'`).join(",")})`
+      bannedArray.length > 0
+        ? `AND p.profile_id NOT IN (${bannedArray.map((_, i) => `:banned${i}`).join(",")})`
         : ""
+    const bannedReplacements = Object.fromEntries(bannedArray.map((id, i) => [`banned${i}`, id]))
     const sequelize = Profile.sequelize!
     const rows = await sequelize.query<Profile>(
       `SELECT p.profile_id AS "profileId", p.username,
@@ -195,14 +222,19 @@ class ProfileService {
          ) THEN 0 ELSE 1 END,
          p.followers_count DESC
        LIMIT :limit`,
-      { replacements: { profileId, limit }, type: QueryTypes.SELECT }
+      { replacements: { profileId, limit, ...bannedReplacements }, type: QueryTypes.SELECT }
     )
     return rows
   }
 
-  async getProfilesByIds(ids: string[], viewerRole?: string): Promise<Profile[]> {
+  async getProfilesByIdsUnfiltered(ids: string[]): Promise<Profile[]> {
     if (ids.length === 0) return []
-    const banned = viewerRole === "admin" ? new Set<string>() : getBannedUserIds()
+    return Profile.findAll({ where: { profileId: ids } })
+  }
+
+  async getProfilesByIds(ids: string[]): Promise<Profile[]> {
+    if (ids.length === 0) return []
+    const banned = await getBannedUserIds()
     const filteredIds = banned.size > 0 ? ids.filter((id) => !banned.has(id)) : ids
     if (filteredIds.length === 0) return []
     return Profile.findAll({ where: { profileId: filteredIds } })
@@ -213,10 +245,9 @@ class ProfileService {
     page: number = 1,
     limit: number = 20,
     viewerId?: string,
-    viewerRole?: string
   ): Promise<{ count: number; profiles: Profile[] }> {
     const offset = (page - 1) * limit
-    const banned = viewerRole === "admin" ? new Set<string>() : getBannedUserIds()
+    const banned = await getBannedUserIds()
     const excludeIds = [...(viewerId ? [viewerId] : []), ...banned]
     const where = {
       [Op.or]: [

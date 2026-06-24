@@ -1,16 +1,17 @@
 import amqplib from "amqplib"
 import { createLogger } from "@breezy/logger"
+import { getRedis } from "./redis"
 
 const logger = createLogger({ service: "profile-service" })
 
 const EXCHANGE = "breezy.events"
 const QUEUE = "profile-service.banned-users"
 const BINDING_KEYS = ["user.banned", "user.unbanned"]
+const BANNED_KEY = "banned:users"
 
-const bannedUsers = new Set<string>()
-
-export function getBannedUserIds(): Set<string> {
-  return bannedUsers
+export async function getBannedUserIds(): Promise<Set<string>> {
+  const ids = await getRedis().smembers(BANNED_KEY)
+  return new Set(ids)
 }
 
 async function syncBannedUsersFromAuthService(): Promise<void> {
@@ -23,7 +24,9 @@ async function syncBannedUsersFromAuthService(): Promise<void> {
       const res = await fetch(`${authUrl}/internal/banned-user-ids`)
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
       const body = (await res.json()) as { ids: string[] }
-      for (const id of body.ids) bannedUsers.add(id)
+      const pipeline = getRedis().pipeline().del(BANNED_KEY)
+      if (body.ids.length > 0) pipeline.sadd(BANNED_KEY, ...body.ids)
+      await pipeline.exec()
       logger.info({ count: body.ids.length }, "Banned users cache seeded from auth-service")
       return
     } catch (err) {
@@ -57,10 +60,10 @@ export async function startBannedUsersConsumer(): Promise<void> {
         const payload = JSON.parse(msg.content.toString()) as { userId: string }
         const { userId } = payload
         if (msg.fields.routingKey === "user.banned") {
-          bannedUsers.add(userId)
+          await getRedis().sadd(BANNED_KEY, userId)
           logger.info({ userId }, "Banned user added to cache")
         } else if (msg.fields.routingKey === "user.unbanned") {
-          bannedUsers.delete(userId)
+          await getRedis().srem(BANNED_KEY, userId)
           logger.info({ userId }, "Unbanned user removed from cache")
         }
         channel.ack(msg)

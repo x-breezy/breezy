@@ -28,6 +28,7 @@ function createProfileRouter() {
 
   router.get("/search", identity, profileController.search)
   router.get("/batch", profileController.batchGet)
+  router.get("/internal/batch", profileController.internalBatchGet)
   router.get("/internal/:profileId", readLimit, profileController.getProfile)
 
   // Protected, static routes BEFORE /:profileId to avoid param-route swallowing
