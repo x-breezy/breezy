@@ -67,7 +67,8 @@ export class PostController {
         req.params.userId!,
         page,
         limit,
-        type as "posts" | "replies" | "media" | "all"
+        type as "posts" | "replies" | "media" | "all",
+        req.user?.role
       )
 
       res.json({ success: true, data: result, message: "User posts retrieved successfully" })

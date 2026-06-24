@@ -236,10 +236,13 @@ export class PostService {
     userId: string,
     page: number,
     limit: number,
-    type: "posts" | "replies" | "media" | "all" = "posts"
+    type: "posts" | "replies" | "media" | "all" = "posts",
+    viewerRole?: string
   ): Promise<PaginatedResponse<Post>> {
-    const banned = await getBannedUserIds()
-    if (banned.has(userId)) return { data: [], total: 0, page, limit }
+    if (viewerRole !== "admin") {
+      const banned = await getBannedUserIds()
+      if (banned.has(userId)) return { data: [], total: 0, page, limit }
+    }
     const filter: Record<string, unknown> = { authorId: userId }
     if (type === "posts") filter.parentId = null
     else if (type === "replies") filter.parentId = { $ne: null }
