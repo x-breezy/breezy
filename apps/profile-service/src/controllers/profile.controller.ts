@@ -15,7 +15,10 @@ class ProfileController {
     next: NextFunction
   ): Promise<void> => {
     try {
-      const profile = await this.profileService.createProfile(req.body)
+      const profile = await this.profileService.createProfile({
+        ...req.body,
+        profileId: req.user!.id,
+      })
       res.status(201).json({ success: true, data: profile })
     } catch (err) {
       next(err)
@@ -28,7 +31,7 @@ class ProfileController {
     next: NextFunction
   ): Promise<void> => {
     try {
-      const profile = await this.profileService.getProfile(req.params.profileId)
+      const profile = await this.profileService.getProfile(req.params.profileId, req.user?.role)
       if (!profile) {
         res.status(404).json({ success: false, message: "Profile not found" })
         return
@@ -47,7 +50,10 @@ class ProfileController {
     next: NextFunction
   ): Promise<void> => {
     try {
-      const profile = await this.profileService.getProfileByUsername(req.params.username)
+      const profile = await this.profileService.getProfileByUsername(
+        req.params.username,
+        req.user?.role
+      )
       if (!profile) {
         res.status(404).json({ success: false, message: "Profile not found" })
         return
@@ -185,6 +191,24 @@ class ProfileController {
     }
   }
 
+  getFollowSuggestions = async (
+    req: Request<{ profileId: string }>,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const limit = Math.min(10, Math.max(1, parseInt(req.query.limit as string) || 3))
+      const profiles = await this.profileService.getFollowSuggestions(req.params.profileId, limit)
+      res.status(200).json({
+        success: true,
+        data: profiles,
+        message: "Suggestions retrieved successfully",
+      })
+    } catch (err) {
+      next(err)
+    }
+  }
+
   batchGet = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const raw = (req.query.ids as string | undefined) ?? ""
@@ -193,6 +217,20 @@ class ProfileController {
         .map((s) => s.trim())
         .filter(Boolean)
       const profiles = await this.profileService.getProfilesByIds(ids)
+      res.status(200).json({ success: true, data: profiles })
+    } catch (err) {
+      next(err)
+    }
+  }
+
+  internalBatchGet = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const raw = (req.query.ids as string | undefined) ?? ""
+      const ids = raw
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean)
+      const profiles = await this.profileService.getProfilesByIdsUnfiltered(ids)
       res.status(200).json({ success: true, data: profiles })
     } catch (err) {
       next(err)

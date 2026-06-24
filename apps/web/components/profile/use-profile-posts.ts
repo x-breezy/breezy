@@ -2,23 +2,23 @@
 
 import { useInfiniteQuery } from "@tanstack/react-query"
 import { useMemo } from "react"
-import { listProfilePosts } from "@/app/(app)/profile/profile-posts-action"
+import { listProfilePosts } from "@/lib/actions/profile-posts"
 import type { SearchPost } from "@/lib/actions/posts"
 
 export interface ProfilePost extends SearchPost {
   liked: boolean
 }
 
-export function useProfilePosts(authorId: string) {
+export function useProfilePosts(authorId: string, type: string = "posts", enabled = true) {
   const query = useInfiniteQuery({
-    queryKey: ["profile-posts", authorId],
-    queryFn: ({ pageParam = 1 }) => listProfilePosts(authorId, pageParam as number),
+    queryKey: ["profile-posts", authorId, type],
+    queryFn: ({ pageParam = 1 }) => listProfilePosts(authorId, pageParam as number, type),
     initialPageParam: 1,
     getNextPageParam: (lastPage) => {
       const loaded = (lastPage.page - 1) * lastPage.limit + lastPage.posts.length
       return loaded < lastPage.total ? lastPage.page + 1 : undefined
     },
-    enabled: !!authorId,
+    enabled: !!authorId && enabled,
   })
 
   const posts = useMemo<ProfilePost[]>(
@@ -35,6 +35,8 @@ export function useProfilePosts(authorId: string) {
     hasNextPage: query.hasNextPage,
     isFetchingNextPage: query.isFetchingNextPage,
     isLoading: query.isLoading,
+    isRefetching: query.isRefetching,
+    refetch: query.refetch,
     error: query.error,
   }
 }

@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Field, FieldGroup, FieldSet } from "@/components/ui/field"
 import { Label } from "@/components/ui/label"
 import { InputGroup, InputGroupInput } from "@/components/ui/input-group"
-import { sendVerificationEmailAction, verifyEmailTokenAction } from "@/app/(app)/settings/actions"
+import { sendVerificationEmailAction, verifyEmailTokenAction } from "@/lib/actions/settings"
 import { IconCheckFilled, IconMailFilled } from "@tabler/icons-react"
 import { useUserStore } from "@/stores/user-store"
 

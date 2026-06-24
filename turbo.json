@@ -3,13 +3,17 @@
   "ui": "tui",
   "globalEnv": [
     "API_URL",
-    "APP_URL",
+    "FRONTEND_URL",
     "PORT",
     "NODE_ENV",
     "LOG_LEVEL",
+    "LOG_FILE",
     "DATABASE_URL",
-    "PROFILE_SERVICE_URL",
+    "MEDIA_SERVICE_GRPC_URL",
+    "PROFILE_SERVICE_GRPC_URL",
     "RABBITMQ_URL",
+    "REDIS_URL",
+    "AUTH_SERVICE_URL",
     "SMTP_HOST",
     "SMTP_PORT",
     "SMTP_USER",
@@ -17,9 +21,21 @@
     "SMTP_FROM",
     "JWT_SECRET",
     "JWT_EXPIRES_IN",
+    "JWT_KID",
+    "JWT_PUBLIC_KEY",
+    "JWT_PRIVATE_KEY",
+    "JWT_PUBLIC_KEY_PATH",
+    "JWT_PRIVATE_KEY_PATH",
+    "GRPC_PORT",
     "REFRESH_TOKEN_TTL_MS",
+    "GOOGLE_REDIRECT_URI",
     "GOOGLE_CLIENT_ID",
-    "GOOGLE_CLIENT_SECRET"
+    "GOOGLE_CLIENT_SECRET",
+    "NEXT_PUBLIC_API_URL",
+    "NEXT_PUBLIC_GIPHY_API_KEY",
+    "MEDIA_SERVICE_URL",
+    "NOTIFICATIONS_SERVICE_URL",
+    "PROFILE_SERVICE_URL"
   ],
   "tasks": {
     "build": {
@@ -34,11 +50,11 @@
       "dependsOn": ["^format"]
     },
     "test": {
-      "dependsOn": ["^test"],
+      "dependsOn": ["^check-types", "^test"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"]
     },
     "test:coverage": {
-      "dependsOn": ["^test:coverage"],
+      "dependsOn": ["^check-types", "^test:coverage"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"]
     },
     "check-types": {

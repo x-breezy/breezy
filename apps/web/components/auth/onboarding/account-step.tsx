@@ -11,9 +11,10 @@ import OAuthButtons from "../oauth-buttons"
 import { InputGroup, InputGroupAddon, InputGroupInput } from "../../ui/input-group"
 import { IconAt, IconMail } from "@tabler/icons-react"
 import Link from "next/link"
-import { signUpAction } from "@/app/(auth)/sign-up/actions"
+import { signUpAction } from "@/lib/actions/sign-up"
 import { Checkbox } from "@/components/ui/checkbox"
 import { FieldLabel } from "@/components/ui/field"
+import { usernameSchema } from "@/lib/schemas/user-validation"
 
 export function AccountStep({ onSuccess }: { onSuccess: () => void }) {
   const [username, setUsername] = useState("")
@@ -21,6 +22,7 @@ export function AccountStep({ onSuccess }: { onSuccess: () => void }) {
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
   const [localError, setLocalError] = useState<string | null>(null)
+  const [usernameError, setUsernameError] = useState<string | null>(null)
   const [state, action, isPending] = useActionState(signUpAction, null)
   const [termsAccepted, setTermsAccepted] = useState(false)
   const [termsError, setTermsError] = useState(false)
@@ -30,23 +32,42 @@ export function AccountStep({ onSuccess }: { onSuccess: () => void }) {
     if (state?.success) onSuccess()
   }, [state?.success, onSuccess])
 
+  function validateUsername(value: string) {
+    const result = usernameSchema.safeParse(value)
+    setUsernameError(result.success ? null : t(result.error.issues[0]!.message))
+  }
+
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    let hasError = false
+
+    const usernameResult = usernameSchema.safeParse(username)
+    if (!usernameResult.success) {
+      event.preventDefault()
+      setUsernameError(t(usernameResult.error.issues[0]!.message))
+      hasError = true
+    } else {
+      setUsernameError(null)
+    }
+
     if (!termsAccepted) {
       event.preventDefault()
       setTermsError(true)
-      return
+      hasError = true
     }
+
     if (getStrength(password) < 3) {
       event.preventDefault()
       setLocalError(t("weakPassword"))
-      return
+      hasError = true
     }
+
     if (password !== confirmPassword) {
       event.preventDefault()
       setLocalError(t("passwordsMismatch"))
-      return
+      hasError = true
     }
-    setLocalError(null)
+
+    if (!hasError) setLocalError(null)
   }
 
   const error = localError ?? state?.error ?? null
@@ -67,7 +88,11 @@ export function AccountStep({ onSuccess }: { onSuccess: () => void }) {
                 autoComplete='username'
                 required
                 value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                onChange={(e) => {
+                  setUsername(e.target.value)
+                  if (usernameError) setUsernameError(null)
+                }}
+                onBlur={(e) => validateUsername(e.target.value)}
               />
               <InputGroupAddon align='inline-start'>
                 <IconAt />
@@ -133,6 +158,7 @@ export function AccountStep({ onSuccess }: { onSuccess: () => void }) {
             {termsError && <p className='text-xs text-destructive'>{t("termsError")}</p>}
           </FieldGroup>
 
+          {usernameError && <p className='text-sm text-destructive'>{usernameError}</p>}
           {error && <p className='text-sm text-destructive'>{error}</p>}
 
           <Button type='submit' size='lg' disabled={isPending}>

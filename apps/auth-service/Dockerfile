@@ -3,10 +3,11 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 COPY packages/ ./packages/
 COPY apps/auth-service/ ./apps/auth-service/
+COPY apps/profile-service/src/config/data/ ./apps/profile-service/src/config/data/
 RUN npm ci --workspace=auth-service
 RUN npm run build --workspace=auth-service
 RUN mkdir -p /app/apps/auth-service/dist/config/data && \
-    cp /app/apps/auth-service/src/config/data/profile.data.proto \
+    cp /app/apps/profile-service/src/config/data/profile.data.proto \
        /app/apps/auth-service/dist/config/data/profile.data.proto
 
 FROM node:22-alpine

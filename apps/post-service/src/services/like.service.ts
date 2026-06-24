@@ -18,13 +18,19 @@ export class LikeService {
     ).exec()
     if (!post) throw Object.assign(new Error("Post not found"), { code: "POST_NOT_FOUND" })
     if (post.authorId !== userId) {
-      const profile = await getActorProfile(userId)
+      const [actorProfile, authorProfile] = await Promise.all([
+        getActorProfile(userId),
+        getActorProfile(post.authorId),
+      ])
+      if (authorProfile?.role === "moderator" || authorProfile?.role === "admin") {
+        return { alreadyLiked: false, nb: post.likesCount }
+      }
       void publish("content.like", {
         actorId: userId,
         targetUserId: post.authorId,
         postId,
-        username: profile?.username,
-        avatarId: profile?.avatarId,
+        username: actorProfile?.username,
+        avatarId: actorProfile?.avatarId,
       })
     }
     return { alreadyLiked: false, nb: post.likesCount }

@@ -1,0 +1,32 @@
+apiVersion: 1
+
+datasources:
+  - name: PostgreSQL (user-service)
+    type: postgres
+    uid: postgres-user
+    access: proxy
+    url: postgres-user-service:5432
+    database: user_service
+    user: postgres
+    isDefault: false
+    editable: false
+    secureJsonData:
+      password: ${POSTGRES_USER_PASSWORD}
+    jsonData:
+      sslmode: disable
+      postgresVersion: 1600
+
+  - name: PostgreSQL (profile-service)
+    type: postgres
+    uid: postgres-profile
+    access: proxy
+    url: postgres-profile-service:5432
+    database: profile_service
+    user: postgres
+    isDefault: false
+    editable: false
+    secureJsonData:
+      password: ${POSTGRES_PROFILE_PASSWORD}
+    jsonData:
+      sslmode: disable
+      postgresVersion: 1600

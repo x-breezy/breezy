@@ -1,79 +1,123 @@
 # Breezy
 
-## Getting started
+**A full-stack social platform built as a microservices monorepo.**
 
-in the root: `npm install`
+[![CI](https://github.com/x-breezy/breezy/actions/workflows/pull-request.yml/badge.svg)](https://github.com/x-breezy/breezy/actions/workflows/pull-request.yml)
+[![codecov](https://codecov.io/gh/x-breezy/breezy/branch/dev/graph/badge.svg)](https://codecov.io/gh/x-breezy/breezy)
+[![Node.js](https://img.shields.io/badge/node-%3E%3D20-brightgreen)](https://nodejs.org)
 
-make sure you have: `npm install turbo --global`
+Breezy lets users post short-form content, follow each other, react to posts, and receive real-time
+notifications. It is structured as a Turborepo monorepo with independent microservices, each owning
+its own database.
 
-and then: `npm run dev`
+---
 
-## Micro-services
+## Features
 
-- `auth`: who you are (credentials) - PostgreSQL
-- `users`: how you connect (social graph and profile) - PostgreSQL
-- `posts`: what you do (content) - MongoDB + Elasticsearch
-- `media`: what you share (files) - S3 + MongoDB
-  <!--- `notifications`: what you get (alerts) - MongoDB -->
-  <!--- `feed`: what you see (content feed) - MongoDB -->
+- Short-form posts (250 chars), nested comments, and likes
+- Follow graph with a personalized feed
+- Media uploads with image processing and video streaming (range request support)
+- Real-time notifications over Server-Sent Events
+- Two-factor authentication and Google OAuth
+- Role-based access control (visitor, user, moderator, admin)
+- Centralized structured logging shipped to Kibana via Filebeat
 
-## API Gateway
+---
 
-The API Gateway is the single entry point for all client requests. It handles authentication,
-routing, and response aggregation. It also enforces permissions based on user role.
+## Getting Started
 
-It add to the request:
+**Prerequisites:** Node.js 20+, Docker, npm
 
-- `userId`: the ID of the authenticated user, if any.
-- `role`: the role assigned to the authenticated user, if any.
+```bash
+npm install -g turbo
+
+git clone https://github.com/x-breezy/breezy.git
+cd breezy
+npm install
+
+# Start infrastructure (databases, RabbitMQ, Redis)
+docker compose up -d
+
+# Start all services in development mode
+npm run dev
+```
+
+The web app is available at `http://localhost:3000`. The API is accessible at
+`http://localhost/api`.
+
+---
+
+## Services
+
+| Service                 | Port | gRPC  | Database         | Description                                               |
+| ----------------------- | ---- | ----- | ---------------- | --------------------------------------------------------- |
+| Nginx Gateway           | 80   |       |                  | Single entry point. Handles auth, routing, rate limiting. |
+| Web (Next.js)           | 3000 |       |                  | React 19 frontend with App Router.                        |
+| `auth-service`          | 4000 |       | PostgreSQL       | Registration, login, 2FA, Google OAuth, JWT management.   |
+| `profile-service`       | 4010 | 50051 | PostgreSQL       | Profiles, bios, avatars, follow relationships.            |
+| `post-service`          | 4040 |       | MongoDB          | Posts, comments, likes, feed, search.                     |
+| `media-service`         | 4050 | 50052 | MongoDB (GridFS) | Image processing and video streaming.                     |
+| `notifications-service` | 4060 |       | MongoDB          | Email delivery and real-time push via SSE.                |
+
+**Shared infrastructure:** RabbitMQ (async events between services), Redis (refresh token and
+session storage in auth service). Rate limiting is handled by Nginx in-memory zones.
+
+**Inter-service communication:** gRPC for synchronous calls (profile service serves the follow graph
+to post service; media service exposes batch delete to post service). RabbitMQ for event-driven
+flows (auth, profile, and post services publish events consumed by the notifications service).
+
+---
+
+## Tech Stack
+
+| Layer             | Technology                                                    |
+| ----------------- | ------------------------------------------------------------- |
+| Frontend          | Next.js 16, React 19, Tailwind CSS 4, Zustand, TanStack Query |
+| Backend services  | Node.js, Express, TypeScript                                  |
+| Relational data   | PostgreSQL + Sequelize                                        |
+| Document data     | MongoDB + Mongoose                                            |
+| Inter-service RPC | gRPC (`@grpc/grpc-js`)                                        |
+| Async messaging   | RabbitMQ (`amqplib`)                                          |
+| Session store     | Redis (`ioredis`)                                             |
+| Gateway           | Nginx                                                         |
+| Logging           | Pino, Filebeat, Elasticsearch, Kibana                         |
+| Monorepo          | Turborepo                                                     |
+| CI                | GitHub Actions                                                |
+
+---
+
+## API Documentation
+
+Generate the OpenAPI spec (aggregated from JSDoc across all services):
+
+```bash
+npm run generate:openapi
+```
+
+Interactive Swagger UI is available at `http://localhost/api-docs` when the stack is running.
+
+Run the full endpoint test suite (41 endpoints):
+
+```bash
+npm run test:api
+```
+
+---
 
 ## Permissions
 
-### Roles
+The gateway enforces role-based access on every request. Roles are embedded in the JWT and forwarded
+as a header to each service.
 
-| Role          | Description                                                                  |
-| ------------- | ---------------------------------------------------------------------------- |
-| **visitor**   | Unauthenticated. Can only register (Fx1) and view public themes (Fx23).      |
-| **user**      | Authenticated account holder. Full access to social features on own content. |
-| **moderator** | Elevated user. Can act on any content and suspend abusive accounts.          |
-| **admin**     | Full control. All moderator powers plus permanent bans and account creation. |
+| Role        | Description                                                                  |
+| ----------- | ---------------------------------------------------------------------------- |
+| `visitor`   | Unauthenticated. Can register and access public endpoints only.              |
+| `user`      | Authenticated account holder. Full access to social features on own content. |
+| `moderator` | Can act on any content and suspend abusive accounts.                         |
+| `admin`     | All moderator powers, plus permanent bans and account creation.              |
 
----
-
-### Post service (`apps/post-service`)
-
-| Permission           | String               | Description                                                         |
-| -------------------- | -------------------- | ------------------------------------------------------------------- |
-| `POST_CREATE`        | `post:create`        | Publish a new post (Fx3, max 280 chars).                            |
-| `POST_READ`          | `post:read`          | Read posts on own profile and followed-users feed (Fx4, Fx5, Fx11). |
-| `POST_READ_ANY`      | `post:read:any`      | Read any post regardless of author, used for moderation review.     |
-| `POST_UPDATE_OWN`    | `post:update:own`    | Edit own post content or tags (Fx4, Fx12).                          |
-| `POST_UPDATE_ANY`    | `post:update:any`    | Edit any post, e.g. to remove policy-violating content (Fx21).      |
-| `POST_DELETE_OWN`    | `post:delete:own`    | Delete own post (Fx4).                                              |
-| `POST_DELETE_ANY`    | `post:delete:any`    | Delete any post as a moderation action (Fx21).                      |
-| `COMMENT_CREATE`     | `comment:create`     | Reply to a post or to another comment (Fx7, Fx8).                   |
-| `COMMENT_DELETE_OWN` | `comment:delete:own` | Delete own comment.                                                 |
-| `COMMENT_DELETE_ANY` | `comment:delete:any` | Delete any comment as a moderation action (Fx21).                   |
-| `LIKE_CREATE`        | `like:create`        | Like a post (Fx6).                                                  |
-| `LIKE_DELETE_OWN`    | `like:delete:own`    | Remove own like from a post (unlike).                               |
-
----
-
-### Profile service (`apps/profile-service`)
-
-| Permission           | String               | Description                                                                    |
-| -------------------- | -------------------- | ------------------------------------------------------------------------------ |
-| `PROFILE_READ`       | `profile:read`       | View any user profile page, including bio, avatar, and post list (Fx10, Fx11). |
-| `PROFILE_UPDATE_OWN` | `profile:update:own` | Edit own bio, display name, and avatar (Fx10).                                 |
-| `PROFILE_DELETE_OWN` | `profile:delete:own` | Permanently delete own account and all associated data.                        |
-| `FOLLOW_CREATE`      | `follow:create`      | Follow another user to add their posts to the feed (Fx9).                      |
-| `FOLLOW_DELETE_OWN`  | `follow:delete:own`  | Unfollow a user (Fx9).                                                         |
-| `USER_SUSPEND`       | `user:suspend`       | Temporarily suspend an account, preventing login (Fx21). Moderator and above.  |
-| `USER_BAN`           | `user:ban`           | Permanently ban an account (Fx21). Admin only.                                 |
-
----
-
-### Role matrix
+<details>
+<summary>Full permission matrix</summary>
 
 | Permission           | user | moderator | admin |
 | -------------------- | :--: | :-------: | :---: |
@@ -97,65 +141,35 @@ It add to the request:
 | `user:suspend`       |      |    yes    |  yes  |
 | `user:ban`           |      |           |  yes  |
 
-Visitors have no permissions. They can only reach the registration endpoint (public) and the login
-endpoint (public).
+</details>
 
-## API Documentation
+---
 
-### Generate OpenAPI spec
+## Observability
 
-```bash
-npm run generate:openapi
-```
+Logs from all services are written to a shared volume, picked up by Filebeat, and indexed into
+Elasticsearch.
 
-This creates `openapi.json` at the root by aggregating JSDoc annotations from all microservices.
+Open Kibana at `http://localhost:5601` to explore logs.
 
-### Swagger UI
-
-Access interactive docs at: http://localhost/api-docs/
-
-### Test all endpoints
+If logs stop appearing after restarting services, reset the Filebeat registry:
 
 ```bash
-npm run test:api
-```
-
-Automatically tests all 41 endpoints with a generated user, reports:
-
-- ✅ Pass: valid responses (200, 201, 400, 401, 403, 404, 429)
-- ❌ Fail: unexpected errors (500, 502)
-- ⏭ Skip: internal endpoints
-
-### Troubleshooting Filebeat
-
-If logs stop appearing in Kibana after restarting services:
-
-```bash
-# Reset Filebeat registry (it tracks which files have been read)
 docker exec breezy-filebeat rm -rf /usr/share/filebeat/data/registry
 docker restart breezy-filebeat
 ```
 
-### Known API bugs
+---
 
-| Endpoint                                | Error | Issue                                   |
-| --------------------------------------- | ----- | --------------------------------------- |
-| `GET /api/posts/{id}`                   | 500   | Should return 404 when post not found   |
-| `DELETE /api/posts/{id}`                | 502   | Service crashes on invalid ID           |
-| `POST/DELETE /api/posts/{postId}/likes` | 502   | Service crashes when post doesn't exist |
+## Scripts
 
-These are `post-service` bugs (not Swagger). The endpoints work correctly with valid IDs.
-
-# Voir les logs dans Kibana
-
-open http://localhost:5601
-
-# Reset Filebeat si besoin
-
-docker exec breezy-filebeat rm -rf /usr/share/filebeat/data/registry docker restart breezy-filebeat
-
-# Compter les logs indexés
-
-curl http://localhost:9200/breezy-logs-\*/\_count
-
-pensé a mettre une erreur si on créer un user avec un username de 2 caractères, min 3
+| Command                    | Description                                      |
+| -------------------------- | ------------------------------------------------ |
+| `npm run dev`              | Start all services in watch mode                 |
+| `npm run build`            | Build all apps and packages                      |
+| `npm run test`             | Run the full test suite                          |
+| `npm run lint`             | Lint all workspaces                              |
+| `npm run check-types`      | TypeScript type checking across all packages     |
+| `npm run generate:openapi` | Generate `openapi.json` from service annotations |
+| `npm run test:api`         | Integration test all 41 API endpoints            |
+| `npm run seed`             | Seed databases with development data             |

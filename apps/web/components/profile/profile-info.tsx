@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useTranslations } from "next-intl"
 import { cn } from "@/lib/utils"
 import { UserRole } from "@/lib/auth/role"
 import { UsernameDisplay } from "@/components/shared/username-display"
@@ -35,6 +36,7 @@ export function ProfileInfo({
   className,
   isOwn,
 }: ProfileInfoProps) {
+  const t = useTranslations("profileInfo")
   const [reportOpen, setReportOpen] = useState(false)
   const [reason, setReason] = useState("")
 
@@ -77,7 +79,7 @@ export function ProfileInfo({
                   className="px-3 py-2.5 text-base md:px-2 md:py-1.5 md:text-sm [&_svg:not([class*='size-'])]:size-5 md:[&_svg:not([class*='size-'])]:size-4"
                 >
                   <IconShare />
-                  Share
+                  {t("share")}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
@@ -86,15 +88,7 @@ export function ProfileInfo({
                   className="px-3 py-2.5 text-base md:px-2 md:py-1.5 md:text-sm [&_svg:not([class*='size-'])]:size-5 md:[&_svg:not([class*='size-'])]:size-4"
                 >
                   <IconFlag />
-                  Report
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  variant='destructive'
-                  disabled
-                  className="px-3 py-2.5 text-base md:px-2 md:py-1.5 md:text-sm [&_svg:not([class*='size-'])]:size-5 md:[&_svg:not([class*='size-'])]:size-4"
-                >
-                  <IconUserOff />
-                  Block
+                  {t("report")}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -110,23 +104,23 @@ export function ProfileInfo({
             <div className='flex flex-col gap-5'>
               <div className='flex flex-col gap-1'>
                 <DialogPrimitive.Title className='font-heading text-base font-medium'>
-                  Report @{username}?
+                  {t("reportProfileTitle", { username })}
                 </DialogPrimitive.Title>
                 <DialogPrimitive.Description className='text-sm text-muted-foreground'>
-                  Describe why you are reporting this account.
+                  {t("reportProfileDescription")}
                 </DialogPrimitive.Description>
               </div>
               <Textarea
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
-                placeholder='Reason...'
+                placeholder={t("reasonPlaceholder")}
               />
               <div className='flex justify-center gap-2'>
                 <DialogPrimitive.Close
                   render={<Button size='lg' className='w-1/2' variant='secondary' />}
                   onClick={() => setReason("")}
                 >
-                  Cancel
+                  {t("cancel")}
                 </DialogPrimitive.Close>
                 <Button
                   variant='destructive'
@@ -136,7 +130,7 @@ export function ProfileInfo({
                   disabled={!reason.trim()}
                 >
                   <IconFlag />
-                  Report
+                  {t("report")}
                 </Button>
               </div>
             </div>

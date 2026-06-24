@@ -2,8 +2,8 @@ import { Op } from "sequelize"
 import { User, type SafeUser } from "../models/user.model"
 import { hashPassword, verifyPassword } from "../utils/password.util"
 import type { CreateUserDTO } from "../schemas/user.schema"
-import { publish } from "../clients/rabbitmq"
 import { getRedis } from "../clients/redis"
+import { publish } from "../clients/rabbitmq"
 
 class UserService {
   async addUser(input: CreateUserDTO): Promise<SafeUser> {
@@ -12,18 +12,19 @@ class UserService {
       username: input.username,
       email: input.email,
       passwordHash,
+      ...(input.role ? { role: input.role } : {}),
     })
     const safe = user.toJSON()
-    void publish("auth.email_verification", {
-      userId: safe.id,
-      email: safe.email,
-      token: safe.id,
-    })
     return safe
   }
 
   async getUser(id: string): Promise<SafeUser | null> {
     const user = await User.findByPk(id)
+    return user ? user.toJSON() : null
+  }
+
+  async getUserByUsername(username: string): Promise<SafeUser | null> {
+    const user = await User.findOne({ where: { username } })
     return user ? user.toJSON() : null
   }
 
@@ -43,13 +44,7 @@ class UserService {
     if (!user) throw Object.assign(new Error("User not found"), { code: "USER_NOT_FOUND" })
     await user.update({ isBanned: true })
     await this.revokeAllSessions(id)
-  }
-
-  async suspendUser(id: string): Promise<void> {
-    const user = await User.findByPk(id)
-    if (!user) throw Object.assign(new Error("User not found"), { code: "USER_NOT_FOUND" })
-    await user.update({ isSuspended: true })
-    await this.revokeAllSessions(id)
+    void publish("user.banned", { userId: id })
   }
 
   private async revokeAllSessions(userId: string): Promise<void> {
@@ -66,17 +61,64 @@ class UserService {
     await pipeline.exec()
   }
 
+  async listAll(
+    page: number = 1,
+    limit: number = 20
+  ): Promise<{ count: number; users: SafeUser[] }> {
+    const offset = (page - 1) * limit
+    const { count, rows } = await User.findAndCountAll({
+      order: [["createdAt", "DESC"]],
+      limit,
+      offset,
+    })
+    return { count, users: rows.map((u) => u.toJSON()) }
+  }
+
+  async listSanctioned(
+    page: number = 1,
+    limit: number = 20
+  ): Promise<{ count: number; users: SafeUser[] }> {
+    const offset = (page - 1) * limit
+    const where = { isBanned: true }
+    const { count, rows } = await User.findAndCountAll({
+      where,
+      order: [["updatedAt", "DESC"]],
+      limit,
+      offset,
+    })
+    return { count, users: rows.map((u) => u.toJSON()) }
+  }
+
+  async unbanUser(id: string): Promise<void> {
+    const user = await User.findByPk(id)
+    if (!user) throw Object.assign(new Error("User not found"), { code: "USER_NOT_FOUND" })
+    await user.update({ isBanned: false })
+    void publish("user.unbanned", { userId: id })
+  }
+
   async searchByUsername(
     q: string,
     page: number = 1,
-    limit: number = 20
+    limit: number = 20,
+    excludeUserId?: string
   ): Promise<{ count: number; users: Pick<SafeUser, "id" | "username">[] }> {
     const offset = (page - 1) * limit
+
+    const whereClause: any = {
+      username: { [Op.iLike]: `%${q}%` },
+      isBanned: false,
+      isSuspended: false,
+    }
+
+    if (excludeUserId) {
+      whereClause.id = { [Op.ne]: excludeUserId }
+    }
+
     const { count, rows } = await User.findAndCountAll({
       where: {
         username: { [Op.iLike]: `%${q}%` },
         isBanned: false,
-        isSuspended: false,
+        ...whereClause,
       },
       attributes: ["id", "username"],
       limit,

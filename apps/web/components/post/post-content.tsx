@@ -21,6 +21,19 @@ export function PostContent({ content }: PostContentProps) {
               {token.value}
             </Link>
           )
+        if (token.type === "link")
+          return (
+            <a
+              key={i}
+              href={token.value}
+              target='_blank'
+              rel='noopener noreferrer'
+              className={token.className}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {token.value}
+            </a>
+          )
         return (
           <Link
             key={i}

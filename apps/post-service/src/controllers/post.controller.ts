@@ -1,5 +1,6 @@
 import type { Request, Response, NextFunction } from "express"
 import { PostService } from "../services/post.service"
+import type { Post } from "../types/post"
 
 export class PostController {
   constructor(private service = new PostService()) {}
@@ -43,8 +44,11 @@ export class PostController {
     try {
       const page = Math.max(1, parseInt(req.query.page as string) || 1)
       const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 20))
-      const result = await this.service.feed(req.user!.id, page, limit)
-
+      const type = req.query.type === "forYou" ? "forYou" : "following"
+      const result =
+        type === "forYou"
+          ? await this.service.forYouFeed(req.user!.id, page, limit)
+          : await this.service.feed(req.user!.id, page, limit)
       res.json({ success: true, data: result, message: "Feed retrieved successfully" })
     } catch (err) {
       next(err)
@@ -55,8 +59,17 @@ export class PostController {
     try {
       const page = Math.max(1, parseInt(req.query.page as string) || 1)
       const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 20))
-      const includeReplies = req.query.replies === "true"
-      const result = await this.service.byUser(req.params.userId!, page, limit, includeReplies)
+      const rawType = req.query.type as string | undefined
+      const repliesLegacy = req.query.replies === "true"
+      const validTypes = ["posts", "replies", "media", "all"]
+      const type = validTypes.includes(rawType ?? "") ? rawType! : repliesLegacy ? "all" : "posts"
+      const result = await this.service.byUser(
+        req.params.userId!,
+        page,
+        limit,
+        type as "posts" | "replies" | "media" | "all",
+        req.user?.role
+      )
 
       res.json({ success: true, data: result, message: "User posts retrieved successfully" })
     } catch (err) {
@@ -68,7 +81,7 @@ export class PostController {
     try {
       const page = Math.max(1, parseInt(req.query.page as string) || 1)
       const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 20))
-      const result = await this.service.getReplies(req.params.id!, page, limit)
+      const result = await this.service.getReplies(req.params.id!, page, limit, req.user?.id, false)
 
       res.json({ success: true, data: result, message: "Replies retrieved successfully" })
     } catch (err) {
@@ -76,9 +89,22 @@ export class PostController {
     }
   }
 
+  update = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const post = await this.service.updatePost(req.params.id!, req.body.content, req.body.media)
+      if (!post) {
+        res.status(404).json({ success: false, message: "Post not found" })
+        return
+      }
+      res.json({ success: true, data: post, message: "Post updated successfully" })
+    } catch (err) {
+      next(err)
+    }
+  }
+
   delete = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const deleted = await this.service.deletePost(req.params.id!)
+      const deleted = await this.service.deletePost(req.params.id!, req.resource as Post)
       if (!deleted) {
         res.status(404).json({ success: false, message: "Post not found" })
         return

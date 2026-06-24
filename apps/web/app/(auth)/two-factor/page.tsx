@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Field, FieldGroup, FieldSet } from "@/components/ui/field"
 import { Label } from "@/components/ui/label"
 import { InputGroup, InputGroupInput } from "@/components/ui/input-group"
-import { resendTwoFactorCodeAction, twoFactorAction } from "./actions"
+import { resendTwoFactorCodeAction, twoFactorAction } from "@/lib/actions/two-factor"
 
 export default function TwoFactorPage() {
   const searchParams = useSearchParams()

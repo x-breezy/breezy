@@ -1,16 +1,17 @@
 "use client"
 
 import { memo, useState, useCallback } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, usePathname } from "next/navigation"
 import { PostMeta, PostContent, PostActions } from "."
 import { PostMenu } from "./post-menu"
 import { ProfileAvatar } from "../profile"
-import { ReplyComposeDialog } from "./create-post/ReplyComposeDialog"
+import { ReplyComposeDialog } from "./create-post/reply-compose-dialog"
 import type { SearchPostMedia } from "@/lib/actions/posts"
 import { MediaViewer } from "../shared/medias/media-viewer"
 import { AutoplayVideo } from "../shared/medias/autoplay-video"
 import { MediaImage } from "../shared/medias/media-image"
 import { mediaUrl, timeAgo, formatFullDate, cn } from "@/lib/utils"
+import { usePostStore } from "@/stores/post-store"
 import { UserRole } from "@/lib/auth/role"
 
 interface HomePostProps {
@@ -34,6 +35,7 @@ interface HomePostProps {
   threadLine?: "solid" | "dashed"
   threadLineTop?: boolean
   className?: string
+  isPostAuthor?: boolean
 }
 
 function Post({
@@ -57,11 +59,26 @@ function Post({
   threadLine,
   threadLineTop,
   className,
+  isPostAuthor = false,
 }: HomePostProps) {
   const router = useRouter()
-  const [likes, setLikes] = useState(initialLikes)
-  const [comments, setComments] = useState(initialComments)
-  const [isLiked, setIsLiked] = useState(initialLiked)
+  const pathname = usePathname()
+  const isDetailPage = pathname.startsWith("/post/")
+  const storePost = usePostStore((s) => s.postsById[id])
+  const storeIsLiked = usePostStore((s) => s.likedPostIds.has(id))
+
+  const [localLikes, setLocalLikes] = useState(initialLikes)
+  const [localComments, setLocalComments] = useState(initialComments)
+  const [localIsLiked, setLocalIsLiked] = useState(initialLiked)
+
+  // ponytail: store is source of truth when cached; local state for optimistic fallback (posts not in store)
+  const likes = storePost?.likesCount ?? localLikes
+  const isLiked = storePost !== undefined ? storeIsLiked : localIsLiked
+  // max: local handles inline-reply increment, store handles navigation-back-from-detail
+  const comments = storePost ? Math.max(storePost.commentsCount ?? 0, localComments) : localComments
+  const [postContent, setPostContent] = useState(content)
+  const [postMedia, setPostMedia] = useState(media)
+  const [deleted, setDeleted] = useState(false)
   const [viewerIndex, setViewerIndex] = useState<number | null>(null)
   const [replyOpen, setReplyOpen] = useState(false)
   const formattedTime = compact ? timeAgo(createdAt) : formatFullDate(createdAt)
@@ -70,17 +87,15 @@ function Post({
     async (e: React.MouseEvent) => {
       e.stopPropagation()
       const newIsLiked = !isLiked
-      // Optimistic update
-      setIsLiked(newIsLiked)
-      setLikes((prev) => (newIsLiked ? prev + 1 : prev - 1))
+      setLocalIsLiked(newIsLiked)
+      setLocalLikes((prev) => (newIsLiked ? prev + 1 : prev - 1))
       if (onLike) {
         try {
           const serverCount = await onLike(id, newIsLiked)
-          if (typeof serverCount === "number") setLikes(serverCount)
+          if (typeof serverCount === "number") setLocalLikes(serverCount)
         } catch {
-          // Rollback on error
-          setIsLiked((prev) => !prev)
-          setLikes((prev) => (newIsLiked ? prev - 1 : prev + 1))
+          setLocalIsLiked((prev) => !prev)
+          setLocalLikes((prev) => (newIsLiked ? prev - 1 : prev + 1))
         }
       }
     },
@@ -113,13 +128,15 @@ function Post({
     [id, username]
   )
 
+  if (deleted) return null
+
   return (
     <>
       <article
         aria-label={`Post by ${name}`}
         onClick={href ? handleArticleClick : undefined}
         className={cn(
-          `relative flex w-full items-start gap-2.5 rounded-lg bg-background px-3.5 pt-3.5 pb-3.5 text-left transition-colors ${href ? "cursor-pointer active:bg-accent/50" : ""}`,
+          `relative flex w-full items-start gap-2.5 bg-background px-3.5 pt-3.5 pb-3.5 text-left transition-colors ${href ? "cursor-pointer active:bg-accent/50" : ""}`,
           className
         )}
       >
@@ -158,18 +175,33 @@ function Post({
                 role={authorRole as UserRole | undefined}
                 createdAt={compact ? formattedTime : undefined}
                 compact={compact}
+                isPostAuthor={isPostAuthor}
               />
             </div>
-            <PostMenu postId={id} username={username} authorId={authorId ?? id} />
+            <PostMenu
+              postId={id}
+              username={username}
+              authorId={authorId ?? id}
+              content={postContent}
+              media={postMedia}
+              onDeleted={() => {
+                setDeleted(true)
+                if (isDetailPage) router.back()
+              }}
+              onEdited={(c, m) => {
+                setPostContent(c)
+                setPostMedia(m)
+              }}
+            />
           </div>
 
-          <PostContent content={content} />
-          {media && media.length > 0 && (
+          <PostContent content={postContent} />
+          {postMedia && postMedia.length > 0 && (
             <div
               className='mt-4 mb-4 flex max-w-75 flex-col gap-2 rounded-lg'
               onClick={(e) => e.stopPropagation()}
             >
-              {media.map((item, i) =>
+              {postMedia.map((item, i) =>
                 item.type === "image" ? (
                   <MediaImage
                     key={item.id}
@@ -204,9 +236,9 @@ function Post({
         </div>
       </article>
 
-      {media && media.length > 0 && (
+      {postMedia && postMedia.length > 0 && (
         <MediaViewer
-          items={media}
+          items={postMedia}
           open={viewerIndex !== null}
           index={viewerIndex ?? 0}
           onClose={() => setViewerIndex(null)}
@@ -222,7 +254,7 @@ function Post({
           parentAvatarUrl={avatarUrl}
           parentContent={content}
           onSuccess={() => {
-            setComments((prev) => prev + 1)
+            setLocalComments((prev) => prev + 1)
             onReplyCreated?.()
           }}
           onDismiss={() => setReplyOpen(false)}

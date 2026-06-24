@@ -18,10 +18,13 @@
   "dependencies": {
     "@breezy/emails": "*",
     "@breezy/logger": "*",
+    "@breezy/observability": "*",
     "@grpc/grpc-js": "^1.14.4",
     "@grpc/proto-loader": "^0.8.1",
     "amqplib": "^0.10.4",
     "express": "^4.21.2",
+    "helmet": "^8.0.0",
+    "express-rate-limit": "^8.5.2",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^8.9.5",
     "nodemailer": "^8.0.10",

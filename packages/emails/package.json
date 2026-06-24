@@ -3,13 +3,18 @@
   "version": "0.0.0",
   "private": true,
   "exports": {
-    ".": "./src/index.tsx"
+    ".": {
+      "types": "./src/index.tsx",
+      "default": "./dist/index.js"
+    }
   },
+  "main": "./dist/index.js",
   "types": "./src/index.tsx",
   "scripts": {
+    "build": "tsc -p tsconfig.build.json",
     "email": "email dev --dir=src/templates",
     "lint": "eslint src/",
-    "check-types": "tsc --noEmit"
+    "check-types": "tsc -p tsconfig.build.json"
   },
   "dependencies": {
     "@react-email/render": "^2.0.8",

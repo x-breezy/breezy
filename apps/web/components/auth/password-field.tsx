@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl"
 import { IconCheck, IconCircleDashed, IconEye, IconEyeClosed, IconLock } from "@tabler/icons-react"
 import { InputGroup, InputGroupAddon, InputGroupInput } from "../ui/input-group"
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function getCriteria(t: any) {
   return [
     { label: t("ruleLength"), test: (p: string) => p.length >= 8 },
@@ -24,6 +25,7 @@ export function getStrength(password: string): 0 | 1 | 2 | 3 {
   return score as 0 | 1 | 2 | 3
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function getStrengthLabel(t: any) {
   return ["", t("strengthWeak"), t("strengthFair"), t("strengthStrong")]
 }

@@ -1,17 +1,21 @@
-import { createLogger } from "@breezy/logger"
+import "@breezy/observability/register"
+import { createLogger, registerProcessHandlers } from "@breezy/logger"
 import { createApp } from "./app"
 import { connect } from "./config/database"
 import { initFollowModel } from "./models/follow.model"
 import { initProfileModel } from "./models/profile.model"
 import { connectRabbitMQ } from "./clients/rabbitmq"
+import { connectRedis, disconnectRedis } from "./clients/redis"
+import { startBannedUsersConsumer } from "./clients/banned-users.consumer"
 import { startGrpcServer } from "./config/grpc.server"
 
 const logger = createLogger({ service: "profile-service" })
+registerProcessHandlers(logger)
 
 const app = createApp()
 const port = process.env.PORT ?? 4010
 const databaseUrl =
-  process.env.DATABASE_URL ?? "postgres://breezy:breezy@localhost:5432/breezy_auth"
+  process.env.DATABASE_URL ?? "postgres://breezy:breezy@localhost:5432/breezy_profiles"
 
 async function start(): Promise<void> {
   const sequelize = await connect(databaseUrl)
@@ -23,11 +27,20 @@ async function start(): Promise<void> {
   await sequelize.sync(process.env.NODE_ENV === "production" ? undefined : { alter: true })
   logger.info("Models synchronized")
 
+  await connectRedis()
   await connectRabbitMQ()
-  startGrpcServer(50051)
+  await startBannedUsersConsumer()
+  startGrpcServer(logger, 50051)
 
-  app.listen(port, () => {
+  const server = app.listen(port, () => {
     logger.info({ port }, "Profile service listening")
+  })
+
+  process.on("SIGTERM", () => {
+    server.close(async () => {
+      await disconnectRedis()
+      process.exit(0)
+    })
   })
 }
 

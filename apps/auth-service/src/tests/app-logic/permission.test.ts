@@ -1,0 +1,50 @@
+import { getPermissions } from "../../services/permission.service"
+import { PERMISSIONS } from "../../constants/permissions"
+import { ROLES } from "../../constants/roles"
+import { ROLE_PERMISSIONS, VISITOR_PERMISSIONS } from "../../constants/rbac"
+
+describe("getPermissions", () => {
+  it("grants user basic permissions only", () => {
+    const perms = getPermissions(ROLES.USER)
+    expect(perms).toContain(PERMISSIONS.USER_ME)
+    expect(perms).toContain(PERMISSIONS.REPORT_CREATE)
+    expect(perms).toContain(PERMISSIONS.USER_READ)
+    expect(perms).not.toContain(PERMISSIONS.USER_BAN)
+    expect(perms).not.toContain(PERMISSIONS.REPORT_RESOLVE)
+  })
+
+  it("grants moderator report resolution but not ban", () => {
+    const perms = getPermissions(ROLES.MODERATOR)
+    expect(perms).toContain(PERMISSIONS.USER_READ)
+    expect(perms).toContain(PERMISSIONS.REPORT_RESOLVE)
+    expect(perms).not.toContain(PERMISSIONS.USER_BAN)
+    expect(perms).not.toContain(PERMISSIONS.USER_CREATE)
+  })
+
+  it("grants admin the full catalog (superset)", () => {
+    const perms = getPermissions(ROLES.ADMIN)
+    const all = Object.values(PERMISSIONS).filter((p) => p !== PERMISSIONS.ACCOUNT_CREATE) // Exclude visitor-only perm
+    for (const p of all) {
+      expect(perms).toContain(p)
+    }
+    expect(perms).toHaveLength(all.length)
+  })
+
+  it("returns the visitor set for empty role", () => {
+    const perms = getPermissions()
+    expect(perms).toEqual(VISITOR_PERMISSIONS)
+    expect(perms).toContain(PERMISSIONS.ACCOUNT_CREATE)
+    expect(perms).not.toContain(PERMISSIONS.USER_READ)
+  })
+
+  it("returns the visitor set for unknown-only role", () => {
+    const perms = getPermissions("ghost" as never)
+    expect(perms).toEqual(VISITOR_PERMISSIONS)
+  })
+
+  it("deduplicates the union of multiple role", () => {
+    const perms = getPermissions(ROLES.MODERATOR)
+    expect(new Set(perms).size).toBe(perms.length)
+    expect(perms.sort()).toEqual([...new Set(ROLE_PERMISSIONS[ROLES.MODERATOR])].sort())
+  })
+})

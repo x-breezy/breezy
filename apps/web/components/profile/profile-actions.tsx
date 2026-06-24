@@ -3,6 +3,7 @@
 import { cn } from "@/lib/utils"
 import { ProfileEditDialog } from "./edit/profile-edit-dialog"
 import { useTranslations } from "next-intl"
+import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { Button } from "../ui/button"
 import {
@@ -13,10 +14,11 @@ import {
   IconUserX,
 } from "@tabler/icons-react"
 import type { Profile } from "@/types/profile"
-import { followUserAction, unfollowUserAction } from "@/app/(app)/profile/follow-action"
 import { useProfileStore } from "@/stores/profile-store"
 import { useUserStore } from "@/stores/user-store"
 import { UnfollowDialog } from "../shared/unfollow-dialog"
+import { getUserByUsername } from "@/lib/actions/conversations"
+import { useConversationStore } from "@/stores/conversation-store"
 
 interface ProfileActionsProps {
   className?: string
@@ -25,10 +27,14 @@ interface ProfileActionsProps {
 }
 
 export function ProfileActions({ className, profile, isOwn }: ProfileActionsProps) {
+  const router = useRouter()
   const t = useTranslations("profilePage")
   const [open, setOpen] = useState(false)
   const [pending, setPending] = useState(false)
-  const updateProfile = useProfileStore((s) => s.update)
+  const [msgPending, setMsgPending] = useState(false)
+  const profileFollow = useProfileStore((s) => s.follow)
+  const profileUnfollow = useProfileStore((s) => s.unfollow)
+  const createConversation = useConversationStore((s) => s.createConversation)
   const following = useUserStore((s) => s.following)
   const setRelation = useUserStore((s) => s.setRelation)
 
@@ -39,14 +45,10 @@ export function ProfileActions({ className, profile, isOwn }: ProfileActionsProp
     setPending(true)
     try {
       if (followed) {
-        await unfollowUserAction(profile.profileId)
-        updateProfile(profile.username, { followersCount: profile.followersCount - 1 })
+        await profileUnfollow(profile.profileId, profile.username)
         setRelation(profile.profileId, false)
       } else {
-        const res = await followUserAction(profile.profileId)
-        if (!res.alreadyFollowing) {
-          updateProfile(profile.username, { followersCount: profile.followersCount + 1 })
-        }
+        await profileFollow(profile.profileId, profile.username)
         setRelation(profile.profileId, true)
       }
     } finally {
@@ -54,7 +56,19 @@ export function ProfileActions({ className, profile, isOwn }: ProfileActionsProp
     }
   }
 
-  const handleMessage = () => {}
+  const handleMessage = async () => {
+    if (!profile || msgPending) return
+    setMsgPending(true)
+    try {
+      const { id } = await getUserByUsername(profile.username)
+      const conv = await createConversation([id])
+      router.push(`/messages/${conv._id}`)
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setMsgPending(false)
+    }
+  }
 
   if (!profile) return null
 
@@ -114,9 +128,14 @@ export function ProfileActions({ className, profile, isOwn }: ProfileActionsProp
             variant='secondary'
             className='w-full max-w-40 font-semibold'
             size='lg'
+            disabled={msgPending}
             onClick={handleMessage}
           >
-            <IconSend stroke={2.3} />
+            {msgPending ? (
+              <IconLoader2 className='animate-spin' stroke={2.3} />
+            ) : (
+              <IconSend stroke={2.3} />
+            )}
             {t("buttonMessage")}
           </Button>
         </>

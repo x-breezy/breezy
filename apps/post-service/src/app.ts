@@ -1,18 +1,44 @@
 import express from "express"
-import type { Express, Request, Response, NextFunction } from "express"
+import type { Express } from "express"
+import helmet from "helmet"
 import swaggerUi from "swagger-ui-express"
-import { createLogger, httpLogger } from "@breezy/logger"
+import { createLogger, httpLogger, createErrorHandler } from "@breezy/logger"
+import { createHealthRouter, createMetrics } from "@breezy/observability"
+import mongoose from "mongoose"
 import { createPostRouter } from "./routes/post.route"
 import { swaggerSpec } from "./config/swagger"
+import { assertRabbitMQReady } from "./clients/rabbitmq"
+import { getRedis } from "./clients/redis"
 
-const logger = createLogger({ service: "post-service" })
+const service = "post-service"
+const logger = createLogger({ service })
+const { metricsMiddleware, metricsHandler } = createMetrics({ service })
 
 /** Build the Express app. No network/DB side effects, so tests can import it. */
 export function createApp(): Express {
   const app = express()
 
+  app.set("trust proxy", 1)
+  app.disable("x-powered-by")
+  app.use(helmet())
+  app.use(
+    createHealthRouter({
+      service,
+      checks: {
+        mongo: async () => {
+          const db = mongoose.connection.db
+          if (!db) throw new Error("MongoDB not connected")
+          await db.admin().ping()
+        },
+        rabbitmq: assertRabbitMQReady,
+        redis: () => getRedis().ping(),
+      },
+    })
+  )
+  app.get("/metrics", metricsHandler)
+  app.use(metricsMiddleware)
   app.use(httpLogger(logger))
-  app.use(express.json())
+  app.use(express.json({ limit: "1mb" }))
 
   app.get("/", (_req, res) => {
     res.json({ status: "ok" })
@@ -26,11 +52,7 @@ export function createApp(): Express {
   app.use("/posts", createPostRouter())
 
   // Global error handler, must be registered last and have exactly 4 params
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
-    logger.error({ err }, "Unhandled error")
-    res.status(500).json({ success: false, error: "Internal server error" })
-  })
+  app.use(createErrorHandler(logger))
 
   return app
 }

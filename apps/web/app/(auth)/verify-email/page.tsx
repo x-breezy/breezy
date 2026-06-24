@@ -6,7 +6,7 @@ import { useSearchParams } from "next/navigation"
 import { useCooldown } from "@/hooks/use-cooldown"
 import { AuthHeader } from "@/components/auth/auth-header"
 import { Button } from "@/components/ui/button"
-import { verifyEmailAction, resendVerificationAction } from "./actions"
+import { verifyEmailAction, resendVerificationAction } from "@/lib/actions/verify-email"
 
 export default function VerifyEmailPage() {
   const searchParams = useSearchParams()

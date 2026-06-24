@@ -1,26 +1,22 @@
 "use server"
 
-import { cookies } from "next/headers"
-
-const GATEWAY_URL = process.env.GATEWAY_URL ?? "http://localhost:80"
+import { authenticatedFetch } from "@/lib/auth/authenticated-fetch"
 
 export async function uploadMediaAction(
   file: File
 ): Promise<{ id: string; type: "image" | "video" }> {
-  const cookieStore = await cookies()
-  const token = cookieStore.get("breezy-token")?.value
-
   const isVideo = file.type.startsWith("video/")
   const endpoint = isVideo ? "/api/media/videos" : "/api/media/images"
 
-  const res = await fetch(`${GATEWAY_URL}${endpoint}`, {
+  const res = await authenticatedFetch(endpoint, {
     method: "POST",
-    headers: {
-      "Content-Type": file.type,
-      ...(token && { Authorization: `Bearer ${token}` }),
-    },
+    headers: { "Content-Type": file.type },
     body: file,
   })
+
+  if (res.status === 413) {
+    throw new Error("FILE_TOO_LARGE")
+  }
 
   if (!res.ok) {
     throw new Error(`Upload failed: ${res.status}`)

@@ -13,4 +13,10 @@ export const createPostSchema = z.object({
   parentId: z.string().optional(),
 })
 
+export const updatePostSchema = z.object({
+  content: z.string().min(1).max(250),
+  media: z.array(mediaRefSchema).optional(),
+})
+
 export type CreatePostDTO = z.infer<typeof createPostSchema>
+export type UpdatePostDTO = z.infer<typeof updatePostSchema>

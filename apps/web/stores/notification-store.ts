@@ -1,6 +1,6 @@
 import { create } from "zustand"
 import type { Notification } from "@/types/notification"
-import * as actions from "@/app/(app)/notifications/actions"
+import * as actions from "@/lib/actions/notifications"
 
 interface NotificationState {
   notifications: Notification[]
@@ -92,6 +92,9 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
 
   prepend: (notification) => {
     set((state) => {
+      // Deduplicate by _id across all types
+      if (state.notifications.some((n) => n._id === notification._id)) return state
+
       const actorId = notification.payload?.actorId ?? notification.payload?.followerId
       const isDuplicateFollow =
         notification.type === "follow" &&

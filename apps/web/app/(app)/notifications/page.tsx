@@ -10,7 +10,6 @@ import {
   groupByTimeFrame,
   type NotificationView,
 } from "@/lib/notifications/group"
-
 function viewKey(view: NotificationView): string {
   if (view.kind === "like") return `like-${view.postId}`
   return view.ids[0] as string
@@ -39,47 +38,47 @@ export default function NotificationsPage() {
 
   if (loading) {
     return (
-      <div>
+      <>
         <NotificationsHeader />
         <div className='flex items-center justify-center py-12 text-sm text-muted-foreground'>
           {t("loading")}
         </div>
-      </div>
+      </>
     )
   }
 
   if (error) {
     return (
-      <div>
+      <>
         <NotificationsHeader />
         <div className='flex items-center justify-center py-12 text-sm text-muted-foreground'>
           {error}
         </div>
-      </div>
+      </>
     )
   }
 
   if (views.length === 0) {
     return (
-      <div>
+      <>
         <NotificationsHeader />
         <div className='flex items-center justify-center py-12 text-sm text-muted-foreground'>
           {t("noNotifications")}
         </div>
-      </div>
+      </>
     )
   }
 
   const groups = groupByTimeFrame(views)
 
   return (
-    <div>
+    <>
       <NotificationsHeader />
       <ul className='container-center px-6'>
         {groups.map(({ label, views: groupViews }) => (
           <li key={label}>
             <div className='mt-4 mb-2 border-b pb-1'>
-              <h2 className='text-xl font-bold'>{t(label as any)}</h2>
+              <h2 className='text-xl font-bold'>{t(label)}</h2>
             </div>
             <ul>
               {groupViews.map((view) => {
@@ -98,6 +97,6 @@ export default function NotificationsPage() {
           </li>
         ))}
       </ul>
-    </div>
+    </>
   )
 }

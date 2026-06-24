@@ -1,4 +1,4 @@
-import { randomUUID, randomInt } from "crypto"
+import { randomUUID, randomInt, randomBytes, createHash } from "crypto"
 import { Op } from "sequelize"
 import { OAuth2Client } from "google-auth-library"
 import { User, type SafeUser } from "../models/user.model"
@@ -16,10 +16,11 @@ import {
   type TokenClaims,
 } from "../utils/jwt.util"
 import { getRedis } from "../clients/redis"
+import { checkProfileExists } from "../clients/profile"
 import type { Role } from "../constants/roles"
 import type { SignInDTO } from "../schemas/auth.schema"
 
-const APP_URL = process.env.APP_URL ?? "http://localhost:3000"
+const FRONTEND_URL = process.env.FRONTEND_URL ?? "http://localhost:3000"
 const REFRESH_TTL_SECONDS = Math.floor(REFRESH_TOKEN_TTL_MS / 1000)
 
 const GRACE_TTL_SECONDS = 60
@@ -82,6 +83,7 @@ export interface TokenPair {
 interface RefreshRecord {
   userId: string
   role: Role
+  isComplete: boolean
 }
 
 class AuthService {
@@ -96,7 +98,6 @@ class AuthService {
         "passwordHash",
         "role",
         "isBanned",
-        "isSuspended",
         "isEmailVerified",
         "twoFactorEnabled",
         "createdAt",
@@ -116,12 +117,14 @@ class AuthService {
   }
 
   async issueTokenPair(claims: TokenClaims): Promise<TokenPair> {
-    const accessToken = signToken(claims)
+    const isComplete = claims.isComplete ?? (await checkProfileExists(claims.sub))
+    const resolvedClaims: TokenClaims = { ...claims, isComplete }
+    const accessToken = signToken(resolvedClaims)
     const refreshToken = generateRefreshToken()
     const tokenHash = hashRefreshToken(refreshToken)
     const redis = getRedis()
 
-    const record: RefreshRecord = { userId: claims.sub, role: claims.role }
+    const record: RefreshRecord = { userId: claims.sub, role: claims.role, isComplete }
     await redis
       .multi()
       .set(`refresh:${tokenHash}`, JSON.stringify(record), "EX", REFRESH_TTL_SECONDS)
@@ -129,6 +132,35 @@ class AuthService {
       .exec()
 
     return { accessToken, refreshToken }
+  }
+
+  async markProfileCreated(raw: string): Promise<TokenPair> {
+    const oldHash = hashRefreshToken(raw)
+    const redis = getRedis()
+
+    const [data, ttl] = await Promise.all([
+      redis.get(`refresh:${oldHash}`),
+      redis.ttl(`refresh:${oldHash}`),
+    ])
+    if (!data) throw Object.assign(new Error("Invalid refresh token"), { code: "INVALID_REFRESH" })
+
+    const record = JSON.parse(data) as RefreshRecord
+    record.isComplete = true
+
+    const newRefreshToken = generateRefreshToken()
+    const newHash = hashRefreshToken(newRefreshToken)
+    const remainingTtl = ttl > 0 ? ttl : REFRESH_TTL_SECONDS
+
+    await redis
+      .multi()
+      .del(`refresh:${oldHash}`)
+      .srem(`session:${record.userId}`, oldHash)
+      .set(`refresh:${newHash}`, JSON.stringify(record), "EX", remainingTtl)
+      .sadd(`session:${record.userId}`, newHash)
+      .exec()
+
+    const accessToken = signToken({ sub: record.userId, role: record.role, isComplete: true })
+    return { accessToken, refreshToken: newRefreshToken }
   }
 
   async rotateRefreshToken(raw: string): Promise<TokenPair & { user: SafeUser }> {
@@ -159,7 +191,11 @@ class AuthService {
       throw Object.assign(new Error("Invalid refresh token"), { code: "INVALID_REFRESH" })
     }
 
-    const accessToken = signToken({ sub: record.userId, role: record.role })
+    const accessToken = signToken({
+      sub: record.userId,
+      role: record.role,
+      isComplete: record.isComplete,
+    })
     return { accessToken, refreshToken: newRefreshToken, user: user.toJSON() }
   }
 
@@ -201,7 +237,7 @@ class AuthService {
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000)
     await EmailVerificationToken.create({ userId, token, expiresAt, usedAt: null })
 
-    return { token, verifyUrl: `${APP_URL}/verify-email?token=${token}` }
+    return { token, verifyUrl: `${FRONTEND_URL}/verify-email?token=${token}` }
   }
 
   async resendVerification(
@@ -241,7 +277,7 @@ class AuthService {
       userId: user.id,
       username: user.username,
       token,
-      resetUrl: `${APP_URL}/reset-password?token=${token}`,
+      resetUrl: `${FRONTEND_URL}/reset-password?token=${token}`,
     }
   }
 
@@ -303,7 +339,6 @@ class AuthService {
   }
 
   async startGoogleOAuth(): Promise<string> {
-    const { randomBytes, createHash } = await import("crypto")
     const state = randomBytes(32).toString("hex")
     const codeVerifier = randomBytes(32).toString("base64url")
     const codeChallenge = createHash("sha256").update(codeVerifier).digest("base64url")

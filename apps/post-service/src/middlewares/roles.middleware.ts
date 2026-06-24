@@ -36,7 +36,7 @@ export function requireSelfOrPermission(param: string, elevatedPermission?: Perm
 
 export function requireOwnership<T extends { authorId: string }>(
   fetch: (req: Request) => Promise<T | null>,
-  elevatedPermission: Permission
+  elevatedPermission: Permission | ((resource: T) => Permission)
 ) {
   return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const resource = await fetch(req)
@@ -44,8 +44,11 @@ export function requireOwnership<T extends { authorId: string }>(
       res.status(404).json({ success: false, error: "Not found" })
       return
     }
+    req.resource = resource
     const isOwner = resource.authorId === req.user?.id
-    const hasElevated = req.user?.permissions.includes(elevatedPermission) ?? false
+    const permission =
+      typeof elevatedPermission === "function" ? elevatedPermission(resource) : elevatedPermission
+    const hasElevated = req.user?.permissions.includes(permission) ?? false
     if (!isOwner && !hasElevated) {
       res.status(403).json({ success: false, error: "Forbidden" })
       return

@@ -2,11 +2,26 @@ services:
   gateway:
     build:
       context: .
-      dockerfile: apps/gateway/Dockerfile
+      dockerfile: infrastructure/gateway/Dockerfile
     container_name: breezy-gateway
     restart: unless-stopped
     ports:
       - "80:80"
+    environment:
+      AUTH_UPSTREAM: host.docker.internal:4020
+      PROFILE_UPSTREAM: host.docker.internal:4010
+      POST_UPSTREAM: host.docker.internal:4040
+      MEDIA_UPSTREAM: host.docker.internal:4050
+      NOTIFICATIONS_UPSTREAM: host.docker.internal:4060
+      MESSAGE_UPSTREAM: host.docker.internal:4030
+      WEB_UPSTREAM: host.docker.internal:3000
+      SWAGGER_UPSTREAM: swagger-ui:8080
+      RABBITMQ_UPSTREAM: rabbitmq:15672
+      GRAFANA_UPSTREAM: 127.0.0.1:3001
+      GRAFANA_DOMAIN: grafana.localhost
+      CORS_ORIGIN_1: http://localhost:3000
+      CORS_ORIGIN_2: http://localhost:3001
+      MQ_DOMAIN: mq.localhost
     networks:
       - breezy
 
@@ -109,8 +124,8 @@ services:
     container_name: breezy-rabbitmq
     restart: unless-stopped
     ports:
-      - "5672:5672"
-      - "15672:15672"
+      - "127.0.0.1:5672:5672"
+      - "127.0.0.1:15672:15672"
     environment:
       RABBITMQ_DEFAULT_USER: breezy
       RABBITMQ_DEFAULT_PASS: breezy
@@ -140,6 +155,21 @@ services:
       timeout: 5s
       retries: 5
 
+  mongo-message-service:
+    image: mongo:8
+    container_name: breezy-mongo-message-service
+    restart: unless-stopped
+    ports:
+      - "27020:27017"
+    environment:
+      MONGO_INITDB_DATABASE: message_service
+    volumes:
+      - mongo-message-service-data:/data/db
+    networks:
+      - breezy
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
   swagger-ui:
     image: swaggerapi/swagger-ui:latest
     container_name: breezy-swagger-ui
@@ -199,8 +229,11 @@ volumes:
   mongo-post-service-data:
   mongo-media-service-data:
   mongo-notifications-service-data:
+  mongo-message-service-data:
+  swagger-ui:
   postgres-user-service-data:
   postgres-profile-service-data:
+  postgres-message-service-data:
   # sonarqube-data:
   # sonarqube-logs:
   # postgres-sonar-data:

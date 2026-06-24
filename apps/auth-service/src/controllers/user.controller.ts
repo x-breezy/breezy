@@ -56,6 +56,23 @@ class UserController {
         res.status(404).json({ success: false, message: "User not found" })
         return
       }
+      res.status(200).json({ success: true, data: user })
+    } catch (error) {
+      next(error)
+    }
+  }
+
+  getUserByUsername = async (
+    req: Request<{ username: string }>,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const user = await this.userService.getUserByUsername(req.params.username)
+      if (!user) {
+        res.status(404).json({ success: false, message: "User not found" })
+        return
+      }
       res.status(200).json({ success: true, data: user, message: "User retrieved successfully" })
     } catch (error) {
       next(error)
@@ -70,23 +87,6 @@ class UserController {
     try {
       await this.userService.banUser(req.params.id)
       res.status(200).json({ success: true, message: "User banned successfully" })
-    } catch (error) {
-      if ((error as { code?: string }).code === "USER_NOT_FOUND") {
-        res.status(404).json({ success: false, message: "User not found" })
-        return
-      }
-      next(error)
-    }
-  }
-
-  suspendUser = async (
-    req: Request<{ id: string }>,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> => {
-    try {
-      await this.userService.suspendUser(req.params.id)
-      res.status(200).json({ success: true, message: "User suspended successfully" })
     } catch (error) {
       if ((error as { code?: string }).code === "USER_NOT_FOUND") {
         res.status(404).json({ success: false, message: "User not found" })
@@ -124,6 +124,51 @@ class UserController {
       next(error)
     }
   }
+  listAll = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const page = Math.max(1, parseInt(req.query.page as string) || 1)
+      const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 20))
+      const result = await this.userService.listAll(page, limit)
+      res.status(200).json({
+        success: true,
+        data: { users: result.users, total: result.count, page, limit },
+      })
+    } catch (error) {
+      next(error)
+    }
+  }
+
+  listSanctioned = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const page = Math.max(1, parseInt(req.query.page as string) || 1)
+      const limit = Math.min(50, Math.max(1, parseInt(req.query.limit as string) || 20))
+      const result = await this.userService.listSanctioned(page, limit)
+      res.status(200).json({
+        success: true,
+        data: { users: result.users, total: result.count, page, limit },
+      })
+    } catch (error) {
+      next(error)
+    }
+  }
+
+  unbanUser = async (
+    req: Request<{ id: string }>,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      await this.userService.unbanUser(req.params.id)
+      res.status(200).json({ success: true, message: "User unbanned successfully" })
+    } catch (error) {
+      if ((error as { code?: string }).code === "USER_NOT_FOUND") {
+        res.status(404).json({ success: false, message: "User not found" })
+        return
+      }
+      next(error)
+    }
+  }
+
   search = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const q = (req.query.q as string | undefined)?.trim() ?? ""
@@ -133,7 +178,8 @@ class UserController {
       }
       const page = Math.max(1, parseInt(req.query.page as string) || 1)
       const limit = Math.min(50, Math.max(1, parseInt(req.query.limit as string) || 20))
-      const result = await this.userService.searchByUsername(q, page, limit)
+      const excludeUserId = req.user?.id
+      const result = await this.userService.searchByUsername(q, page, limit, excludeUserId)
       res.status(200).json({
         success: true,
         data: { users: result.users, total: result.count, page, limit },

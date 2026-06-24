@@ -11,7 +11,7 @@ import {
   twoFactorSendCodeAction,
   twoFactorEnableAction,
   twoFactorDisableAction,
-} from "@/app/(app)/settings/actions"
+} from "@/lib/actions/settings"
 import { IconShieldLockFilled } from "@tabler/icons-react"
 import { useUserStore } from "@/stores/user-store"
 

@@ -7,7 +7,7 @@ import {
   SettingsLogoutButton,
   SettingsTwoFactor,
 } from "."
-import { logoutAction } from "@/app/(app)/settings/actions"
+import { logoutAction } from "@/lib/actions/settings"
 import { SettingsEmailVerification } from "./settings-email-verification"
 import type { Language } from "@/lib/language"
 

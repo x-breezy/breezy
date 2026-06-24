@@ -1,7 +1,7 @@
 "use client"
 
 import Post from "./post"
-import { toggleLike } from "@/lib/actions/posts"
+import { usePostStore } from "@/stores/post-store"
 import type { MediaItem, ProfileRef } from "@/lib/actions/post-detail"
 
 export interface CommentNode {
@@ -20,31 +20,28 @@ export interface CommentNode {
   replies: CommentNode[]
 }
 
-async function handleReplyLike(postId: string, liked: boolean) {
-  const res = await toggleLike(postId, liked)
-  return res.likesCount
-}
-
 function PostRow({
   comment,
   threadLine,
-  border,
   threadLineTop,
   onReplyCreated,
+  postAuthorId,
 }: {
   comment: CommentNode
   threadLine: "solid" | "dashed" | "none"
-  border?: boolean
   threadLineTop?: boolean
   onReplyCreated?: () => void
+  postAuthorId?: string
 }) {
+  const toggleLike = usePostStore((s) => s.toggleLike)
   const authorName =
     [comment.author?.firstName, comment.author?.lastName].filter(Boolean).join(" ") ||
     comment.author?.username ||
     comment.authorId
+  const isPostAuthor = postAuthorId !== undefined && comment.authorId === postAuthorId
 
   return (
-    <div className={border ? "border-b border-border" : ""}>
+    <div>
       <Post
         id={comment._id}
         name={authorName}
@@ -59,10 +56,11 @@ function PostRow({
         initialComments={comment.commentsCount}
         initialLiked={comment.likedByMe}
         href={`/post/${comment.author?.username ?? comment.authorId}/${comment._id}`}
-        onLike={handleReplyLike}
+        onLike={toggleLike}
         onReplyCreated={onReplyCreated}
         threadLine={threadLine !== "none" ? threadLine : undefined}
         threadLineTop={threadLineTop}
+        isPostAuthor={isPostAuthor}
       />
     </div>
   )
@@ -71,11 +69,11 @@ function PostRow({
 function CommentThread({
   comment,
   onReplyCreated,
-  isLastThread,
+  postAuthorId,
 }: {
   comment: CommentNode
   onReplyCreated?: () => void
-  isLastThread?: boolean
+  postAuthorId?: string
 }) {
   const ownerReplies = comment.replies
   const hasReplies = ownerReplies.length > 0
@@ -85,8 +83,8 @@ function CommentThread({
       <PostRow
         comment={comment}
         threadLine={hasReplies ? "solid" : "none"}
-        border={!hasReplies && !isLastThread}
         onReplyCreated={onReplyCreated}
+        postAuthorId={postAuthorId}
       />
 
       {ownerReplies.map((reply, i) => {
@@ -99,9 +97,9 @@ function CommentThread({
             <PostRow
               comment={reply}
               threadLine={threadLine}
-              border={isLast && !isLastThread}
               threadLineTop
               onReplyCreated={onReplyCreated}
+              postAuthorId={postAuthorId}
             />
             {showRepliesLink && (
               <div className='flex gap-3'>
@@ -124,21 +122,24 @@ function CommentThread({
 export function CommentTree({
   comments,
   onReplyCreated,
+  postAuthorId,
 }: {
   comments: CommentNode[]
   onReplyCreated?: () => void
+  postAuthorId?: string
 }) {
   if (comments.length === 0) return null
 
   return (
-    <div className='space-y-1'>
-      {comments.map((comment, i) => (
-        <CommentThread
-          key={comment._id}
-          comment={comment}
-          onReplyCreated={onReplyCreated}
-          isLastThread={i === comments.length - 1}
-        />
+    <div>
+      {comments.map((comment) => (
+        <div key={comment._id} className='border-b border-border last:border-b-0'>
+          <CommentThread
+            comment={comment}
+            onReplyCreated={onReplyCreated}
+            postAuthorId={postAuthorId}
+          />
+        </div>
       ))}
     </div>
   )
