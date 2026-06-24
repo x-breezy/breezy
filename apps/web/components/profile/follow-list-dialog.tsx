@@ -12,6 +12,7 @@ import { useUserStore } from "@/stores/user-store"
 import { useProfileStore } from "@/stores/profile-store"
 import { followUserAction, unfollowUserAction } from "@/lib/actions/follow"
 import { useFollowList, type FollowType } from "./use-follow-list"
+import { UserRole } from "@/lib/auth/role"
 
 interface FollowListDialogProps {
   profileId: string
@@ -154,6 +155,7 @@ function FollowListBody({
                       initialFollowing={following[p.profileId] ?? false}
                       onFollow={handleFollow}
                       currentUserId={currentUserId}
+                      role={p.role as UserRole | undefined}
                     />
                   </Link>
                 </li>

@@ -189,10 +189,7 @@ class ProfileService {
     return { count: countRows?.count ?? 0, following: rows.map((r) => r.id) }
   }
 
-  async getFollowSuggestions(
-    profileId: string,
-    limit: number = 3
-  ): Promise<Profile[]> {
+  async getFollowSuggestions(profileId: string, limit: number = 3): Promise<Profile[]> {
     const banned = await getBannedUserIds()
     const bannedArray = [...banned]
     const bannedClause =
@@ -244,7 +241,7 @@ class ProfileService {
     q: string,
     page: number = 1,
     limit: number = 20,
-    viewerId?: string,
+    viewerId?: string
   ): Promise<{ count: number; profiles: Profile[] }> {
     const offset = (page - 1) * limit
     const banned = await getBannedUserIds()

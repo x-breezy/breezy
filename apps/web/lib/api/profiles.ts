@@ -15,5 +15,6 @@ export function normalizeProfile(p: RawProfile): SearchProfile {
     avatarUrl: p.avatarId,
     bio: p.bio ?? null,
     followersCount: p.followersCount ?? 0,
+    role: p.role,
   }
 }

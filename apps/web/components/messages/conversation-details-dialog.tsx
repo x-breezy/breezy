@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
+import React, { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useTranslations } from "next-intl"
@@ -9,88 +9,56 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { ConfirmDialog } from "@/components/shared/confirm-dialog"
 import { Button } from "@/components/ui/button"
 import { ProfileAvatar } from "@/components/profile"
+import { UsernameDisplay } from "@/components/shared/username-display"
 import { NewConversationDialog } from "./new-conversation-dialog"
-import { getUserById, getProfileById } from "@/lib/actions/conversations"
 import { useConversationStore } from "@/stores/conversation-store"
-import { useUserCache } from "@/hooks/use-user-cache"
+import { mediaUrl } from "@/lib/utils"
+import { UserRole } from "@/lib/auth/role"
+import type { ParticipantProfile } from "@/lib/actions/conversations"
 
 function MemberRow({
   userId,
+  profile,
   currentUserId,
 }: {
   userId: string
+  profile: ParticipantProfile | undefined
   currentUserId: string | undefined
 }) {
   const t = useTranslations("messages")
-  const cachedUsers = useUserCache((s) => s.users)
-  const cached = cachedUsers[userId]
-  const cachedParts = cached?.displayName.split(" @")
-  const [info, setInfo] = useState<{
-    name: string
-    username: string | null
-    avatarUrl?: string
-  } | null>(
-    cached
-      ? {
-          name: cachedParts![0] || cached.displayName,
-          username: cachedParts![1] || null,
-          avatarUrl: cached.avatarUrl,
-        }
-      : null
-  )
-
-  useEffect(() => {
-    if (cached) return
-    const fetchInfo = async () => {
-      let username: string | null = null
-      let firstName: string | null = null
-      let lastName: string | null = null
-      let avatarUrl: string | undefined
-      try {
-        const user = await getUserById(userId)
-        username = user.username
-      } catch {
-        /* noop */
-      }
-      try {
-        const profile = await getProfileById(userId)
-        firstName = profile.firstName
-        lastName = profile.lastName
-        if (profile.avatarId) avatarUrl = profile.avatarId
-      } catch {
-        /* noop */
-      }
-      const name = [firstName, lastName].filter(Boolean).join(" ") || username || t("someone")
-      setInfo({ name, username, avatarUrl })
-    }
-    fetchInfo()
-  }, [userId, cached, t])
-
   const isYou = userId === currentUserId
 
-  if (info?.username) {
+  if (!profile?.username) {
     return (
-      <Link href={`/profile/${info.username}`} className='flex items-center gap-3 px-4 py-3'>
-        <ProfileAvatar src={info?.avatarUrl} size='xs' className='size-12 shrink-0' />
+      <div className='flex items-center gap-3 px-4 py-3'>
+        <ProfileAvatar src={undefined} size='xs' className='size-12 shrink-0' />
         <div className='min-w-0 flex-1'>
-          <p className='truncate font-semibold'>
-            {isYou ? `${info.name} (${t("you")})` : info.name}
-          </p>
-          {info.username && (
-            <p className='truncate text-sm text-muted-foreground'>@{info.username}</p>
-          )}
+          <div className='h-4 w-24 animate-pulse rounded bg-foreground/10' />
         </div>
-      </Link>
+      </div>
     )
   }
 
+  const name = [profile.firstName, profile.lastName].filter(Boolean).join(" ") || profile.username
+  const avatarSrc = profile.avatarId
+    ? profile.avatarId.startsWith("http")
+      ? profile.avatarId
+      : mediaUrl(profile.avatarId)
+    : undefined
+
   return (
-    <div className='flex items-center gap-3 px-4 py-3'>
-      <ProfileAvatar src={info?.avatarUrl} size='xs' className='size-12 shrink-0' />
+    <Link href={`/profile/${profile.username}`} className='flex items-center gap-3 px-4 py-3'>
+      <ProfileAvatar src={avatarSrc} size='xs' className='size-12 shrink-0' />
       <div className='min-w-0 flex-1'>
-        <div className='h-4 w-24 animate-pulse rounded bg-foreground/10' />
+        <UsernameDisplay
+          name={isYou ? `${name} (${t("you")})` : name}
+          role={profile.role as UserRole | undefined}
+          nameClassName='truncate font-semibold'
+          badgeClassName='size-4'
+        />
+        <p className='truncate text-sm text-muted-foreground'>@{profile.username}</p>
       </div>
-    </div>
+    </Link>
   )
 }
 
@@ -102,6 +70,7 @@ interface ConversationDetailsDialogProps {
   isGroup: boolean
   participantIds: string[]
   currentUserId: string | undefined
+  participants?: Record<string, ParticipantProfile>
 }
 
 export function ConversationDetailsDialog({
@@ -112,6 +81,7 @@ export function ConversationDetailsDialog({
   isGroup,
   participantIds,
   currentUserId,
+  participants,
 }: ConversationDetailsDialogProps) {
   const t = useTranslations("messages")
   const router = useRouter()
@@ -195,7 +165,12 @@ export function ConversationDetailsDialog({
                 )}
               </div>
               {participantIds.map((uid) => (
-                <MemberRow key={uid} userId={uid} currentUserId={currentUserId} />
+                <MemberRow
+                  key={uid}
+                  userId={uid}
+                  profile={participants?.[uid]}
+                  currentUserId={currentUserId}
+                />
               ))}
             </section>
 

@@ -5,9 +5,12 @@ import Link from "next/link"
 import { useTranslations } from "next-intl"
 import { ProfileAvatar } from "@/components/profile"
 import { ConversationGroupAvatar } from "@/components/shared/conversation-group-avatar"
+import { UsernameDisplay } from "@/components/shared/username-display"
+import { UserRole } from "@/lib/auth/role"
 
 interface ConversationIntroProps {
   displayName: string | null
+  role?: string | null
   avatarUrl?: string
   isGroup: boolean
   memberCount: number
@@ -17,6 +20,7 @@ interface ConversationIntroProps {
 
 export function ConversationIntro({
   displayName,
+  role,
   avatarUrl,
   isGroup,
   memberCount,
@@ -36,7 +40,12 @@ export function ConversationIntro({
       <div className='flex flex-col items-center gap-3 py-10 text-center'>
         <ProfileAvatar src={avatarUrl} size='lg' />
         <div className='space-y-0.5'>
-          <p className='text-base font-bold'>{name}</p>
+          <UsernameDisplay
+            name={name}
+            role={role as UserRole | undefined}
+            nameClassName='text-base font-bold'
+            badgeClassName='size-5'
+          />
           {handle && <p className='text-sm text-muted-foreground'>@{handle}</p>}
         </div>
         {handle && (

@@ -10,6 +10,8 @@ import { useProfileStore } from "@/stores/profile-store"
 import { type SearchProfile } from "@/lib/api/search"
 import { mediaUrl } from "@/lib/utils"
 import { IconUserPlus } from "@tabler/icons-react"
+import { UsernameDisplay } from "@/components/shared/username-display"
+import { UserRole } from "@/lib/auth/role"
 
 export function SidebarSuggestedUsers({ users }: { users: SearchProfile[] }) {
   const [followedIds, setFollowedIds] = useState<Set<string>>(new Set())
@@ -66,9 +68,14 @@ export function SidebarSuggestedUsers({ users }: { users: SearchProfile[] }) {
               </Avatar>
             </div>
             <div className='min-w-0 flex-1'>
-              <p className='truncate text-sm font-semibold'>
-                {[user.firstName, user.lastName].filter(Boolean).join(" ") || user.username}
-              </p>
+              <UsernameDisplay
+                name={
+                  [user.firstName, user.lastName].filter(Boolean).join(" ") || user.username || ""
+                }
+                role={user.role as UserRole | undefined}
+                nameClassName='truncate text-sm font-semibold'
+                badgeClassName='size-4'
+              />
               <p className='truncate text-xs text-muted-foreground'>@{user.username}</p>
             </div>
             <Button variant='outline' size='xs' onClick={(e) => handleFollow(e, user)}>

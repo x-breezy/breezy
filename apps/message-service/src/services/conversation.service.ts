@@ -3,6 +3,41 @@ import type { Conversation } from "../models/conversation.model"
 import { MessageModel } from "../models/message.model"
 import { getIO } from "../config/websocket"
 
+export interface ParticipantProfile {
+  firstName: string | null
+  lastName: string | null
+  username: string | null
+  avatarId: string | null
+  role: string | null
+}
+
+async function fetchParticipantProfiles(
+  ids: string[]
+): Promise<Record<string, ParticipantProfile>> {
+  if (ids.length === 0) return {}
+  const url = `${process.env.PROFILE_SERVICE_URL ?? "http://localhost:4010"}/profiles/internal/batch?ids=${ids.join(",")}`
+  try {
+    const res = await fetch(url)
+    if (!res.ok) return {}
+    const json = await res.json()
+    const profiles: any[] = json.data ?? []
+    return Object.fromEntries(
+      profiles.map((p) => [
+        p.profileId,
+        {
+          firstName: p.firstName ?? null,
+          lastName: p.lastName ?? null,
+          username: p.username ?? null,
+          avatarId: p.avatarId ?? null,
+          role: p.role ?? null,
+        },
+      ])
+    )
+  } catch {
+    return {}
+  }
+}
+
 export class ConversationService {
   async getOrCreateConversation(participantIds: string[], name?: string): Promise<Conversation> {
     const participants = [...participantIds].sort()
@@ -40,18 +75,24 @@ export class ConversationService {
       .lean()
       .exec()) as any[]
 
-    const withUnread = await Promise.all(
-      conversations.map(async (conv) => {
-        const unreadCount = await MessageModel.countDocuments({
-          conversationId: conv._id.toString(),
-          senderId: { $ne: userId },
-          readAt: null,
-        }).exec()
-        return { ...conv, hasUnread: unreadCount > 0, unreadCount }
-      })
-    )
+    const allParticipantIds = [
+      ...new Set(conversations.flatMap((c) => c.participantIds as string[])),
+    ]
+    const [withUnread, participants] = await Promise.all([
+      Promise.all(
+        conversations.map(async (conv) => {
+          const unreadCount = await MessageModel.countDocuments({
+            conversationId: conv._id.toString(),
+            senderId: { $ne: userId },
+            readAt: null,
+          }).exec()
+          return { ...conv, hasUnread: unreadCount > 0, unreadCount }
+        })
+      ),
+      fetchParticipantProfiles(allParticipantIds),
+    ])
 
-    return withUnread as unknown as Conversation[]
+    return withUnread.map((conv) => ({ ...conv, participants })) as unknown as Conversation[]
   }
 
   async deleteConversation(conversationId: string, userId: string): Promise<boolean> {

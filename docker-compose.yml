@@ -16,11 +16,11 @@ services:
       MESSAGE_UPSTREAM: host.docker.internal:4030
       WEB_UPSTREAM: host.docker.internal:3000
       SWAGGER_UPSTREAM: swagger-ui:8080
-      KIBANA_UPSTREAM: 127.0.0.1:5601
       RABBITMQ_UPSTREAM: rabbitmq:15672
+      GRAFANA_UPSTREAM: 127.0.0.1:3001
+      GRAFANA_DOMAIN: grafana.localhost
       CORS_ORIGIN_1: http://localhost:3000
       CORS_ORIGIN_2: http://localhost:3001
-      LOGS_DOMAIN: logs.localhost
       MQ_DOMAIN: mq.localhost
     networks:
       - breezy

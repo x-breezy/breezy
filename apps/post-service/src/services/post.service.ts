@@ -28,7 +28,7 @@ function extractMentions(content: string, authorId: string): string[] {
 }
 
 export class PostService {
-  constructor(private follow: FollowGraphPort = new GrpcFollowGraph()) { }
+  constructor(private follow: FollowGraphPort = new GrpcFollowGraph()) {}
 
   async createPost(data: CreatePostDTO & { authorId: string }): Promise<Post> {
     const mentions = data.mentions ?? extractMentions(data.content, data.authorId)
@@ -95,10 +95,7 @@ export class PostService {
     return post
   }
 
-  async getPostDetail(
-    postId: string,
-    viewerId: string
-  ): Promise<PostDetail | null> {
+  async getPostDetail(postId: string, viewerId: string): Promise<PostDetail | null> {
     const doc = await PostModel.findById(postId).exec()
     if (!doc) return null
     const banned = await getBannedUserIds()
@@ -201,11 +198,7 @@ export class PostService {
     }
   }
 
-  async feed(
-    viewerId: string,
-    page: number,
-    limit: number
-  ): Promise<PaginatedResponse<Post>> {
+  async feed(viewerId: string, page: number, limit: number): Promise<PaginatedResponse<Post>> {
     const [following, banned] = await Promise.all([
       this.follow.getFollowing(viewerId),
       getBannedUserIds(),
@@ -461,11 +454,11 @@ export class PostService {
     const authorDocs =
       filteredAuthorIds && filteredAuthorIds.length > 0
         ? await PostModel.find({
-          authorId: { $in: filteredAuthorIds, ...(viewerId ? { $ne: viewerId } : {}) },
-        })
-          .sort({ createdAt: -1 })
-          .limit(fetchLimit)
-          .exec()
+            authorId: { $in: filteredAuthorIds, ...(viewerId ? { $ne: viewerId } : {}) },
+          })
+            .sort({ createdAt: -1 })
+            .limit(fetchLimit)
+            .exec()
         : []
 
     // Merge and deduplicate while preserving priority order

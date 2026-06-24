@@ -1,16 +1,17 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
+import React from "react"
 import Link from "next/link"
 import { useTranslations } from "next-intl"
 import { IconTrash } from "@tabler/icons-react"
 import { useUserCache } from "@/hooks/use-user-cache"
 import { type ConversationMeta } from "@/stores/conversation-store"
-import { getUserById, getProfileById } from "@/lib/actions/conversations"
 import { Button } from "@/components/ui/button"
 import { ConversationGroupAvatar } from "@/components/shared/conversation-group-avatar"
 import { ProfileAvatar } from "@/components/profile"
-import { timeAgo } from "@/lib/utils"
+import { UsernameDisplay } from "@/components/shared/username-display"
+import { UserRole } from "@/lib/auth/role"
+import { timeAgo, mediaUrl } from "@/lib/utils"
 
 interface SidebarItemProps {
   conv: ConversationMeta
@@ -21,116 +22,44 @@ interface SidebarItemProps {
 
 export function SidebarItem({ conv, currentUserId, activeId, onDelete }: SidebarItemProps) {
   const t = useTranslations("messages")
-  const otherUserId = conv.participantIds.find((id) => id !== currentUserId) || "Unknown"
   const isActive = conv._id === activeId
   const cachedUsers = useUserCache((state) => state.users)
-  const cachedUser = cachedUsers[otherUserId]
-  const setUser = useUserCache((state) => state.setUser)
-
-  const initDisplayName = () => {
-    if (conv.isGroup) return conv.name || t("group")
-    if (otherUserId === "Unknown" || !currentUserId) return null
-    if (cachedUser) {
-      const parts = cachedUser.displayName.split(" @")
-      return parts[0] || cachedUser.displayName
-    }
-    return null
-  }
-  const [displayName, setDisplayName] = useState<string | null>(initDisplayName)
 
   const visibleIds = conv.participantIds.filter((id) => id !== currentUserId)
+  const otherUserId = visibleIds[0] ?? "Unknown"
 
-  useEffect(() => {
-    if (conv.isGroup) return
-    if (otherUserId === "Unknown" || !currentUserId || displayName) return
+  const otherProfile = conv.participants?.[otherUserId]
 
-    const fetchDetails = async () => {
-      let authUsername: string | null = null
-      let firstName: string | null = null
-      let lastName: string | null = null
-      let avatarUrl: string | undefined
-
-      try {
-        const user = await getUserById(otherUserId)
-        authUsername = user.username
-      } catch {
-        /* noop */
-      }
-
-      try {
-        const profile = await getProfileById(otherUserId)
-        firstName = profile.firstName
-        lastName = profile.lastName
-        if (profile.avatarId) avatarUrl = profile.avatarId
-      } catch {
-        /* noop */
-      }
-
-      const nameParts = []
-      if (firstName) nameParts.push(firstName)
-      if (lastName) nameParts.push(lastName)
-      const fullName = nameParts.join(" ")
-      const uname = authUsername || t("userFallback", { id: otherUserId.slice(0, 8) })
-      const display = fullName ? `${fullName} @${uname}` : `@${uname}`
-
-      const parts = display.split(" @")
-      setDisplayName(parts[0] || display)
-      setUser(otherUserId, { displayName: display, avatarUrl })
+  const displayName = (() => {
+    if (conv.isGroup) return conv.name || t("group")
+    if (!otherProfile) {
+      const cached = cachedUsers[otherUserId]
+      if (cached) return cached.displayName.split(" @")[0] || cached.displayName
+      return null
     }
+    const nameParts = [otherProfile.firstName, otherProfile.lastName].filter(Boolean)
+    return nameParts.join(" ") || otherProfile.username || null
+  })()
 
-    fetchDetails()
-  }, [otherUserId, currentUserId, cachedUser, setUser, conv.isGroup, displayName, t])
+  const avatarUrl = (() => {
+    if (conv.isGroup) return undefined
+    const id = otherProfile?.avatarId ?? cachedUsers[otherUserId]?.avatarUrl
+    return id ? (id.startsWith("http") ? id : mediaUrl(id)) : undefined
+  })()
 
-  // Fetch profile details for all group participants (for avatars and sender name)
-  useEffect(() => {
-    if (!conv.isGroup || !currentUserId) return
-
-    const ids = conv.participantIds.filter((id) => id !== currentUserId)
-    const uncached = ids.filter((id) => !cachedUsers[id])
-
-    if (uncached.length === 0) return
-
-    const fetchGroupMembers = async () => {
-      for (const id of uncached) {
-        try {
-          const [user, profile] = await Promise.allSettled([getUserById(id), getProfileById(id)])
-
-          let displayName = ""
-          let avatarUrl: string | undefined
-
-          if (profile.status === "fulfilled") {
-            const nameParts = [profile.value.firstName, profile.value.lastName].filter(Boolean)
-            displayName = nameParts.join(" ")
-            if (profile.value.avatarId) avatarUrl = profile.value.avatarId
-          }
-
-          if (user.status === "fulfilled") {
-            const fullDisplay = displayName
-              ? `${displayName} @${user.value.username}`
-              : `@${user.value.username}`
-            setUser(id, { displayName: fullDisplay, avatarUrl })
-          } else if (displayName) {
-            setUser(id, { displayName, avatarUrl })
-          }
-        } catch {
-          /* noop */
-        }
-      }
-    }
-
-    fetchGroupMembers()
-  }, [conv.isGroup, conv.participantIds, currentUserId, cachedUsers, setUser])
-
-  // Resolve sender display name from cache
-  const lastSenderName =
+  const lastSenderProfile =
     conv.lastMessageSenderId && conv.lastMessageSenderId !== currentUserId
-      ? (() => {
-          const sender = cachedUsers[conv.lastMessageSenderId]
-          if (!sender) return null
-          const parts = sender.displayName.split(" @")
-          return parts[0] || sender.displayName
-        })()
+      ? (conv.participants?.[conv.lastMessageSenderId] ?? null)
       : null
+
+  const lastSenderName = lastSenderProfile
+    ? [lastSenderProfile.firstName, lastSenderProfile.lastName].filter(Boolean).join(" ") ||
+      lastSenderProfile.username ||
+      (() => {
+        const cached = cachedUsers[conv.lastMessageSenderId!]
+        return cached ? cached.displayName.split(" @")[0] : null
+      })()
+    : null
 
   const showSenderPrefix = conv.isGroup && lastSenderName && conv.lastMessage
 
@@ -149,18 +78,29 @@ export function SidebarItem({ conv, currentUserId, activeId, onDelete }: Sidebar
             className='size-12'
           />
         ) : (
-          <ProfileAvatar src={cachedUser?.avatarUrl} size='xs' className='size-12 shrink-0' />
+          <ProfileAvatar src={avatarUrl} size='xs' className='size-12 shrink-0' />
         )}
 
         <div className='min-w-0 flex-1'>
           <div className='flex items-center justify-between gap-2'>
-            <span className='truncate text-sm font-semibold text-foreground'>
+            <div className='min-w-0 flex-1'>
               {displayName !== null ? (
-                displayName
+                conv.isGroup ? (
+                  <span className='truncate text-sm font-semibold text-foreground'>
+                    {displayName}
+                  </span>
+                ) : (
+                  <UsernameDisplay
+                    name={displayName}
+                    role={otherProfile?.role as UserRole | undefined}
+                    nameClassName='truncate text-sm font-semibold text-foreground'
+                    badgeClassName='size-4'
+                  />
+                )
               ) : (
                 <span className='inline-block h-4 w-24 animate-pulse rounded bg-foreground/10' />
               )}
-            </span>
+            </div>
             <div className='flex shrink-0 items-center gap-1.5'>
               {conv.hasUnread && !isActive && <span className='h-2 w-2 rounded-full bg-primary' />}
               {conv.lastMessageAt && (
