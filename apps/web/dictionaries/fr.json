@@ -172,6 +172,27 @@
     "cancel": "Annuler",
     "reasonPlaceholder": "Raison..."
   },
+  "shareDialog": {
+    "title": "Partager",
+    "breezyTab": "Sur Breezy",
+    "externalTab": "Autre",
+    "following": "Following",
+    "followers": "Followers",
+    "groups": "Groupes",
+    "search": "Rechercher...",
+    "empty": "Aucun résultat",
+    "noFollowing": "Vous ne suivez personne pour l'instant.",
+    "noFollowers": "Vous n'avez pas encore de followers.",
+    "noGroups": "Vous n'avez pas encore de groupes.",
+    "externalTitle": "Partager ce lien",
+    "externalDescription": "Copiez le lien ou utilisez les options de partage de votre appareil.",
+    "externalShare": "Partager via...",
+    "copyLink": "Copier le lien",
+    "copied": "Lien copié",
+    "copyError": "Impossible de copier le lien.",
+    "sendError": "Échec de l'envoi.",
+    "loadError": "Impossible de charger la liste."
+  },
   "notifications": {
     "title": "Notifications",
     "loading": "Chargement...",

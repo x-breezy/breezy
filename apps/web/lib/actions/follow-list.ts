@@ -1,6 +1,6 @@
 "use server"
 
-import { getServerAuthHeader } from "@/lib/auth/session"
+import { getAuthHeaders } from "@/lib/auth/authenticated-fetch"
 import { getFollowers, getFollowing, getProfilesByIds } from "@/lib/services/profile-service"
 import { normalizeProfile, type SearchProfile } from "@/lib/api/profiles"
 
@@ -12,7 +12,7 @@ export interface FollowPage {
 }
 
 export async function listFollowers(profileId: string, page = 1, limit = 100): Promise<FollowPage> {
-  const h = await getServerAuthHeader()
+  const h = await getAuthHeaders()
   const { data } = await getFollowers(profileId, h, page, limit)
   const { followers, count } = data.data
   if (followers.length === 0) {
@@ -26,7 +26,7 @@ export async function listFollowers(profileId: string, page = 1, limit = 100): P
 }
 
 export async function listFollowing(profileId: string, page = 1, limit = 100): Promise<FollowPage> {
-  const h = await getServerAuthHeader()
+  const h = await getAuthHeaders()
   const { data } = await getFollowing(profileId, h, page, limit)
   const { following, count } = data.data
   if (following.length === 0) {
