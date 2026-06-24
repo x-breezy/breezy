@@ -6,9 +6,9 @@ import { useTranslations } from "next-intl"
 import { IconLoader2, IconAlertCircle, IconUserPlus } from "@tabler/icons-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
-import { getProfileByUsernameAction, getIsFollowingAction } from "@/lib/actions/profile-username"
-import { followUserAction } from "@/lib/actions/follow"
+import { getProfileByUsernameAction } from "@/lib/actions/profile-username"
 import { useUserStore } from "@/stores/user-store"
+import { useProfileStore } from "@/stores/profile-store"
 import { mediaUrl } from "@/lib/utils"
 import type { Profile } from "@/types/profile"
 
@@ -20,12 +20,14 @@ export function SharedProfilePreview({ username }: SharedProfilePreviewProps) {
   const router = useRouter()
   const t = useTranslations("sharedProfilePreview")
   const currentProfileId = useUserStore((s) => s.profile?.profileId)
+  const storeFollowing = useUserStore((s) => s.following)
+  const setRelation = useUserStore((s) => s.setRelation)
+  const profileFollow = useProfileStore((s) => s.follow)
 
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
-  const [isFollowing, setIsFollowing] = useState(false)
-  const [following, setFollowing] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
 
   const href = `/profile/${username}`
 
@@ -36,10 +38,6 @@ export function SharedProfilePreview({ username }: SharedProfilePreviewProps) {
         const p = await getProfileByUsernameAction(username)
         if (cancelled) return
         setProfile(p)
-        if (p) {
-          const alreadyFollowing = await getIsFollowingAction(p.profileId)
-          if (!cancelled) setIsFollowing(alreadyFollowing)
-        }
       } catch (err) {
         console.error("[SharedProfilePreview] Failed to load profile:", err)
         if (!cancelled) setError(true)
@@ -53,17 +51,19 @@ export function SharedProfilePreview({ username }: SharedProfilePreviewProps) {
     }
   }, [username])
 
+  const isFollowing = profile ? (storeFollowing[profile.profileId] ?? false) : false
+
   const handleFollow = async (e: React.MouseEvent) => {
     e.stopPropagation()
-    if (!profile || following) return
-    setFollowing(true)
+    if (!profile || submitting) return
+    setSubmitting(true)
     try {
-      await followUserAction(profile.profileId)
-      setIsFollowing(true)
+      await profileFollow(profile.profileId, profile.username)
+      setRelation(profile.profileId, true)
     } catch (err) {
       console.error("[SharedProfilePreview] Failed to follow:", err)
     } finally {
-      setFollowing(false)
+      setSubmitting(false)
     }
   }
 
@@ -126,9 +126,9 @@ export function SharedProfilePreview({ username }: SharedProfilePreviewProps) {
           variant='default'
           className='shrink-0 rounded-full px-3 text-xs'
           onClick={handleFollow}
-          disabled={following}
+          disabled={submitting}
         >
-          {following ? (
+          {submitting ? (
             <IconLoader2 size={12} className='animate-spin' />
           ) : (
             <IconUserPlus size={12} />

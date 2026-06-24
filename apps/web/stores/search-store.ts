@@ -6,6 +6,7 @@ import {
   unfollowUserAction as unfollowProfile,
 } from "@/lib/actions/follow"
 import { collectMedia, profilesToPeople, type MergedPerson } from "@/components/search/search-utils"
+import { useUserStore } from "@/stores/user-store"
 import type { SearchPost, PaginatedResult } from "@/lib/actions/posts"
 import type { SearchProfile } from "@/lib/actions/profiles"
 import type { Tab } from "@/components/search/types"
@@ -156,6 +157,7 @@ export const useSearchStore = create<SearchStoreState>((set, get) => ({
   handleFollow: async (id, follow) => {
     if (follow) await followProfile(id)
     else await unfollowProfile(id)
+    useUserStore.getState().setRelation(id, follow)
   },
 
   clear: () => {
