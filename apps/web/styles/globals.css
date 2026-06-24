@@ -88,6 +88,8 @@
 
   --animate-ring: ring 2s ease-in-out;
   --auth-panel: oklch(0.96 0.002 17.2);
+  --shared-preview-bg: oklch(0.977 0.002 286);
+  --shared-preview-fg: oklch(0.147 0.004 49.3);
 }
 
 .dark {
@@ -124,6 +126,8 @@
   --sidebar-ring: oklch(0.547 0.021 43.1);
 
   --auth-panel: oklch(0.268 0.011 36.5);
+  --shared-preview-bg: oklch(0.214 0.009 43.1);
+  --shared-preview-fg: oklch(0.986 0.002 67.8);
 }
 
 @layer base {

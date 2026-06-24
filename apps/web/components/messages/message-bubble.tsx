@@ -180,7 +180,6 @@ export function MessageBubble(props: MessageBubbleProps) {
                       <SharedPostPreview
                         postId={postParsed.postId}
                         username={postParsed.username}
-                        isOwn={isOwn}
                       />
                     </div>
                   )
@@ -191,7 +190,7 @@ export function MessageBubble(props: MessageBubbleProps) {
                     <div
                       className={`pointer-events-none scale-90 opacity-50 ${isOwn ? "origin-right" : "origin-left"}`}
                     >
-                      <SharedProfilePreview username={profileParsed.username} isOwn={isOwn} />
+                      <SharedProfilePreview username={profileParsed.username} />
                     </div>
                   )
                 }
@@ -234,11 +233,7 @@ export function MessageBubble(props: MessageBubbleProps) {
                 (() => {
                   const parsed = parsePostUrl(content)
                   return parsed ? (
-                    <SharedPostPreview
-                      postId={parsed.postId}
-                      username={parsed.username}
-                      isOwn={isOwn}
-                    />
+                    <SharedPostPreview postId={parsed.postId} username={parsed.username} />
                   ) : (
                     <p className='text-sm leading-relaxed [overflow-wrap:anywhere]'>{content}</p>
                   )
@@ -247,7 +242,7 @@ export function MessageBubble(props: MessageBubbleProps) {
                 (() => {
                   const parsed = parseProfileUrl(content)
                   return parsed ? (
-                    <SharedProfilePreview username={parsed.username} isOwn={isOwn} />
+                    <SharedProfilePreview username={parsed.username} />
                   ) : (
                     <p className='text-sm leading-relaxed [overflow-wrap:anywhere]'>{content}</p>
                   )

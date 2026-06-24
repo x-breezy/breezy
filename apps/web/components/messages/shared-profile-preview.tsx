@@ -14,10 +14,9 @@ import type { Profile } from "@/types/profile"
 
 interface SharedProfilePreviewProps {
   username: string
-  isOwn: boolean
 }
 
-export function SharedProfilePreview({ username, isOwn }: SharedProfilePreviewProps) {
+export function SharedProfilePreview({ username }: SharedProfilePreviewProps) {
   const router = useRouter()
   const t = useTranslations("sharedProfilePreview")
   const currentProfileId = useUserStore((s) => s.profile?.profileId)
@@ -70,15 +69,8 @@ export function SharedProfilePreview({ username, isOwn }: SharedProfilePreviewPr
 
   if (loading) {
     return (
-      <div
-        className={`flex w-64 items-center justify-center rounded-2xl p-6 ${
-          isOwn ? "bg-primary/90" : "bg-secondary"
-        }`}
-      >
-        <IconLoader2
-          size={20}
-          className={`animate-spin ${isOwn ? "text-primary-foreground/70" : "text-muted-foreground"}`}
-        />
+      <div className='flex w-64 items-center justify-center rounded-2xl bg-[var(--shared-preview-bg)] p-6'>
+        <IconLoader2 size={20} className='animate-spin text-muted-foreground' />
       </div>
     )
   }
@@ -87,9 +79,7 @@ export function SharedProfilePreview({ username, isOwn }: SharedProfilePreviewPr
     return (
       <button
         onClick={() => router.push(href)}
-        className={`flex w-64 items-center gap-2 rounded-2xl px-4 py-3 text-left ${
-          isOwn ? "bg-primary/90 text-primary-foreground" : "bg-secondary text-foreground"
-        }`}
+        className='flex w-64 items-center gap-2 rounded-2xl bg-[var(--shared-preview-bg)] px-4 py-3 text-left text-[var(--shared-preview-fg)]'
       >
         <IconAlertCircle size={16} className='shrink-0 opacity-60' />
         <span className='text-sm opacity-80'>@{username}</span>
@@ -112,46 +102,26 @@ export function SharedProfilePreview({ username, isOwn }: SharedProfilePreviewPr
   return (
     <button
       onClick={() => router.push(href)}
-      className={`flex w-64 items-center gap-3 rounded-2xl px-4 py-3 text-left transition-opacity hover:opacity-90 active:opacity-70 ${
-        isOwn ? "bg-primary/90 text-primary-foreground" : "bg-secondary text-foreground"
-      }`}
+      className='flex w-64 items-center gap-3 rounded-2xl bg-[var(--shared-preview-bg)] px-4 py-3 text-left text-[var(--shared-preview-fg)] transition-opacity hover:opacity-90 active:opacity-70'
     >
       <Avatar className='h-10 w-10 shrink-0'>
-        {avatarUrl && (
-          <AvatarImage src={avatarUrl} alt={displayName} className='object-cover' />
-        )}
-        <AvatarFallback
-          className={`text-sm font-semibold ${
-            isOwn
-              ? "bg-primary-foreground/20 text-primary-foreground"
-              : "bg-primary/10 text-primary"
-          }`}
-        >
+        {avatarUrl && <AvatarImage src={avatarUrl} alt={displayName} className='object-cover' />}
+        <AvatarFallback className='bg-primary/10 text-sm font-semibold text-primary'>
           {(displayName?.[0] ?? "?").toUpperCase()}
         </AvatarFallback>
       </Avatar>
 
       <div className='min-w-0 flex-1'>
-        <p
-          className={`truncate text-sm font-semibold ${
-            isOwn ? "text-primary-foreground" : "text-foreground"
-          }`}
-        >
+        <p className='truncate text-sm font-semibold text-[var(--shared-preview-fg)]'>
           {displayName}
         </p>
-        <p
-          className={`truncate text-xs ${
-            isOwn ? "text-primary-foreground/70" : "text-muted-foreground"
-          }`}
-        >
-          @{profile.username}
-        </p>
+        <p className='truncate text-xs text-muted-foreground'>@{profile.username}</p>
       </div>
 
       {showFollowButton && (
         <Button
           size='sm'
-          variant={isOwn ? "secondary" : "default"}
+          variant='default'
           className='shrink-0 rounded-full px-3 text-xs'
           onClick={handleFollow}
           disabled={following}
