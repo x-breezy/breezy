@@ -1,5 +1,6 @@
 import { NotificationModel, type NotificationType } from "../models/notification.model"
 import { sseService } from "./sse.service"
+import { pushService } from "./push.service"
 
 interface CreateNotificationInput {
   userId: string
@@ -17,6 +18,7 @@ class NotificationService {
   async create(input: CreateNotificationInput): Promise<void> {
     const notification = await NotificationModel.create(input)
     sseService.push(input.userId, notification.toJSON())
+    void pushService.send(input.userId, input.type, input.payload)
   }
 
   async createDeduped(
@@ -26,6 +28,7 @@ class NotificationService {
     await NotificationModel.deleteOne({ userId: input.userId, type: input.type, ...dedupeFilter })
     const notification = await NotificationModel.create(input)
     sseService.push(input.userId, notification.toJSON())
+    void pushService.send(input.userId, input.type, input.payload)
   }
 
   async list(

@@ -7,6 +7,8 @@ import { validate } from "../middlewares/validate.middleware"
 import {
   notificationIdParamSchema,
   listNotificationsQuerySchema,
+  pushSubscribeBodySchema,
+  pushUnsubscribeBodySchema,
 } from "../schemas/notification.schema"
 
 function createNotificationRouter(
@@ -40,6 +42,24 @@ function createNotificationRouter(
     writeLimit,
     validate(notificationIdParamSchema, "params"),
     controller.remove
+  )
+
+  router.get("/push/vapid-key", readLimit, controller.getVapidKey)
+
+  router.post(
+    "/push/subscribe",
+    identity,
+    writeLimit,
+    validate(pushSubscribeBodySchema, "body"),
+    controller.pushSubscribe
+  )
+
+  router.delete(
+    "/push/subscribe",
+    identity,
+    writeLimit,
+    validate(pushUnsubscribeBodySchema, "body"),
+    controller.pushUnsubscribe
   )
 
   return router

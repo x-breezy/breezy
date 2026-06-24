@@ -15,3 +15,19 @@ export const listNotificationsQuerySchema = z.object({
 
 export type NotificationIdParamDTO = z.infer<typeof notificationIdParamSchema>
 export type ListNotificationsQueryDTO = z.infer<typeof listNotificationsQuerySchema>
+
+export const pushSubscribeBodySchema = z.object({
+  endpoint: z.string().url(),
+  expirationTime: z.number().nullable().optional(),
+  keys: z.object({
+    auth: z.string().min(1),
+    p256dh: z.string().min(1),
+  }),
+})
+
+export const pushUnsubscribeBodySchema = z.object({
+  endpoint: z.string().url(),
+})
+
+export type PushSubscribeBodyDTO = z.infer<typeof pushSubscribeBodySchema>
+export type PushUnsubscribeBodyDTO = z.infer<typeof pushUnsubscribeBodySchema>

@@ -2,6 +2,7 @@
 
 import { useEffect } from "react"
 import { useNotificationStore } from "@/stores/notification-store"
+import { usePushNotifications } from "@/hooks/use-push-notifications"
 import type { Notification } from "@/types/notification"
 
 interface Props {
@@ -13,6 +14,7 @@ const SSE_URL = `${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost"}/api/no
 export function NotificationStoreProvider({ children }: Props) {
   const list = useNotificationStore((s) => s.list)
   const prepend = useNotificationStore((s) => s.prepend)
+  usePushNotifications()
 
   useEffect(() => {
     const buffered: Notification[] = []

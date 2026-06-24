@@ -105,9 +105,7 @@ export async function getUserById(id: string): Promise<{ username: string }> {
   return { username: json.data.username as string }
 }
 
-export async function getProfileById(
-  id: string
-): Promise<{
+export async function getProfileById(id: string): Promise<{
   firstName: string | null
   lastName: string | null
   avatarId: string | null
