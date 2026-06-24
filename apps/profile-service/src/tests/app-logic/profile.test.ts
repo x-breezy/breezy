@@ -24,6 +24,10 @@ jest.mock("../../models/follow.model", () => ({
 }))
 
 jest.mock("../../clients/rabbitmq", () => ({ publish: jest.fn() }))
+jest.mock("../../clients/banned-users.consumer", () => ({
+  getBannedUserIds: jest.fn().mockResolvedValue(new Set()),
+  startBannedUsersConsumer: jest.fn().mockResolvedValue(undefined),
+}))
 import { publish } from "../../clients/rabbitmq"
 const mockPublish = publish as jest.Mock
 

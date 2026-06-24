@@ -30,6 +30,10 @@ jest.mock("../../models/follow.model", () => ({
 }))
 
 jest.mock("../../utils/jwt")
+jest.mock("../../clients/banned-users.consumer", () => ({
+  getBannedUserIds: jest.fn().mockResolvedValue(new Set()),
+  startBannedUsersConsumer: jest.fn().mockResolvedValue(undefined),
+}))
 const mockVerifyJwt = verifyJwt as jest.MockedFunction<typeof verifyJwt>
 
 const mockedProfile = Profile as jest.Mocked<typeof Profile>
