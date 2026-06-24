@@ -139,7 +139,8 @@ export const useModerationStore = create<ModerationState>((set) => ({
         reports: s.reports.map((r) =>
           r.id === reportId ? { ...r, status: "resolved" as const } : r
         ),
-        pendingCount: report?.status === "pending" ? Math.max(0, s.pendingCount - 1) : s.pendingCount,
+        pendingCount:
+          report?.status === "pending" ? Math.max(0, s.pendingCount - 1) : s.pendingCount,
       }
     }),
 
@@ -147,7 +148,9 @@ export const useModerationStore = create<ModerationState>((set) => ({
     set((s) => {
       const report = s.reports.find((r) => r.id === reportId)
       return {
-        reports: s.reports.map((r) => (r.id === reportId ? { ...r, status: "pending" as const } : r)),
+        reports: s.reports.map((r) =>
+          r.id === reportId ? { ...r, status: "pending" as const } : r
+        ),
         pendingCount: report?.status === "resolved" ? s.pendingCount + 1 : s.pendingCount,
       }
     }),

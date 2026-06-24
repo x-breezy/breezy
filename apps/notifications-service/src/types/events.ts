@@ -58,6 +58,7 @@ export interface ContentReplyEvent {
 
 export interface MessageSentEvent {
   senderId: string
+  senderUsername: string
   recipientUserId: string
   content: string
   conversationId: string

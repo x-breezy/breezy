@@ -30,7 +30,11 @@ const options: swaggerJsdoc.Options = {
         Profile: {
           type: "object",
           properties: {
-            profileId: { type: "string", format: "uuid", example: "550e8400-e29b-41d4-a716-446655440000" },
+            profileId: {
+              type: "string",
+              format: "uuid",
+              example: "550e8400-e29b-41d4-a716-446655440000",
+            },
             username: { type: "string", example: "johndoe" },
             firstName: { type: "string", nullable: true, example: "John" },
             lastName: { type: "string", nullable: true, example: "Doe" },
@@ -67,7 +71,11 @@ const options: swaggerJsdoc.Options = {
           type: "object",
           required: ["followingId"],
           properties: {
-            followingId: { type: "string", format: "uuid", example: "550e8400-e29b-41d4-a716-446655440000" },
+            followingId: {
+              type: "string",
+              format: "uuid",
+              example: "550e8400-e29b-41d4-a716-446655440000",
+            },
           },
         },
       },

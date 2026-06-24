@@ -27,15 +27,15 @@ async function adjustFollowCountsForBan(userId: string, delta: 1 | -1): Promise<
   await Promise.all([
     followerIds.length > 0
       ? Profile.increment("followingCount", {
-        by: delta,
-        where: { profileId: { [Op.in]: followerIds } },
-      })
+          by: delta,
+          where: { profileId: { [Op.in]: followerIds } },
+        })
       : Promise.resolve(),
     followingIds.length > 0
       ? Profile.increment("followersCount", {
-        by: delta,
-        where: { profileId: { [Op.in]: followingIds } },
-      })
+          by: delta,
+          where: { profileId: { [Op.in]: followingIds } },
+        })
       : Promise.resolve(),
   ])
 }

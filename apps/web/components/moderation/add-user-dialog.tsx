@@ -38,9 +38,7 @@ export default function AddUserDialog({ open, onOpenChange, onCreated }: AddUser
         onCreated(user)
         setForm({ username: "", email: "", password: "", role: "user" })
       } catch (err) {
-        setFormError(
-          err instanceof Error ? err.message : t("createUserFailed")
-        )
+        setFormError(err instanceof Error ? err.message : t("createUserFailed"))
       }
     })
   }

@@ -49,7 +49,10 @@ function formatNotification(
     case "reply":
       return { title: "New reply", body: `${actor} replied to your comment` }
     case "message":
-      return { title: "New message", body: payload.content ?? "" }
+      return {
+        title: `@${payload.senderUsername ?? "unknown"} sent you a message`,
+        body: payload.content ?? "",
+      }
   }
 }
 

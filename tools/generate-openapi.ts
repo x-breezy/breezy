@@ -19,7 +19,14 @@ type OpenAPISpec = {
   tags?: { name: string; description?: string }[]
 }
 
-const specs: OpenAPISpec[] = [authSpec, profileSpec, postSpec, mediaSpec, notificationsSpec, messageSpec]
+const specs: OpenAPISpec[] = [
+  authSpec,
+  profileSpec,
+  postSpec,
+  mediaSpec,
+  notificationsSpec,
+  messageSpec,
+]
 
 const merged: OpenAPISpec = {
   openapi: "3.0.3",
@@ -87,7 +94,7 @@ for (const spec of specs) {
         if (!publicPaths.includes(path) && op.security === undefined) {
           op.security = [{ bearerAuth: [] }]
         }
-        ; (merged.paths![path] as Record<string, unknown>)[method] = op
+        ;(merged.paths![path] as Record<string, unknown>)[method] = op
       }
     }
   }
