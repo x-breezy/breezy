@@ -7,7 +7,9 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { MessageBubble } from "./message-bubble"
 import { DateSeparator } from "./date-separator"
 import { ConversationIntro } from "./conversation-intro"
+import { mediaUrl } from "@/lib/utils"
 import type { Message } from "@/lib/actions/messages"
+import type { ParticipantProfile } from "@/lib/actions/conversations"
 
 interface MessagesListProps {
   messages: Message[]
@@ -17,7 +19,9 @@ interface MessagesListProps {
   onLoadMore?: () => void
   currentUserId: string | undefined
   cachedUsers: Record<string, { displayName: string; avatarUrl?: string }>
+  participants?: Record<string, ParticipantProfile>
   otherUserDisplay: string | null
+  otherUserRole?: string | null
   avatarUrl?: string
   isGroup: boolean
   participantIds: string[]
@@ -42,7 +46,9 @@ export function MessagesList({
   onLoadMore,
   currentUserId,
   cachedUsers,
+  participants,
   otherUserDisplay,
+  otherUserRole,
   avatarUrl,
   isGroup,
   participantIds,
@@ -98,6 +104,7 @@ export function MessagesList({
         <div ref={topRef} />
         <ConversationIntro
           displayName={otherUserDisplay}
+          role={otherUserRole}
           avatarUrl={avatarUrl}
           isGroup={isGroup}
           memberCount={participantIds.length}
@@ -130,10 +137,18 @@ export function MessagesList({
           const showDateSep = !prevMsg || !sameDay(prevMsg.createdAt, msg.createdAt)
 
           let senderName = msg.senderId === currentUserId ? t("you") : t("someone")
-          const senderCache = cachedUsers[msg.senderId]
-          if (msg.senderId !== currentUserId && senderCache) {
-            const parts = senderCache.displayName.split(" @")
-            senderName = parts[0] || parts[1] || senderName
+          if (msg.senderId !== currentUserId) {
+            const p = participants?.[msg.senderId]
+            if (p) {
+              senderName =
+                [p.firstName, p.lastName].filter(Boolean).join(" ") || p.username || senderName
+            } else {
+              const cached = cachedUsers[msg.senderId]
+              if (cached) {
+                const parts = cached.displayName.split(" @")
+                senderName = parts[0] || parts[1] || senderName
+              }
+            }
           }
 
           if (msg.isSystem) {
@@ -148,7 +163,13 @@ export function MessagesList({
             )
           }
 
-          const msgAvatarUrl = cachedUsers[msg.senderId]?.avatarUrl
+          const msgAvatarId =
+            participants?.[msg.senderId]?.avatarId ?? cachedUsers[msg.senderId]?.avatarUrl
+          const msgAvatarUrl = msgAvatarId
+            ? msgAvatarId.startsWith("http")
+              ? msgAvatarId
+              : mediaUrl(msgAvatarId)
+            : undefined
 
           return (
             <React.Fragment key={msg._id}>

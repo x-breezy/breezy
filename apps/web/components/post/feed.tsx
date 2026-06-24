@@ -231,6 +231,7 @@ export function Feed({ feedType = "forYou" }: { feedType?: string }) {
                 username={post.author?.username ?? post.authorId}
                 authorId={post.authorId}
                 avatarUrl={post.author?.avatarUrl ?? undefined}
+                authorRole={post.author?.role ?? undefined}
                 content={post.content}
                 media={post.media}
                 createdAt={post.createdAt}

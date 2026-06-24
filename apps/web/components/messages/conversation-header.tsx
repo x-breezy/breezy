@@ -5,9 +5,12 @@ import { useTranslations } from "next-intl"
 import { IconArrowLeft, IconDots } from "@tabler/icons-react"
 import { Button } from "@/components/ui/button"
 import { ConversationGroupAvatar } from "@/components/shared/conversation-group-avatar"
+import { UsernameDisplay } from "@/components/shared/username-display"
 import { ConversationDetailsDialog } from "./conversation-details-dialog"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
+import { UserRole } from "@/lib/auth/role"
+import type { ParticipantProfile } from "@/lib/actions/conversations"
 
 interface ConversationHeaderProps {
   conversationId: string
@@ -15,6 +18,7 @@ interface ConversationHeaderProps {
   isGroup: boolean
   participantIds: string[]
   currentUserId: string | undefined
+  participants?: Record<string, ParticipantProfile>
 }
 
 export function ConversationHeader({
@@ -23,12 +27,18 @@ export function ConversationHeader({
   isGroup,
   participantIds,
   currentUserId,
+  participants,
 }: ConversationHeaderProps) {
   const t = useTranslations("messages")
   const [detailsOpen, setDetailsOpen] = useState(false)
   const visibleIds = participantIds.filter((id) => id !== currentUserId)
 
   const displayName = name ? (isGroup ? name : name.split(" @")[0]) : null
+
+  const otherUserId = !isGroup ? visibleIds[0] : null
+  const otherRole = otherUserId
+    ? (participants?.[otherUserId]?.role as UserRole | undefined)
+    : undefined
 
   return (
     <>
@@ -48,8 +58,15 @@ export function ConversationHeader({
           <div className='max-w-[200px] truncate text-xl font-bold tracking-tight md:max-w-[300px]'>
             {displayName === null ? (
               <div className='h-4 w-32 animate-pulse rounded bg-foreground/10' />
-            ) : (
+            ) : isGroup ? (
               displayName
+            ) : (
+              <UsernameDisplay
+                name={displayName!}
+                role={otherRole}
+                nameClassName='text-xl font-bold tracking-tight'
+                badgeClassName='size-5'
+              />
             )}
           </div>
         </div>
@@ -74,6 +91,7 @@ export function ConversationHeader({
         isGroup={isGroup}
         participantIds={participantIds}
         currentUserId={currentUserId}
+        participants={participants}
       />
     </>
   )

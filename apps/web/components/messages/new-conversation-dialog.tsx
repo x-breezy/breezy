@@ -12,6 +12,8 @@ import { listFollowing } from "@/lib/actions/follow-list"
 import { getUserByUsername } from "@/lib/actions/conversations"
 import { useConversationStore } from "@/stores/conversation-store"
 import { cn } from "@/lib/utils"
+import { UsernameDisplay } from "@/components/shared/username-display"
+import { UserRole } from "@/lib/auth/role"
 
 const PAGE_SIZE = 100
 
@@ -47,7 +49,12 @@ function ProfileRow({
     >
       <ProfileAvatar src={profile.avatarUrl ?? undefined} size='xs' className='size-12 shrink-0' />
       <div className='min-w-0'>
-        <p className='truncate font-semibold'>{displayName}</p>
+        <UsernameDisplay
+          name={displayName}
+          role={profile.role as UserRole | undefined}
+          nameClassName='truncate font-semibold'
+          badgeClassName='size-4'
+        />
         {profile.username && (
           <p className='truncate text-sm text-muted-foreground'>@{profile.username}</p>
         )}

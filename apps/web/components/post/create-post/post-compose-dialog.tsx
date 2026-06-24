@@ -87,7 +87,7 @@ export function PostComposeDialog({
               onPost={handlePost}
               onClose={handleClose}
               posting={compose.submitting}
-              disabled={compose.content.length > 250}
+              disabled={compose.content.trim().length === 0 || compose.content.length > 250}
               label={postLabel}
             />
             {(compose.error ?? editError) && (
@@ -110,7 +110,7 @@ export function PostComposeDialog({
           onPost={handlePost}
           onClose={handleClose}
           posting={compose.submitting}
-          disabled={compose.content.length > 250}
+          disabled={compose.content.trim().length === 0 || compose.content.length > 250}
           label={postLabel}
         />
         {(compose.error ?? editError) && (

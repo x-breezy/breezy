@@ -57,8 +57,8 @@ export function PersonCard({
         <UsernameDisplay
           name={displayName ?? username}
           role={role}
-          className='truncate'
-          nameClassName='text-sm'
+          badgeClassName='size-4'
+          nameClassName='truncate text-sm hover:underline'
         />
         {username && <p className='truncate text-xs text-muted-foreground'>@{username}</p>}
         {bio && <p className='mt-0.5 truncate text-xs text-muted-foreground'>{bio}</p>}
