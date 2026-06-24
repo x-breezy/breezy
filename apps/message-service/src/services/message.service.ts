@@ -39,10 +39,10 @@ export class MessageService {
     const PROFILE_SERVICE_URL = process.env.PROFILE_SERVICE_URL ?? "http://localhost:4010"
     let senderUsername = safeSenderId
     try {
-      const profileRes = await fetch(`${PROFILE_SERVICE_URL}/api/profiles/internal/${safeSenderId}`)
+      const profileRes = await fetch(`${PROFILE_SERVICE_URL}/profiles/internal/${safeSenderId}`)
       if (profileRes.ok) {
         const profileBody = (await profileRes.json()) as { data?: { username?: string } }
-        senderUsername = profileBody.data?.username ?? safeSenderId
+        senderUsername = profileBody.data?.username || safeSenderId
       }
     } catch {}
 
