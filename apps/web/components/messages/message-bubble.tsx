@@ -5,6 +5,8 @@ import { useTranslations } from "next-intl"
 import { IconArrowBackUp } from "@tabler/icons-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { timeAgo } from "@/lib/utils"
+import { isPostUrl, parsePostUrl } from "@/lib/utils/post-url"
+import { SharedPostPreview } from "./shared-post-preview"
 import type { ReplyTo } from "@/lib/actions/messages"
 
 type MessageBubbleProps =
@@ -165,31 +167,57 @@ export function MessageBubble(props: MessageBubbleProps) {
                     : "bg-secondary/80 text-muted-foreground"
                 }`}
               >
-                <span className='block w-fit truncate'>{replyTo.content}</span>
+                <span className='block w-fit truncate'>
+                  {isPostUrl(replyTo.content)
+                    ? (() => {
+                        const p = parsePostUrl(replyTo.content)
+                        return p ? `@${p.username}` : replyTo.content
+                      })()
+                    : replyTo.content}
+                </span>
               </div>
             </div>
           )}
 
           {/* Bubble,  reply button absolutely centered, swipe on mobile */}
-          <div
-            className={`relative w-fit max-w-full px-3.5 py-2 transition-transform ease-out ${
-              swipeDx !== 0 ? "duration-75" : "duration-300"
-            } ${
-              isOwn
-                ? `bg-primary text-primary-foreground ${ownCorners}`
-                : `bg-secondary text-foreground ${receivedCorners}`
-            }`}
-            style={{ transform: swipeDx !== 0 ? `translateX(${swipeDx}px)` : undefined }}
-            onTouchStart={onReply ? handleTouchStart : undefined}
-            onTouchMove={onReply ? handleTouchMove : undefined}
-            onTouchEnd={onReply ? handleTouchEnd : undefined}
-          >
-            <p className='text-sm leading-relaxed [overflow-wrap:anywhere]'>{content}</p>
+          <div className={`flex items-center gap-1 ${isOwn ? "flex-row-reverse" : "flex-row"}`}>
+            <div
+              className={`relative w-fit max-w-full transition-transform ease-out ${
+                swipeDx !== 0 ? "duration-75" : "duration-300"
+              } ${
+                isPostUrl(content)
+                  ? ""
+                  : `px-3.5 py-2 ${
+                      isOwn
+                        ? `bg-primary text-primary-foreground ${ownCorners}`
+                        : `bg-secondary text-foreground ${receivedCorners}`
+                    }`
+              }`}
+              style={{ transform: swipeDx !== 0 ? `translateX(${swipeDx}px)` : undefined }}
+              onTouchStart={onReply ? handleTouchStart : undefined}
+              onTouchMove={onReply ? handleTouchMove : undefined}
+              onTouchEnd={onReply ? handleTouchEnd : undefined}
+            >
+              {isPostUrl(content) ? (
+                (() => {
+                  const parsed = parsePostUrl(content)
+                  return parsed ? (
+                    <SharedPostPreview
+                      postId={parsed.postId}
+                      username={parsed.username}
+                      isOwn={isOwn}
+                    />
+                  ) : (
+                    <p className='text-sm leading-relaxed [overflow-wrap:anywhere]'>{content}</p>
+                  )
+                })()
+              ) : (
+                <p className='text-sm leading-relaxed [overflow-wrap:anywhere]'>{content}</p>
+              )}
+            </div>
             {onReply && (
               <div
-                className={`absolute top-1/2 flex -translate-y-1/2 items-center transition-opacity ${
-                  isOwn ? "-left-8" : "-right-8"
-                } ${hovered ? "opacity-100" : "opacity-0"}`}
+                className={`flex shrink-0 items-center transition-opacity ${hovered ? "opacity-100" : "opacity-0"}`}
                 style={{ opacity: swipeProgress > 0 ? swipeProgress : undefined }}
               >
                 {replyButton}

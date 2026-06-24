@@ -4,6 +4,7 @@ import { memo, useState, useCallback } from "react"
 import { useRouter, usePathname } from "next/navigation"
 import { PostMeta, PostContent, PostActions } from "."
 import { PostMenu } from "./post-menu"
+import { ShareDialog } from "../shared/share-dialog"
 import { ProfileAvatar } from "../profile"
 import { ReplyComposeDialog } from "./create-post/reply-compose-dialog"
 import type { SearchPostMedia } from "@/lib/actions/posts"
@@ -81,6 +82,7 @@ function Post({
   const [deleted, setDeleted] = useState(false)
   const [viewerIndex, setViewerIndex] = useState<number | null>(null)
   const [replyOpen, setReplyOpen] = useState(false)
+  const [shareOpen, setShareOpen] = useState(false)
   const formattedTime = compact ? timeAgo(createdAt) : formatFullDate(createdAt)
 
   const handleLike = useCallback(
@@ -111,22 +113,12 @@ function Post({
     setReplyOpen(true)
   }, [])
 
-  const handleShare = useCallback(
-    async (e: React.MouseEvent) => {
-      e.stopPropagation()
-      const postUrl = `${window.location.origin}/post/${username}/${id}`
-      if (navigator.share) {
-        try {
-          await navigator.share({ url: postUrl })
-        } catch (err) {
-          if (err instanceof Error && err.name !== "AbortError") throw err
-        }
-      } else {
-        await navigator.clipboard.writeText(postUrl)
-      }
-    },
-    [id, username]
-  )
+  const postUrl = `${window.location.origin}/post/${username}/${id}`
+
+  const handleShare = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation()
+    setShareOpen(true)
+  }, [])
 
   if (deleted) return null
 
@@ -180,10 +172,10 @@ function Post({
             </div>
             <PostMenu
               postId={id}
-              username={username}
               authorId={authorId ?? id}
               content={postContent}
               media={postMedia}
+              onShare={handleShare}
               onDeleted={() => {
                 setDeleted(true)
                 if (isDetailPage) router.back()
@@ -260,6 +252,13 @@ function Post({
           onDismiss={() => setReplyOpen(false)}
         />
       )}
+
+      <ShareDialog
+        open={shareOpen}
+        onOpenChange={setShareOpen}
+        shareUrl={postUrl}
+        shareTitle={name}
+      />
     </>
   )
 }

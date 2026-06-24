@@ -24,20 +24,20 @@ import type { MediaPreview } from "./create-post/use-post-compose"
 
 interface PostMenuProps {
   postId: string
-  username: string
   authorId: string
   content: string
   media?: SearchPostMedia[]
+  onShare?: (e: React.MouseEvent) => void
   onDeleted?: () => void
   onEdited?: (newContent: string, newMedia: SearchPostMedia[]) => void
 }
 
 export function PostMenu({
   postId,
-  username,
   authorId,
   content,
   media,
+  onShare,
   onDeleted,
   onEdited,
 }: PostMenuProps) {
@@ -53,18 +53,9 @@ export function PostMenu({
   const [editOpen, setEditOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
 
-  const postUrl = `${window.location.origin}/post/${username}/${postId}`
-
-  async function handleShare() {
-    if (navigator.share) {
-      try {
-        await navigator.share({ url: postUrl })
-      } catch (e) {
-        if (e instanceof Error && e.name !== "AbortError") throw e
-      }
-    } else {
-      await navigator.clipboard.writeText(postUrl)
-    }
+  function handleShare(e: React.MouseEvent) {
+    e.stopPropagation()
+    onShare?.(e)
   }
 
   async function handleReport() {
