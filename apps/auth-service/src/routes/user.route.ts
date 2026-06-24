@@ -97,6 +97,35 @@ export { createUserRouter }
 /**
  * @openapi
  * /api/auth/users:
+ *   get:
+ *     summary: List all users (paginated, admin)
+ *     tags: [Users]
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema: { type: integer, default: 1 }
+ *       - in: query
+ *         name: limit
+ *         schema: { type: integer, default: 20 }
+ *     responses:
+ *       200:
+ *         description: Paginated user list.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: boolean, example: true }
+ *                 users: { type: array, items: { $ref: '#/components/schemas/User' } }
+ *                 total: { type: integer, example: 100 }
+ *                 page: { type: integer, example: 1 }
+ *                 limit: { type: integer, example: 20 }
+ *       403:
+ *         description: Insufficient permissions.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
  *   post:
  *     summary: Create a user (admin)
  *     tags: [Users]
@@ -115,6 +144,11 @@ export { createUserRouter }
  *                 format: email
  *               password:
  *                 type: string
+ *                 example: NewPass1234!
+ *               role:
+ *                 type: string
+ *                 enum: [user, moderator, admin]
+ *                 default: user
  *     responses:
  *       201:
  *         description: User created.
@@ -126,6 +160,66 @@ export { createUserRouter }
  *                 success: { type: boolean, example: true }
  *                 data:
  *                   $ref: '#/components/schemas/User'
+ *       403:
+ *         description: Insufficient permissions.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
+ *
+ * /api/auth/users/me:
+ *   get:
+ *     summary: Get current authenticated user
+ *     tags: [Users]
+ *     responses:
+ *       200:
+ *         description: Current user.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: boolean, example: true }
+ *                 data:
+ *                   $ref: '#/components/schemas/User'
+ *
+ * /api/auth/users/search:
+ *   get:
+ *     summary: Search users by username or email
+ *     tags: [Users]
+ *     parameters:
+ *       - in: query
+ *         name: q
+ *         required: true
+ *         schema: { type: string }
+ *       - in: query
+ *         name: limit
+ *         schema: { type: integer, default: 20 }
+ *     responses:
+ *       200:
+ *         description: Matching users.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: boolean, example: true }
+ *                 data: { type: array, items: { $ref: '#/components/schemas/User' } }
+ *
+ * /api/auth/users/sanctioned:
+ *   get:
+ *     summary: List banned/sanctioned users (admin)
+ *     tags: [Users]
+ *     responses:
+ *       200:
+ *         description: Sanctioned users.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: boolean, example: true }
+ *                 data: { type: array, items: { $ref: '#/components/schemas/User' } }
  *       403:
  *         description: Insufficient permissions.
  *         content:
@@ -176,8 +270,73 @@ export { createUserRouter }
  *     responses:
  *       200:
  *         description: User banned.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: boolean, example: true }
+ *                 data:
+ *                   $ref: '#/components/schemas/User'
  *       403:
  *         description: Insufficient permissions.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
+ *
+ * /api/auth/users/{id}/unban:
+ *   patch:
+ *     summary: Unban a user
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: User unbanned.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: boolean, example: true }
+ *                 data:
+ *                   $ref: '#/components/schemas/User'
+ *       403:
+ *         description: Insufficient permissions.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
+ *
+ * /api/auth/users/by-username/{username}:
+ *   get:
+ *     summary: Get user by username
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: username
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: User found.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: boolean, example: true }
+ *                 data:
+ *                   $ref: '#/components/schemas/User'
+ *       404:
+ *         description: Not found.
  *         content:
  *           application/json:
  *             schema:
@@ -200,14 +359,23 @@ export { createUserRouter }
  *         application/json:
  *           schema:
  *             type: object
- *             required: [password]
+ *             required: [currentPassword, newPassword]
  *             properties:
- *               password:
+ *               currentPassword:
+ *                 type: string
+ *                 example: OldPass1234!
+ *               newPassword:
  *                 type: string
  *                 example: NewPass1234!
  *     responses:
  *       200:
  *         description: Password updated.
+ *       400:
+ *         description: Invalid current password.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
  *       403:
  *         description: Insufficient permissions.
  *         content:

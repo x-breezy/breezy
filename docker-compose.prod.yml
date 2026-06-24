@@ -501,12 +501,11 @@ services:
       - gateway-net
 
   swagger-ui:
-    image: swaggerapi/swagger-ui
+    build:
+      context: .
+      dockerfile: infrastructure/docs/Dockerfile
     container_name: breezy-swagger-ui
     restart: unless-stopped
-    environment:
-      URL: /openapi.json
-      BASE_URL: /api-docs
     networks:
       - gateway-net
 

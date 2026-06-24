@@ -24,11 +24,7 @@
     },
     {
       "name": "Posts",
-      "description": "Posts, feed"
-    },
-    {
-      "name": "Comments",
-      "description": "Post comments"
+      "description": "Posts, feed & replies"
     },
     {
       "name": "Likes",
@@ -41,20 +37,105 @@
     {
       "name": "Notifications",
       "description": "Real-time notifications"
+    },
+    {
+      "name": "Messages",
+      "description": "Private conversations & messaging"
     }
   ],
   "paths": {
     "/api/auth/users": {
+      "get": {
+        "summary": "List all users (paginated, admin)",
+        "tags": [
+          "Users"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated user list.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "users": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/User"
+                      }
+                    },
+                    "total": {
+                      "type": "integer",
+                      "example": 100
+                    },
+                    "page": {
+                      "type": "integer",
+                      "example": 1
+                    },
+                    "limit": {
+                      "type": "integer",
+                      "example": 20
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient permissions.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
       "post": {
         "summary": "Create a user (admin)",
-        "tags": ["Users"],
+        "tags": [
+          "Users"
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["username", "email", "password"],
+                "required": [
+                  "username",
+                  "email",
+                  "password"
+                ],
                 "properties": {
                   "username": {
                     "type": "string"
@@ -64,7 +145,17 @@
                     "format": "email"
                   },
                   "password": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "NewPass1234!"
+                  },
+                  "role": {
+                    "type": "string",
+                    "enum": [
+                      "user",
+                      "moderator",
+                      "admin"
+                    ],
+                    "default": "user"
                   }
                 }
               }
@@ -109,10 +200,148 @@
         ]
       }
     },
+    "/api/auth/users/me": {
+      "get": {
+        "summary": "Get current authenticated user",
+        "tags": [
+          "Users"
+        ],
+        "responses": {
+          "200": {
+            "description": "Current user.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/User"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/auth/users/search": {
+      "get": {
+        "summary": "Search users by username or email",
+        "tags": [
+          "Users"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "q",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Matching users.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/User"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/auth/users/sanctioned": {
+      "get": {
+        "summary": "List banned/sanctioned users (admin)",
+        "tags": [
+          "Users"
+        ],
+        "responses": {
+          "200": {
+            "description": "Sanctioned users.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/User"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient permissions.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
     "/api/auth/users/{id}": {
       "get": {
         "summary": "Get user by id",
-        "tags": ["Users"],
+        "tags": [
+          "Users"
+        ],
         "parameters": [
           {
             "in": "path",
@@ -165,7 +394,9 @@
     "/api/auth/users/{id}/ban": {
       "patch": {
         "summary": "Ban a user",
-        "tags": ["Users"],
+        "tags": [
+          "Users"
+        ],
         "parameters": [
           {
             "in": "path",
@@ -179,7 +410,23 @@
         ],
         "responses": {
           "200": {
-            "description": "User banned."
+            "description": "User banned.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/User"
+                    }
+                  }
+                }
+              }
+            }
           },
           "403": {
             "description": "Insufficient permissions.",
@@ -199,10 +446,12 @@
         ]
       }
     },
-    "/api/auth/users/{id}/suspend": {
+    "/api/auth/users/{id}/unban": {
       "patch": {
-        "summary": "Suspend a user",
-        "tags": ["Users"],
+        "summary": "Unban a user",
+        "tags": [
+          "Users"
+        ],
         "parameters": [
           {
             "in": "path",
@@ -216,10 +465,80 @@
         ],
         "responses": {
           "200": {
-            "description": "User suspended."
+            "description": "User unbanned.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/User"
+                    }
+                  }
+                }
+              }
+            }
           },
           "403": {
             "description": "Insufficient permissions.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/auth/users/by-username/{username}": {
+      "get": {
+        "summary": "Get user by username",
+        "tags": [
+          "Users"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "username",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/User"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found.",
             "content": {
               "application/json": {
                 "schema": {
@@ -239,7 +558,9 @@
     "/api/auth/users/{id}/password": {
       "patch": {
         "summary": "Update password",
-        "tags": ["Users"],
+        "tags": [
+          "Users"
+        ],
         "parameters": [
           {
             "in": "path",
@@ -257,9 +578,16 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["password"],
+                "required": [
+                  "currentPassword",
+                  "newPassword"
+                ],
                 "properties": {
-                  "password": {
+                  "currentPassword": {
+                    "type": "string",
+                    "example": "OldPass1234!"
+                  },
+                  "newPassword": {
                     "type": "string",
                     "example": "NewPass1234!"
                   }
@@ -271,6 +599,16 @@
         "responses": {
           "200": {
             "description": "Password updated."
+          },
+          "400": {
+            "description": "Invalid current password.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
           },
           "403": {
             "description": "Insufficient permissions.",
@@ -291,18 +629,114 @@
       }
     },
     "/api/auth/reports": {
+      "get": {
+        "summary": "List reports (moderator/admin)",
+        "tags": [
+          "Reports"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "status",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "pending",
+                "resolved"
+              ]
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated list of reports.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "reports": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/Report"
+                          }
+                        },
+                        "total": {
+                          "type": "integer",
+                          "example": 100
+                        },
+                        "page": {
+                          "type": "integer",
+                          "example": 1
+                        },
+                        "limit": {
+                          "type": "integer",
+                          "example": 20
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient permissions.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
       "post": {
         "summary": "Create a report",
-        "tags": ["Reports"],
+        "tags": [
+          "Reports"
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["targetId", "reason"],
+                "required": [
+                  "reportedUserId",
+                  "reason"
+                ],
                 "properties": {
-                  "targetId": {
+                  "reportedUserId": {
                     "type": "string",
                     "format": "uuid",
                     "example": "550e8400-e29b-41d4-a716-446655440000"
@@ -318,7 +752,23 @@
         },
         "responses": {
           "201": {
-            "description": "Report created."
+            "description": "Report created.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Report"
+                    }
+                  }
+                }
+              }
+            }
           },
           "403": {
             "description": "Insufficient permissions.",
@@ -338,10 +788,12 @@
         ]
       }
     },
-    "/api/auth/reports/{id}/resolve": {
-      "patch": {
-        "summary": "Resolve a report",
-        "tags": ["Reports"],
+    "/api/auth/reports/{id}": {
+      "get": {
+        "summary": "Get a report by id",
+        "tags": [
+          "Reports"
+        ],
         "parameters": [
           {
             "in": "path",
@@ -355,7 +807,143 @@
         ],
         "responses": {
           "200": {
-            "description": "Report resolved."
+            "description": "Report found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Report"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/auth/reports/{id}/resolve": {
+      "patch": {
+        "summary": "Resolve a report",
+        "tags": [
+          "Reports"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Report resolved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Report"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient permissions.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Report not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/auth/reports/{id}/unresolve": {
+      "patch": {
+        "summary": "Unresolve a report",
+        "tags": [
+          "Reports"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Report unresolved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Report"
+                    }
+                  }
+                }
+              }
+            }
           },
           "403": {
             "description": "Insufficient permissions.",
@@ -388,14 +976,19 @@
     "/api/auth/sign-in": {
       "post": {
         "summary": "Sign in",
-        "tags": ["Auth"],
+        "tags": [
+          "Auth"
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["email", "password"],
+                "required": [
+                  "email",
+                  "password"
+                ],
                 "properties": {
                   "email": {
                     "type": "string",
@@ -438,14 +1031,20 @@
     "/api/auth/sign-up": {
       "post": {
         "summary": "Sign up",
-        "tags": ["Auth"],
+        "tags": [
+          "Auth"
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["username", "email", "password"],
+                "required": [
+                  "username",
+                  "email",
+                  "password"
+                ],
                 "properties": {
                   "username": {
                     "type": "string",
@@ -493,7 +1092,9 @@
       "get": {
         "summary": "Validate JWT (internal)",
         "description": "Used internally by nginx auth_request. Returns 200 with x-user-id and x-role headers on success.",
-        "tags": ["Auth"],
+        "tags": [
+          "Auth"
+        ],
         "parameters": [
           {
             "in": "header",
@@ -519,18 +1120,680 @@
               }
             }
           }
+        }
+      }
+    },
+    "/api/auth/refresh": {
+      "post": {
+        "summary": "Refresh access token",
+        "tags": [
+          "Auth"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "refreshToken"
+                ],
+                "properties": {
+                  "refreshToken": {
+                    "type": "string",
+                    "example": "dGhpcyBpcyBhIHJlZnJlc2gtdG9rZW4..."
+                  }
+                }
+              }
+            }
+          }
         },
+        "responses": {
+          "200": {
+            "description": "New tokens issued.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or expired refresh token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/logout": {
+      "post": {
+        "summary": "Revoke tokens and sign out",
+        "tags": [
+          "Auth"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "refreshToken"
+                ],
+                "properties": {
+                  "refreshToken": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Signed out.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Signed out successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/verify-email": {
+      "post": {
+        "summary": "Verify email address",
+        "tags": [
+          "Auth"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "token"
+                ],
+                "properties": {
+                  "token": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Email verified.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid or expired token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/resend-verification": {
+      "post": {
+        "summary": "Resend verification email",
+        "tags": [
+          "Auth"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "email"
+                ],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Verification email sent.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/forgot-password": {
+      "post": {
+        "summary": "Request password reset email",
+        "tags": [
+          "Auth"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "email"
+                ],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Reset email sent if account exists.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/reset-password": {
+      "post": {
+        "summary": "Reset password with reset token",
+        "tags": [
+          "Auth"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "token",
+                  "password"
+                ],
+                "properties": {
+                  "token": {
+                    "type": "string"
+                  },
+                  "password": {
+                    "type": "string",
+                    "example": "NewPass1234!"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Password updated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid or expired token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/google": {
+      "get": {
+        "summary": "Start Google OAuth sign-in",
+        "tags": [
+          "Auth"
+        ],
+        "responses": {
+          "302": {
+            "description": "Redirects to Google consent screen."
+          }
+        }
+      }
+    },
+    "/api/auth/google/callback": {
+      "get": {
+        "summary": "Google OAuth callback",
+        "tags": [
+          "Auth"
+        ],
+        "responses": {
+          "302": {
+            "description": "Redirects back to frontend."
+          }
+        }
+      }
+    },
+    "/api/auth/google/complete": {
+      "post": {
+        "summary": "Complete Google sign-in with pending token",
+        "tags": [
+          "Auth"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "token"
+                ],
+                "properties": {
+                  "token": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Authenticated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Email already used with password account.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/2fa/verify-login": {
+      "post": {
+        "summary": "Verify 2FA code during login",
+        "tags": [
+          "Auth"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "pendingToken",
+                  "code"
+                ],
+                "properties": {
+                  "pendingToken": {
+                    "type": "string"
+                  },
+                  "code": {
+                    "type": "string",
+                    "example": "123456"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Authenticated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or expired code.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/2fa/resend-login-code": {
+      "post": {
+        "summary": "Resend 2FA login code",
+        "tags": [
+          "Auth"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "pendingToken"
+                ],
+                "properties": {
+                  "pendingToken": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Code sent.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/2fa/send-code": {
+      "post": {
+        "summary": "Send 2FA setup code to authenticated user",
+        "tags": [
+          "Auth"
+        ],
         "security": [
           {
             "bearerAuth": []
           }
-        ]
+        ],
+        "responses": {
+          "200": {
+            "description": "Setup code sent.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "secret": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/2fa/enable": {
+      "post": {
+        "summary": "Enable 2FA with setup code",
+        "tags": [
+          "Auth"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "code"
+                ],
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "example": "123456"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "2FA enabled.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid code.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/2fa/disable": {
+      "post": {
+        "summary": "Disable 2FA",
+        "tags": [
+          "Auth"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "2FA disabled.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/profile-created": {
+      "post": {
+        "summary": "Notify auth-service that a profile was created",
+        "tags": [
+          "Auth"
+        ],
+        "description": "Called internally after profile creation to mark the user account complete.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "userId": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Acknowledged."
+          }
+        }
       }
     },
     "/api/profiles/{profileId}": {
       "get": {
         "summary": "Get a profile",
-        "tags": ["Profiles"],
+        "tags": [
+          "Profiles"
+        ],
         "parameters": [
           {
             "in": "path",
@@ -580,10 +1843,12 @@
         ]
       }
     },
-    "/api/profiles/{profileId}/followers": {
+    "/api/profiles/{profileId}/is-following": {
       "get": {
-        "summary": "Get followers of a profile",
-        "tags": ["Profiles"],
+        "summary": "Check if the current user follows a profile",
+        "tags": [
+          "Profiles"
+        ],
         "parameters": [
           {
             "in": "path",
@@ -597,7 +1862,107 @@
         ],
         "responses": {
           "200": {
-            "description": "List of followers."
+            "description": "Follow status.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "isFollowing": {
+                          "type": "boolean"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/profiles/{profileId}/followers": {
+      "get": {
+        "summary": "Get followers of a profile",
+        "tags": [
+          "Profiles"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "profileId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "default": 50
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated list of follower IDs.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "followers": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "format": "uuid"
+                          }
+                        },
+                        "count": {
+                          "type": "integer"
+                        },
+                        "page": {
+                          "type": "integer"
+                        },
+                        "limit": {
+                          "type": "integer"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "security": [
@@ -610,7 +1975,9 @@
     "/api/profiles/{profileId}/following": {
       "get": {
         "summary": "Get profiles followed by a profile",
-        "tags": ["Profiles"],
+        "tags": [
+          "Profiles"
+        ],
         "parameters": [
           {
             "in": "path",
@@ -620,11 +1987,117 @@
               "type": "string",
               "format": "uuid"
             }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "default": 50
+            }
           }
         ],
         "responses": {
           "200": {
-            "description": "List of followed profiles."
+            "description": "Paginated list of followed profile IDs.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "following": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "format": "uuid"
+                          }
+                        },
+                        "count": {
+                          "type": "integer"
+                        },
+                        "page": {
+                          "type": "integer"
+                        },
+                        "limit": {
+                          "type": "integer"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/profiles/{profileId}/suggestions": {
+      "get": {
+        "summary": "Get follow suggestions for a profile",
+        "tags": [
+          "Profiles"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "profileId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "default": 3
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of suggested profiles.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Profile"
+                      }
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "security": [
@@ -637,7 +2110,9 @@
     "/api/profiles": {
       "post": {
         "summary": "Create a profile",
-        "tags": ["Profiles"],
+        "tags": [
+          "Profiles"
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -677,7 +2152,9 @@
       },
       "patch": {
         "summary": "Update own profile",
-        "tags": ["Profiles"],
+        "tags": [
+          "Profiles"
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -717,9 +2194,11 @@
       },
       "delete": {
         "summary": "Delete own profile",
-        "tags": ["Profiles"],
+        "tags": [
+          "Profiles"
+        ],
         "responses": {
-          "200": {
+          "204": {
             "description": "Profile deleted."
           },
           "403": {
@@ -740,30 +2219,204 @@
         ]
       }
     },
-    "/api/profiles/follow": {
-      "post": {
-        "summary": "Follow a profile",
-        "tags": ["Profiles"],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": ["targetId"],
-                "properties": {
-                  "targetId": {
-                    "type": "string",
-                    "format": "uuid"
+    "/api/profiles/search": {
+      "get": {
+        "summary": "Search profiles by username/name",
+        "tags": [
+          "Profiles"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "q",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated search results.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "profiles": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/Profile"
+                          }
+                        },
+                        "total": {
+                          "type": "integer"
+                        },
+                        "page": {
+                          "type": "integer"
+                        },
+                        "limit": {
+                          "type": "integer"
+                        }
+                      }
+                    }
                   }
                 }
               }
             }
           }
-        },
+        }
+      }
+    },
+    "/api/profiles/batch": {
+      "get": {
+        "summary": "Batch fetch profiles by IDs",
+        "tags": [
+          "Profiles"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "ids",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Comma-separated profile IDs"
+          }
+        ],
         "responses": {
           "200": {
+            "description": "List of profiles.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Profile"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/profiles/by-username/{username}": {
+      "get": {
+        "summary": "Get a profile by username",
+        "tags": [
+          "Profiles"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "username",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Profile found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Profile"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/profiles/follow": {
+      "post": {
+        "summary": "Follow a profile",
+        "tags": [
+          "Profiles"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FollowInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
             "description": "Followed."
+          },
+          "400": {
+            "description": "Cannot follow yourself.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
           },
           "409": {
             "description": "Already following.",
@@ -786,20 +2439,15 @@
     "/api/profiles/unfollow": {
       "post": {
         "summary": "Unfollow a profile",
-        "tags": ["Profiles"],
+        "tags": [
+          "Profiles"
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "required": ["targetId"],
-                "properties": {
-                  "targetId": {
-                    "type": "string",
-                    "format": "uuid"
-                  }
-                }
+                "$ref": "#/components/schemas/FollowInput"
               }
             }
           }
@@ -828,20 +2476,25 @@
     },
     "/api/posts": {
       "post": {
-        "summary": "Create a post",
-        "description": "Create a new post. Requires authentication via x-user-id and x-role headers.",
-        "tags": ["Posts"],
+        "summary": "Create a post or comment",
+        "description": "Create a new post or a reply/comment when parentId is provided.",
+        "tags": [
+          "Posts"
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["content"],
+                "required": [
+                  "content"
+                ],
                 "properties": {
                   "content": {
                     "type": "string",
                     "minLength": 1,
+                    "maxLength": 5000,
                     "example": "Hello world!"
                   },
                   "tags": {
@@ -849,21 +2502,24 @@
                     "items": {
                       "type": "string"
                     },
-                    "example": ["news", "tech"]
+                    "example": [
+                      "news",
+                      "tech"
+                    ]
+                  },
+                  "mentions": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "example": [
+                      "user_42"
+                    ]
                   },
                   "media": {
                     "type": "array",
                     "items": {
-                      "type": "object",
-                      "properties": {
-                        "id": {
-                          "type": "string"
-                        },
-                        "type": {
-                          "type": "string",
-                          "enum": ["image", "video"]
-                        }
-                      }
+                      "$ref": "#/components/schemas/MediaItem"
                     },
                     "example": [
                       {
@@ -871,6 +2527,12 @@
                         "type": "image"
                       }
                     ]
+                  },
+                  "parentId": {
+                    "type": "string",
+                    "nullable": true,
+                    "example": null,
+                    "description": "Parent post ID when creating a reply/comment"
                   }
                 }
               }
@@ -908,7 +2570,7 @@
             }
           },
           "401": {
-            "description": "Missing authentication headers.",
+            "description": "Unauthorized.",
             "content": {
               "application/json": {
                 "schema": {
@@ -927,10 +2589,24 @@
     },
     "/api/posts/feed": {
       "get": {
-        "summary": "Personalized chronological feed",
-        "description": "Returns posts from users the authenticated viewer follows, sorted newest first, paginated. The viewer's own posts are always included. Follow graph is resolved server-side from user-service (GET /users/:id/following). Falls back to a global chronological feed when user-service is unavailable, the endpoint never errors due to follow-graph failures.\n",
-        "tags": ["Posts"],
+        "summary": "Personalized feed",
+        "description": "Returns a paginated feed for the authenticated viewer. Use `type=following` for posts from followed users (including own posts) or `type=for-you` for the recommendation algorithm. Defaults to `for-you` when no type is provided.\n",
+        "tags": [
+          "Posts"
+        ],
         "parameters": [
+          {
+            "in": "query",
+            "name": "type",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "following",
+                "for-you"
+              ],
+              "default": "for-you"
+            }
+          },
           {
             "in": "query",
             "name": "page",
@@ -979,11 +2655,174 @@
         ]
       }
     },
+    "/api/posts/search": {
+      "get": {
+        "summary": "Search posts",
+        "tags": [
+          "Posts"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "q",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated search results.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/PaginatedPosts"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/posts/trending-tags": {
+      "get": {
+        "summary": "Trending tags",
+        "tags": [
+          "Posts"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of trending tags.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/TrendingTag"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/posts/liked-by-me": {
+      "get": {
+        "summary": "Posts liked by the current user",
+        "tags": [
+          "Posts"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated liked posts.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Post"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
     "/api/posts/users/{userId}": {
       "get": {
         "summary": "Posts by user",
-        "description": "Returns paginated posts authored by the given userId, newest first. Users may only access their own profile; moderators and admins may access any.\n",
-        "tags": ["Posts"],
+        "tags": [
+          "Posts"
+        ],
         "parameters": [
           {
             "in": "path",
@@ -1034,7 +2873,7 @@
             }
           },
           "403": {
-            "description": "User attempting to access another user's posts.",
+            "description": "Forbidden.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1054,7 +2893,9 @@
     "/api/posts/{id}": {
       "get": {
         "summary": "Get a post by id",
-        "tags": ["Posts"],
+        "tags": [
+          "Posts"
+        ],
         "parameters": [
           {
             "in": "path",
@@ -1102,10 +2943,110 @@
           }
         ]
       },
+      "patch": {
+        "summary": "Update a post",
+        "tags": [
+          "Posts"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "content": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 5000,
+                    "example": "Updated content"
+                  },
+                  "tags": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "mentions": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "media": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/MediaItem"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Post updated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Post"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
       "delete": {
         "summary": "Delete a post",
-        "description": "Post owner may delete their own post. Moderators and admins may delete any post.\n",
-        "tags": ["Posts"],
+        "description": "Post owner may delete their own post; moderators/admins may delete any post.",
+        "tags": [
+          "Posts"
+        ],
         "parameters": [
           {
             "in": "path",
@@ -1165,10 +3106,126 @@
         ]
       }
     },
+    "/api/posts/{id}/detail": {
+      "get": {
+        "summary": "Get a post with author, replies and like status",
+        "tags": [
+          "Posts"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Post detail.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/PostDetail"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/posts/{id}/replies": {
+      "get": {
+        "summary": "List replies to a post",
+        "tags": [
+          "Posts"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated replies.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/PaginatedPosts"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
     "/api/posts/{postId}/likes": {
       "post": {
         "summary": "Like a post",
-        "tags": ["Likes"],
+        "tags": [
+          "Likes"
+        ],
         "parameters": [
           {
             "in": "path",
@@ -1180,8 +3237,34 @@
           }
         ],
         "responses": {
-          "200": {
-            "description": "Post liked."
+          "201": {
+            "description": "Post liked.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Like added successfully"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "likesCount": {
+                          "type": "integer",
+                          "example": 5
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
           },
           "409": {
             "description": "Already liked.",
@@ -1202,7 +3285,9 @@
       },
       "delete": {
         "summary": "Unlike a post",
-        "tags": ["Likes"],
+        "tags": [
+          "Likes"
+        ],
         "parameters": [
           {
             "in": "path",
@@ -1215,7 +3300,33 @@
         ],
         "responses": {
           "200": {
-            "description": "Post unliked."
+            "description": "Post unliked.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Like removed successfully"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "likesCount": {
+                          "type": "integer",
+                          "example": 4
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
           },
           "404": {
             "description": "Like not found.",
@@ -1235,131 +3346,12 @@
         ]
       }
     },
-    "/api/posts/{postId}/comments": {
-      "get": {
-        "summary": "List comments on a post",
-        "tags": ["Comments"],
-        "parameters": [
-          {
-            "in": "path",
-            "name": "postId",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "List of comments."
-          }
-        },
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ]
-      },
-      "post": {
-        "summary": "Add a comment to a post",
-        "tags": ["Comments"],
-        "parameters": [
-          {
-            "in": "path",
-            "name": "postId",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": ["content"],
-                "properties": {
-                  "content": {
-                    "type": "string",
-                    "example": "Great post!"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Comment created."
-          },
-          "404": {
-            "description": "Post not found.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ]
-      }
-    },
-    "/api/posts/{postId}/comments/{commentId}": {
-      "delete": {
-        "summary": "Delete a comment",
-        "tags": ["Comments"],
-        "parameters": [
-          {
-            "in": "path",
-            "name": "postId",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "in": "path",
-            "name": "commentId",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Deleted."
-          },
-          "403": {
-            "description": "Not the comment owner.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ]
-      }
-    },
     "/api/media/videos": {
       "post": {
         "summary": "Upload a video",
-        "tags": ["Media"],
+        "tags": [
+          "Media"
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -1402,7 +3394,9 @@
     "/api/media/videos/{id}/meta": {
       "get": {
         "summary": "Get video metadata",
-        "tags": ["Media"],
+        "tags": [
+          "Media"
+        ],
         "parameters": [
           {
             "in": "path",
@@ -1454,7 +3448,9 @@
     "/api/media/videos/{id}": {
       "get": {
         "summary": "Stream a video",
-        "tags": ["Media"],
+        "tags": [
+          "Media"
+        ],
         "parameters": [
           {
             "in": "path",
@@ -1487,16 +3483,13 @@
               }
             }
           }
-        },
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ]
+        }
       },
       "delete": {
         "summary": "Delete a video",
-        "tags": ["Media"],
+        "tags": [
+          "Media"
+        ],
         "parameters": [
           {
             "in": "path",
@@ -1531,18 +3524,15 @@
               }
             }
           }
-        },
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ]
+        }
       }
     },
     "/api/media/images": {
       "post": {
         "summary": "Upload an image",
-        "tags": ["Media"],
+        "tags": [
+          "Media"
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -1595,7 +3585,9 @@
     "/api/media/images/{id}/meta": {
       "get": {
         "summary": "Get image metadata",
-        "tags": ["Media"],
+        "tags": [
+          "Media"
+        ],
         "parameters": [
           {
             "in": "path",
@@ -1647,7 +3639,9 @@
     "/api/media/images/{id}": {
       "get": {
         "summary": "Stream an image",
-        "tags": ["Media"],
+        "tags": [
+          "Media"
+        ],
         "parameters": [
           {
             "in": "path",
@@ -1680,16 +3674,13 @@
               }
             }
           }
-        },
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ]
+        }
       },
       "delete": {
         "summary": "Delete an image",
-        "tags": ["Media"],
+        "tags": [
+          "Media"
+        ],
         "parameters": [
           {
             "in": "path",
@@ -1724,19 +3715,16 @@
               }
             }
           }
-        },
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ]
+        }
       }
     },
     "/api/notifications/stream": {
       "get": {
         "summary": "SSE stream for real-time notifications",
         "description": "Server-Sent Events stream. Keeps connection open and pushes new notifications as they arrive.",
-        "tags": ["Notifications"],
+        "tags": [
+          "Notifications"
+        ],
         "responses": {
           "200": {
             "description": "SSE stream open.",
@@ -1759,7 +3747,9 @@
     "/api/notifications": {
       "get": {
         "summary": "List notifications",
-        "tags": ["Notifications"],
+        "tags": [
+          "Notifications"
+        ],
         "parameters": [
           {
             "in": "query",
@@ -1782,15 +3772,47 @@
           },
           {
             "in": "query",
-            "name": "unreadOnly",
+            "name": "read",
             "schema": {
               "type": "boolean"
-            }
+            },
+            "description": "Filter by read status (true = read, false = unread). Omit to return all."
           }
         ],
         "responses": {
           "200": {
-            "description": "Paginated list of notifications."
+            "description": "Paginated list of notifications.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Notification"
+                      }
+                    },
+                    "total": {
+                      "type": "integer",
+                      "example": 100
+                    },
+                    "page": {
+                      "type": "integer",
+                      "example": 1
+                    },
+                    "limit": {
+                      "type": "integer",
+                      "example": 20
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "security": [
@@ -1803,7 +3825,9 @@
     "/api/notifications/read-all": {
       "patch": {
         "summary": "Mark all notifications as read",
-        "tags": ["Notifications"],
+        "tags": [
+          "Notifications"
+        ],
         "responses": {
           "200": {
             "description": "All notifications marked as read."
@@ -1819,7 +3843,9 @@
     "/api/notifications/{id}/read": {
       "patch": {
         "summary": "Mark a notification as read",
-        "tags": ["Notifications"],
+        "tags": [
+          "Notifications"
+        ],
         "parameters": [
           {
             "in": "path",
@@ -1855,7 +3881,9 @@
     "/api/notifications/{id}": {
       "delete": {
         "summary": "Delete a notification",
-        "tags": ["Notifications"],
+        "tags": [
+          "Notifications"
+        ],
         "parameters": [
           {
             "in": "path",
@@ -1872,6 +3900,411 @@
           },
           "404": {
             "description": "Not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/conversations": {
+      "get": {
+        "summary": "List my conversations",
+        "tags": [
+          "Messages"
+        ],
+        "responses": {
+          "200": {
+            "description": "List of conversations with unread counts.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Conversation"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "post": {
+        "summary": "Get or create a conversation",
+        "tags": [
+          "Messages"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateConversationInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Existing or new conversation.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Conversation"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/conversations/{conversationId}/messages": {
+      "get": {
+        "summary": "List messages in a conversation",
+        "tags": [
+          "Messages"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "conversationId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated messages.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Message"
+                      }
+                    },
+                    "total": {
+                      "type": "integer"
+                    },
+                    "page": {
+                      "type": "integer"
+                    },
+                    "limit": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "post": {
+        "summary": "Send a message",
+        "tags": [
+          "Messages"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "conversationId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SendMessageInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Message sent.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Message"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/conversations/{conversationId}/read": {
+      "patch": {
+        "summary": "Mark all messages in a conversation as read",
+        "tags": [
+          "Messages"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "conversationId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Messages marked as read."
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/conversations/{conversationId}/members": {
+      "post": {
+        "summary": "Add members to a group conversation",
+        "tags": [
+          "Messages"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "conversationId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddMembersInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Members added.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Conversation"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/conversations/{conversationId}/name": {
+      "patch": {
+        "summary": "Rename a group conversation",
+        "tags": [
+          "Messages"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "conversationId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RenameConversationInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Conversation renamed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Conversation"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/conversations/{conversationId}": {
+      "delete": {
+        "summary": "Delete/leave a conversation",
+        "tags": [
+          "Messages"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "conversationId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Conversation deleted/left."
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/messages/{messageId}": {
+      "delete": {
+        "summary": "Delete a message sent by the current user",
+        "tags": [
+          "Messages"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "messageId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Message deleted."
+          },
+          "404": {
+            "description": "Message not found.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1926,18 +4359,11 @@
             "type": "string",
             "format": "email"
           },
-          "roles": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "example": ["user"]
+          "role": {
+            "type": "string",
+            "example": "user"
           },
           "isBanned": {
-            "type": "boolean",
-            "example": false
-          },
-          "isSuspended": {
             "type": "boolean",
             "example": false
           },
@@ -1965,6 +4391,10 @@
                 "type": "string",
                 "example": "eyJhbGci..."
               },
+              "refreshToken": {
+                "type": "string",
+                "example": "dGhpcyBpcyBhIHJlZnJlc2gtdG9rZW4..."
+              },
               "user": {
                 "$ref": "#/components/schemas/User"
               }
@@ -1972,26 +4402,86 @@
           }
         }
       },
-      "Profile": {
+      "Report": {
         "type": "object",
         "properties": {
           "id": {
             "type": "string",
+            "format": "uuid"
+          },
+          "reporterId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "reportedUserId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "reason": {
+            "type": "string",
+            "example": "Spam"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "resolved"
+            ],
+            "example": "pending"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Profile": {
+        "type": "object",
+        "properties": {
+          "profileId": {
+            "type": "string",
             "format": "uuid",
             "example": "550e8400-e29b-41d4-a716-446655440000"
           },
-          "profilename": {
+          "username": {
             "type": "string",
             "example": "johndoe"
           },
-          "email": {
+          "firstName": {
             "type": "string",
-            "format": "email",
-            "example": "john@example.com"
+            "nullable": true,
+            "example": "John"
           },
-          "isVerified": {
-            "type": "boolean",
-            "example": false
+          "lastName": {
+            "type": "string",
+            "nullable": true,
+            "example": "Doe"
+          },
+          "bio": {
+            "type": "string",
+            "nullable": true,
+            "example": "Hello!"
+          },
+          "role": {
+            "type": "string",
+            "example": "user"
+          },
+          "avatarId": {
+            "type": "string",
+            "nullable": true,
+            "example": "https://example.com/avatar.jpg"
+          },
+          "followersCount": {
+            "type": "integer",
+            "example": 42
+          },
+          "followingCount": {
+            "type": "integer",
+            "example": 21
           },
           "createdAt": {
             "type": "string",
@@ -2005,41 +4495,118 @@
       },
       "CreateProfileInput": {
         "type": "object",
-        "required": ["profilename", "email", "passwordHash"],
+        "required": [
+          "username"
+        ],
         "properties": {
-          "profilename": {
+          "username": {
             "type": "string",
-            "minLength": 3,
-            "maxLength": 50,
+            "minLength": 1,
+            "maxLength": 100,
             "example": "johndoe"
           },
-          "email": {
+          "firstName": {
             "type": "string",
-            "format": "email",
-            "example": "john@example.com"
+            "nullable": true,
+            "example": "John"
           },
-          "passwordHash": {
+          "lastName": {
             "type": "string",
-            "example": "$2b$10$..."
+            "nullable": true,
+            "example": "Doe"
+          },
+          "bio": {
+            "type": "string",
+            "nullable": true,
+            "example": "Hello!"
+          },
+          "avatarId": {
+            "type": "string",
+            "nullable": true,
+            "example": "https://example.com/avatar.jpg"
           }
         }
       },
       "UpdateProfileInput": {
         "type": "object",
         "properties": {
-          "profilename": {
+          "firstName": {
             "type": "string",
-            "minLength": 3,
-            "maxLength": 50,
-            "example": "johndoe_updated"
+            "nullable": true,
+            "example": "John"
           },
-          "passwordHash": {
+          "lastName": {
             "type": "string",
-            "example": "$2b$10$..."
+            "nullable": true,
+            "example": "Doe"
           },
-          "isVerified": {
-            "type": "boolean",
-            "example": true
+          "bio": {
+            "type": "string",
+            "nullable": true,
+            "example": "Updated bio"
+          },
+          "avatarId": {
+            "type": "string",
+            "nullable": true,
+            "example": "https://example.com/avatar.jpg"
+          }
+        }
+      },
+      "FollowInput": {
+        "type": "object",
+        "required": [
+          "followingId"
+        ],
+        "properties": {
+          "followingId": {
+            "type": "string",
+            "format": "uuid",
+            "example": "550e8400-e29b-41d4-a716-446655440000"
+          }
+        }
+      },
+      "MediaItem": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "image",
+              "video"
+            ]
+          }
+        },
+        "example": {
+          "id": "media_abc123",
+          "type": "image"
+        }
+      },
+      "ProfileRef": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "username": {
+            "type": "string"
+          },
+          "avatarId": {
+            "type": "string",
+            "nullable": true
+          },
+          "firstName": {
+            "type": "string",
+            "nullable": true
+          },
+          "lastName": {
+            "type": "string",
+            "nullable": true
+          },
+          "role": {
+            "type": "string"
           }
         }
       },
@@ -2063,28 +4630,43 @@
             "items": {
               "type": "string"
             },
-            "example": ["news", "tech"]
+            "example": [
+              "news",
+              "tech"
+            ]
+          },
+          "mentions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "user_42"
+            ]
           },
           "media": {
             "type": "array",
             "items": {
-              "type": "object",
-              "properties": {
-                "id": {
-                  "type": "string"
-                },
-                "type": {
-                  "type": "string",
-                  "enum": ["image", "video"]
-                }
-              }
-            },
-            "example": [
-              {
-                "id": "media_abc123",
-                "type": "image"
-              }
-            ]
+              "$ref": "#/components/schemas/MediaItem"
+            }
+          },
+          "parentId": {
+            "type": "string",
+            "nullable": true,
+            "example": null
+          },
+          "rootParentId": {
+            "type": "string",
+            "nullable": true,
+            "example": null
+          },
+          "likesCount": {
+            "type": "integer",
+            "example": 0
+          },
+          "commentsCount": {
+            "type": "integer",
+            "example": 0
           },
           "createdAt": {
             "type": "string",
@@ -2093,6 +4675,33 @@
           "updatedAt": {
             "type": "string",
             "format": "date-time"
+          }
+        }
+      },
+      "PostDetail": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Post"
+          }
+        ],
+        "type": "object",
+        "properties": {
+          "author": {
+            "$ref": "#/components/schemas/ProfileRef"
+          },
+          "replies": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Post"
+            }
+          },
+          "likes": {
+            "type": "integer",
+            "example": 0
+          },
+          "isLiked": {
+            "type": "boolean",
+            "example": false
           }
         }
       },
@@ -2116,6 +4725,19 @@
           "limit": {
             "type": "integer",
             "example": 20
+          }
+        }
+      },
+      "TrendingTag": {
+        "type": "object",
+        "properties": {
+          "tag": {
+            "type": "string",
+            "example": "tech"
+          },
+          "count": {
+            "type": "integer",
+            "example": 42
           }
         }
       },
@@ -2210,6 +4832,208 @@
           "updatedAt": {
             "type": "string",
             "format": "date-time"
+          }
+        }
+      },
+      "Notification": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "follow",
+              "like",
+              "mention",
+              "comment",
+              "reply"
+            ]
+          },
+          "read": {
+            "type": "boolean",
+            "example": false
+          },
+          "payload": {
+            "type": "object"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ReplyTo": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          },
+          "senderName": {
+            "type": "string"
+          }
+        }
+      },
+      "Message": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "conversationId": {
+            "type": "string"
+          },
+          "senderId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "content": {
+            "type": "string"
+          },
+          "isSystem": {
+            "type": "boolean",
+            "example": false
+          },
+          "replyTo": {
+            "$ref": "#/components/schemas/ReplyTo"
+          },
+          "readAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Conversation": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "participantIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "isGroup": {
+            "type": "boolean",
+            "example": false
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "lastMessage": {
+            "type": "string",
+            "nullable": true
+          },
+          "lastMessageSenderId": {
+            "type": "string",
+            "nullable": true
+          },
+          "lastMessageAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "deletedBy": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CreateConversationInput": {
+        "type": "object",
+        "properties": {
+          "recipientId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "recipientIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "description": "Provide either recipientId or recipientIds (array)."
+      },
+      "SendMessageInput": {
+        "type": "object",
+        "required": [
+          "content"
+        ],
+        "properties": {
+          "content": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000,
+            "example": "Hello!"
+          },
+          "replyTo": {
+            "$ref": "#/components/schemas/ReplyTo"
+          }
+        }
+      },
+      "RenameConversationInput": {
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "example": "New group name"
+          }
+        }
+      },
+      "AddMembersInput": {
+        "type": "object",
+        "required": [
+          "memberIds"
+        ],
+        "properties": {
+          "memberIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "minItems": 1
           }
         }
       }

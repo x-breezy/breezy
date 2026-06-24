@@ -25,17 +25,26 @@ export function createLikeRouter(
  *       - in: path
  *         name: postId
  *         required: true
- *         schema:
- *           type: string
+ *         schema: { type: string }
  *     responses:
- *       200:
+ *       201:
  *         description: Post liked.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: boolean, example: true }
+ *                 message: { type: string, example: "Like added successfully" }
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     likesCount: { type: integer, example: 5 }
  *       409:
  *         description: Already liked.
  *         content:
  *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ApiError'
+ *             schema: { $ref: '#/components/schemas/ApiError' }
  *   delete:
  *     summary: Unlike a post
  *     tags: [Likes]
@@ -43,15 +52,24 @@ export function createLikeRouter(
  *       - in: path
  *         name: postId
  *         required: true
- *         schema:
- *           type: string
+ *         schema: { type: string }
  *     responses:
  *       200:
  *         description: Post unliked.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: boolean, example: true }
+ *                 message: { type: string, example: "Like removed successfully" }
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     likesCount: { type: integer, example: 4 }
  *       404:
  *         description: Like not found.
  *         content:
  *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ApiError'
+ *             schema: { $ref: '#/components/schemas/ApiError' }
  */

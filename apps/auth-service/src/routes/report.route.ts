@@ -87,6 +87,19 @@ export { createReportRouter }
  *     responses:
  *       200:
  *         description: Paginated list of reports.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: boolean, example: true }
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     reports: { type: array, items: { $ref: '#/components/schemas/Report' } }
+ *                     total: { type: integer, example: 100 }
+ *                     page: { type: integer, example: 1 }
+ *                     limit: { type: integer, example: 20 }
  *       403:
  *         description: Insufficient permissions.
  *         content:
@@ -102,9 +115,9 @@ export { createReportRouter }
  *         application/json:
  *           schema:
  *             type: object
- *             required: [targetId, reason]
+ *             required: [reportedUserId, reason]
  *             properties:
- *               targetId:
+ *               reportedUserId:
  *                 type: string
  *                 format: uuid
  *                 example: 550e8400-e29b-41d4-a716-446655440000
@@ -114,8 +127,45 @@ export { createReportRouter }
  *     responses:
  *       201:
  *         description: Report created.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: boolean, example: true }
+ *                 data:
+ *                   $ref: '#/components/schemas/Report'
  *       403:
  *         description: Insufficient permissions.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
+ *
+ * /api/auth/reports/{id}:
+ *   get:
+ *     summary: Get a report by id
+ *     tags: [Reports]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: Report found.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: boolean, example: true }
+ *                 data:
+ *                   $ref: '#/components/schemas/Report'
+ *       404:
+ *         description: Not found.
  *         content:
  *           application/json:
  *             schema:
@@ -135,6 +185,49 @@ export { createReportRouter }
  *     responses:
  *       200:
  *         description: Report resolved.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: boolean, example: true }
+ *                 data:
+ *                   $ref: '#/components/schemas/Report'
+ *       403:
+ *         description: Insufficient permissions.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
+ *       404:
+ *         description: Report not found.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
+ *
+ * /api/auth/reports/{id}/unresolve:
+ *   patch:
+ *     summary: Unresolve a report
+ *     tags: [Reports]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: Report unresolved.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: boolean, example: true }
+ *                 data:
+ *                   $ref: '#/components/schemas/Report'
  *       403:
  *         description: Insufficient permissions.
  *         content:
