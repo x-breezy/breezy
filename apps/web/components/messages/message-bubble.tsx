@@ -144,7 +144,7 @@ export function MessageBubble(props: MessageBubbleProps) {
         </Avatar>
       )}
 
-      <div className={`max-w-[70%] min-w-0`}>
+      <div className={`max-w-[75%] min-w-0 flex-shrink`}>
         <div className={`flex min-w-0 flex-col ${isOwn ? "items-end" : "items-start"}`}>
           {!isOwn && !isConsecutive && senderName && (
             <span className='mb-1 ml-1 text-xs text-muted-foreground'>{senderName}</span>
@@ -172,7 +172,7 @@ export function MessageBubble(props: MessageBubbleProps) {
 
           {/* Bubble,  reply button absolutely centered, swipe on mobile */}
           <div
-            className={`relative w-full px-3.5 py-2 transition-transform ease-out ${
+            className={`relative w-fit max-w-full px-3.5 py-2 transition-transform ease-out ${
               swipeDx !== 0 ? "duration-75" : "duration-300"
             } ${
               isOwn

@@ -67,7 +67,7 @@ export async function AppLayout({ children }: AppLayoutProps) {
             <div className='flex min-w-0 flex-1'>
               <div className='mx-auto flex w-full max-w-[1400px]'>
                 <NavBar />
-                <main className='min-w-0 flex-1 border-x pb-15 lg:pb-0'>{children}</main>
+                <main className='min-w-0 flex-1 border-x pb-0 lg:pb-0'>{children}</main>
                 <RightSidebarConditional suggestedUsers={suggestedUsers} />
               </div>
             </div>

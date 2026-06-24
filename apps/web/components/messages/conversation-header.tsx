@@ -32,7 +32,7 @@ export function ConversationHeader({
 
   return (
     <>
-      <header className='sticky top-0 z-10 flex h-16 shrink-0 items-center justify-between border-b border-border bg-background/80 px-4 backdrop-blur-md md:px-6'>
+      <header className='sticky top-0 z-50 flex h-16 shrink-0 items-center justify-between border-b border-border bg-background/95 px-4 backdrop-blur-md md:px-6'>
         <div className='flex items-center gap-3'>
           <Link
             href='/messages'

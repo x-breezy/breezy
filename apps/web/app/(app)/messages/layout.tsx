@@ -60,9 +60,7 @@ export default function MessagesLayout({ children }: { children: React.ReactNode
   if (!currentUserId) return null
 
   return (
-    <div
-      className={`flex w-full overflow-hidden font-sans ${conversationId ? "-mb-[3.75rem] h-[calc(100dvh+3.75rem)] lg:mb-0 lg:h-dvh" : "h-dvh"}`}
-    >
+    <div className='flex h-dvh w-full overflow-hidden font-sans'>
       <ConversationSidebar
         className={conversationId ? "hidden md:flex" : "flex"}
         activeId={conversationId}

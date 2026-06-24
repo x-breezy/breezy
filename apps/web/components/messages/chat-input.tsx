@@ -38,7 +38,7 @@ export function ChatInput({ onSend, replyTo, onCancelReply, disabled }: ChatInpu
   }
 
   return (
-    <div className='border-t border-border bg-background/80 backdrop-blur-md'>
+    <div className='shrink-0 border-t border-border bg-background/80 backdrop-blur-md'>
       {replyTo && (
         <div className='flex items-center justify-between px-4 pt-2 pb-0'>
           <div className='flex min-w-0 flex-col text-xs text-muted-foreground'>
