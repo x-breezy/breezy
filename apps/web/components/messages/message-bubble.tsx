@@ -6,7 +6,9 @@ import { IconArrowBackUp } from "@tabler/icons-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { timeAgo } from "@/lib/utils"
 import { isPostUrl, parsePostUrl } from "@/lib/utils/post-url"
+import { isProfileUrl, parseProfileUrl } from "@/lib/utils/profile-url"
 import { SharedPostPreview } from "./shared-post-preview"
+import { SharedProfilePreview } from "./shared-profile-preview"
 import type { ReplyTo } from "@/lib/actions/messages"
 
 type MessageBubbleProps =
@@ -173,7 +175,12 @@ export function MessageBubble(props: MessageBubbleProps) {
                         const p = parsePostUrl(replyTo.content)
                         return p ? `@${p.username}` : replyTo.content
                       })()
-                    : replyTo.content}
+                    : isProfileUrl(replyTo.content)
+                      ? (() => {
+                          const p = parseProfileUrl(replyTo.content)
+                          return p ? `@${p.username}` : replyTo.content
+                        })()
+                      : replyTo.content}
                 </span>
               </div>
             </div>
@@ -185,7 +192,7 @@ export function MessageBubble(props: MessageBubbleProps) {
               className={`relative w-fit max-w-full transition-transform ease-out ${
                 swipeDx !== 0 ? "duration-75" : "duration-300"
               } ${
-                isPostUrl(content)
+                isPostUrl(content) || isProfileUrl(content)
                   ? ""
                   : `px-3.5 py-2 ${
                       isOwn
@@ -207,6 +214,15 @@ export function MessageBubble(props: MessageBubbleProps) {
                       username={parsed.username}
                       isOwn={isOwn}
                     />
+                  ) : (
+                    <p className='text-sm leading-relaxed [overflow-wrap:anywhere]'>{content}</p>
+                  )
+                })()
+              ) : isProfileUrl(content) ? (
+                (() => {
+                  const parsed = parseProfileUrl(content)
+                  return parsed ? (
+                    <SharedProfilePreview username={parsed.username} isOwn={isOwn} />
                   ) : (
                     <p className='text-sm leading-relaxed [overflow-wrap:anywhere]'>{content}</p>
                   )

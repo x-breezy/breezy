@@ -172,6 +172,9 @@
     "cancel": "Cancelar",
     "reasonPlaceholder": "Motivo..."
   },
+  "sharedProfilePreview": {
+    "follow": "Seguir"
+  },
   "shareDialog": {
     "title": "Compartir",
     "breezyTab": "En Breezy",

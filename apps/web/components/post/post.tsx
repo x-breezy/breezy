@@ -82,7 +82,7 @@ function Post({
   const [deleted, setDeleted] = useState(false)
   const [viewerIndex, setViewerIndex] = useState<number | null>(null)
   const [replyOpen, setReplyOpen] = useState(false)
-  const [shareOpen, setShareOpen] = useState(false)
+  const [shareUrl, setShareUrl] = useState<string | null>(null)
   const formattedTime = compact ? timeAgo(createdAt) : formatFullDate(createdAt)
 
   const handleLike = useCallback(
@@ -114,11 +114,23 @@ function Post({
   }, [])
 
   const postUrl = `${window.location.origin}/post/${username}/${id}`
+  const profileUrl = `${window.location.origin}/profile/${username}`
 
-  const handleShare = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation()
-    setShareOpen(true)
-  }, [])
+  const handleSharePost = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation()
+      setShareUrl(postUrl)
+    },
+    [postUrl]
+  )
+
+  const handleShareProfile = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation()
+      setShareUrl(profileUrl)
+    },
+    [profileUrl]
+  )
 
   if (deleted) return null
 
@@ -175,7 +187,7 @@ function Post({
               authorId={authorId ?? id}
               content={postContent}
               media={postMedia}
-              onShare={handleShare}
+              onShare={handleShareProfile}
               onDeleted={() => {
                 setDeleted(true)
                 if (isDetailPage) router.back()
@@ -222,7 +234,7 @@ function Post({
             isLiked={isLiked}
             onLike={handleLike}
             onComment={handleComment}
-            onShare={handleShare}
+            onShare={handleSharePost}
             size={compact ? "sm" : "md"}
           />
         </div>
@@ -254,9 +266,11 @@ function Post({
       )}
 
       <ShareDialog
-        open={shareOpen}
-        onOpenChange={setShareOpen}
-        shareUrl={postUrl}
+        open={shareUrl !== null}
+        onOpenChange={(open) => {
+          if (!open) setShareUrl(null)
+        }}
+        shareUrl={shareUrl ?? ""}
         shareTitle={name}
       />
     </>
