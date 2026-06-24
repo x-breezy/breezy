@@ -15,6 +15,18 @@ if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
   )
 }
 
+function getNotificationUrl(
+  type: NotificationType,
+  payload: Record<string, string | undefined>
+): string {
+  switch (type) {
+    case "message":
+      return `/messages?conversation=${payload.conversationId ?? ""}`
+    default:
+      return "/notifications"
+  }
+}
+
 function formatNotification(
   type: NotificationType,
   payload: Record<string, string | undefined>
@@ -36,6 +48,8 @@ function formatNotification(
       return { title: "You were mentioned", body: `${actor} mentioned you` }
     case "reply":
       return { title: "New reply", body: `${actor} replied to your comment` }
+    case "message":
+      return { title: "New message", body: payload.content ?? "" }
   }
 }
 
@@ -70,7 +84,12 @@ class PushService {
     logger.info({ userId, count: subscriptions.length }, "push: sending to subscriptions")
     if (!subscriptions.length) return
 
-    const data = JSON.stringify(formatNotification(type, payload))
+    const notification = formatNotification(type, payload)
+    const data = JSON.stringify({
+      ...notification,
+      type,
+      url: getNotificationUrl(type, payload),
+    })
 
     await Promise.allSettled(
       subscriptions.map((sub) =>
