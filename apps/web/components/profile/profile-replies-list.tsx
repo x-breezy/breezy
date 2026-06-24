@@ -3,6 +3,7 @@
 import { Skeleton } from "@/components/ui/skeleton"
 import { CommentTree } from "@/components/post/comment-tree"
 import type { CommentNode } from "@/components/post/comment-tree"
+import { useTranslations } from "next-intl"
 
 interface ProfileRepliesListProps {
   threads: CommentNode[]
@@ -10,6 +11,8 @@ interface ProfileRepliesListProps {
 }
 
 export function ProfileRepliesList({ threads, isLoading }: ProfileRepliesListProps) {
+  const t = useTranslations("profilePage")
+
   if (isLoading) {
     return (
       <div className='space-y-1'>
@@ -28,7 +31,7 @@ export function ProfileRepliesList({ threads, isLoading }: ProfileRepliesListPro
   }
 
   if (threads.length === 0) {
-    return <p className='py-8 text-center text-sm text-muted-foreground'>No replies yet.</p>
+    return <p className='py-8 text-center text-sm text-muted-foreground'>{t("noReplies")}</p>
   }
 
   return (

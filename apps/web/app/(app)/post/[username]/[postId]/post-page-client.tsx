@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState, useCallback } from "react"
+import { useTranslations } from "next-intl"
 import { notFound, useRouter } from "next/navigation"
 import { getPostDetail, getPostsContext } from "@/lib/actions/post-detail"
 import { usePostStore } from "@/stores/post-store"
@@ -15,6 +16,7 @@ import type { PostDetail } from "@/lib/actions/post-detail"
 import { PageHeader, PageHeaderContent } from "@/components/layout/page-header"
 
 export function PostPageClient({ postId }: { username: string; postId: string }) {
+  const t = useTranslations("postPage")
   const router = useRouter()
   const toggleLike = usePostStore((s) => s.toggleLike)
 
@@ -87,7 +89,7 @@ export function PostPageClient({ postId }: { username: string; postId: string })
               <IconChevronLeft size={22} strokeWidth={2} />
             </Button>
           }
-          center={<h1 className='text-lg font-bold'>Post</h1>}
+          center={<h1 className='text-lg font-bold'>{t("title")}</h1>}
         />
       </PageHeader>
 
@@ -128,7 +130,7 @@ export function PostPageClient({ postId }: { username: string; postId: string })
                 }
               />
               <div className='mt-2 text-sm text-muted-foreground'>
-                Replying to{" "}
+                {t("replyingTo")}{" "}
                 <span className='font-semibold text-primary'>
                   @{parentPost.author?.username ?? parentPost.authorId}
                 </span>
@@ -157,10 +159,10 @@ export function PostPageClient({ postId }: { username: string; postId: string })
 
       <section className='container-center'>
         <h2 className='border-b border-border px-4 pt-4 pb-2 text-sm font-semibold text-muted-foreground'>
-          Replies {post.commentsCount > 0 && `(${post.commentsCount})`}
+          {post.commentsCount > 0 ? t("repliesCount", { count: post.commentsCount }) : t("replies")}
         </h2>
         {replies.length === 0 ? (
-          <p className='py-8 text-center text-sm text-muted-foreground'>No replies yet.</p>
+          <p className='py-8 text-center text-sm text-muted-foreground'>{t("noReplies")}</p>
         ) : (
           <CommentTree
             comments={replies}

@@ -64,7 +64,7 @@ export function ResponsiveNav() {
           <NavItem
             href='/moderation'
             icon={ModerationIcon}
-            label='Moderation'
+            label={t("moderation")}
             isActive={pathname === "/moderation"}
             showLabel={false}
             iconClassName='block size-6'
@@ -104,7 +104,7 @@ export function ResponsiveNav() {
             <NavItem
               href='/moderation'
               icon={ModerationIcon}
-              label='Moderation'
+              label={t("moderation")}
               isActive={pathname === "/moderation"}
               showLabel={true}
               iconClassName='block size-7'

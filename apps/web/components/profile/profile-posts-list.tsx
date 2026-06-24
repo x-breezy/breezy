@@ -2,6 +2,7 @@
 
 import { Skeleton } from "@/components/ui/skeleton"
 import Post from "@/components/post/post"
+import { useTranslations } from "next-intl"
 import type { ProfilePost } from "./use-profile-posts"
 import type { Profile } from "@/types/profile"
 
@@ -24,6 +25,8 @@ export function ProfilePostsList({
   profile,
   onLike,
 }: ProfilePostsListProps) {
+  const t = useTranslations("profilePage")
+
   if (isLoading) {
     return (
       <div className='space-y-1'>
@@ -42,7 +45,7 @@ export function ProfilePostsList({
   }
 
   if (posts.length === 0) {
-    return <p className='py-8 text-center text-sm text-muted-foreground'>No posts yet.</p>
+    return <p className='py-8 text-center text-sm text-muted-foreground'>{t("noPosts")}</p>
   }
 
   return (

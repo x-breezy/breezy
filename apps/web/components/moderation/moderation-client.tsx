@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useTransition } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
+import { useTranslations } from "next-intl"
 import Link from "next/link"
 import { IconChevronLeft } from "@tabler/icons-react"
 import { PageHeader, PageHeaderContent } from "@/components/layout/page-header"
@@ -40,6 +41,7 @@ export function ModerationClient({
 }: Props) {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const t = useTranslations("moderationPage")
   const activeTab = (searchParams.get("tab") ?? "reports") as "reports" | "users"
 
   const isAdmin = useUserStore((s) => s.user?.role) === "admin"
@@ -76,7 +78,7 @@ export function ModerationClient({
         await fn()
         setSanction(userId, patch)
       } catch {
-        setError("Action failed. Please try again.")
+        setError(t("actionFailed"))
       } finally {
         setActionId(null)
       }
@@ -91,7 +93,7 @@ export function ModerationClient({
         await resolveReportAction(reportId)
         resolveReportStore(reportId)
       } catch {
-        setError("Action failed. Please try again.")
+        setError(t("actionFailed"))
       } finally {
         setActionId(null)
       }
@@ -106,7 +108,7 @@ export function ModerationClient({
         await unresolveReportAction(reportId)
         unresolveReportStore(reportId)
       } catch {
-        setError("Action failed. Please try again.")
+        setError(t("actionFailed"))
       } finally {
         setActionId(null)
       }
@@ -120,7 +122,7 @@ export function ModerationClient({
           left={
             <Link href='/' className='flex items-center gap-2'>
               <IconChevronLeft size={22} strokeWidth={2} />
-              <h1 className='text-lg font-bold'>Moderation</h1>
+              <h1 className='text-lg font-bold'>{t("title")}</h1>
             </Link>
           }
         />
@@ -130,10 +132,10 @@ export function ModerationClient({
         <Tabs value={activeTab} onValueChange={(v) => router.replace(`?tab=${v}`)}>
           <TabsList className='mb-5 w-full'>
             <TabsTrigger value='reports' className='flex-1'>
-              Reports
+              {t("tabsReports")}
             </TabsTrigger>
             <TabsTrigger value='users' className='flex-1'>
-              Users
+              {t("tabsUsers")}
             </TabsTrigger>
           </TabsList>
 
