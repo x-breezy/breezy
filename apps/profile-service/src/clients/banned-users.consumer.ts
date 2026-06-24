@@ -1,5 +1,8 @@
 import amqplib from "amqplib"
 import { createLogger } from "@breezy/logger"
+import { Op } from "sequelize"
+import { Profile } from "../models/profile.model"
+import { Follow } from "../models/follow.model"
 import { getRedis } from "./redis"
 
 const logger = createLogger({ service: "profile-service" })
@@ -12,6 +15,29 @@ const BANNED_KEY = "banned:users"
 export async function getBannedUserIds(): Promise<Set<string>> {
   const ids = await getRedis().smembers(BANNED_KEY)
   return new Set(ids)
+}
+
+async function adjustFollowCountsForBan(userId: string, delta: 1 | -1): Promise<void> {
+  const [followerRows, followingRows] = await Promise.all([
+    Follow.findAll({ where: { followingId: userId }, attributes: ["followerId"] }),
+    Follow.findAll({ where: { followerId: userId }, attributes: ["followingId"] }),
+  ])
+  const followerIds = followerRows.map((f) => f.followerId)
+  const followingIds = followingRows.map((f) => f.followingId)
+  await Promise.all([
+    followerIds.length > 0
+      ? Profile.increment("followingCount", {
+        by: delta,
+        where: { profileId: { [Op.in]: followerIds } },
+      })
+      : Promise.resolve(),
+    followingIds.length > 0
+      ? Profile.increment("followersCount", {
+        by: delta,
+        where: { profileId: { [Op.in]: followingIds } },
+      })
+      : Promise.resolve(),
+  ])
 }
 
 async function syncBannedUsersFromAuthService(): Promise<void> {
@@ -61,9 +87,11 @@ export async function startBannedUsersConsumer(): Promise<void> {
         const { userId } = payload
         if (msg.fields.routingKey === "user.banned") {
           await getRedis().sadd(BANNED_KEY, userId)
+          await adjustFollowCountsForBan(userId, -1)
           logger.info({ userId }, "Banned user added to cache")
         } else if (msg.fields.routingKey === "user.unbanned") {
           await getRedis().srem(BANNED_KEY, userId)
+          await adjustFollowCountsForBan(userId, 1)
           logger.info({ userId }, "Unbanned user removed from cache")
         }
         channel.ack(msg)
