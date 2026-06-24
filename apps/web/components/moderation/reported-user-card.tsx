@@ -3,6 +3,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import { IconChevronDown, IconChevronUp, IconExternalLink } from "@tabler/icons-react"
+import { useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
 import { ProfileAvatar } from "@/components/profile/profile-avatar"
 import { SanctionBadge } from "./sanction-badge"
@@ -38,6 +39,7 @@ export function ReportedUserCard({
   runResolve,
   runUnresolve,
 }: Props) {
+  const t = useTranslations("moderationPage")
   const [expanded, setExpanded] = useState(false)
   const pendingCount = userReports.filter((r) => r.status === "pending").length
   return (
@@ -60,11 +62,10 @@ export function ReportedUserCard({
             <SanctionBadge {...sanction} />
           </div>
           <p className='mt-0.5 text-xs text-muted-foreground'>
-            <span className='font-medium text-foreground'>{userReports.length}</span> report
-            {userReports.length > 1 ? "s" : ""}
+            {t("reportsCount", { count: userReports.length })}
             {pendingCount > 0 && (
               <span className='ml-2 font-semibold text-yellow-600 dark:text-yellow-400'>
-                · {pendingCount} pending
+                {t("pendingCountShort", { count: pendingCount })}
               </span>
             )}
           </p>
@@ -81,7 +82,7 @@ export function ReportedUserCard({
           />
           <Button variant='outline' size='xs' onClick={() => setExpanded((v) => !v)}>
             {expanded ? <IconChevronUp size={12} /> : <IconChevronDown size={12} />}
-            {expanded ? "Hide" : "Reports"}
+            {expanded ? t("hide") : t("tabsReports")}
           </Button>
         </div>
       </div>

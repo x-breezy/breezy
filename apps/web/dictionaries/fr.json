@@ -6,14 +6,16 @@
     "feedFollowing": "Abonnements",
     "feedTrending": "Tendances",
     "createPost": "Créer une publication",
-    "notifications": "Notifications"
+    "notifications": "Notifications",
+    "noPostsFeed": "Aucune publication pour le moment. Suivez des personnes pour voir leurs publications ici."
   },
   "nav": {
     "home": "Accueil",
     "search": "Rechercher",
     "grod": "Grod",
     "messages": "Messages",
-    "profile": "Profil"
+    "profile": "Profil",
+    "moderation": "Modération"
   },
   "settings": {
     "title": "Paramètres",
@@ -218,16 +220,12 @@
     "saving": "Enregistrement…",
     "saveChanges": "Enregistrer",
     "cancel": "Annuler",
-    "usernameInvalidChars": "Le nom d'utilisateur ne peut contenir que des lettres minuscules, des chiffres, des tirets et des underscores",
-    "usernameMinLength": "Le nom d'utilisateur doit comporter au moins 3 caractères",
-    "usernameMaxLength": "Le nom d'utilisateur doit comporter au plus 50 caractères",
-    "nameInvalidChars": "Le nom ne peut contenir que des lettres, des chiffres, des espaces, des apostrophes, des tirets et des points",
-    "nameMinLength": "Le nom doit comporter au moins 1 caractère",
-    "nameMaxLength": "Le nom doit comporter au plus 100 caractères",
-    "biographyTitle": "Biographie",
     "tabPosts": "Publications",
     "tabReplies": "Réponses",
     "tabMedias": "Médias",
+    "noPosts": "Aucune publication pour le moment.",
+    "noReplies": "Aucune réponse pour le moment.",
+    "noMedia": "Aucun média pour le moment.",
     "unknownProfile": "Profil inconnu",
     "unknownProfileDesc": "Ce profil n'existe pas.",
     "backToHome": "Retourner à l'accueil."
@@ -390,5 +388,47 @@
     "reply": "Répondre",
     "replyingTo": "Vous répondez à {name}",
     "cancelReply": "Annuler la réponse"
+  },
+  "moderationPage": {
+    "title": "Modération",
+    "tabsReports": "Signalements",
+    "tabsUsers": "Utilisateurs",
+    "pendingCount": "{count} en attente",
+    "totalCount": "{count} au total",
+    "actionFailed": "L'action a échoué. Veuillez réessayer.",
+    "noReports": "Aucun signalement trouvé.",
+    "reportsCount": "{count, plural, =1 {1 signalement} other {# signalements}}",
+    "pendingCountShort": "· {count} en attente",
+    "hide": "Masquer",
+    "bannedBadge": "Banni",
+    "allCount": "Tous ({count})",
+    "bannedCount": "Bannis ({count})",
+    "addUser": "Ajouter un utilisateur",
+    "noUsers": "Aucun utilisateur trouvé.",
+    "loading": "Chargement…",
+    "unban": "Débannir",
+    "ban": "Bannir",
+    "pending": "En attente",
+    "resolved": "Résolu",
+    "by": "Par",
+    "resolve": "Résoudre",
+    "unresolve": "Annuler la résolution",
+    "username": "Nom d'utilisateur",
+    "email": "Email",
+    "password": "Mot de passe",
+    "role": "Rôle",
+    "roleUser": "Utilisateur",
+    "roleModerator": "Modérateur",
+    "roleAdmin": "Administrateur",
+    "createUser": "Créer l'utilisateur",
+    "creating": "Création…",
+    "createUserFailed": "Échec de la création de l'utilisateur. Veuillez réessayer."
+  },
+  "postPage": {
+    "title": "Publication",
+    "replyingTo": "En réponse à",
+    "replies": "Réponses",
+    "repliesCount": "Réponses ({count})",
+    "noReplies": "Aucune réponse pour le moment."
   }
 }

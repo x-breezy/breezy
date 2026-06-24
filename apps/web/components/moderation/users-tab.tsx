@@ -2,6 +2,7 @@
 
 import { useState, useTransition, useEffect, useRef, useCallback } from "react"
 import { IconAlertTriangle, IconUserPlus, IconUsers } from "@tabler/icons-react"
+import { useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { useUserStore } from "@/stores/user-store"
@@ -13,6 +14,7 @@ import AddUserDialog from "./add-user-dialog"
 type Filter = "all" | "banned"
 
 export function UsersTab() {
+  const t = useTranslations("moderationPage")
   const currentUser = useUserStore((s) => s.user)
   const isAdmin = currentUser?.role === "admin"
   const allUsersRaw = useModerationStore((s) => s.allUsers)
@@ -44,7 +46,7 @@ export function UsersTab() {
         await fn()
         setSanction(id, patch)
       } catch {
-        setError("Action failed. Please try again.")
+        setError(t("actionFailed"))
       } finally {
         setActionId(null)
       }
@@ -72,7 +74,7 @@ export function UsersTab() {
         const res = await listAllUsers(nextPage, allUsersLimit)
         loadMore(res.users, res.total, res.page)
       } catch {
-        setError("Failed to load more users. Please try again.")
+        setError(t("actionFailed"))
       } finally {
         setIsLoadingMore(false)
       }
@@ -104,14 +106,14 @@ export function UsersTab() {
       <Tabs defaultValue='all'>
         <div className='mb-4 flex items-center justify-between'>
           <TabsList variant='line'>
-            <TabsTrigger value='all'>All ({validUsers.length})</TabsTrigger>
-            <TabsTrigger value='banned'>Banned ({bannedCount})</TabsTrigger>
+            <TabsTrigger value='all'>{t("allCount", { count: validUsers.length })}</TabsTrigger>
+            <TabsTrigger value='banned'>{t("bannedCount", { count: bannedCount })}</TabsTrigger>
           </TabsList>
 
           {isAdmin && (
             <Button size='sm' onClick={() => setDialogOpen(true)}>
               <IconUserPlus size={15} />
-              Add user
+              {t("addUser")}
             </Button>
           )}
         </div>
@@ -123,7 +125,7 @@ export function UsersTab() {
               {visible.length === 0 ? (
                 <div className='flex flex-col items-center justify-center py-16 text-muted-foreground'>
                   <IconUsers size={40} className='mb-3 opacity-40' />
-                  <p className='text-sm'>No users found.</p>
+                  <p className='text-sm'>{t("noUsers")}</p>
                 </div>
               ) : (
                 <ul className='space-y-3'>
@@ -149,7 +151,7 @@ export function UsersTab() {
             ref={sentinelRef}
             className='mt-4 flex justify-center py-2 text-sm text-muted-foreground'
           >
-            {isLoadingMore ? "Loading…" : ""}
+            {isLoadingMore ? t("loading") : ""}
           </div>
         )}
       </Tabs>

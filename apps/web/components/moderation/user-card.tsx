@@ -1,5 +1,6 @@
 import { SanctionedUser, unbanUser, banUser } from "@/lib/actions/users"
 import { IconExternalLink, IconBan, IconLockOpen } from "@tabler/icons-react"
+import { useTranslations } from "next-intl"
 import Link from "next/link"
 import { ProfileAvatar } from "../profile"
 import { Button } from "../ui/button"
@@ -21,6 +22,7 @@ export default function UserCard({
   actionId,
   runAction,
 }: UserCardProps) {
+  const t = useTranslations("moderationPage")
   const loading = isPending && actionId === user.id
 
   return (
@@ -39,7 +41,7 @@ export default function UserCard({
           {sanction.isBanned && (
             <span className='inline-flex items-center gap-1 rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700 dark:bg-red-900/30 dark:text-red-400'>
               <IconBan size={11} />
-              Banned
+              {t("bannedBadge")}
             </span>
           )}
           <span className='rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground'>
@@ -59,7 +61,7 @@ export default function UserCard({
             className='border-green-300 text-green-700 hover:bg-green-50 dark:border-green-700 dark:text-green-400 dark:hover:bg-green-900/20'
           >
             <IconLockOpen />
-            {loading ? "…" : "Unban"}
+            {loading ? "…" : t("unban")}
           </Button>
         )}
         {isAdmin && !sanction.isBanned && (
@@ -70,7 +72,7 @@ export default function UserCard({
             disabled={loading}
           >
             <IconBan />
-            {loading ? "…" : "Ban"}
+            {loading ? "…" : t("ban")}
           </Button>
         )}
       </div>

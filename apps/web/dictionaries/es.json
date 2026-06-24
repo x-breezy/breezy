@@ -6,14 +6,16 @@
     "feedFollowing": "Siguiendo",
     "feedTrending": "Tendencias",
     "createPost": "Crear publicación",
-    "notifications": "Notificaciones"
+    "notifications": "Notificaciones",
+    "noPostsFeed": "Aún no hay publicaciones. Sigue a algunas personas para ver sus publicaciones aquí."
   },
   "nav": {
     "home": "Inicio",
     "search": "Buscar",
     "grod": "Grod",
     "messages": "Mensajes",
-    "profile": "Perfil"
+    "profile": "Perfil",
+    "moderation": "Moderación"
   },
   "settings": {
     "title": "Ajustes",
@@ -227,6 +229,9 @@
     "tabPosts": "Publicaciones",
     "tabReplies": "Respuestas",
     "tabMedias": "Medios",
+    "noPosts": "Sin publicaciones aún.",
+    "noReplies": "Sin respuestas aún.",
+    "noMedia": "Sin medios aún.",
     "unknownProfile": "Perfil desconocido",
     "unknownProfileDesc": "Este perfil no existe.",
     "backToHome": "Volver a Breezy."
@@ -389,5 +394,47 @@
     "reply": "Responder",
     "replyingTo": "Respondiendo a {name}",
     "cancelReply": "Cancelar respuesta"
+  },
+  "moderationPage": {
+    "title": "Moderación",
+    "tabsReports": "Reportes",
+    "tabsUsers": "Usuarios",
+    "pendingCount": "{count} pendientes",
+    "totalCount": "{count} en total",
+    "actionFailed": "La acción falló. Por favor, inténtelo de nuevo.",
+    "noReports": "No se encontraron reportes.",
+    "reportsCount": "{count, plural, =1 {1 reporte} other {# reportes}}",
+    "pendingCountShort": "· {count} pendientes",
+    "hide": "Ocultar",
+    "bannedBadge": "Baneado",
+    "allCount": "Todos ({count})",
+    "bannedCount": "Baneados ({count})",
+    "addUser": "Añadir usuario",
+    "noUsers": "No se encontraron usuarios.",
+    "loading": "Cargando…",
+    "unban": "Desbanear",
+    "ban": "Banear",
+    "pending": "Pendiente",
+    "resolved": "Resuelto",
+    "by": "Por",
+    "resolve": "Resolver",
+    "unresolve": "No resolver",
+    "username": "Nombre de usuario",
+    "email": "Correo electrónico",
+    "password": "Contraseña",
+    "role": "Rol",
+    "roleUser": "Usuario",
+    "roleModerator": "Moderador",
+    "roleAdmin": "Administrador",
+    "createUser": "Crear usuario",
+    "creating": "Creando…",
+    "createUserFailed": "Error al crear el usuario. Por favor, inténtelo de nuevo."
+  },
+  "postPage": {
+    "title": "Publicación",
+    "replyingTo": "Respondiendo a",
+    "replies": "Respuestas",
+    "repliesCount": "Respuestas ({count})",
+    "noReplies": "Sin respuestas aún."
   }
 }

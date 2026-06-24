@@ -1,5 +1,6 @@
 import { SanctionedUser, CreateUserPayload, createUser } from "@/lib/actions/users"
 import { IconAlertTriangle } from "@tabler/icons-react"
+import { useTranslations } from "next-intl"
 import { useTransition, useState } from "react"
 import { DialogContent, DialogHeader, DialogFooter, Dialog, DialogTitle } from "../ui/dialog"
 import { Label } from "../ui/label"
@@ -14,6 +15,7 @@ interface AddUserDialogProps {
 }
 
 export default function AddUserDialog({ open, onOpenChange, onCreated }: AddUserDialogProps) {
+  const t = useTranslations("moderationPage")
   const [isPending, startTransition] = useTransition()
   const [formError, setFormError] = useState<string | null>(null)
   const [form, setForm] = useState<CreateUserPayload>({
@@ -37,7 +39,7 @@ export default function AddUserDialog({ open, onOpenChange, onCreated }: AddUser
         setForm({ username: "", email: "", password: "", role: "user" })
       } catch (err) {
         setFormError(
-          err instanceof Error ? err.message : "Failed to create user. Please try again."
+          err instanceof Error ? err.message : t("createUserFailed")
         )
       }
     })
@@ -47,7 +49,7 @@ export default function AddUserDialog({ open, onOpenChange, onCreated }: AddUser
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add user</DialogTitle>
+          <DialogTitle>{t("addUser")}</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className='flex flex-col gap-4'>
@@ -59,7 +61,7 @@ export default function AddUserDialog({ open, onOpenChange, onCreated }: AddUser
           )}
 
           <div className='flex flex-col gap-1.5'>
-            <Label htmlFor='add-username'>Username</Label>
+            <Label htmlFor='add-username'>{t("username")}</Label>
             <Input
               id='add-username'
               placeholder='johndoe'
@@ -70,7 +72,7 @@ export default function AddUserDialog({ open, onOpenChange, onCreated }: AddUser
           </div>
 
           <div className='flex flex-col gap-1.5'>
-            <Label htmlFor='add-email'>Email</Label>
+            <Label htmlFor='add-email'>{t("email")}</Label>
             <Input
               id='add-email'
               type='email'
@@ -82,7 +84,7 @@ export default function AddUserDialog({ open, onOpenChange, onCreated }: AddUser
           </div>
 
           <div className='flex flex-col gap-1.5'>
-            <Label htmlFor='add-password'>Password</Label>
+            <Label htmlFor='add-password'>{t("password")}</Label>
             <Input
               id='add-password'
               type='password'
@@ -94,7 +96,7 @@ export default function AddUserDialog({ open, onOpenChange, onCreated }: AddUser
           </div>
 
           <div className='flex flex-col gap-1.5'>
-            <Label htmlFor='add-role'>Role</Label>
+            <Label htmlFor='add-role'>{t("role")}</Label>
             <Select
               value={form.role}
               onValueChange={(value) => handleChange("role", value ?? "user")}
@@ -103,16 +105,16 @@ export default function AddUserDialog({ open, onOpenChange, onCreated }: AddUser
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value='user'>User</SelectItem>
-                <SelectItem value='moderator'>Moderator</SelectItem>
-                <SelectItem value='admin'>Admin</SelectItem>
+                <SelectItem value='user'>{t("roleUser")}</SelectItem>
+                <SelectItem value='moderator'>{t("roleModerator")}</SelectItem>
+                <SelectItem value='admin'>{t("roleAdmin")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <DialogFooter showCloseButton>
             <Button type='submit' disabled={isPending}>
-              {isPending ? "Creating…" : "Create user"}
+              {isPending ? t("creating") : t("createUser")}
             </Button>
           </DialogFooter>
         </form>

@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { IconClock, IconCheck, IconExternalLink } from "@tabler/icons-react"
+import { useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
 import type { EnrichedReport } from "@/types/report"
 
@@ -14,6 +15,7 @@ interface Props {
 }
 
 export function ReportItem({ report, isPending, actionId, runResolve, runUnresolve }: Props) {
+  const t = useTranslations("moderationPage")
   const loading = isPending && actionId === report.id
 
   return (
@@ -23,12 +25,12 @@ export function ReportItem({ report, isPending, actionId, runResolve, runUnresol
           {report.status === "pending" ? (
             <span className='inline-flex items-center gap-1 rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-medium text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400'>
               <IconClock size={11} />
-              Pending
+              {t("pending")}
             </span>
           ) : (
             <span className='inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900/30 dark:text-green-400'>
               <IconCheck size={11} />
-              Resolved
+              {t("resolved")}
             </span>
           )}
           <span className='text-xs text-muted-foreground'>
@@ -38,7 +40,7 @@ export function ReportItem({ report, isPending, actionId, runResolve, runUnresol
         <p className='mb-1 text-sm'>{report.reason}</p>
         {report.reporterUsername && (
           <p className='text-xs text-muted-foreground'>
-            By{" "}
+            {t("by")}{" "}
             <Link
               href={`/profile/${report.reporterUsername}`}
               className='inline-flex items-center gap-0.5 font-medium text-foreground hover:underline'
@@ -53,7 +55,7 @@ export function ReportItem({ report, isPending, actionId, runResolve, runUnresol
       <div className='shrink-0'>
         {report.status === "pending" ? (
           <Button size='xs' onClick={() => runResolve(report.id)} disabled={loading}>
-            {loading ? "…" : "Resolve"}
+            {loading ? "…" : t("resolve")}
           </Button>
         ) : (
           <Button
@@ -62,7 +64,7 @@ export function ReportItem({ report, isPending, actionId, runResolve, runUnresol
             onClick={() => runUnresolve(report.id)}
             disabled={loading}
           >
-            {loading ? "…" : "Unresolve"}
+            {loading ? "…" : t("unresolve")}
           </Button>
         )}
       </div>

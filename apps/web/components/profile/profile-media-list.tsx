@@ -3,6 +3,7 @@
 import { useMemo } from "react"
 import { Skeleton } from "@/components/ui/skeleton"
 import { MediaGrid } from "@/components/search/media-grid"
+import { useTranslations } from "next-intl"
 import { collectMedia } from "@/components/search/search-utils"
 import type { ProfilePost } from "./use-profile-posts"
 
@@ -12,6 +13,7 @@ interface ProfileMediaListProps {
 }
 
 export function ProfileMediaList({ posts, isLoading }: ProfileMediaListProps) {
+  const t = useTranslations("profilePage")
   const mediaItems = useMemo(() => collectMedia(posts), [posts])
 
   if (isLoading) {
@@ -32,7 +34,7 @@ export function ProfileMediaList({ posts, isLoading }: ProfileMediaListProps) {
   }
 
   if (mediaItems.length === 0) {
-    return <p className='py-8 text-center text-sm text-muted-foreground'>No media yet.</p>
+    return <p className='py-8 text-center text-sm text-muted-foreground'>{t("noMedia")}</p>
   }
 
   return (

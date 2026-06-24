@@ -1,6 +1,7 @@
 "use client"
 
 import { IconAlertTriangle, IconCheck, IconClock, IconShield } from "@tabler/icons-react"
+import { useTranslations } from "next-intl"
 import { ReportedUserCard } from "./reported-user-card"
 import { EnrichedReport } from "@/types/report"
 import { RunSanction, SanctionState } from "./sanction-actions"
@@ -29,6 +30,7 @@ export default function ReportsByUser({
   runResolve,
   runUnresolve,
 }: ReportsByUserProps) {
+  const t = useTranslations("moderationPage")
   const pendingCount = useModerationStore((s) => s.pendingCount)
   const total = useModerationStore((s) => s.total)
   const grouped = reports.reduce<
@@ -62,12 +64,14 @@ export default function ReportsByUser({
         <div className='flex items-center gap-2 rounded-lg border bg-yellow-50 px-4 py-2 dark:bg-yellow-900/20'>
           <IconClock size={16} className='text-yellow-600 dark:text-yellow-400' />
           <span className='text-sm font-semibold text-yellow-800 dark:text-yellow-300'>
-            {pendingCount} pending
+            {t("pendingCount", { count: pendingCount })}
           </span>
         </div>
         <div className='flex items-center gap-2 rounded-lg border bg-muted/50 px-4 py-2'>
           <IconShield size={16} className='text-muted-foreground' />
-          <span className='text-sm font-semibold text-muted-foreground'>{total} total</span>
+          <span className='text-sm font-semibold text-muted-foreground'>
+            {t("totalCount", { count: total })}
+          </span>
         </div>
       </div>
 
@@ -81,7 +85,7 @@ export default function ReportsByUser({
       {groups.length === 0 && (
         <div className='flex flex-col items-center justify-center py-16 text-muted-foreground'>
           <IconCheck size={40} className='mb-3 opacity-40' />
-          <p className='text-sm'>No reports found.</p>
+          <p className='text-sm'>{t("noReports")}</p>
         </div>
       )}
 
