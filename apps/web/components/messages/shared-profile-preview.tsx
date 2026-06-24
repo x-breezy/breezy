@@ -77,13 +77,13 @@ export function SharedProfilePreview({ username }: SharedProfilePreviewProps) {
 
   if (error || !profile) {
     return (
-      <button
+      <div
         onClick={() => router.push(href)}
-        className='flex w-64 items-center gap-2 rounded-2xl bg-[var(--shared-preview-bg)] px-4 py-3 text-left text-[var(--shared-preview-fg)]'
+        className='flex w-64 cursor-pointer items-center gap-2 rounded-2xl bg-[var(--shared-preview-bg)] px-4 py-3 text-[var(--shared-preview-fg)]'
       >
         <IconAlertCircle size={16} className='shrink-0 opacity-60' />
         <span className='text-sm opacity-80'>@{username}</span>
-      </button>
+      </div>
     )
   }
 
@@ -100,22 +100,24 @@ export function SharedProfilePreview({ username }: SharedProfilePreviewProps) {
   const showFollowButton = !isSelf && !isFollowing
 
   return (
-    <button
-      onClick={() => router.push(href)}
-      className='flex w-64 items-center gap-3 rounded-2xl bg-[var(--shared-preview-bg)] px-4 py-3 text-left text-[var(--shared-preview-fg)] transition-opacity hover:opacity-90 active:opacity-70'
-    >
-      <Avatar className='h-10 w-10 shrink-0'>
-        {avatarUrl && <AvatarImage src={avatarUrl} alt={displayName} className='object-cover' />}
-        <AvatarFallback className='bg-primary/10 text-sm font-semibold text-primary'>
-          {(displayName?.[0] ?? "?").toUpperCase()}
-        </AvatarFallback>
-      </Avatar>
+    <div className='flex w-64 items-center gap-3 rounded-2xl bg-[var(--shared-preview-bg)] px-4 py-3 text-[var(--shared-preview-fg)] transition-opacity hover:opacity-90 active:opacity-70'>
+      <div
+        className='flex min-w-0 flex-1 cursor-pointer items-center gap-3'
+        onClick={() => router.push(href)}
+      >
+        <Avatar className='h-10 w-10 shrink-0'>
+          {avatarUrl && <AvatarImage src={avatarUrl} alt={displayName} className='object-cover' />}
+          <AvatarFallback className='bg-primary/10 text-sm font-semibold text-primary'>
+            {(displayName?.[0] ?? "?").toUpperCase()}
+          </AvatarFallback>
+        </Avatar>
 
-      <div className='min-w-0 flex-1'>
-        <p className='truncate text-sm font-semibold text-[var(--shared-preview-fg)]'>
-          {displayName}
-        </p>
-        <p className='truncate text-xs text-muted-foreground'>@{profile.username}</p>
+        <div className='min-w-0'>
+          <p className='truncate text-sm font-semibold text-[var(--shared-preview-fg)]'>
+            {displayName}
+          </p>
+          <p className='truncate text-xs text-muted-foreground'>@{profile.username}</p>
+        </div>
       </div>
 
       {showFollowButton && (
@@ -134,6 +136,6 @@ export function SharedProfilePreview({ username }: SharedProfilePreviewProps) {
           {t("follow")}
         </Button>
       )}
-    </button>
+    </div>
   )
 }
