@@ -6,7 +6,9 @@ import { IconArrowBackUp } from "@tabler/icons-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { timeAgo } from "@/lib/utils"
 import { isPostUrl, parsePostUrl } from "@/lib/utils/post-url"
+import { isProfileUrl, parseProfileUrl } from "@/lib/utils/profile-url"
 import { SharedPostPreview } from "./shared-post-preview"
+import { SharedProfilePreview } from "./shared-profile-preview"
 import type { ReplyTo } from "@/lib/actions/messages"
 
 type MessageBubbleProps =
@@ -21,6 +23,7 @@ type MessageBubbleProps =
       senderName?: string
       replyTo?: ReplyTo
       onReply?: () => void
+      onScrollToMessage?: (messageId: string) => void
     }
   | { variant: "system"; content: string; senderName?: string }
   | { variant: "writing"; avatarUrl?: string }
@@ -97,6 +100,7 @@ export function MessageBubble(props: MessageBubbleProps) {
     senderName,
     replyTo,
     onReply,
+    onScrollToMessage,
   } = props
 
   // Instagram-style grouped corners: inner corners flatten when bubbles are stacked
@@ -156,26 +160,53 @@ export function MessageBubble(props: MessageBubbleProps) {
           {replyTo && (
             <div
               className={`mt-4 mb-1 flex w-fit flex-col gap-0.5 ${isOwn ? "items-end" : "items-start"}`}
+              onClick={() => onScrollToMessage?.(replyTo._id)}
             >
               <span className='px-1 text-xs font-semibold text-foreground/60'>
                 {replyTo.senderName}
               </span>
-              <div
-                className={`w-fit truncate rounded-xl px-3 py-1.5 text-xs opacity-70 ${
-                  isOwn
-                    ? "bg-primary/60 text-primary-foreground"
-                    : "bg-secondary/80 text-muted-foreground"
-                }`}
-              >
-                <span className='block w-fit truncate'>
-                  {isPostUrl(replyTo.content)
-                    ? (() => {
-                        const p = parsePostUrl(replyTo.content)
-                        return p ? `@${p.username}` : replyTo.content
-                      })()
-                    : replyTo.content}
-                </span>
-              </div>
+              {(() => {
+                const postParsed = isPostUrl(replyTo.content) ? parsePostUrl(replyTo.content) : null
+                const profileParsed =
+                  !postParsed && isProfileUrl(replyTo.content)
+                    ? parseProfileUrl(replyTo.content)
+                    : null
+
+                if (postParsed) {
+                  return (
+                    <div
+                      className={`pointer-events-none scale-90 opacity-50 ${isOwn ? "origin-right" : "origin-left"}`}
+                    >
+                      <SharedPostPreview
+                        postId={postParsed.postId}
+                        username={postParsed.username}
+                      />
+                    </div>
+                  )
+                }
+
+                if (profileParsed) {
+                  return (
+                    <div
+                      className={`pointer-events-none scale-90 opacity-50 ${isOwn ? "origin-right" : "origin-left"}`}
+                    >
+                      <SharedProfilePreview username={profileParsed.username} />
+                    </div>
+                  )
+                }
+
+                return (
+                  <div
+                    className={`w-fit truncate rounded-xl px-3 py-1.5 text-xs opacity-70 ${
+                      isOwn
+                        ? "bg-primary/60 text-primary-foreground"
+                        : "bg-secondary/80 text-muted-foreground"
+                    }`}
+                  >
+                    <span className='block w-fit truncate'>{replyTo.content}</span>
+                  </div>
+                )
+              })()}
             </div>
           )}
 
@@ -185,7 +216,7 @@ export function MessageBubble(props: MessageBubbleProps) {
               className={`relative w-fit max-w-full transition-transform ease-out ${
                 swipeDx !== 0 ? "duration-75" : "duration-300"
               } ${
-                isPostUrl(content)
+                isPostUrl(content) || isProfileUrl(content)
                   ? ""
                   : `px-3.5 py-2 ${
                       isOwn
@@ -202,11 +233,16 @@ export function MessageBubble(props: MessageBubbleProps) {
                 (() => {
                   const parsed = parsePostUrl(content)
                   return parsed ? (
-                    <SharedPostPreview
-                      postId={parsed.postId}
-                      username={parsed.username}
-                      isOwn={isOwn}
-                    />
+                    <SharedPostPreview postId={parsed.postId} username={parsed.username} />
+                  ) : (
+                    <p className='text-sm leading-relaxed [overflow-wrap:anywhere]'>{content}</p>
+                  )
+                })()
+              ) : isProfileUrl(content) ? (
+                (() => {
+                  const parsed = parseProfileUrl(content)
+                  return parsed ? (
+                    <SharedProfilePreview username={parsed.username} />
                   ) : (
                     <p className='text-sm leading-relaxed [overflow-wrap:anywhere]'>{content}</p>
                   )

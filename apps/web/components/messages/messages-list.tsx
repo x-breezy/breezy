@@ -57,6 +57,13 @@ export function MessagesList({
   const t = useTranslations("messages")
   const bottomRef = useRef<HTMLDivElement>(null)
   const topRef = useRef<HTMLDivElement>(null)
+  const scrollAreaRef = useRef<HTMLDivElement>(null)
+
+  const handleScrollToMessage = (messageId: string) => {
+    const el = scrollAreaRef.current?.querySelector(`[data-message-id="${messageId}"]`)
+    if (!el) return
+    el.scrollIntoView({ behavior: "smooth", block: "center" })
+  }
   const prevLength = useRef(messages.length)
 
   const isInitialRender = useRef(true)
@@ -94,7 +101,7 @@ export function MessagesList({
   }
 
   return (
-    <ScrollArea className='flex-1 overflow-x-hidden'>
+    <ScrollArea className='flex-1 overflow-x-hidden' ref={scrollAreaRef}>
       <div className='flex flex-col px-4 pb-4'>
         {loadingMore && (
           <div className='flex justify-center py-3'>
@@ -174,18 +181,21 @@ export function MessagesList({
           return (
             <React.Fragment key={msg._id}>
               {showDateSep && <DateSeparator dateStr={msg.createdAt} />}
-              <MessageBubble
-                variant='message'
-                content={msg.content}
-                createdAt={msg.createdAt}
-                isOwn={msg.senderId === currentUserId}
-                isConsecutive={isConsecutive}
-                isLastOfGroup={isLastOfGroup}
-                avatarUrl={msgAvatarUrl}
-                senderName={senderName}
-                replyTo={msg.replyTo}
-                onReply={onReply ? () => onReply(msg, senderName) : undefined}
-              />
+              <div data-message-id={msg._id}>
+                <MessageBubble
+                  variant='message'
+                  content={msg.content}
+                  createdAt={msg.createdAt}
+                  isOwn={msg.senderId === currentUserId}
+                  isConsecutive={isConsecutive}
+                  isLastOfGroup={isLastOfGroup}
+                  avatarUrl={msgAvatarUrl}
+                  senderName={senderName}
+                  replyTo={msg.replyTo}
+                  onReply={onReply ? () => onReply(msg, senderName) : undefined}
+                  onScrollToMessage={handleScrollToMessage}
+                />
+              </div>
             </React.Fragment>
           )
         })}
