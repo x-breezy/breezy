@@ -2,6 +2,14 @@
 
 import { authenticatedFetch } from "@/lib/auth/authenticated-fetch"
 
+export interface ParticipantProfile {
+  firstName: string | null
+  lastName: string | null
+  username: string | null
+  avatarId: string | null
+  role: string | null
+}
+
 export interface ConversationMeta {
   _id: string
   participantIds: string[]
@@ -12,6 +20,7 @@ export interface ConversationMeta {
   lastMessageAt?: string
   hasUnread?: boolean
   unreadCount?: number
+  participants?: Record<string, ParticipantProfile>
 }
 
 export async function listConversations(): Promise<ConversationMeta[]> {
@@ -98,7 +107,12 @@ export async function getUserById(id: string): Promise<{ username: string }> {
 
 export async function getProfileById(
   id: string
-): Promise<{ firstName: string | null; lastName: string | null; avatarId: string | null }> {
+): Promise<{
+  firstName: string | null
+  lastName: string | null
+  avatarId: string | null
+  role: string | null
+}> {
   const res = await authenticatedFetch(`/api/profiles/${id}`)
   if (!res.ok) throw new Error(`Failed to get profile: ${res.status}`)
   const json = await res.json()
@@ -106,5 +120,6 @@ export async function getProfileById(
     firstName: (json.data.firstName as string) ?? null,
     lastName: (json.data.lastName as string) ?? null,
     avatarId: (json.data.avatarId as string) ?? null,
+    role: (json.data.role as string) ?? null,
   }
 }
