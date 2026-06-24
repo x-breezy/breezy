@@ -88,7 +88,7 @@ export function MessagesList({
   }
 
   return (
-    <ScrollArea className='h-full flex-1'>
+    <ScrollArea className='flex-1'>
       <div className='flex flex-col px-4 pb-4'>
         {loadingMore && (
           <div className='flex justify-center py-3'>
