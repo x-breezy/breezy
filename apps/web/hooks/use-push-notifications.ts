@@ -69,7 +69,7 @@ async function registerPush() {
   const subscription = await withTimeout(
     registration.pushManager.subscribe({
       userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(body.publicKey) as Uint8Array,
+      applicationServerKey: urlBase64ToUint8Array(body.publicKey) as BufferSource,
     }),
     SUBSCRIBE_TIMEOUT_MS
   )
