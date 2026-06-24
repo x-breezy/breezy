@@ -1,6 +1,8 @@
 import swaggerJsdoc from "swagger-jsdoc"
 import path from "node:path"
 
+const __dirnamePosix = __dirname.replace(/\\/g, "/")
+
 const options: swaggerJsdoc.Options = {
   definition: {
     openapi: "3.0.3",
@@ -45,15 +47,31 @@ const options: swaggerJsdoc.Options = {
               type: "object",
               properties: {
                 token: { type: "string", example: "eyJhbGci..." },
+                refreshToken: { type: "string", example: "dGhpcyBpcyBhIHJlZnJlc2gtdG9rZW4..." },
                 user: { $ref: "#/components/schemas/User" },
               },
             },
           },
         },
+        Report: {
+          type: "object",
+          properties: {
+            id: { type: "string", format: "uuid" },
+            reporterId: { type: "string", format: "uuid" },
+            reportedUserId: { type: "string", format: "uuid" },
+            reason: { type: "string", example: "Spam" },
+            status: { type: "string", enum: ["pending", "resolved"], example: "pending" },
+            createdAt: { type: "string", format: "date-time" },
+            updatedAt: { type: "string", format: "date-time" },
+          },
+        },
       },
     },
   },
-  apis: [path.join(__dirname, "../routes/*.{ts,js}")],
+  apis: [
+    path.posix.join(__dirnamePosix, "../routes/*.ts"),
+    path.posix.join(__dirnamePosix, "../routes/*.js"),
+  ],
 }
 
 export const swaggerSpec = swaggerJsdoc(options)

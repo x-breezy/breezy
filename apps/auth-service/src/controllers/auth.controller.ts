@@ -134,10 +134,35 @@ class AuthController {
     next: NextFunction
   ): Promise<void> => {
     try {
-      const { accessToken, refreshToken, user } = await this.authService.rotateRefreshToken(
-        req.body.refreshToken
-      )
-      res.status(200).json({ success: true, data: { token: accessToken, refreshToken, user } })
+      const refreshToken =
+        req.body.refreshToken ??
+        req.headers["cookie"]
+          ?.split(";")
+          .map((c) => c.trim().split("="))
+          .find(([name]) => name === "breezy-refresh")?.[1]
+
+      if (!refreshToken) {
+        res.status(401).json({ success: false, message: "Missing refresh token" })
+        return
+      }
+
+      const result = await this.authService.rotateRefreshToken(refreshToken)
+      const isProd = process.env.NODE_ENV === "production"
+      const cookieOpts = { httpOnly: true, secure: isProd, sameSite: "lax" as const }
+
+      res.cookie("breezy-token", result.accessToken, {
+        ...cookieOpts,
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      })
+      res.cookie("breezy-refresh", result.refreshToken, {
+        ...cookieOpts,
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      })
+
+      res.status(200).json({
+        success: true,
+        data: { token: result.accessToken, refreshToken: result.refreshToken, user: result.user },
+      })
     } catch (error) {
       if ((error as { code?: string }).code === "INVALID_REFRESH") {
         res.status(401).json({ success: false, message: "Invalid or expired refresh token" })

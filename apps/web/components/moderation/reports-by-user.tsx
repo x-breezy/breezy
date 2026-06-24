@@ -1,8 +1,11 @@
+"use client"
+
 import { IconAlertTriangle, IconCheck, IconClock, IconShield } from "@tabler/icons-react"
 import { useTranslations } from "next-intl"
 import { ReportedUserCard } from "./reported-user-card"
 import { EnrichedReport } from "@/types/report"
 import { RunSanction, SanctionState } from "./sanction-actions"
+import { useModerationStore } from "@/stores/moderation-store"
 
 interface ReportsByUserProps {
   reports: EnrichedReport[]
@@ -11,8 +14,6 @@ interface ReportsByUserProps {
   isPending: boolean
   actionId: string | null
   error: string | null
-  pendingCount: number
-  total: number
   runSanction: RunSanction
   runResolve: (reportId: string) => void
   runUnresolve: (reportId: string) => void
@@ -25,13 +26,13 @@ export default function ReportsByUser({
   isPending,
   actionId,
   error,
-  pendingCount,
-  total,
   runSanction,
   runResolve,
   runUnresolve,
 }: ReportsByUserProps) {
   const t = useTranslations("moderationPage")
+  const pendingCount = useModerationStore((s) => s.pendingCount)
+  const total = useModerationStore((s) => s.total)
   const grouped = reports.reduce<
     Record<
       string,

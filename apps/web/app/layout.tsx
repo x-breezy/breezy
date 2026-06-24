@@ -1,6 +1,6 @@
 import { Geist, Geist_Mono, Geom } from "next/font/google"
 import "@/styles/globals.css"
-import type { Metadata } from "next"
+import type { Metadata, Viewport } from "next"
 import { cookies } from "next/headers"
 import { ThemeProvider } from "@/components/providers/theme-provider"
 import { QueryProvider } from "@/components/providers/query-provider"
@@ -47,7 +47,20 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: "/icon.svg",
+    apple: "/icon-192.png",
   },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Breezy",
+  },
+}
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ca3500" },
+    { media: "(prefers-color-scheme: dark)", color: "#0c0a09" },
+  ],
 }
 
 export default async function RootLayout({

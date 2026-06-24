@@ -229,6 +229,13 @@ http {
       proxy_pass http://media_service/;
     }
 
+    location = /api/notifications/push/vapid-key {
+      include /etc/nginx/cors.conf;
+      if ($request_method = OPTIONS) { return 204; }
+      limit_req zone=api burst=20 nodelay;
+      proxy_pass http://notifications_service/notifications/push/vapid-key;
+    }
+
     location = /api/notifications/stream {
       include /etc/nginx/cors.conf;
       if ($request_method = OPTIONS) { return 204; }

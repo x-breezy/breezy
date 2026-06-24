@@ -392,6 +392,9 @@ services:
       SMTP_USER: ${SMTP_USER}
       SMTP_PASS: ${SMTP_PASS}
       SMTP_FROM: ${SMTP_FROM}
+      VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY}
+      VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY}
+      VAPID_SUBJECT: ${VAPID_SUBJECT}
       LOG_FILE: /logs/notifications-service.log
       LOG_LEVEL: info
     healthcheck:
@@ -477,6 +480,7 @@ services:
     restart: unless-stopped
     environment:
       API_URL: http://gateway
+      PROFILE_SERVICE_URL: http://profile-service:4010
       HOSTNAME: "0.0.0.0"
     healthcheck:
       test:
@@ -501,12 +505,11 @@ services:
       - gateway-net
 
   swagger-ui:
-    image: swaggerapi/swagger-ui
+    build:
+      context: .
+      dockerfile: infrastructure/docs/Dockerfile
     container_name: breezy-swagger-ui
     restart: unless-stopped
-    environment:
-      URL: /openapi.json
-      BASE_URL: /api-docs
     networks:
       - gateway-net
 

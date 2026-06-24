@@ -59,7 +59,7 @@ export function ModerationClient({
   const sanctions = useModerationStore((s) => s.sanctions)
 
   useEffect(() => {
-    initReports(initialReports)
+    initReports(initialReports, total, pendingCount)
     initSanctioned(sanctioned.users)
     initAllUsers(allUsers, allUsersTotal, allUsersPage, allUsersLimit)
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -147,8 +147,6 @@ export function ModerationClient({
               isPending={isPending}
               actionId={actionId}
               error={error}
-              pendingCount={pendingCount}
-              total={total}
               runSanction={runSanction}
               runResolve={runResolve}
               runUnresolve={runUnresolve}

@@ -1,6 +1,6 @@
 import { Schema, model, type Document } from "mongoose"
 
-export type NotificationType = "follow" | "like" | "mention" | "comment" | "reply"
+export type NotificationType = "follow" | "like" | "mention" | "comment" | "reply" | "message"
 
 export interface INotification extends Document {
   userId: string

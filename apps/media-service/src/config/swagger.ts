@@ -1,6 +1,8 @@
 import swaggerJsdoc from "swagger-jsdoc"
 import path from "node:path"
 
+const __dirnamePosix = __dirname.replace(/\\/g, "/")
+
 const options: swaggerJsdoc.Options = {
   definition: {
     openapi: "3.0.3",
@@ -60,7 +62,10 @@ const options: swaggerJsdoc.Options = {
       },
     },
   },
-  apis: [path.join(__dirname, "../routes/*.{ts,js}")],
+  apis: [
+    path.posix.join(__dirnamePosix, "../routes/*.ts"),
+    path.posix.join(__dirnamePosix, "../routes/*.js"),
+  ],
 }
 
 export const swaggerSpec = swaggerJsdoc(options)

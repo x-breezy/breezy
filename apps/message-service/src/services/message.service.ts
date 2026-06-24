@@ -3,6 +3,7 @@ import type { Message, ReplyTo } from "../models/message.model"
 import { ConversationModel } from "../models/conversation.model"
 import type { PaginatedResponse } from "../types/api"
 import { getIO } from "../config/websocket"
+import { publish } from "../clients/rabbitmq"
 
 export class MessageService {
   async sendMessage(
@@ -28,11 +29,22 @@ export class MessageService {
       }).exec(),
     ])
 
-    const recipientIds = conversation?.participantIds || []
-    for (const recipientId of recipientIds) {
+    const participantIds = conversation?.participantIds || []
+    for (const recipientId of participantIds) {
       try {
         getIO().to(recipientId).emit("message:new", message)
       } catch (err) {}
+    }
+
+    for (const recipientId of participantIds) {
+      if (recipientId !== safeSenderId) {
+        void publish("message.sent", {
+          senderId: safeSenderId,
+          recipientUserId: recipientId,
+          content: safeContent,
+          conversationId,
+        })
+      }
     }
 
     return message as unknown as Message

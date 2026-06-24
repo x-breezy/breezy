@@ -24,3 +24,11 @@ export async function deleteNotification(id: string) {
   const authHeader = await getServerAuthHeader()
   await notificationService.deleteNotification(authHeader, id)
 }
+
+export async function subscribePush(subscription: {
+  endpoint: string
+  keys: { auth: string; p256dh: string }
+}) {
+  const authHeader = await getServerAuthHeader()
+  await notificationService.subscribePush(authHeader, subscription)
+}

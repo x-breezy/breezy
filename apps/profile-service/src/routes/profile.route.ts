@@ -155,6 +155,31 @@ export { createProfileRouter }
  *             schema:
  *               $ref: '#/components/schemas/ApiError'
  *
+ * /api/profiles/{profileId}/is-following:
+ *   get:
+ *     summary: Check if the current user follows a profile
+ *     tags: [Profiles]
+ *     parameters:
+ *       - in: path
+ *         name: profileId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: Follow status.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: boolean, example: true }
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     isFollowing: { type: boolean }
+ *
  * /api/profiles/{profileId}/followers:
  *   get:
  *     summary: Get followers of a profile
@@ -166,9 +191,28 @@ export { createProfileRouter }
  *         schema:
  *           type: string
  *           format: uuid
+ *       - in: query
+ *         name: page
+ *         schema: { type: integer, default: 1 }
+ *       - in: query
+ *         name: limit
+ *         schema: { type: integer, default: 50 }
  *     responses:
  *       200:
- *         description: List of followers.
+ *         description: Paginated list of follower IDs.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: boolean, example: true }
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     followers: { type: array, items: { type: string, format: uuid } }
+ *                     count: { type: integer }
+ *                     page: { type: integer }
+ *                     limit: { type: integer }
  *
  * /api/profiles/{profileId}/following:
  *   get:
@@ -181,9 +225,53 @@ export { createProfileRouter }
  *         schema:
  *           type: string
  *           format: uuid
+ *       - in: query
+ *         name: page
+ *         schema: { type: integer, default: 1 }
+ *       - in: query
+ *         name: limit
+ *         schema: { type: integer, default: 50 }
  *     responses:
  *       200:
- *         description: List of followed profiles.
+ *         description: Paginated list of followed profile IDs.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: boolean, example: true }
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     following: { type: array, items: { type: string, format: uuid } }
+ *                     count: { type: integer }
+ *                     page: { type: integer }
+ *                     limit: { type: integer }
+ *
+ * /api/profiles/{profileId}/suggestions:
+ *   get:
+ *     summary: Get follow suggestions for a profile
+ *     tags: [Profiles]
+ *     parameters:
+ *       - in: path
+ *         name: profileId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *       - in: query
+ *         name: limit
+ *         schema: { type: integer, default: 3 }
+ *     responses:
+ *       200:
+ *         description: List of suggested profiles.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: boolean, example: true }
+ *                 data: { type: array, items: { $ref: '#/components/schemas/Profile' } }
  *
  * /api/profiles:
  *   post:
@@ -230,10 +318,91 @@ export { createProfileRouter }
  *     summary: Delete own profile
  *     tags: [Profiles]
  *     responses:
- *       200:
+ *       204:
  *         description: Profile deleted.
  *       403:
  *         description: Insufficient permissions.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
+ *
+ * /api/profiles/search:
+ *   get:
+ *     summary: Search profiles by username/name
+ *     tags: [Profiles]
+ *     parameters:
+ *       - in: query
+ *         name: q
+ *         required: true
+ *         schema: { type: string }
+ *       - in: query
+ *         name: page
+ *         schema: { type: integer, default: 1 }
+ *       - in: query
+ *         name: limit
+ *         schema: { type: integer, default: 20 }
+ *     responses:
+ *       200:
+ *         description: Paginated search results.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: boolean, example: true }
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     profiles: { type: array, items: { $ref: '#/components/schemas/Profile' } }
+ *                     total: { type: integer }
+ *                     page: { type: integer }
+ *                     limit: { type: integer }
+ *
+ * /api/profiles/batch:
+ *   get:
+ *     summary: Batch fetch profiles by IDs
+ *     tags: [Profiles]
+ *     parameters:
+ *       - in: query
+ *         name: ids
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Comma-separated profile IDs
+ *     responses:
+ *       200:
+ *         description: List of profiles.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: boolean, example: true }
+ *                 data: { type: array, items: { $ref: '#/components/schemas/Profile' } }
+ *
+ * /api/profiles/by-username/{username}:
+ *   get:
+ *     summary: Get a profile by username
+ *     tags: [Profiles]
+ *     parameters:
+ *       - in: path
+ *         name: username
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Profile found.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: boolean, example: true }
+ *                 data:
+ *                   $ref: '#/components/schemas/Profile'
+ *       404:
+ *         description: Not found.
  *         content:
  *           application/json:
  *             schema:
@@ -248,15 +417,16 @@ export { createProfileRouter }
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             required: [targetId]
- *             properties:
- *               targetId:
- *                 type: string
- *                 format: uuid
+ *             $ref: '#/components/schemas/FollowInput'
  *     responses:
- *       200:
+ *       201:
  *         description: Followed.
+ *       400:
+ *         description: Cannot follow yourself.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
  *       409:
  *         description: Already following.
  *         content:
@@ -273,12 +443,7 @@ export { createProfileRouter }
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             required: [targetId]
- *             properties:
- *               targetId:
- *                 type: string
- *                 format: uuid
+ *             $ref: '#/components/schemas/FollowInput'
  *     responses:
  *       200:
  *         description: Unfollowed.
