@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Dialog as DialogPrimitive } from "@base-ui/react/dialog"
 import { Dialog, DialogOverlay, DialogPortal } from "@/components/ui/dialog"
-import { IconDots, IconShare, IconFlag, IconUserOff } from "@tabler/icons-react"
+import { IconDots, IconShare, IconFlag } from "@tabler/icons-react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { reportProfile } from "@/lib/actions/reports"

@@ -1,9 +1,12 @@
 import type { Request, Response, NextFunction } from "express"
 import NotificationService from "../services/notification.service"
 import { sseService } from "../services/sse.service"
+import { pushService } from "../services/push.service"
 import type {
   ListNotificationsQueryDTO,
   NotificationIdParamDTO,
+  PushSubscribeBodyDTO,
+  PushUnsubscribeBodyDTO,
 } from "../schemas/notification.schema"
 
 // sseService is injected here rather than into NotificationService to keep the service
@@ -80,6 +83,35 @@ class NotificationController {
     res.setHeader("Connection", "keep-alive")
     res.flushHeaders()
     sseService.register(req.user!.id, res)
+  }
+
+  getVapidKey = (_req: Request, res: Response): void => {
+    const publicKey = pushService.vapidPublicKey
+    if (!publicKey) {
+      res.status(503).json({ success: false, error: "Push notifications not configured" })
+      return
+    }
+    res.json({ success: true, publicKey })
+  }
+
+  pushSubscribe = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { endpoint, keys } = req.body as PushSubscribeBodyDTO
+      await pushService.subscribe(req.user!.id, { endpoint, keys })
+      res.status(201).json({ success: true })
+    } catch (error) {
+      next(error)
+    }
+  }
+
+  pushUnsubscribe = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { endpoint } = req.body as PushUnsubscribeBodyDTO
+      await pushService.unsubscribe(req.user!.id, endpoint)
+      res.status(200).json({ success: true })
+    } catch (error) {
+      next(error)
+    }
   }
 }
 
