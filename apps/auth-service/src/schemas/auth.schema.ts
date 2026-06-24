@@ -48,7 +48,7 @@ export const resetPasswordSchema = z.object({
 })
 export type ResetPasswordDTO = z.infer<typeof resetPasswordSchema>
 
-export const refreshSchema = z.object({ refreshToken: z.string().min(1) })
+export const refreshSchema = z.object({ refreshToken: z.string().min(1).optional() })
 export type RefreshDTO = z.infer<typeof refreshSchema>
 
 export const logoutSchema = z.object({ refreshToken: z.string().min(1) })

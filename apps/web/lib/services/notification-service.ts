@@ -19,3 +19,10 @@ export function markAllNotificationsRead(authHeader: Record<string, string>) {
 export function deleteNotification(authHeader: Record<string, string>, id: string) {
   return serverClient.delete(`/api/notifications/${id}`, { headers: authHeader })
 }
+
+export function subscribePush(
+  authHeader: Record<string, string>,
+  body: { endpoint: string; keys: { auth: string; p256dh: string } }
+) {
+  return serverClient.post("/api/notifications/push/subscribe", body, { headers: authHeader })
+}
