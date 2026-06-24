@@ -18,7 +18,11 @@ interface ModerationState {
   /** Derived: number of users still sanctioned (suspended or banned) */
   sanctionedCount: number
 
-  initReports: (reports: EnrichedReport[]) => void
+  /** Report statistics */
+  total: number
+  pendingCount: number
+
+  initReports: (reports: EnrichedReport[], total?: number, pendingCount?: number) => void
   initSanctioned: (users: SanctionedUser[]) => void
   initAllUsers: (users: SanctionedUser[], total: number, page: number, limit: number) => void
   loadMoreUsers: (users: SanctionedUser[], total: number, page: number) => void
@@ -38,15 +42,22 @@ export const useModerationStore = create<ModerationState>((set) => ({
   allUsersLimit: 100,
   allUsersTotal: 0,
   sanctionedCount: 0,
+  total: 0,
+  pendingCount: 0,
 
-  initReports: (reports) => {
+  initReports: (reports, total, pendingCount) => {
     const sanctions: Record<string, UserSanctionState> = {}
     for (const r of reports) {
       sanctions[r.reportedUserId] = {
         isBanned: r.reportedIsBanned,
       }
     }
-    set((s) => ({ reports, sanctions: { ...s.sanctions, ...sanctions } }))
+    set((s) => ({
+      reports,
+      total: total ?? s.total,
+      pendingCount: pendingCount ?? s.pendingCount,
+      sanctions: { ...s.sanctions, ...sanctions },
+    }))
   },
 
   initAllUsers: (users, total, page, limit) => {
@@ -122,14 +133,22 @@ export const useModerationStore = create<ModerationState>((set) => ({
     }),
 
   resolveReport: (reportId) =>
-    set((s) => ({
-      reports: s.reports.map((r) =>
-        r.id === reportId ? { ...r, status: "resolved" as const } : r
-      ),
-    })),
+    set((s) => {
+      const report = s.reports.find((r) => r.id === reportId)
+      return {
+        reports: s.reports.map((r) =>
+          r.id === reportId ? { ...r, status: "resolved" as const } : r
+        ),
+        pendingCount: report?.status === "pending" ? Math.max(0, s.pendingCount - 1) : s.pendingCount,
+      }
+    }),
 
   unresolveReport: (reportId) =>
-    set((s) => ({
-      reports: s.reports.map((r) => (r.id === reportId ? { ...r, status: "pending" as const } : r)),
-    })),
+    set((s) => {
+      const report = s.reports.find((r) => r.id === reportId)
+      return {
+        reports: s.reports.map((r) => (r.id === reportId ? { ...r, status: "pending" as const } : r)),
+        pendingCount: report?.status === "resolved" ? s.pendingCount + 1 : s.pendingCount,
+      }
+    }),
 }))
