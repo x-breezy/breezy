@@ -124,8 +124,8 @@ services:
     container_name: breezy-rabbitmq
     restart: unless-stopped
     ports:
-      - "5672:5672"
-      - "15672:15672"
+      - "127.0.0.1:5672:5672"
+      - "127.0.0.1:15672:15672"
     environment:
       RABBITMQ_DEFAULT_USER: breezy
       RABBITMQ_DEFAULT_PASS: breezy
