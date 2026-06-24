@@ -162,27 +162,49 @@ export function MessageBubble(props: MessageBubbleProps) {
               <span className='px-1 text-xs font-semibold text-foreground/60'>
                 {replyTo.senderName}
               </span>
-              <div
-                className={`w-fit truncate rounded-xl px-3 py-1.5 text-xs opacity-70 ${
-                  isOwn
-                    ? "bg-primary/60 text-primary-foreground"
-                    : "bg-secondary/80 text-muted-foreground"
-                }`}
-              >
-                <span className='block w-fit truncate'>
-                  {isPostUrl(replyTo.content)
-                    ? (() => {
-                        const p = parsePostUrl(replyTo.content)
-                        return p ? `@${p.username}` : replyTo.content
-                      })()
-                    : isProfileUrl(replyTo.content)
-                      ? (() => {
-                          const p = parseProfileUrl(replyTo.content)
-                          return p ? `@${p.username}` : replyTo.content
-                        })()
-                      : replyTo.content}
-                </span>
-              </div>
+              {(() => {
+                const postParsed = isPostUrl(replyTo.content) ? parsePostUrl(replyTo.content) : null
+                const profileParsed =
+                  !postParsed && isProfileUrl(replyTo.content)
+                    ? parseProfileUrl(replyTo.content)
+                    : null
+
+                if (postParsed) {
+                  return (
+                    <div
+                      className={`pointer-events-none scale-90 opacity-50 ${isOwn ? "origin-right" : "origin-left"}`}
+                    >
+                      <SharedPostPreview
+                        postId={postParsed.postId}
+                        username={postParsed.username}
+                        isOwn={isOwn}
+                      />
+                    </div>
+                  )
+                }
+
+                if (profileParsed) {
+                  return (
+                    <div
+                      className={`pointer-events-none scale-90 opacity-50 ${isOwn ? "origin-right" : "origin-left"}`}
+                    >
+                      <SharedProfilePreview username={profileParsed.username} isOwn={isOwn} />
+                    </div>
+                  )
+                }
+
+                return (
+                  <div
+                    className={`w-fit truncate rounded-xl px-3 py-1.5 text-xs opacity-70 ${
+                      isOwn
+                        ? "bg-primary/60 text-primary-foreground"
+                        : "bg-secondary/80 text-muted-foreground"
+                    }`}
+                  >
+                    <span className='block w-fit truncate'>{replyTo.content}</span>
+                  </div>
+                )
+              })()}
             </div>
           )}
 
