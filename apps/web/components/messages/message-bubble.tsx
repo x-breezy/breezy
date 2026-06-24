@@ -23,6 +23,7 @@ type MessageBubbleProps =
       senderName?: string
       replyTo?: ReplyTo
       onReply?: () => void
+      onScrollToMessage?: (messageId: string) => void
     }
   | { variant: "system"; content: string; senderName?: string }
   | { variant: "writing"; avatarUrl?: string }
@@ -99,6 +100,7 @@ export function MessageBubble(props: MessageBubbleProps) {
     senderName,
     replyTo,
     onReply,
+    onScrollToMessage,
   } = props
 
   // Instagram-style grouped corners: inner corners flatten when bubbles are stacked
@@ -158,6 +160,7 @@ export function MessageBubble(props: MessageBubbleProps) {
           {replyTo && (
             <div
               className={`mt-4 mb-1 flex w-fit flex-col gap-0.5 ${isOwn ? "items-end" : "items-start"}`}
+              onClick={() => onScrollToMessage?.(replyTo._id)}
             >
               <span className='px-1 text-xs font-semibold text-foreground/60'>
                 {replyTo.senderName}
