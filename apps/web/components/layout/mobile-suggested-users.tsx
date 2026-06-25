@@ -11,6 +11,7 @@ import { type SearchProfile } from "@/lib/actions/profiles"
 import { mediaUrl } from "@/lib/utils"
 import { UsernameDisplay } from "@/components/shared/username-display"
 import { UserRole } from "@/lib/auth/role"
+import { ProfileAvatar } from "../profile/profile-avatar"
 
 export function MobileSuggestedUsers({ users }: { users: SearchProfile[] }) {
   const [followedIds, setFollowedIds] = useState<Set<string>>(new Set())
@@ -38,40 +39,28 @@ export function MobileSuggestedUsers({ users }: { users: SearchProfile[] }) {
   return (
     <div className='px-4 py-3'>
       <p className='mb-2.5 text-sm font-semibold'>{t("whoToFollow")}</p>
-      <div className='-mx-4 flex gap-3 overflow-x-auto px-4 pb-1 [scrollbar-width:none]'>
+      <div className='-mx-4 flex [scrollbar-width:none] gap-3 overflow-x-auto px-8 pb-1'>
         {filteredUsers.map((user) => (
           <Link
             href={`/profile/${user.username}`}
             key={user.profileId}
             className='flex w-[108px] shrink-0 flex-col items-center gap-1.5 rounded-xl border bg-card p-3 text-center'
           >
-            <Avatar size='md'>
-              {user.avatarUrl ? (
-                <AvatarImage
-                  src={
-                    user.avatarUrl.startsWith("http") ? user.avatarUrl : mediaUrl(user.avatarUrl)
-                  }
-                  alt={user.username ?? ""}
-                />
-              ) : null}
-              <AvatarFallback>
-                {(user.firstName?.[0] ?? user.username?.[0] ?? "?").toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
+            <ProfileAvatar size='sm' src={user.avatarUrl || undefined} alt={user.username ?? ""} />
             <div className='w-full min-w-0'>
               <UsernameDisplay
                 name={
                   [user.firstName, user.lastName].filter(Boolean).join(" ") || user.username || ""
                 }
                 role={user.role as UserRole | undefined}
-                nameClassName='truncate text-xs font-semibold'
+                nameClassName='truncate text-sm font-semibold'
                 badgeClassName='size-3.5'
               />
-              <p className='truncate text-xs text-muted-foreground'>@{user.username}</p>
+              <p className='truncate text-sm text-muted-foreground'>@{user.username}</p>
             </div>
             <Button
               variant='outline'
-              size='xs'
+              size='sm'
               className='mt-0.5 w-full'
               onClick={(e) => handleFollow(e, user)}
             >
