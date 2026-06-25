@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation"
 import { NavBar } from "./navigation/nav-bar"
+import { MainWrapper } from "./main-wrapper"
 import { RightSidebarConditional } from "./right-sidebar-conditional"
 import { UserStoreProvider } from "../providers/user-store-provider"
 import { clearSessionCookies, getServerAuthHeader, getUserId } from "@/lib/auth/session"
@@ -67,7 +68,7 @@ export async function AppLayout({ children }: AppLayoutProps) {
             <div className='flex min-w-0 flex-1'>
               <div className='mx-auto flex w-full max-w-[1400px]'>
                 <NavBar />
-                <main className='min-w-0 flex-1 border-x pb-0 lg:pb-0'>{children}</main>
+                <MainWrapper>{children}</MainWrapper>
                 <RightSidebarConditional suggestedUsers={suggestedUsers} />
               </div>
             </div>

@@ -530,7 +530,7 @@ services:
       SWAGGER_UPSTREAM: swagger-ui:8080
       RABBITMQ_UPSTREAM: rabbitmq:15672
       GRAFANA_UPSTREAM: grafana:3000
-      GRAFANA_DOMAIN: grafana.breezy.clementomnes.dev
+      GRAFANA_DOMAIN: breezy-grafana.clementomnes.dev
       CORS_ORIGIN_1: https://breezy.clementomnes.dev
       CORS_ORIGIN_2: http://localhost:3000
       MQ_DOMAIN: mq.breezy.clementomnes.dev
