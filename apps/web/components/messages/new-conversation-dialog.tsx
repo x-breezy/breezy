@@ -236,12 +236,11 @@ export function NewConversationDialog({
     if (selected.length < 1 || creating) return
     setCreating(true)
     try {
-      const memberIds: string[] = []
-      for (const p of selected) {
-        if (!p.username) continue
-        const { id } = await getUserByUsername(p.username)
-        memberIds.push(id)
-      }
+      const memberIds = await Promise.all(
+        selected
+          .filter((p) => !!p.username)
+          .map((p) => getUserByUsername(p.username!).then((u) => u.id))
+      )
       if (isAddMode && conversationId) {
         await addMember(conversationId, memberIds)
       } else {

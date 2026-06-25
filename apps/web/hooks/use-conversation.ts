@@ -75,7 +75,7 @@ export function useConversation(conversationId: string, userId: string | undefin
     markConversationRead(conversationId).catch((err) =>
       console.error("Failed to mark as read", err)
     )
-  }, [conversationId, userId, messages])
+  }, [conversationId, userId, messages.length])
 
   const sendMessage = useCallback(
     async (content: string, replyTo?: ReplyTo) => {
