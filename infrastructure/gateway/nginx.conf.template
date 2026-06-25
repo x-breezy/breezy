@@ -13,17 +13,17 @@ http {
   server_tokens off;
 
   # Slowloris protection
-  client_body_timeout   10s;
-  client_header_timeout 10s;
+  client_body_timeout   5s;
+  client_header_timeout 5s;
   send_timeout          10s;
-  keepalive_timeout     65s;
+  keepalive_timeout     15s;
 
   # Header size limits (header injection / buffer overflow)
   client_header_buffer_size  1k;
   large_client_header_buffers 4 4k;
 
-  # Connection flood protection
-  limit_conn_zone $binary_remote_addr zone=conn:10m;
+  # Connection flood protection — use CF-Connecting-IP (real visitor IP behind Cloudflare)
+  limit_conn_zone $http_cf_connecting_ip zone=conn:10m;
 
   gzip on;
   gzip_types text/plain application/json application/javascript text/css text/xml;
@@ -41,7 +41,7 @@ http {
   upstream rabbitmq_mgmt         { server ${RABBITMQ_UPSTREAM}; }
   upstream grafana               { server ${GRAFANA_UPSTREAM}; }
 
-  limit_req_zone $binary_remote_addr zone=auth:10m rate=1000r/m;
+  limit_req_zone $http_cf_connecting_ip zone=auth:10m rate=1000r/m;
   limit_req_zone $http_authorization zone=api:10m  rate=60000r/m;
   limit_req_status 429;
 

@@ -1,17 +1,20 @@
 "use client"
 
-import { useRef, useEffect, useLayoutEffect, useState, useMemo } from "react"
+import { Fragment, useRef, useEffect, useLayoutEffect, useState, useMemo } from "react"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { useTranslations } from "next-intl"
 import { useFeed } from "./use-feed"
 import Post from "./post"
 import { CommentTree } from "./comment-tree"
 import { usePostStore } from "@/stores/post-store"
+import { useUserStore } from "@/stores/user-store"
 import { Skeleton } from "@/components/ui/skeleton"
 import { listFeedPosts } from "@/lib/actions/feed"
+import { getSuggestedProfiles } from "@/lib/actions/profiles"
 import { IconArrowUp } from "@tabler/icons-react"
 import { Button } from "../ui/button"
 import { PullToRefresh } from "@/components/layout/pull-to-refresh"
+import { MobileSuggestedUsers } from "@/components/layout/mobile-suggested-users"
 import type { CommentNode } from "./comment-tree"
 import type { FeedPost } from "./use-feed"
 import type { ProfileRef } from "@/lib/actions/post-detail"
@@ -36,6 +39,14 @@ export function Feed({ feedType = "forYou" }: { feedType?: string }) {
   const cacheLikedIds = usePostStore((s) => s.cacheLikedIds)
   const handleLike = usePostStore((s) => s.toggleLike)
   const queryClient = useQueryClient()
+  const profileId = useUserStore((s) => s.profile?.profileId)
+
+  const { data: suggestedUsers = [] } = useQuery({
+    queryKey: ["suggested-users", profileId],
+    queryFn: () => getSuggestedProfiles(profileId!, 5),
+    enabled: !!profileId,
+    staleTime: 5 * 60 * 1000,
+  })
 
   const sentinelRef = useRef<HTMLLIElement>(null)
   const firstPostIdRef = useRef<string | null>(null)
@@ -215,34 +226,42 @@ export function Feed({ feedType = "forYou" }: { feedType?: string }) {
         </Button>
       </div>
       <ul onClick={() => sessionStorage.setItem(scrollKey, String(scrollEl()?.scrollTop ?? 0))}>
-        {feedItems.map((item) => {
-          if (item.type === "reply-group") {
-            return (
-              <li key={`ct-${item.commentNode._id}`} className='border-b border-border'>
+        {feedItems.map((item, index) => {
+          const key = item.type === "reply-group" ? `ct-${item.commentNode._id}` : item.post._id
+          const el =
+            item.type === "reply-group" ? (
+              <li className='border-b border-border'>
                 <CommentTree comments={[item.commentNode]} />
               </li>
+            ) : (
+              <li className='border-b border-border'>
+                <Post
+                  id={item.post._id}
+                  name={authorName(item.post)}
+                  username={item.post.author?.username ?? item.post.authorId}
+                  authorId={item.post.authorId}
+                  avatarUrl={item.post.author?.avatarUrl ?? undefined}
+                  authorRole={item.post.author?.role ?? undefined}
+                  content={item.post.content}
+                  media={item.post.media}
+                  createdAt={item.post.createdAt}
+                  initialLikes={item.post.likesCount}
+                  initialComments={item.post.commentsCount}
+                  initialLiked={item.post.liked}
+                  onLike={handleLike}
+                  href={`/post/${item.post.author?.username ?? item.post.authorId}/${item.post._id}`}
+                />
+              </li>
             )
-          }
-          const post = item.post
           return (
-            <li key={post._id} className='border-b border-border'>
-              <Post
-                id={post._id}
-                name={authorName(post)}
-                username={post.author?.username ?? post.authorId}
-                authorId={post.authorId}
-                avatarUrl={post.author?.avatarUrl ?? undefined}
-                authorRole={post.author?.role ?? undefined}
-                content={post.content}
-                media={post.media}
-                createdAt={post.createdAt}
-                initialLikes={post.likesCount}
-                initialComments={post.commentsCount}
-                initialLiked={post.liked}
-                onLike={handleLike}
-                href={`/post/${post.author?.username ?? post.authorId}/${post._id}`}
-              />
-            </li>
+            <Fragment key={key}>
+              {el}
+              {index === 2 && suggestedUsers.length > 0 && (
+                <li className='border-b border-border xl:hidden'>
+                  <MobileSuggestedUsers users={suggestedUsers} />
+                </li>
+              )}
+            </Fragment>
           )
         })}
         {hasNextPage && (
