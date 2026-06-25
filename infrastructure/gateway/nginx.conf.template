@@ -1,13 +1,29 @@
+worker_processes     auto;
 worker_rlimit_nofile 65535;
 
 events {
   worker_connections 4096;
+  multi_accept       on;
+  use                epoll;
 }
 
 http {
   resolver 127.0.0.11 valid=10s ipv6=off;
 
   server_tokens off;
+
+  # Slowloris protection
+  client_body_timeout   10s;
+  client_header_timeout 10s;
+  send_timeout          10s;
+  keepalive_timeout     65s;
+
+  # Header size limits (header injection / buffer overflow)
+  client_header_buffer_size  1k;
+  large_client_header_buffers 4 4k;
+
+  # Connection flood protection
+  limit_conn_zone $binary_remote_addr zone=conn:10m;
 
   gzip on;
   gzip_types text/plain application/json application/javascript text/css text/xml;
@@ -43,6 +59,11 @@ http {
 
   server {
     listen 80;
+
+    limit_conn conn 20;
+
+    # Drop connections silently for empty User-Agent (most bots/scanners)
+    if ($http_user_agent = "") { return 444; }
 
     proxy_set_header Host              $host;
     proxy_set_header X-Real-IP         $remote_addr;
