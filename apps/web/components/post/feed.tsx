@@ -11,6 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { listFeedPosts } from "@/lib/actions/feed"
 import { IconArrowUp } from "@tabler/icons-react"
 import { Button } from "../ui/button"
+import { PullToRefresh } from "@/components/layout/pull-to-refresh"
 import type { CommentNode } from "./comment-tree"
 import type { FeedPost } from "./use-feed"
 import type { ProfileRef } from "@/lib/actions/post-detail"
@@ -200,7 +201,7 @@ export function Feed({ feedType = "forYou" }: { feedType?: string }) {
   }
 
   return (
-    <div>
+    <PullToRefresh onRefresh={handleRefresh}>
       <div className='sticky top-20 z-10 flex h-0 justify-center'>
         <Button
           onClick={handleRefresh}
@@ -250,6 +251,6 @@ export function Feed({ feedType = "forYou" }: { feedType?: string }) {
           </li>
         )}
       </ul>
-    </div>
+    </PullToRefresh>
   )
 }

@@ -86,9 +86,7 @@ export function SidebarItem({ conv, currentUserId, activeId, onDelete }: Sidebar
             <div className='min-w-0 flex-1'>
               {displayName !== null ? (
                 conv.isGroup ? (
-                  <span className='truncate text-sm font-semibold text-foreground'>
-                    {displayName}
-                  </span>
+                  <p className='truncate text-sm font-semibold text-foreground'>{displayName}</p>
                 ) : (
                   <UsernameDisplay
                     name={displayName}

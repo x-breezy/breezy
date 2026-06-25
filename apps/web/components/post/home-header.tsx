@@ -17,8 +17,8 @@ import { useNotificationStore } from "@/stores/notification-store"
 import { PostComposeDialog } from "@/components/post/create-post/post-compose-dialog"
 
 const FEED_OPTIONS = [
-  { value: "forYou", labelKey: "feedForYou" },
   { value: "following", labelKey: "feedFollowing" },
+  { value: "forYou", labelKey: "feedForYou" },
 ]
 
 interface HomeHeaderProps {
@@ -49,12 +49,21 @@ export function HomeHeader({ feed, onFeedChange }: HomeHeaderProps) {
           </Button>
         }
         center={
-          <Select value={feed} onValueChange={(value) => value && onFeedChange(value)}>
+          <Select
+            value={feed}
+            onValueChange={(value) => {
+              if (!value) return
+              const params = new URLSearchParams(searchParams.toString())
+              params.set("feed", value)
+              router.push(`?${params}`)
+              onFeedChange(value)
+            }}
+          >
             <SelectTrigger className='h-auto border-0 bg-transparent px-0 py-0 text-xl font-bold capitalize focus-visible:ring-0'>
               <SelectValue>
                 {t(
                   (FEED_OPTIONS.find((o) => o.value === feed)?.labelKey ??
-                    "feedForYou") as Parameters<typeof t>[0]
+                    "feedFollowing") as Parameters<typeof t>[0]
                 )}
               </SelectValue>
             </SelectTrigger>

@@ -28,7 +28,7 @@ export function SearchTabs() {
     <Tabs
       value={activeTab}
       onValueChange={setTab}
-      className='container-center sticky top-15 z-10 bg-background'
+      className='container-center sticky top-15 z-30 bg-background'
     >
       <TabsList variant='line' className='w-full'>
         {TABS.map((tabItem) => (

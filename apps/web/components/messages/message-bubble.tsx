@@ -10,6 +10,7 @@ import { isProfileUrl, parseProfileUrl } from "@/lib/utils/profile-url"
 import { SharedPostPreview } from "./shared-post-preview"
 import { SharedProfilePreview } from "./shared-profile-preview"
 import type { ReplyTo } from "@/lib/actions/messages"
+import { ProfileAvatar } from "../profile"
 
 type MessageBubbleProps =
   | {
@@ -73,14 +74,7 @@ export function MessageBubble(props: MessageBubbleProps) {
   if (props.variant === "writing") {
     return (
       <div className='mb-1 flex w-full justify-start gap-2'>
-        <Avatar className='h-7 w-7 shrink-0 self-end'>
-          {props.avatarUrl && (
-            <AvatarImage src={props.avatarUrl} alt='Avatar' className='object-cover' />
-          )}
-          <AvatarFallback className='bg-primary/10 text-xs font-semibold text-primary'>
-            U
-          </AvatarFallback>
-        </Avatar>
+        <ProfileAvatar src={props.avatarUrl} alt='Avatar' size='sm' />
         <div className='flex items-center gap-1 rounded-3xl rounded-bl-md bg-secondary px-4 py-2.5'>
           <span className='h-2 w-2 animate-bounce rounded-full bg-muted-foreground [animation-delay:0ms]' />
           <span className='h-2 w-2 animate-bounce rounded-full bg-muted-foreground [animation-delay:150ms]' />
@@ -140,14 +134,12 @@ export function MessageBubble(props: MessageBubbleProps) {
       onMouseLeave={() => setHovered(false)}
     >
       {!isOwn && (
-        <Avatar
+        <ProfileAvatar
           className={`mr-1.5 h-7 w-7 shrink-0 self-end ${isLastOfGroup === false ? "invisible" : ""}`}
-        >
-          {avatarUrl && <AvatarImage src={avatarUrl} alt='Avatar' className='object-cover' />}
-          <AvatarFallback className='bg-primary/10 text-xs font-semibold text-primary'>
-            U
-          </AvatarFallback>
-        </Avatar>
+          src={avatarUrl}
+          alt='Avatar'
+          size='2xs'
+        />
       )}
 
       <div className={`max-w-[75%] min-w-0 flex-shrink`}>

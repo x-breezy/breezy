@@ -19,8 +19,6 @@ export function ConversationGroupAvatar({
   const shown = participantIds.slice(0, 2)
   const extra = Math.max(0, totalCount - shown.length)
 
-  console.log(shown)
-
   if (shown.length === 0) return null
 
   const avatar1 = shown[0] ? cachedUsers[shown[0]] : null

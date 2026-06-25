@@ -74,7 +74,11 @@ export const useConversationStore = create<ConversationState>((set, get) => ({
       lastMessageSenderId: msg.senderId,
       lastMessageAt: msg.createdAt || new Date().toISOString(),
       hasUnread: conv.hasUnread || (!isActive && msg.senderId !== currentUserId),
-      unreadCount: isActive ? 0 : msg.senderId !== currentUserId ? (conv.unreadCount || 0) + 1 : (conv.unreadCount || 0),
+      unreadCount: isActive
+        ? 0
+        : msg.senderId !== currentUserId
+          ? (conv.unreadCount || 0) + 1
+          : conv.unreadCount || 0,
     }
     set((s) => ({
       conversations: [updated, ...s.conversations.filter((c) => c._id !== msg.conversationId)],
@@ -98,6 +102,7 @@ export const useConversationStore = create<ConversationState>((set, get) => ({
   },
 
   renameConversation: async (id, name) => {
+    get().updateConversationMeta(id, { name })
     const newName = await apiRenameConversation(id, name)
     get().updateConversationMeta(id, { name: newName })
     return newName

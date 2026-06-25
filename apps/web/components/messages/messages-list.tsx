@@ -144,16 +144,24 @@ export function MessagesList({
           const showDateSep = !prevMsg || !sameDay(prevMsg.createdAt, msg.createdAt)
 
           let senderName = msg.senderId === currentUserId ? t("you") : t("someone")
-          if (msg.senderId !== currentUserId) {
-            const p = participants?.[msg.senderId]
-            if (p) {
-              senderName =
-                [p.firstName, p.lastName].filter(Boolean).join(" ") || p.username || senderName
-            } else {
-              const cached = cachedUsers[msg.senderId]
-              if (cached) {
-                const parts = cached.displayName.split(" @")
-                senderName = parts[0] || parts[1] || senderName
+          let replyName = senderName
+          const senderParticipant = participants?.[msg.senderId]
+          if (senderParticipant) {
+            const resolved =
+              [senderParticipant.firstName, senderParticipant.lastName].filter(Boolean).join(" ") ||
+              senderParticipant.username
+            if (resolved) {
+              if (msg.senderId !== currentUserId) senderName = resolved
+              replyName = resolved
+            }
+          } else {
+            const cached = cachedUsers[msg.senderId]
+            if (cached) {
+              const parts = cached.displayName.split(" @")
+              const resolved = parts[0] || parts[1]
+              if (resolved) {
+                if (msg.senderId !== currentUserId) senderName = resolved
+                replyName = resolved
               }
             }
           }
@@ -192,7 +200,7 @@ export function MessagesList({
                   avatarUrl={msgAvatarUrl}
                   senderName={senderName}
                   replyTo={msg.replyTo}
-                  onReply={onReply ? () => onReply(msg, senderName) : undefined}
+                  onReply={onReply ? () => onReply(msg, replyName) : undefined}
                   onScrollToMessage={handleScrollToMessage}
                 />
               </div>
