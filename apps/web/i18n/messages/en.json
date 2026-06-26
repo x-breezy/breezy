@@ -455,5 +455,9 @@
     "replies": "Replies",
     "repliesCount": "Replies ({count})",
     "noReplies": "No replies yet."
+  },
+  "common": {
+    "unknownPage": "Unknown page",
+    "backToHome": "Back to home"
   }
 }

@@ -455,5 +455,9 @@
     "replies": "Réponses",
     "repliesCount": "Réponses ({count})",
     "noReplies": "Aucune réponse pour le moment."
+  },
+  "common": {
+    "unknownPage": "Page inconnue",
+    "backToHome": "Retour à la page principale"
   }
 }
