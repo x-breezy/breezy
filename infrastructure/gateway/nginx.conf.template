@@ -38,7 +38,6 @@ http {
   upstream message_service       { server ${MESSAGE_UPSTREAM}; }
   upstream web                   { server ${WEB_UPSTREAM}; }
   upstream swagger_ui            { server ${SWAGGER_UPSTREAM}; }
-  upstream rabbitmq_mgmt         { server ${RABBITMQ_UPSTREAM}; }
   upstream grafana               { server ${GRAFANA_UPSTREAM}; }
 
   limit_req_zone $http_cf_connecting_ip zone=auth:10m rate=1000r/m;
@@ -319,19 +318,6 @@ http {
       proxy_set_header Upgrade    $http_upgrade;
       proxy_set_header Connection "upgrade";
       proxy_pass http://web;
-    }
-  }
-
-  server {
-    listen 80;
-    server_name ${MQ_DOMAIN};
-
-    location / {
-      proxy_pass http://rabbitmq_mgmt;
-      proxy_set_header Host              $host;
-      proxy_set_header X-Real-IP         $remote_addr;
-      proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
-      proxy_set_header X-Forwarded-Proto $scheme;
     }
   }
 
