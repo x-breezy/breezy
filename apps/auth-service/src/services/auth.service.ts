@@ -23,57 +23,8 @@ import type { SignInDTO } from "../schemas/auth.schema"
 const FRONTEND_URL = process.env.FRONTEND_URL ?? "http://localhost:3000"
 const REFRESH_TTL_SECONDS = Math.floor(REFRESH_TOKEN_TTL_MS / 1000)
 
-const GRACE_TTL_SECONDS = 60
-
 const TWO_FACTOR_MAX_ATTEMPTS = 5
 const TWO_FACTOR_LOCKOUT_SECONDS = 300
-
-// Atomic refresh-token rotation with grace window to absorb concurrent replays.
-// Return codes: 0 = unknown, 1 = rotated/replayed (record in result[1]), 3 = reuse detected + session wiped.
-const ROTATE_SCRIPT = `
-local oldHash = ARGV[1]
-local newHash = ARGV[2]
-local refreshTTL = tonumber(ARGV[3])
-local graceTTL = tonumber(ARGV[4])
-
-local function doRotate(fromHash, toHash, record)
-  local r = cjson.decode(record)
-  local uid = r['userId']
-  local sk = 'session:' .. uid
-  local cv = cjson.encode({userId=uid, role=r['role'], newHash=toHash})
-  redis.call('DEL', 'refresh:' .. fromHash)
-  redis.call('SET', 'consumed:' .. fromHash, cv, 'EX', refreshTTL)
-  redis.call('SET', 'grace:' .. fromHash, '1', 'EX', graceTTL)
-  redis.call('SREM', sk, fromHash)
-  redis.call('SET', 'refresh:' .. toHash, record, 'EX', refreshTTL)
-  redis.call('SADD', sk, toHash)
-  return {1, record}
-end
-
-local data = redis.call('GET', 'refresh:' .. oldHash)
-if data then return doRotate(oldHash, newHash, data) end
-
-local cv = redis.call('GET', 'consumed:' .. oldHash)
-if not cv then return {0} end
-
-if redis.call('EXISTS', 'grace:' .. oldHash) == 0 then
-  local c = cjson.decode(cv)
-  local sk = 'session:' .. c['userId']
-  local hashes = redis.call('SMEMBERS', sk)
-  for _, h in ipairs(hashes) do
-    redis.call('DEL', 'refresh:' .. h)
-    redis.call('DEL', 'consumed:' .. h)
-    redis.call('DEL', 'grace:' .. h)
-  end
-  redis.call('DEL', sk)
-  return {3}
-end
-
-local c = cjson.decode(cv)
-local prevData = redis.call('GET', 'refresh:' .. c['newHash'])
-if prevData then return doRotate(c['newHash'], newHash, prevData) end
-return {0}
-`
 
 export interface TokenPair {
   accessToken: string
@@ -165,37 +116,39 @@ class AuthService {
 
   async rotateRefreshToken(raw: string): Promise<TokenPair & { user: SafeUser }> {
     const oldHash = hashRefreshToken(raw)
-    const redis = getRedis()
-
     const newRefreshToken = generateRefreshToken()
     const newHash = hashRefreshToken(newRefreshToken)
+    const redis = getRedis()
 
-    const result = (await redis.eval(
-      ROTATE_SCRIPT,
-      0,
-      oldHash,
-      newHash,
-      String(REFRESH_TTL_SECONDS),
-      String(GRACE_TTL_SECONDS)
-    )) as (string | number)[]
+    const [data, ttl] = await Promise.all([
+      redis.getdel(`refresh:${oldHash}`),
+      redis.ttl(`refresh:${oldHash}`),
+    ])
 
-    const status = result[0] as number
-
-    if (status === 0 || status === 3) {
+    if (!data) {
+      const consumed = await redis.get(`consumed:${oldHash}`)
+      if (consumed) {
+        const { userId } = JSON.parse(consumed) as { userId: string }
+        await this.revokeAllRefreshTokens(userId)
+      }
       throw Object.assign(new Error("Invalid refresh token"), { code: "INVALID_REFRESH" })
     }
 
-    const record = JSON.parse(result[1] as string) as RefreshRecord
+    const record = JSON.parse(data) as RefreshRecord
+    const remainingTtl = ttl > 0 ? ttl : REFRESH_TTL_SECONDS
+
+    await redis
+      .multi()
+      .set(`refresh:${newHash}`, data, "EX", remainingTtl)
+      .set(`consumed:${oldHash}`, data, "EX", remainingTtl)
+      .srem(`session:${record.userId}`, oldHash)
+      .sadd(`session:${record.userId}`, newHash)
+      .exec()
+
     const user = await User.findByPk(record.userId)
-    if (!user) {
-      throw Object.assign(new Error("Invalid refresh token"), { code: "INVALID_REFRESH" })
-    }
+    if (!user) throw Object.assign(new Error("Invalid refresh token"), { code: "INVALID_REFRESH" })
 
-    const accessToken = signToken({
-      sub: record.userId,
-      role: record.role,
-      isComplete: record.isComplete,
-    })
+    const accessToken = signToken({ sub: record.userId, role: record.role, isComplete: record.isComplete })
     return { accessToken, refreshToken: newRefreshToken, user: user.toJSON() }
   }
 
@@ -209,7 +162,6 @@ class AuthService {
       .multi()
       .del(`refresh:${tokenHash}`)
       .del(`consumed:${tokenHash}`)
-      .del(`grace:${tokenHash}`)
       .srem(`session:${userId}`, tokenHash)
       .exec()
   }
@@ -222,7 +174,6 @@ class AuthService {
     for (const hash of sessionHashes) {
       pipeline.del(`refresh:${hash}`)
       pipeline.del(`consumed:${hash}`)
-      pipeline.del(`grace:${hash}`)
     }
     pipeline.del(`session:${userId}`)
     await pipeline.exec()

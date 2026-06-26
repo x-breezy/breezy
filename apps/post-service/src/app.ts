@@ -8,7 +8,6 @@ import mongoose from "mongoose"
 import { createPostRouter } from "./routes/post.route"
 import { swaggerSpec } from "./config/swagger"
 import { assertRabbitMQReady } from "./clients/rabbitmq"
-import { getRedis } from "./clients/redis"
 
 const service = "post-service"
 const logger = createLogger({ service })
@@ -31,7 +30,6 @@ export function createApp(): Express {
           await db.admin().ping()
         },
         rabbitmq: assertRabbitMQReady,
-        redis: () => getRedis().ping(),
       },
     })
   )

@@ -29,10 +29,6 @@ jest.mock("../../utils/jwt")
 jest.mock("../../clients/banned-users", () => ({
   getBannedUserIds: jest.fn().mockResolvedValue(new Set()),
 }))
-jest.mock("../../clients/redis", () => ({
-  getRedis: jest.fn().mockReturnValue({ ping: jest.fn().mockResolvedValue("PONG") }),
-  connectRedis: jest.fn().mockResolvedValue(undefined),
-}))
 const mockVerifyJwt = verifyJwt as jest.MockedFunction<typeof verifyJwt>
 
 // No USER_SERVICE_URL in test env -> HttpFollowGraph.getFollowing returns null -> global feed.

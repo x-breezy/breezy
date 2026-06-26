@@ -3,18 +3,17 @@ import { createLogger } from "@breezy/logger"
 import { Op } from "sequelize"
 import { Profile } from "../models/profile.model"
 import { Follow } from "../models/follow.model"
-import { getRedis } from "./redis"
 
 const logger = createLogger({ service: "profile-service" })
 
 const EXCHANGE = "breezy.events"
 const QUEUE = "profile-service.banned-users"
 const BINDING_KEYS = ["user.banned", "user.unbanned"]
-const BANNED_KEY = "banned:users"
+
+const bannedUserIds = new Set<string>()
 
 export async function getBannedUserIds(): Promise<Set<string>> {
-  const ids = await getRedis().smembers(BANNED_KEY)
-  return new Set(ids)
+  return bannedUserIds
 }
 
 async function adjustFollowCountsForBan(userId: string, delta: 1 | -1): Promise<void> {
@@ -40,34 +39,31 @@ async function adjustFollowCountsForBan(userId: string, delta: 1 | -1): Promise<
   ])
 }
 
-async function syncBannedUsersFromAuthService(): Promise<void> {
+async function seed(): Promise<void> {
   const authUrl = process.env.AUTH_SERVICE_URL ?? "http://localhost:4020"
   const maxAttempts = 5
-  const delayMs = 1000
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
       const res = await fetch(`${authUrl}/internal/banned-user-ids`)
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
       const body = (await res.json()) as { ids: string[] }
-      const pipeline = getRedis().pipeline().del(BANNED_KEY)
-      if (body.ids.length > 0) pipeline.sadd(BANNED_KEY, ...body.ids)
-      await pipeline.exec()
-      logger.info({ count: body.ids.length }, "Banned users cache seeded from auth-service")
+      for (const id of body.ids) bannedUserIds.add(id)
+      logger.info({ count: body.ids.length }, "Banned users seeded from auth-service")
       return
     } catch (err) {
       if (attempt === maxAttempts) {
-        logger.warn({ err }, "Failed to seed banned users cache, starting empty")
+        logger.warn({ err }, "Failed to seed banned users, starting empty")
         return
       }
-      logger.debug({ attempt, err }, "Retrying banned users cache seed")
-      await new Promise((resolve) => setTimeout(resolve, delayMs))
+      logger.debug({ attempt, err }, "Retrying banned users seed")
+      await new Promise((resolve) => setTimeout(resolve, Math.min(1000 * 2 ** (attempt - 1), 10_000)))
     }
   }
 }
 
 export async function startBannedUsersConsumer(): Promise<void> {
-  await syncBannedUsersFromAuthService()
+  await seed()
   try {
     const url = process.env.RABBITMQ_URL ?? "amqp://breezy:breezy@localhost:5672"
     const conn = await amqplib.connect(url)
@@ -75,7 +71,6 @@ export async function startBannedUsersConsumer(): Promise<void> {
 
     await channel.assertExchange(EXCHANGE, "topic", { durable: true })
     await channel.assertQueue(QUEUE, { durable: true })
-
     for (const key of BINDING_KEYS) {
       await channel.bindQueue(QUEUE, EXCHANGE, key)
     }
@@ -83,16 +78,15 @@ export async function startBannedUsersConsumer(): Promise<void> {
     channel.consume(QUEUE, async (msg) => {
       if (!msg) return
       try {
-        const payload = JSON.parse(msg.content.toString()) as { userId: string }
-        const { userId } = payload
+        const { userId } = JSON.parse(msg.content.toString()) as { userId: string }
         if (msg.fields.routingKey === "user.banned") {
-          await getRedis().sadd(BANNED_KEY, userId)
+          bannedUserIds.add(userId)
           await adjustFollowCountsForBan(userId, -1)
-          logger.info({ userId }, "Banned user added to cache")
+          logger.info({ userId }, "Banned user processed")
         } else if (msg.fields.routingKey === "user.unbanned") {
-          await getRedis().srem(BANNED_KEY, userId)
+          bannedUserIds.delete(userId)
           await adjustFollowCountsForBan(userId, 1)
-          logger.info({ userId }, "Unbanned user removed from cache")
+          logger.info({ userId }, "Unbanned user processed")
         }
         channel.ack(msg)
       } catch (err) {

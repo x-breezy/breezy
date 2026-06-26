@@ -44,6 +44,7 @@ class UserService {
     if (!user) throw Object.assign(new Error("User not found"), { code: "USER_NOT_FOUND" })
     await user.update({ isBanned: true })
     await this.revokeAllSessions(id)
+    await getRedis().set(`banned:${id}`, "1")
     void publish("user.banned", { userId: id })
   }
 
@@ -55,7 +56,6 @@ class UserService {
     for (const hash of hashes) {
       pipeline.del(`refresh:${hash}`)
       pipeline.del(`consumed:${hash}`)
-      pipeline.del(`grace:${hash}`)
     }
     pipeline.del(`session:${userId}`)
     await pipeline.exec()
@@ -93,6 +93,7 @@ class UserService {
     const user = await User.findByPk(id)
     if (!user) throw Object.assign(new Error("User not found"), { code: "USER_NOT_FOUND" })
     await user.update({ isBanned: false })
+    await getRedis().del(`banned:${id}`)
     void publish("user.unbanned", { userId: id })
   }
 

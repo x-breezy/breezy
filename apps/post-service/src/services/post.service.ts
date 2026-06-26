@@ -8,7 +8,7 @@ import type { PostDetail, ReplyPost, ProfileRef } from "../types/post-detail"
 import type { PaginatedResponse } from "../types/api"
 import { GrpcFollowGraph, type FollowGraphPort } from "../clients/follow-graph"
 import { publish } from "../clients/rabbitmq"
-import { getBannedUserIds } from "../clients/banned-users"
+import { getBannedUserIds } from "../clients/banned-users.consumer"
 import { deleteMediaItems } from "../clients/media.grpc.client"
 
 const NEST_DEPTH = 2

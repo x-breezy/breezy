@@ -90,12 +90,13 @@ beforeEach(() => {
   mockRedis = {
     multi: jest.fn().mockReturnValue(mockMulti),
     get: jest.fn().mockResolvedValue(null),
+    getdel: jest.fn().mockResolvedValue(null),
+    ttl: jest.fn().mockResolvedValue(-1),
     set: jest.fn().mockResolvedValue("OK"),
     del: jest.fn().mockResolvedValue(1),
     smembers: jest.fn().mockResolvedValue([]),
     incr: jest.fn().mockResolvedValue(1),
     expire: jest.fn().mockResolvedValue(1),
-    eval: jest.fn().mockResolvedValue([]),
   }
   mockOAuth2Client = {
     getToken: jest.fn(),
@@ -395,10 +396,8 @@ describe("revokeAllRefreshTokens", () => {
     expect(mockRedis.smembers).toHaveBeenCalledWith("session:user-1")
     expect(mockMulti.del).toHaveBeenCalledWith("refresh:hash1")
     expect(mockMulti.del).toHaveBeenCalledWith("consumed:hash1")
-    expect(mockMulti.del).toHaveBeenCalledWith("grace:hash1")
     expect(mockMulti.del).toHaveBeenCalledWith("refresh:hash2")
     expect(mockMulti.del).toHaveBeenCalledWith("consumed:hash2")
-    expect(mockMulti.del).toHaveBeenCalledWith("grace:hash2")
     expect(mockMulti.del).toHaveBeenCalledWith("session:user-1")
     expect(mockMulti.exec).toHaveBeenCalled()
   })
@@ -413,13 +412,18 @@ describe("revokeAllRefreshTokens", () => {
 })
 
 describe("rotateRefreshToken", () => {
-  it("returns new token pair and user when rotation succeeds", async () => {
-    mockRedis.eval.mockResolvedValue([1, JSON.stringify({ userId: "user-1", role: "user" })])
+  const RECORD = JSON.stringify({ userId: "user-1", role: "user", isComplete: true })
+
+  it("returns new token pair and user on valid rotation", async () => {
+    mockRedis.getdel.mockResolvedValue(RECORD)
+    mockRedis.ttl.mockResolvedValue(3600)
     ;(mockedUser.findByPk as jest.Mock).mockResolvedValue(MOCK_USER)
 
     const result = await service.rotateRefreshToken("old-refresh-token")
 
-    expect(mockRedis.eval).toHaveBeenCalled()
+    expect(mockRedis.getdel).toHaveBeenCalledWith("refresh:mock-refresh-hash")
+    expect(mockMulti.set).toHaveBeenCalledWith("refresh:mock-refresh-hash", RECORD, "EX", 3600)
+    expect(mockMulti.set).toHaveBeenCalledWith("consumed:mock-refresh-hash", RECORD, "EX", 3600)
     expect(result).toEqual({
       accessToken: "mock-access-token",
       refreshToken: "mock-refresh-raw",
@@ -427,24 +431,40 @@ describe("rotateRefreshToken", () => {
     })
   })
 
-  it("throws INVALID_REFRESH when redis returns status 0", async () => {
-    mockRedis.eval.mockResolvedValue([0])
+  it("falls back to REFRESH_TTL_SECONDS when ttl is -1", async () => {
+    mockRedis.getdel.mockResolvedValue(RECORD)
+    mockRedis.ttl.mockResolvedValue(-1)
+    ;(mockedUser.findByPk as jest.Mock).mockResolvedValue(MOCK_USER)
+
+    await service.rotateRefreshToken("old-token")
+
+    const expectedTtl = Math.floor(7 * 24 * 60 * 60 * 1000 / 1000)
+    expect(mockMulti.set).toHaveBeenCalledWith("refresh:mock-refresh-hash", RECORD, "EX", expectedTtl)
+  })
+
+  it("throws INVALID_REFRESH when token does not exist and is not consumed", async () => {
+    mockRedis.getdel.mockResolvedValue(null)
+    mockRedis.get.mockResolvedValue(null)
 
     await expect(service.rotateRefreshToken("bad-token")).rejects.toMatchObject({
       code: "INVALID_REFRESH",
     })
   })
 
-  it("throws INVALID_REFRESH when redis returns status 3 (reuse detected)", async () => {
-    mockRedis.eval.mockResolvedValue([3])
+  it("throws INVALID_REFRESH and wipes session when reuse detected", async () => {
+    mockRedis.getdel.mockResolvedValue(null)
+    mockRedis.get.mockResolvedValue(JSON.stringify({ userId: "user-1" }))
+    mockRedis.smembers.mockResolvedValue(["h1"])
 
     await expect(service.rotateRefreshToken("reused-token")).rejects.toMatchObject({
       code: "INVALID_REFRESH",
     })
+    expect(mockMulti.del).toHaveBeenCalledWith("refresh:h1")
   })
 
   it("throws INVALID_REFRESH when user not found", async () => {
-    mockRedis.eval.mockResolvedValue([1, JSON.stringify({ userId: "missing-user", role: "user" })])
+    mockRedis.getdel.mockResolvedValue(RECORD)
+    mockRedis.ttl.mockResolvedValue(3600)
     ;(mockedUser.findByPk as jest.Mock).mockResolvedValue(null)
 
     await expect(service.rotateRefreshToken("valid-but-missing-user")).rejects.toMatchObject({

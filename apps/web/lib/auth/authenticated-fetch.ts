@@ -2,6 +2,8 @@ import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
 import { ACCESS_COOKIE, REFRESH_COOKIE } from "./auth-cookies"
 
+type MaybeWithCode = { code?: string }
+
 const API_URL = process.env.API_URL ?? "http://localhost"
 
 function isTokenExpired(token: string): boolean {
@@ -81,8 +83,20 @@ export async function authenticatedFetch(
   options: RequestInit = {}
 ): Promise<Response> {
   const headers = await getAuthHeaders()
-  return fetch(`${API_URL}${url}`, {
+  const res = await fetch(`${API_URL}${url}`, {
     ...options,
     headers: { ...headers, ...options.headers },
   })
+
+  if (res.status === 403) {
+    const body = await res.clone().json().catch(() => ({})) as MaybeWithCode
+    if (body.code === "ACCOUNT_BANNED") {
+      const cookieStore = await cookies()
+      cookieStore.delete(ACCESS_COOKIE)
+      cookieStore.delete(REFRESH_COOKIE)
+      redirect("/sign-in?reason=banned")
+    }
+  }
+
+  return res
 }

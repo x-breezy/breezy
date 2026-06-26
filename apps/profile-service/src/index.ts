@@ -5,7 +5,6 @@ import { connect } from "./config/database"
 import { initFollowModel } from "./models/follow.model"
 import { initProfileModel } from "./models/profile.model"
 import { connectRabbitMQ } from "./clients/rabbitmq"
-import { connectRedis, disconnectRedis } from "./clients/redis"
 import { startBannedUsersConsumer } from "./clients/banned-users.consumer"
 import { startGrpcServer } from "./config/grpc.server"
 
@@ -27,7 +26,6 @@ async function start(): Promise<void> {
   await sequelize.sync(process.env.NODE_ENV === "production" ? undefined : { alter: true })
   logger.info("Models synchronized")
 
-  await connectRedis()
   await connectRabbitMQ()
   await startBannedUsersConsumer()
   startGrpcServer(logger, 50051)
@@ -37,10 +35,7 @@ async function start(): Promise<void> {
   })
 
   process.on("SIGTERM", () => {
-    server.close(async () => {
-      await disconnectRedis()
-      process.exit(0)
-    })
+    server.close(() => process.exit(0))
   })
 }
 

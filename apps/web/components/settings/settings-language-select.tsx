@@ -16,7 +16,7 @@ interface SettingsLanguageSelectProps {
   value: Language
 }
 
-const languages = [
+const languages: readonly { value: Language; label: string }[] = [
   { value: "fr", label: "Français" },
   { value: "en", label: "English" },
   { value: "es", label: "Español" },

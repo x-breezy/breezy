@@ -1,6 +1,6 @@
-"use client"
-
 export type Language = "en" | "fr" | "es"
+
+export const defaultLanguage: Language = "en"
 
 const LANGUAGE_COOKIE = "breezy-language"
 

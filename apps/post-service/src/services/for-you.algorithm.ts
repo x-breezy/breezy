@@ -1,6 +1,6 @@
 import { PostModel } from "../models/post.model"
 import { LikeModel } from "../models/like.model"
-import { getBannedUserIds } from "../clients/banned-users"
+import { getBannedUserIds } from "../clients/banned-users.consumer"
 import type { Post } from "../types/post"
 import type { PaginatedResponse } from "../types/api"
 

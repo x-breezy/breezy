@@ -22,6 +22,9 @@ services:
       CORS_ORIGIN_1: http://localhost:3000
       CORS_ORIGIN_2: http://localhost:3001
       MQ_DOMAIN: mq.localhost
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
     networks:
       - breezy
 
@@ -170,6 +173,9 @@ services:
     healthcheck:
       test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
       interval: 10s
+      timeout: 5s
+      retries: 5
+
   swagger-ui:
     build:
       context: .

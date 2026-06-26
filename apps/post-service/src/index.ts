@@ -3,7 +3,6 @@ import { createLogger, registerProcessHandlers } from "@breezy/logger"
 import { createApp } from "./app"
 import { connect } from "./config/database"
 import { connectRabbitMQ } from "./clients/rabbitmq"
-import { connectRedis } from "./clients/redis"
 import { startBannedUsersConsumer } from "./clients/banned-users.consumer"
 
 const logger = createLogger({ service: "post-service" })
@@ -18,7 +17,6 @@ async function start(): Promise<void> {
   logger.info("Connected to MongoDB")
 
   await connectRabbitMQ()
-  await connectRedis()
   await startBannedUsersConsumer()
 
   const server = app.listen(port, () => {
