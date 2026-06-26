@@ -80,12 +80,14 @@ export default async function RootLayout({
       data-theme={theme}
       className={cn("antialiased", geistMono.variable, "font-sans", geist.variable, geom.variable)}
     >
-      <script
-        defer
-        src='https://analytics.clementomnes.dev/script.js'
-        data-website-id='6939785e-0a27-4342-be0d-e00255f19f03'
-      ></script>
       <body suppressHydrationWarning>
+        {/* Web Analytics */}
+        <script
+          defer
+          src='https://analytics.clementomnes.dev/script.js'
+          data-website-id='6939785e-0a27-4342-be0d-e00255f19f03'
+        ></script>
+
         <NextIntlClientProvider messages={messages}>
           <QueryProvider>
             <ThemeProvider defaultTheme={theme}>
